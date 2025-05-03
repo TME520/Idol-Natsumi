@@ -23,7 +23,7 @@ void setup() {
 
 void loop() {
     M5.update();
-    auto keyState = M5Cardputer.Keyboard.getKeys();
+    auto keyState = M5Cardputer.Keyboard.getKey();
 
     if (keyState.wasPressed()) {
         handleKeyPress(keyState.key);
