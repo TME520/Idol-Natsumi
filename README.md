@@ -11,9 +11,9 @@ In *Idol Natsumi*, the player takes care of and raises a Japanese girl named Nat
 
 ### General navigation
 
-* TAB key open or closes the main menu
-* ESCAPE key goes back to Home screen
-* ENTER key validates whatever option is selected
+* **TAB** key open or closes the main menu
+* **ESCAPE** key goes back to Home screen
+* **ENTER** key validates whatever option is selected
 
 ### The 4 stages of Natsumi's life
 
@@ -26,12 +26,12 @@ Age progression is automatic, Natsumi ages one year every 24 hours.
 
 ### Statistics
 
-* Hunger (integer; 0 to 4; indicates how hungry Natsumi is)
-* Hygiene (integer; 0 to 4; indicates how clean Natsumi is)
-* Energy (integer; 0 to 4; indicates how energized Natsumi is)
-* Skill (integer; 0 to 4; indicates how good of a performer Natsumi is)
-* Mood (integer; 0 to 2; indicates how good Natsumi feels)
-* Popularity (integer; 0 to 4; indicates how popular Natsumi is)
+* **Hunger** (integer; 0 to 4; indicates how hungry Natsumi is)
+* **Hygiene** (integer; 0 to 4; indicates how clean Natsumi is)
+* **Energy** (integer; 0 to 4; indicates how energized Natsumi is)
+* **Skill** (integer; 0 to 4; indicates how good of a performer Natsumi is)
+* **Mood** (integer; 0 to 2; indicates how good Natsumi feels)
+* **Popularity** (integer; 0 to 4; indicates how popular Natsumi is)
 
 Stat caps: 0 is the lowest while 4 is the highest. These stats are exclusively influenced by what the player does.
 
@@ -48,11 +48,11 @@ Nap restores 2 Energy points while bedtime fully restores Energy.
 
 ### Main menu
 
-* 0: Display statistics
-* 1: Food: Cook/Restaurant/Order <- Influences Hunger
-* 2: Train: Singing/Dancing/Sport <- Mini games
-* 3: Compete: Participate into local/regional/departmental/national... competitions <- Influences popularity
-* 4: Health: Wash/Go to the temple/Go to doctor
-* 5: Rest: Nap/Bedtime
-* 6: Gardening
+* 0: Display **statistics**
+* 1: **Food**: Cook/Restaurant/Order <- Influences Hunger
+* 2: **Train**: Singing/Dancing/Sport <- Mini games
+* 3: **Compete**: Participate into local/regional/departmental/national... competitions <- Influences popularity
+* 4: **Health**: Wash/Go to the temple/Go to doctor
+* 5: **Rest**: Nap/Bedtime
+* 6: **Gardening**
 
