@@ -90,7 +90,30 @@ void handleMainMenuInput(uint8_t key) {
 
 void drawTitleScreen() {
   M5Cardputer.Display.fillScreen(BLACK);
-  M5Cardputer.Display.drawPngFile(SD, "/screens/title01.png", 0, 0);
+
+  File f = SD.open("/idolnat/screens/title01.png", FILE_READ);
+  if (!f) {
+    M5Cardputer.Display.setCursor(10, 60);
+    M5Cardputer.Display.setTextColor(RED);
+    M5Cardputer.Display.println("Missing /idolnat/screens/title01.png");
+    return;
+  }
+
+  size_t len = f.size();
+  uint8_t* buf = (uint8_t*)malloc(len);
+  if (!buf) {
+    f.close();
+    M5Cardputer.Display.setCursor(10, 60);
+    M5Cardputer.Display.setTextColor(RED);
+    M5Cardputer.Display.println("Out of memory");
+    return;
+  }
+
+  f.read(buf, len);
+  f.close();
+
+  M5Cardputer.Display.drawPng(buf, len, 0, 0);
+  free(buf);
 }
 
 void drawMainMenu() {
