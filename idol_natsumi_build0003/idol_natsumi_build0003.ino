@@ -26,7 +26,7 @@ void setup() {
 
   M5Cardputer.Display.setRotation(1);
   M5Cardputer.Display.setTextSize(1);
-  M5Cardputer.Display.setTextColor(WHITE);
+  M5Cardputer.Display.setTextColor(RED);
 
   if (!SD.begin()) {
     M5Cardputer.Display.println("SD init failed!");
@@ -48,6 +48,9 @@ void loop() {
 const char* gameStateToString(GameState state) {
   switch (state) {
     case TITLE_SCREEN:   return "TITLE_SCREEN";
+    case CALIBRATION_1:  return "CALIBRATION_1";
+    case CALIBRATION_2:  return "CALIBRATION_2";
+    case CALIBRATION_3:  return "CALIBRATION_3";
     case MAIN_MENU:      return "MAIN_MENU";
     case NEW_GAME:       return "NEW_GAME";
     case CONTINUE_GAME:  return "CONTINUE_GAME";
