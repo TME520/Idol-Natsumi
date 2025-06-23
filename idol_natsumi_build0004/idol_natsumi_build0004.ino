@@ -18,6 +18,8 @@ const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: DEBUG"};
 const int mainMenuItemCount = 3;
 int mainMenuSelection = 0;
 
+bool menuNeedsRedraw = true;
+
 unsigned long lastUpdate = 0;
 const int FRAME_DELAY = 50;
 
@@ -34,7 +36,9 @@ void setup() {
     while (true);
   }
 
+  currentState = TITLE_SCREEN;
   drawTitleScreen();
+  drawMainMenu();
 }
 
 void loop() {
@@ -43,7 +47,11 @@ void loop() {
   if (millis() - lastUpdate < FRAME_DELAY) return;
   lastUpdate = millis();
 
-  handleInput();
+  switch (currentState) {
+    case TITLE_SCREEN:
+      manageTitleScreen();
+      break;
+  }
 }
 
 const char* gameStateToString(GameState state) {
@@ -60,7 +68,7 @@ const char* gameStateToString(GameState state) {
   }
 }
 
-void handleInput() {
+void handleDebugModeInput() {
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
@@ -92,9 +100,6 @@ void handleInput() {
             drawMainMenu();
           }
           break;
-        case MAIN_MENU:
-          handleMainMenuInput(key);
-          break;
         default:
           break;
       }
@@ -102,28 +107,39 @@ void handleInput() {
   }
 }
 
-void handleMainMenuInput(uint8_t key) {
-  switch (key) {
-    case 181: case 'w': case 'W':
-      mainMenuSelection = (mainMenuSelection - 1 + mainMenuItemCount) % mainMenuItemCount;
-      drawMainMenu();
-      break;
-    case 182: case 's': case 'S':
-      mainMenuSelection = (mainMenuSelection + 1) % mainMenuItemCount;
-      drawMainMenu();
-      break;
-    case 13: case ' ':
-      if (mainMenuSelection == 0) {
-        currentState = NEW_GAME;
-        drawNewGameScreen();
-      } else if (mainMenuSelection == 1) {
-        currentState = CONTINUE_GAME;
-        drawContinueScreen();
-      } else {
-        currentState = DEBUG_MODE;
-        debugModeManagement();
+void manageTitleScreen() {
+  if (menuNeedsRedraw) {
+    drawMainMenu(); // just draw the overlay box, not the background
+    menuNeedsRedraw = false;
+  }
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      // M5Cardputer.Display.println("Key " + String(key) + " pressed...");
+      switch (key) {
+        case 181: case 'w': case 'W':
+          mainMenuSelection = (mainMenuSelection - 1 + mainMenuItemCount) % mainMenuItemCount;
+          menuNeedsRedraw = true;
+          break;
+        case 182: case 's': case 'S':
+          mainMenuSelection = (mainMenuSelection + 1) % mainMenuItemCount;
+          menuNeedsRedraw = true;
+          break;
+        case 13: case ' ':
+          if (mainMenuSelection == 0) {
+            currentState = NEW_GAME;
+            drawNewGameScreen();
+          } else if (mainMenuSelection == 1) {
+            currentState = CONTINUE_GAME;
+            drawContinueScreen();
+          } else {
+            currentState = DEBUG_MODE;
+            debugModeManagement();
+          }
+          break;
       }
-      break;
+    }
   }
 }
 
@@ -134,16 +150,21 @@ void drawTitleScreen() {
 
 void debugModeManagement() {
   M5Cardputer.Display.fillScreen(BLACK);
+  currentState = DEBUG_MODE;
+  handleDebugModeInput();
 }
 
 void drawMainMenu() {
-  M5Cardputer.Display.fillScreen(BLACK);
+  // Fake translucent black using dark gray fill
+  uint16_t overlayColor = M5Cardputer.Display.color888(30, 30, 30);  // Dark gray
 
-  M5Cardputer.Display.setTextSize(2);
-  M5Cardputer.Display.setTextColor(PINK);
-  M5Cardputer.Display.setCursor(30, 10);
-  M5Cardputer.Display.println("MAIN MENU");
-
+  // Draw box
+  int x = 20;
+  int y = 20;
+  int w = 200;
+  int h = 90;
+  M5Cardputer.Display.fillRect(x, y, w, h, overlayColor);
+  M5Cardputer.Display.drawRect(x, y, w, h, WHITE); // Optional border
   M5Cardputer.Display.setTextSize(1);
   for (int i = 0; i < mainMenuItemCount; i++) {
     M5Cardputer.Display.setCursor(50, 40 + i * 15);
@@ -200,6 +221,5 @@ void drawImageFromSD(const char* path) {
   f.close();
 
   M5Cardputer.Display.drawPng(buf, len, 0, 0);
-  M5Cardputer.Display.println(gameStateToString(currentState));
   free(buf);
 }
