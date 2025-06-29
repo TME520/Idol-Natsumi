@@ -15,12 +15,12 @@ enum GameState {
 };
 
 GameState currentState = TITLE_SCREEN;
-int subState = 0;
 
 const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: DEBUG"};
 const int mainMenuItemCount = 3;
 int mainMenuSelection = 0;
-bool screenNeedsRedraw = true;
+bool bgNeedsRedraw = true;
+bool fgNeedsRedraw = true;
 
 unsigned long lastUpdate = 0;
 const int FRAME_DELAY = 50;
@@ -81,8 +81,8 @@ void setup() {
   preloadImages();
 
   currentState = TITLE_SCREEN;
-  subState = 0;
-  screenNeedsRedraw = true;
+  bgNeedsRedraw = true;
+  fgNeedsRedraw = true;
 }
 
 void loop() {
@@ -104,9 +104,13 @@ void loop() {
 // === Menu and state logic ===
 
 void manageTitleScreen() {
-  if (screenNeedsRedraw) {
+  if (bgNeedsRedraw) {
+    drawTitleScreen();
+    bgNeedsRedraw = false;
+  }
+  if (fgNeedsRedraw) {
     drawMainMenu();
-    screenNeedsRedraw = false;
+    fgNeedsRedraw = false;
   }
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
@@ -115,11 +119,13 @@ void manageTitleScreen() {
       switch (key) {
         case 181: case 'w': case 'W':
           mainMenuSelection = (mainMenuSelection - 1 + mainMenuItemCount) % mainMenuItemCount;
-          screenNeedsRedraw = true;
+          bgNeedsRedraw = false;
+          fgNeedsRedraw = true;
           break;
         case 182: case 's': case 'S':
           mainMenuSelection = (mainMenuSelection + 1) % mainMenuItemCount;
-          screenNeedsRedraw = true;
+          bgNeedsRedraw = false;
+          fgNeedsRedraw = true;
           break;
         case 13: case ' ':
           if (mainMenuSelection == 0) {
@@ -130,7 +136,8 @@ void manageTitleScreen() {
             drawContinueScreen();
           } else {
             currentState = DEBUG_MODE;
-            screenNeedsRedraw = true;
+            bgNeedsRedraw = true;
+            fgNeedsRedraw = true;
             manageDebugMode();
           }
           break;
@@ -140,9 +147,13 @@ void manageTitleScreen() {
 }
 
 void manageDebugMode() {
-  if (screenNeedsRedraw) {
+  if (bgNeedsRedraw) {
     drawDebugScreen();
-    screenNeedsRedraw = false;
+    bgNeedsRedraw = false;
+  }
+  if (fgNeedsRedraw) {
+    drawDebugScreen();
+    fgNeedsRedraw = false;
   }
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
@@ -152,25 +163,29 @@ void manageDebugMode() {
         case DEBUG_MODE:
           if (key == 43) {
             currentState = CALIBRATION_1;
-            screenNeedsRedraw = true;
+            bgNeedsRedraw = true;
+            fgNeedsRedraw = false;
           }
           break;
         case CALIBRATION_1:
           if (key == 43) {
             currentState = CALIBRATION_2;
-            screenNeedsRedraw = true;
+            bgNeedsRedraw = true;
+            fgNeedsRedraw = false;
           }
           break;
         case CALIBRATION_2:
           if (key == 43) {
             currentState = CALIBRATION_3;
-            screenNeedsRedraw = true;
+            bgNeedsRedraw = true;
+            fgNeedsRedraw = false;
           }
           break;
         case CALIBRATION_3:
           if (key == 43) {
             currentState = TITLE_SCREEN;
-            screenNeedsRedraw = true;
+            bgNeedsRedraw = true;
+            fgNeedsRedraw = true;
           }
           break;
         default:
@@ -181,12 +196,14 @@ void manageDebugMode() {
 }
 
 // === Draw functions ===
+void drawTitleScreen() {
+  M5Cardputer.Display.fillScreen(BLACK);
+  drawImage(titleImage);
+}
 
 void drawMainMenu() {
-  drawImage(titleImage);
-
   uint16_t overlayColor = M5Cardputer.Display.color888(30, 30, 30);
-  int x = 20, y = 20, w = 200, h = 90;
+  int x = 60, y = 35, w = 120, h = 65;
 
   M5Cardputer.Display.fillRect(x, y, w, h, overlayColor);
   M5Cardputer.Display.drawRect(x, y, w, h, WHITE);
