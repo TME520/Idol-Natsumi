@@ -127,7 +127,7 @@ void manageTitleScreen() {
           bgNeedsRedraw = false;
           fgNeedsRedraw = true;
           break;
-        case 13: case ' ':
+        case 13: case 40: case ' ':
           if (mainMenuSelection == 0) {
             currentState = NEW_GAME;
             drawNewGameScreen();
@@ -159,6 +159,7 @@ void manageDebugMode() {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      M5Cardputer.Display.println("Key " + String(key) + " pressed...");
       switch (currentState) {
         case DEBUG_MODE:
           if (key == 43) {
@@ -223,15 +224,15 @@ void drawMainMenu() {
 
   M5Cardputer.Display.setTextColor(0x7BEF);
   M5Cardputer.Display.setCursor(10, 115);
-  M5Cardputer.Display.println("W/S: Navigate, Enter: Select");
+  M5Cardputer.Display.println("W/S: Navigate, ENTER: Validate");
 }
 
 void drawDebugScreen() {
   switch (currentState) {
     case DEBUG_MODE:
       M5Cardputer.Display.fillScreen(BLACK);
-      M5Cardputer.Display.setCursor(10, 60);
-      M5Cardputer.Display.println("DEBUG_MODE ready...");
+      M5Cardputer.Display.setCursor(10, 10);
+      M5Cardputer.Display.println("DEBUG_MODE");
       break;
     case CALIBRATION_1:
       drawImage(calib1);
