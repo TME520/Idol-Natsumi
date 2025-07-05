@@ -27,7 +27,6 @@ GameState currentState = TITLE_SCREEN;
 // === Player data ===
 struct NatsumiStats {
   int age;
-  unsigned long ageMilliseconds;
   int hunger;
 };
 
@@ -41,6 +40,20 @@ bool fgNeedsRedraw = true;
 
 unsigned long lastUpdate = 0;
 const int FRAME_DELAY = 50;
+
+
+// === Natsumi state ===
+struct Natsumi {
+  int age = 11;
+  int hunger = 0;
+};
+
+Natsumi natsumi;
+
+// === Game Time Tracking ===
+unsigned long sessionStart = 0;           // millis() when NEW_GAME starts
+unsigned long playtimeTotalMs = 0;        // total playtime in ms
+int lastAgeTick = 0;                      // last granted age (in years)
 
 // === Image preload system ===
 struct ImageBuffer {
@@ -107,6 +120,7 @@ void loop() {
 
   if (millis() - lastUpdate < FRAME_DELAY) return;
   lastUpdate = millis();
+  updateAging();
 
   switch (currentState) {
     case TITLE_SCREEN:
@@ -126,7 +140,7 @@ void loop() {
 void updateAging() {
   unsigned long currentPlaytime = millis() - sessionStart;
   unsigned long totalMs = playtimeTotalMs + currentPlaytime;
-  int ageOffset = totalMs / 86400000UL; // 1 day in milliseconds
+  int ageOffset = totalMs / agingIntervalMs; // 1 day in milliseconds
 
   /*
   if (ageOffset > lastAgeTick) {
@@ -164,6 +178,11 @@ void manageTitleScreen() {
           break;
         case 13: case 40: case ' ':
           if (mainMenuSelection == 0) {
+            natsumi.age = 11;
+            natsumi.hunger = 0;
+            playtimeTotalMs = 0;
+            sessionStart = millis();
+            lastAgeTick = 0;
             currentState = NEW_GAME;
             natsumi.age = 11;
             natsumi.hunger = 0;
@@ -332,4 +351,20 @@ void drawContinueScreen() {
   M5Cardputer.Display.setCursor(20, 60);
   M5Cardputer.Display.setTextColor(CYAN);
   M5Cardputer.Display.println("Continuing your game...");
+}
+
+void updateAging() {
+  if (currentState != NEW_GAME && currentState != CONTINUE_GAME) return;
+
+  unsigned long currentPlaytime = millis() - sessionStart;
+  unsigned long totalMs = playtimeTotalMs + currentPlaytime;
+
+  int ageOffset = totalMs / agingIntervalMs; // 1 day = 86,400,000 ms
+
+  if (ageOffset > lastAgeTick) {
+    int delta = ageOffset - lastAgeTick;
+    natsumi.age += delta;
+    lastAgeTick = ageOffset;
+    fgNeedsRedraw = true;
+  }
 }
