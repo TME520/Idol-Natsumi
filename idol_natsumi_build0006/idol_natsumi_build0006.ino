@@ -78,11 +78,11 @@ void preloadImages() {
   preloadImage("/idolnat/screens/setup_menubox.png", calib2);
   preloadImage("/idolnat/screens/setup_dialog.png", calib3);
   // sprites
-  preloadImage("/idolnat/sprites/natsumi_11yo.png", natsumi11);
-  preloadImage("/idolnat/sprites/natsumi_13yo.png", natsumi13);
-  preloadImage("/idolnat/sprites/natsumi_15yo.png", natsumi15);
-  preloadImage("/idolnat/sprites/natsumi_18yo.png", natsumi18);
-  preloadImage("/idolnat/sprites/natsumi_21yo.png", natsumi21);
+  preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", natsumi11);
+  preloadImage("/idolnat/sprites/natsumi_13yo-90x135.png", natsumi13);
+  preloadImage("/idolnat/sprites/natsumi_15yo-90x135.png", natsumi15);
+  preloadImage("/idolnat/sprites/natsumi_18yo-90x135.png", natsumi18);
+  preloadImage("/idolnat/sprites/natsumi_21yo-90x135.png", natsumi21);
 }
 
 void drawImage(const ImageBuffer& img) {
@@ -137,11 +137,14 @@ void loop() {
 // === Menu and state logic ===
 
 void updateAging() {
+  Serial.println("> Entering updateAging()");
   unsigned long currentMilli = millis();
   unsigned long currentPlaytime = currentMilli - sessionStart;
   unsigned long totalMs = playtimeTotalMs + currentPlaytime;
  
   natsumi.ageMilliseconds = currentPlaytime;
+  Serial.print("natsumi.age: ");
+  Serial.println(natsumi.age);
   if (natsumi.ageMilliseconds < agingIntervalMs) {
     // 11yo
     natsumi.age = 11;
@@ -179,6 +182,8 @@ void updateAging() {
     // 22yo - Game ends
     natsumi.age = 22;
   }
+  Serial.print("natsumi.age: ");
+  Serial.println(natsumi.age);
 }
 
 void manageTitleScreen() {
@@ -233,13 +238,22 @@ void manageTitleScreen() {
 }
 
 void manageHomeScreen() {
+  Serial.println("> Entering manageHomeScreen()");
   int currentAge = natsumi.age;
+  Serial.print("natsumi.age: ");
+  Serial.println(natsumi.age);
+  Serial.print("currentAge: ");
+  Serial.println(currentAge);
   updateAging();
+  Serial.print("natsumi.age: ");
+  Serial.println(natsumi.age);
+  Serial.print("currentAge: ");
+  Serial.println(currentAge);
   if (natsumi.age > currentAge) {
     bgNeedsRedraw = true;
   }
-  bgNeedsRedraw = true;
-  // fgNeedsRedraw = true;
+  // bgNeedsRedraw = true;
+  fgNeedsRedraw = true;
   if (bgNeedsRedraw) {
     drawHomeScreen();
     bgNeedsRedraw = false;
@@ -351,8 +365,8 @@ void drawDebugScreen() {
 }
 
 void drawHomeScreen() {
-  M5Cardputer.Display.fillScreen(BLUE);
-  drawImage(calib3);
+  M5Cardputer.Display.fillScreen(BLACK);
+  // drawImage(natsumi11);
   switch(natsumi.age) {
     case 11: case 12:
       drawImage(natsumi11);
