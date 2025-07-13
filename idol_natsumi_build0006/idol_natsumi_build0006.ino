@@ -50,6 +50,7 @@ struct ImageBuffer {
 ImageBuffer titleImage;
 ImageBuffer calib1, calib2, calib3;
 ImageBuffer natsumi11, natsumi13, natsumi15, natsumi18, natsumi21;
+ImageBuffer natsumi11age, natsumi13age, natsumi15age, natsumi18age, natsumi21age;
 
 bool preloadImage(const char* path, ImageBuffer &imgBuf) {
   File f = SD.open(path, FILE_READ);
@@ -68,6 +69,10 @@ bool preloadImage(const char* path, ImageBuffer &imgBuf) {
 
   f.read(imgBuf.data, imgBuf.length);
   f.close();
+
+  // Show how much memory is left
+  Serial.print("Free heap: ");
+  Serial.println(ESP.getFreeHeap());
   return true;
 }
 
@@ -78,11 +83,18 @@ void preloadImages() {
   preloadImage("/idolnat/screens/setup_menubox.png", calib2);
   preloadImage("/idolnat/screens/setup_dialog.png", calib3);
   // sprites
+  /*
   preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", natsumi11);
   preloadImage("/idolnat/sprites/natsumi_13yo-90x135.png", natsumi13);
   preloadImage("/idolnat/sprites/natsumi_15yo-90x135.png", natsumi15);
   preloadImage("/idolnat/sprites/natsumi_18yo-90x135.png", natsumi18);
   preloadImage("/idolnat/sprites/natsumi_21yo-90x135.png", natsumi21);
+  */
+  preloadImage("/idolnat/sprites/natsumi_11yo-240x135.png", natsumi11age);
+  preloadImage("/idolnat/sprites/natsumi_13yo-240x135.png", natsumi13age);
+  preloadImage("/idolnat/sprites/natsumi_15yo-240x135.png", natsumi15age);
+  preloadImage("/idolnat/sprites/natsumi_18yo-240x135.png", natsumi18age);
+  preloadImage("/idolnat/sprites/natsumi_21yo-240x135.png", natsumi21age);
 }
 
 void drawImage(const ImageBuffer& img) {
@@ -96,7 +108,11 @@ void drawImage(const ImageBuffer& img) {
 void setup() {
   auto cfg = M5.config();
   M5Cardputer.begin(cfg);
-  Serial.begin(9600);
+  delay(1000);
+  Serial.begin(115200);
+  delay(1000);
+  Serial.println("");
+  Serial.println("*** BEGIN ***");
 
   M5Cardputer.Display.setRotation(1);
   M5Cardputer.Display.setTextSize(1);
@@ -123,6 +139,7 @@ void loop() {
 
   switch (currentState) {
     case TITLE_SCREEN:
+      // Serial.println("> Title screen");
       manageTitleScreen();
       break;
     case NEW_GAME:
@@ -369,19 +386,19 @@ void drawHomeScreen() {
   // drawImage(natsumi11);
   switch(natsumi.age) {
     case 11: case 12:
-      drawImage(natsumi11);
+      drawImage(natsumi11age);
       break;
     case 13: case 14:
-      drawImage(natsumi13);
+      drawImage(natsumi13age);
       break;
     case 15: case 16: case 17:
-      drawImage(natsumi15);
+      drawImage(natsumi15age);
       break;
     case 18: case 19: case 20:
-      drawImage(natsumi18);
+      drawImage(natsumi18age);
       break;
     case 21: case 22:
-      drawImage(natsumi21);
+      drawImage(natsumi21age);
       break;
     default:
       break;
@@ -390,6 +407,7 @@ void drawHomeScreen() {
 
 void drawHomeStats() {
   // M5Cardputer.Display.fillScreen(BLACK);
+  M5Cardputer.Display.fillRect(0, 32, 80, 14, BLACK);
   M5Cardputer.Display.setCursor(20, 20);
   M5Cardputer.Display.setTextColor(CYAN);
   M5Cardputer.Display.println(" Natsumi Hasegawa");
