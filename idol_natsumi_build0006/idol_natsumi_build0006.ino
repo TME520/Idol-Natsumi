@@ -1,16 +1,10 @@
 #include <M5Cardputer.h>
 #include <SD.h>
 
-// === Game Time Tracking ===
-// 60000 milliseconds in a minute
-// 86,400,000 milliseconds in a day
-unsigned long agingIntervalMs = 60000;  // 1 minute for testing
-unsigned long sessionStart = 0;           // millis() when NEW_GAME starts
-unsigned long playtimeTotalMs = 0;        // total playtime in ms (could persist later)
-int lastAgeTick = 0;
 
 // === Game state definitions ===
 enum GameState {
+  VERSION_SCREEN,
   TITLE_SCREEN,
   CALIBRATION_1,
   CALIBRATION_2,
@@ -21,16 +15,32 @@ enum GameState {
   DEBUG_MODE
 };
 
-GameState currentState = TITLE_SCREEN;
+GameState currentState = VERSION_SCREEN;
 
 // === Player data ===
 struct NatsumiStats {
   int age;
   unsigned long ageMilliseconds;
   int hunger;
+  int hygiene;
+  int energy;
+  int skill;
+  int mood;
+  int popularity;
 };
 
 NatsumiStats natsumi;
+
+// === Game Time Tracking ===
+// 60000 milliseconds in a minute
+// 86,400,000 milliseconds in a day
+unsigned long agingIntervalMs = 60000;  // 1 minute for testing
+unsigned long sessionStart = 0;           // millis() when NEW_GAME starts
+unsigned long playtimeTotalMs = 0;        // total playtime in ms (could persist later)
+int lastAgeTick = 0;
+int shortWait = 1000;
+int mediumWait = 3000;
+int longWait = 6000;
 
 const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: DEBUG"};
 const int mainMenuItemCount = 3;
@@ -46,6 +56,9 @@ struct ImageBuffer {
   uint8_t* data = nullptr;
   size_t length = 0;
 };
+
+String copyright = "(c) 2025 - Pantsumatic";
+String versionNumber = "0.6.1000";
 
 ImageBuffer titleImage;
 ImageBuffer calib1, calib2, calib3;
@@ -126,7 +139,7 @@ void setup() {
 
   preloadImages();
 
-  currentState = TITLE_SCREEN;
+  currentState = VERSION_SCREEN;
   bgNeedsRedraw = true;
   fgNeedsRedraw = true;
 }
@@ -138,12 +151,17 @@ void loop() {
   lastUpdate = millis();
 
   switch (currentState) {
+    case VERSION_SCREEN:
+      manageVersionScreen();
+      break;
     case TITLE_SCREEN:
       // Serial.println("> Title screen");
       manageTitleScreen();
       break;
     case NEW_GAME:
       manageHomeScreen();
+      break;
+    case CONTINUE_GAME:
       break;
     case DEBUG_MODE: case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
       manageDebugMode();
@@ -201,6 +219,17 @@ void updateAging() {
   }
   Serial.print("natsumi.age: ");
   Serial.println(natsumi.age);
+}
+
+void manageVersionScreen() {
+  Serial.println("> Entering manageVersionScreen()");
+  M5Cardputer.Display.fillScreen(BLACK);
+  M5Cardputer.Display.setCursor(30, 30);
+  M5Cardputer.Display.println("Idol Natsumi for M5 Cardputer");
+  M5Cardputer.Display.println(copyright);
+  M5Cardputer.Display.println(versionNumber);
+  delay(mediumWait);
+  currentState = TITLE_SCREEN;
 }
 
 void manageTitleScreen() {
@@ -346,7 +375,7 @@ void drawMainMenu() {
 
   M5Cardputer.Display.setTextSize(1);
   for (int i = 0; i < mainMenuItemCount; i++) {
-    M5Cardputer.Display.setCursor(55, 40 + i * 15);
+    M5Cardputer.Display.setCursor(65, 40 + i * 15);
     if (i == mainMenuSelection) {
       M5Cardputer.Display.setTextColor(YELLOW);
       M5Cardputer.Display.print("> ");
