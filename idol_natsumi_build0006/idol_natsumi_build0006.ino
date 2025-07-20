@@ -65,6 +65,20 @@ ImageBuffer calib1, calib2, calib3;
 ImageBuffer natsumi11, natsumi13, natsumi15, natsumi18, natsumi21;
 ImageBuffer natsumi11age, natsumi13age, natsumi15age, natsumi18age, natsumi21age;
 
+// === UI Helper Functions ===
+void drawText(String text, int x, int y, bool centerAlign, uint16_t color = WHITE, int textSize = 2) {
+    M5Cardputer.Display.setTextColor(color);
+    M5Cardputer.Display.setTextSize(textSize);
+
+    if (centerAlign) {
+        M5Cardputer.Display.setTextDatum(middle_center);  // Center alignment
+    } else {
+        M5Cardputer.Display.setTextDatum(top_left);       // Left alignment
+    }
+
+    M5Cardputer.Display.drawString(text, x, y);
+}
+
 bool preloadImage(const char* path, ImageBuffer &imgBuf) {
   File f = SD.open(path, FILE_READ);
   if (!f) return false;
@@ -224,10 +238,10 @@ void updateAging() {
 void manageVersionScreen() {
   Serial.println("> Entering manageVersionScreen()");
   M5Cardputer.Display.fillScreen(BLACK);
-  M5Cardputer.Display.setCursor(30, 30);
-  M5Cardputer.Display.println("Idol Natsumi for M5 Cardputer");
-  M5Cardputer.Display.println(copyright);
-  M5Cardputer.Display.println(versionNumber);
+  drawText("IDOL NATSUMI", 120, 30, true, RED, 3); // centered
+  drawText("for M5 Cardputer", 120, 50, true, BLUE, 2); // centered
+  drawText(copyright, 120, 100, true, WHITE, 1); // centered
+  drawText(versionNumber, 120, 110, true, WHITE, 1); // centered
   delay(mediumWait);
   currentState = TITLE_SCREEN;
 }
