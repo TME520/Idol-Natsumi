@@ -12,7 +12,8 @@ enum GameState {
   MAIN_MENU,
   NEW_GAME,
   CONTINUE_GAME,
-  DEBUG_MODE
+  DEBUG_MODE,
+  HOME_LOOP
 };
 
 GameState currentState = VERSION_SCREEN;
@@ -66,16 +67,34 @@ ImageBuffer natsumi11, natsumi13, natsumi15, natsumi18, natsumi21;
 ImageBuffer natsumi11age, natsumi13age, natsumi15age, natsumi18age, natsumi21age;
 
 // === UI Helper Functions ===
-void drawText(String text, int x, int y, bool centerAlign, uint16_t color = WHITE, int textSize = 2) {
-    M5Cardputer.Display.setTextColor(color);
+void drawText(String text, int x, int y, bool centerAlign, uint16_t color = WHITE, int textSize = 2, uint16_t bgColor = BLACK) {
     M5Cardputer.Display.setTextSize(textSize);
 
+    // Set alignment for size calculation
     if (centerAlign) {
-        M5Cardputer.Display.setTextDatum(middle_center);  // Center alignment
+        M5Cardputer.Display.setTextDatum(middle_center);
     } else {
-        M5Cardputer.Display.setTextDatum(top_left);       // Left alignment
+        M5Cardputer.Display.setTextDatum(top_left);
     }
 
+    // Measure text size
+    int16_t textWidth = M5Cardputer.Display.textWidth(text);
+    int16_t textHeight = M5Cardputer.Display.fontHeight();
+
+    // Compute clear rectangle position based on alignment
+    int clearX = x;
+    int clearY = y;
+
+    if (centerAlign) {
+        clearX = x - textWidth / 2;
+        clearY = y - textHeight / 2;
+    }
+
+    // Clear previous text area
+    M5Cardputer.Display.fillRect(clearX, clearY, textWidth, textHeight, bgColor);
+
+    // Draw new text
+    M5Cardputer.Display.setTextColor(color, bgColor); // Text with background
     M5Cardputer.Display.drawString(text, x, y);
 }
 
@@ -89,7 +108,7 @@ bool preloadImage(const char* path, ImageBuffer &imgBuf) {
   imgBuf.data = (uint8_t*)malloc(imgBuf.length);
   if (!imgBuf.data) {
     f.close();
-    M5Cardputer.Display.println("SD load image failed!");
+    drawText("SD load image failed!", 120, 110, true, RED, 1); // centered
     Serial.println("SD load image failed!");
     return false;
   }
@@ -141,12 +160,8 @@ void setup() {
   Serial.println("");
   Serial.println("*** BEGIN ***");
 
-  M5Cardputer.Display.setRotation(1);
-  M5Cardputer.Display.setTextSize(1);
-  M5Cardputer.Display.setTextColor(RED);
-
   if (!SD.begin()) {
-    M5Cardputer.Display.println("SD init failed!");
+    drawText("SD init failed!", 120, 110, true, RED, 1); // centered
     Serial.println("SD init failed!");
     while (true);
   }
@@ -173,12 +188,42 @@ void loop() {
       manageTitleScreen();
       break;
     case NEW_GAME:
-      manageHomeScreen();
+      natsumi.age = 0;
+      natsumi.ageMilliseconds = 0;
+      natsumi.hunger = 4;
+      natsumi.hygiene = 4;
+      natsumi.energy = 4;
+      natsumi.skill = 0;
+      natsumi.mood = 0;
+      natsumi.popularity = 0;
+      playtimeTotalMs = 0;
+      sessionStart = millis();
+      lastAgeTick = 0;
+      bgNeedsRedraw = false;
+      fgNeedsRedraw = true;
+      currentState = HOME_LOOP;
       break;
     case CONTINUE_GAME:
+      natsumi.age = 0;
+      natsumi.ageMilliseconds = 0;
+      natsumi.hunger = 4;
+      natsumi.hygiene = 4;
+      natsumi.energy = 4;
+      natsumi.skill = 0;
+      natsumi.mood = 0;
+      natsumi.popularity = 0;
+      playtimeTotalMs = 0;
+      sessionStart = millis();
+      lastAgeTick = 0;
+      bgNeedsRedraw = false;
+      fgNeedsRedraw = true;
+      currentState = HOME_LOOP;
       break;
     case DEBUG_MODE: case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
       manageDebugMode();
+      break;
+    case HOME_LOOP:
+      manageHomeScreen();
       break;
   }
 }
@@ -273,18 +318,8 @@ void manageTitleScreen() {
         case 13: case 40: case ' ':
           if (mainMenuSelection == 0) {
             currentState = NEW_GAME;
-            natsumi.age = 0;
-            natsumi.ageMilliseconds = 0;
-            natsumi.hunger = 0;
-            playtimeTotalMs = 0;
-            sessionStart = millis();
-            lastAgeTick = 0;
-            bgNeedsRedraw = false;
-            fgNeedsRedraw = true;
-            drawHomeScreen();
           } else if (mainMenuSelection == 1) {
             currentState = CONTINUE_GAME;
-            drawContinueScreen();
           } else {
             currentState = DEBUG_MODE;
             bgNeedsRedraw = true;
@@ -337,7 +372,7 @@ void manageDebugMode() {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      M5Cardputer.Display.println("Key " + String(key) + " pressed...");
+      drawText("Key " + String(key) + " pressed...", 120, 110, true, WHITE, 1); // centered
       switch (currentState) {
         case DEBUG_MODE:
           if (key == 43) {
@@ -389,7 +424,7 @@ void drawMainMenu() {
 
   M5Cardputer.Display.setTextSize(1);
   for (int i = 0; i < mainMenuItemCount; i++) {
-    M5Cardputer.Display.setCursor(65, 40 + i * 15);
+    M5Cardputer.Display.setCursor(65, 45 + i * 15);
     if (i == mainMenuSelection) {
       M5Cardputer.Display.setTextColor(YELLOW);
       M5Cardputer.Display.print("> ");
@@ -409,8 +444,7 @@ void drawDebugScreen() {
   switch (currentState) {
     case DEBUG_MODE:
       M5Cardputer.Display.fillScreen(BLACK);
-      M5Cardputer.Display.setCursor(10, 10);
-      M5Cardputer.Display.println("DEBUG_MODE");
+      drawText("DEBUG_MODE", 30, 30, false, ORANGE, 3);
       break;
     case CALIBRATION_1:
       drawImage(calib1);
@@ -426,7 +460,6 @@ void drawDebugScreen() {
 
 void drawHomeScreen() {
   M5Cardputer.Display.fillScreen(BLACK);
-  // drawImage(natsumi11);
   switch(natsumi.age) {
     case 11: case 12:
       drawImage(natsumi11age);
@@ -449,26 +482,13 @@ void drawHomeScreen() {
 }
 
 void drawHomeStats() {
-  // M5Cardputer.Display.fillScreen(BLACK);
-  M5Cardputer.Display.fillRect(0, 32, 80, 14, BLACK);
-  M5Cardputer.Display.setCursor(20, 20);
-  M5Cardputer.Display.setTextColor(CYAN);
-  M5Cardputer.Display.println(" Natsumi Hasegawa");
-  M5Cardputer.Display.println("----------------------------------");
-
-  M5Cardputer.Display.setTextColor(WHITE);
-  M5Cardputer.Display.println(natsumi.ageMilliseconds);
-  M5Cardputer.Display.println("----------------------------------");
-  M5Cardputer.Display.print("> Age: ");
-  M5Cardputer.Display.println(natsumi.age);
-
-  M5Cardputer.Display.print("> Hunger: ");
-  M5Cardputer.Display.println(natsumi.hunger);
-}
-
-void drawContinueScreen() {
-  M5Cardputer.Display.fillScreen(BLACK);
-  M5Cardputer.Display.setCursor(20, 60);
-  M5Cardputer.Display.setTextColor(CYAN);
-  M5Cardputer.Display.println("Continuing your game...");
+  drawText("Natsumi Hasegawa", 20, 20, false, CYAN, 2);
+  drawText(String("Time: ") + natsumi.ageMilliseconds, 120, 40, true, WHITE, 1);
+  drawText(String("Age: ") + natsumi.age + " y.o.", 120, 50, true, WHITE, 1);
+  drawText(String("Hunger: ") + natsumi.hunger, 120, 60, true, WHITE, 1);
+  drawText(String("Hygiene: ") + natsumi.hygiene, 120, 70, true, WHITE, 1);
+  drawText(String("Energy: ") + natsumi.energy, 120, 80, true, WHITE, 1);
+  drawText(String("Skill: ") + natsumi.skill, 120, 90, true, WHITE, 1);
+  drawText(String("Mood: ") + natsumi.mood, 120, 100, true, WHITE, 1);
+  drawText(String("Popularity: ") + natsumi.popularity, 120, 110, true, WHITE, 1);
 }
