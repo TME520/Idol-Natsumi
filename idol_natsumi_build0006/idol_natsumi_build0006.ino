@@ -479,16 +479,16 @@ void drawHomeScreen() {
     default:
       break;
   }
+  drawText("Natsumi Hasegawa", 20, 20, false, CYAN, 2);
 }
 
 void drawHomeStats() {
-  drawText("Natsumi Hasegawa", 20, 20, false, CYAN, 2);
-  drawText(String("Time: ") + natsumi.ageMilliseconds, 120, 40, true, WHITE, 1);
-  drawText(String("Age: ") + natsumi.age + " y.o.", 120, 50, true, WHITE, 1);
-  drawText(String("Hunger: ") + natsumi.hunger, 120, 60, true, WHITE, 1);
-  drawText(String("Hygiene: ") + natsumi.hygiene, 120, 70, true, WHITE, 1);
-  drawText(String("Energy: ") + natsumi.energy, 120, 80, true, WHITE, 1);
-  drawText(String("Skill: ") + natsumi.skill, 120, 90, true, WHITE, 1);
-  drawText(String("Mood: ") + natsumi.mood, 120, 100, true, WHITE, 1);
-  drawText(String("Popularity: ") + natsumi.popularity, 120, 110, true, WHITE, 1);
+  drawText(String("Time: ") + natsumi.ageMilliseconds, 80, 50, false, WHITE, 1);
+  drawText(String("Age: ") + natsumi.age + " y.o.", 80, 60, false, WHITE, 1);
+  drawText(String("Hunger: ") + natsumi.hunger, 80, 70, false, WHITE, 1);
+  drawText(String("Hygiene: ") + natsumi.hygiene, 80, 80, false, WHITE, 1);
+  drawText(String("Energy: ") + natsumi.energy, 80, 90, false, WHITE, 1);
+  drawText(String("Skill: ") + natsumi.skill, 80, 100, false, WHITE, 1);
+  drawText(String("Mood: ") + natsumi.mood, 80, 110, false, WHITE, 1);
+  drawText(String("Popularity: ") + natsumi.popularity, 80, 120, false, WHITE, 1);
 }
