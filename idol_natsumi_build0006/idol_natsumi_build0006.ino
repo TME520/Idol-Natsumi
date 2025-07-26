@@ -28,6 +28,9 @@ struct NatsumiStats {
   int skill;
   int mood;
   int popularity;
+  unsigned long lastHungerUpdate = 0;
+  unsigned long lastHygieneUpdate = 0;
+  unsigned long lastEnergyUpdate = 0;
 };
 
 NatsumiStats natsumi;
@@ -42,6 +45,10 @@ int lastAgeTick = 0;
 int shortWait = 1000;
 int mediumWait = 3000;
 int longWait = 6000;
+
+const unsigned long hungerInterval = 120000;   // 2 minutes
+const unsigned long hygieneInterval = 240000;  // 4 minutes
+const unsigned long energyInterval = 240000;   // 4 minutes
 
 const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: DEBUG"};
 const int mainMenuItemCount = 3;
@@ -59,7 +66,7 @@ struct ImageBuffer {
 };
 
 String copyright = "(c) 2025 - Pantsumatic";
-String versionNumber = "0.6.1000";
+String versionNumber = "0.6.1001";
 
 ImageBuffer titleImage;
 ImageBuffer calib1, calib2, calib3;
@@ -196,6 +203,9 @@ void loop() {
       natsumi.skill = 0;
       natsumi.mood = 0;
       natsumi.popularity = 0;
+      natsumi.lastHungerUpdate = 0;
+      natsumi.lastHygieneUpdate = 0;
+      natsumi.lastEnergyUpdate = 0;
       playtimeTotalMs = 0;
       sessionStart = millis();
       lastAgeTick = 0;
@@ -212,6 +222,9 @@ void loop() {
       natsumi.skill = 0;
       natsumi.mood = 0;
       natsumi.popularity = 0;
+      natsumi.lastHungerUpdate = 0;
+      natsumi.lastHygieneUpdate = 0;
+      natsumi.lastEnergyUpdate = 0;
       playtimeTotalMs = 0;
       sessionStart = millis();
       lastAgeTick = 0;
@@ -280,6 +293,35 @@ void updateAging() {
   Serial.println(natsumi.age);
 }
 
+void updateStats() {
+  Serial.println("> Entering updateStats()");
+  unsigned long currentMillis = millis();
+
+  // Hunger decreases every 2 minutes
+  if (currentMillis - natsumi.lastHungerUpdate >= hungerInterval) {
+    if (natsumi.hunger > 0) natsumi.hunger--;
+    natsumi.lastHungerUpdate = currentMillis;
+    Serial.print("Hunger decreased: ");
+    Serial.println(natsumi.hunger);
+  }
+
+  // Hygiene decreases every 4 minutes
+  if (currentMillis - natsumi.lastHygieneUpdate >= hygieneInterval) {
+    if (natsumi.hygiene > 0) natsumi.hygiene--;
+    natsumi.lastHygieneUpdate = currentMillis;
+    Serial.print("Hygiene decreased: ");
+    Serial.println(natsumi.hygiene);
+  }
+
+  // Energy decreases every 4 minutes
+  if (currentMillis - natsumi.lastEnergyUpdate >= energyInterval) {
+    if (natsumi.energy > 0) natsumi.energy--;
+    natsumi.lastEnergyUpdate = currentMillis;
+    Serial.print("Energy decreased: ");
+    Serial.println(natsumi.energy);
+  }
+}
+
 void manageVersionScreen() {
   Serial.println("> Entering manageVersionScreen()");
   M5Cardputer.Display.fillScreen(BLACK);
@@ -340,6 +382,7 @@ void manageHomeScreen() {
   Serial.print("currentAge: ");
   Serial.println(currentAge);
   updateAging();
+  updateStats();
   Serial.print("natsumi.age: ");
   Serial.println(natsumi.age);
   Serial.print("currentAge: ");
