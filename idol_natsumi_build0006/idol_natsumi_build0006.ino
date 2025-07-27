@@ -12,9 +12,13 @@ enum GameState {
   MAIN_MENU,
   NEW_GAME,
   CONTINUE_GAME,
-  DEBUG_MODE,
+  DEV_SCREEN,
+  DEBUG_HOME,
   HOME_LOOP,
-  ACTION_MENU
+  ACTION_MENU,
+  ACTION_EAT,
+  ACTION_WASH,
+  ACTION_REST
 };
 
 GameState currentState = VERSION_SCREEN;
@@ -51,9 +55,10 @@ const unsigned long hungerInterval = 120000;   // 2 minutes
 const unsigned long hygieneInterval = 240000;  // 4 minutes
 const unsigned long energyInterval = 240000;   // 4 minutes
 
-const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: DEBUG"};
-const char* actionMenuItems[] = {"0: EAT", "1: WASH", "2: REST", "3: BACK"};
+const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: DEV SCREEN"};
+const char* actionMenuItems[] = {"0: EAT", "1: WASH", "2: REST", "3: DEBUG"};
 const int mainMenuItemCount = 3;
+const int actionMenuItemCount = 4;
 int actionMenuSelection = 0;
 int mainMenuSelection = 0;
 bool bgNeedsRedraw = true;
@@ -139,13 +144,6 @@ void preloadImages() {
   preloadImage("/idolnat/screens/setup_menubox.png", calib2);
   preloadImage("/idolnat/screens/setup_dialog.png", calib3);
   // sprites
-  /*
-  preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", natsumi11);
-  preloadImage("/idolnat/sprites/natsumi_13yo-90x135.png", natsumi13);
-  preloadImage("/idolnat/sprites/natsumi_15yo-90x135.png", natsumi15);
-  preloadImage("/idolnat/sprites/natsumi_18yo-90x135.png", natsumi18);
-  preloadImage("/idolnat/sprites/natsumi_21yo-90x135.png", natsumi21);
-  */
   preloadImage("/idolnat/sprites/natsumi_11yo-240x135.png", natsumi11age);
   preloadImage("/idolnat/sprites/natsumi_13yo-240x135.png", natsumi13age);
   preloadImage("/idolnat/sprites/natsumi_15yo-240x135.png", natsumi15age);
@@ -235,11 +233,19 @@ void loop() {
       fgNeedsRedraw = true;
       currentState = HOME_LOOP;
       break;
-    case DEBUG_MODE: case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
-      manageDebugMode();
+    case DEV_SCREEN: case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
+      manageDevSCreen();
       break;
     case HOME_LOOP:
       manageHomeScreen();
+      break;
+    case ACTION_MENU:
+      manageHomeScreen();
+      drawActionMenu();
+      break;
+    case DEBUG_HOME:
+      manageHomeScreen();
+      drawHomeStats();
       break;
   }
 }
@@ -366,10 +372,10 @@ void manageTitleScreen() {
           } else if (mainMenuSelection == 1) {
             currentState = CONTINUE_GAME;
           } else {
-            currentState = DEBUG_MODE;
+            currentState = DEV_SCREEN;
             bgNeedsRedraw = true;
             fgNeedsRedraw = true;
-            manageDebugMode();
+            manageDevSCreen();
           }
           break;
       }
@@ -386,32 +392,35 @@ void manageHomeScreen() {
   Serial.println(currentAge);
   updateAging();
   updateStats();
-  Serial.print("natsumi.age: ");
-  Serial.println(natsumi.age);
-  Serial.print("currentAge: ");
-  Serial.println(currentAge);
   if (natsumi.age > currentAge) {
     bgNeedsRedraw = true;
   }
-  // bgNeedsRedraw = true;
   fgNeedsRedraw = true;
   if (bgNeedsRedraw) {
     drawHomeScreen();
     bgNeedsRedraw = false;
   }
-  if (fgNeedsRedraw) {
-    drawHomeStats();
-    fgNeedsRedraw = false;
+
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (key) {
+        case 43:
+          currentState = ACTION_MENU;
+          break;
+      }
+    }
   }
 }
 
-void manageDebugMode() {
+void manageDevSCreen() {
   if (bgNeedsRedraw) {
-    drawDebugScreen();
+    drawDevSCreen();
     bgNeedsRedraw = false;
   }
   if (fgNeedsRedraw) {
-    drawDebugScreen();
+    drawDevSCreen();
     fgNeedsRedraw = false;
   }
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -420,7 +429,7 @@ void manageDebugMode() {
       uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
       drawText("Key " + String(key) + " pressed...", 120, 110, true, WHITE, 1); // centered
       switch (currentState) {
-        case DEBUG_MODE:
+        case DEV_SCREEN:
           if (key == 43) {
             currentState = CALIBRATION_1;
             bgNeedsRedraw = true;
@@ -486,11 +495,36 @@ void drawMainMenu() {
   M5Cardputer.Display.println("W/S: Navigate, ENTER: Validate");
 }
 
-void drawDebugScreen() {
+void drawActionMenu() {
+  uint16_t overlayColor = M5Cardputer.Display.color888(30, 30, 30);
+  int x = 60, y = 35, w = 120, h = 65;
+
+  M5Cardputer.Display.fillRect(x, y, w, h, overlayColor);
+  M5Cardputer.Display.drawRect(x, y, w, h, WHITE);
+
+  M5Cardputer.Display.setTextSize(1);
+  for (int i = 0; i < actionMenuItemCount; i++) {
+    M5Cardputer.Display.setCursor(65, 45 + i * 15);
+    if (i == actionMenuSelection) {
+      M5Cardputer.Display.setTextColor(YELLOW);
+      M5Cardputer.Display.print("> ");
+    } else {
+      M5Cardputer.Display.setTextColor(WHITE);
+      M5Cardputer.Display.print("  ");
+    }
+    M5Cardputer.Display.println(actionMenuItems[i]);
+  }
+
+  M5Cardputer.Display.setTextColor(0x7BEF);
+  M5Cardputer.Display.setCursor(10, 115);
+  M5Cardputer.Display.println("W/S: Navigate, ENTER: Validate");
+}
+
+void drawDevSCreen() {
   switch (currentState) {
-    case DEBUG_MODE:
+    case DEV_SCREEN:
       M5Cardputer.Display.fillScreen(BLACK);
-      drawText("DEBUG_MODE", 30, 30, false, ORANGE, 3);
+      drawText("DEV_SCREEN", 30, 30, false, ORANGE, 3);
       break;
     case CALIBRATION_1:
       drawImage(calib1);
