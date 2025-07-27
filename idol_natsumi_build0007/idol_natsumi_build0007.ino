@@ -1,6 +1,8 @@
 #include <M5Cardputer.h>
 #include <SD.h>
 
+LGFX_Sprite canvas(&M5Cardputer.Display);
+
 
 // === Game state definitions ===
 enum GameState {
@@ -75,18 +77,16 @@ ImageBuffer natsumi11age, natsumi13age, natsumi15age, natsumi18age, natsumi21age
 
 // === UI Helper Functions ===
 void drawText(String text, int x, int y, bool centerAlign, uint16_t color = WHITE, int textSize = 2, uint16_t bgColor = BLACK) {
-    M5Cardputer.Display.setTextSize(textSize);
-
-    // Set alignment for size calculation
+    canvas.setTextSize(textSize);
     if (centerAlign) {
-        M5Cardputer.Display.setTextDatum(middle_center);
+        canvas.setTextDatum(middle_center);
     } else {
-        M5Cardputer.Display.setTextDatum(top_left);
+        canvas.setTextDatum(top_left);
     }
 
     // Measure text size
-    int16_t textWidth = M5Cardputer.Display.textWidth(text);
-    int16_t textHeight = M5Cardputer.Display.fontHeight();
+    int16_t textWidth = canvas.textWidth(text);
+    int16_t textHeight = canvas.fontHeight();
 
     // Compute clear rectangle position based on alignment
     int clearX = x;
@@ -98,11 +98,11 @@ void drawText(String text, int x, int y, bool centerAlign, uint16_t color = WHIT
     }
 
     // Clear previous text area
-    M5Cardputer.Display.fillRect(clearX, clearY, textWidth, textHeight, bgColor);
+    canvas.fillRect(clearX, clearY, textWidth, textHeight, bgColor);
 
     // Draw new text
-    M5Cardputer.Display.setTextColor(color, bgColor); // Text with background
-    M5Cardputer.Display.drawString(text, x, y);
+    canvas.setTextColor(color, bgColor); // Text with background
+    canvas.drawString(text, x, y);
 }
 
 bool preloadImage(const char* path, ImageBuffer &imgBuf) {
@@ -152,13 +152,15 @@ void preloadImages() {
 
 void drawImage(const ImageBuffer& img) {
   if (img.data && img.length > 0) {
-    M5Cardputer.Display.drawPng(img.data, img.length, 0, 0);
+    canvas.drawPng(img.data, img.length, 0, 0);
   }
 }
 
 // === Setup and loop ===
 
 void setup() {
+  canvas.createSprite(240, 135); // Full-screen buffer for pseudo-double buffering
+
   auto cfg = M5.config();
   M5Cardputer.begin(cfg);
   delay(1000);
@@ -185,6 +187,8 @@ void loop() {
 
   if (millis() - lastUpdate < FRAME_DELAY) return;
   lastUpdate = millis();
+
+  canvas.fillSprite(BLACK);  // Clear frame before drawing
 
   switch (currentState) {
     case VERSION_SCREEN:
@@ -239,6 +243,7 @@ void loop() {
       manageHomeScreen();
       break;
   }
+  canvas.pushSprite(0, 0); // Render the off-screen buffer to display
 }
 
 // === Menu and state logic ===
@@ -324,11 +329,12 @@ void updateStats() {
 
 void manageVersionScreen() {
   Serial.println("> Entering manageVersionScreen()");
-  M5Cardputer.Display.fillScreen(BLACK);
+  canvas.fillScreen(BLACK);
   drawText("IDOL NATSUMI", 120, 30, true, RED, 3); // centered
   drawText("for M5 Cardputer", 120, 50, true, BLUE, 2); // centered
   drawText(copyright, 120, 100, true, WHITE, 1); // centered
   drawText(versionNumber, 120, 110, true, WHITE, 1); // centered
+  canvas.pushSprite(0, 0); // Commit buffer to display
   delay(mediumWait);
   currentState = TITLE_SCREEN;
 }
@@ -454,39 +460,41 @@ void manageDebugMode() {
 
 // === Draw functions ===
 void drawTitleScreen() {
-  M5Cardputer.Display.fillScreen(BLACK);
+  // canvas.fillScreen(BLACK);
+  // canvas.fillSprite(BLACK);
   drawImage(titleImage);
 }
 
 void drawMainMenu() {
-  uint16_t overlayColor = M5Cardputer.Display.color888(30, 30, 30);
+  uint16_t overlayColor = canvas.color888(30, 30, 30);
   int x = 60, y = 35, w = 120, h = 65;
 
-  M5Cardputer.Display.fillRect(x, y, w, h, overlayColor);
-  M5Cardputer.Display.drawRect(x, y, w, h, WHITE);
+  canvas.fillRect(x, y, w, h, overlayColor);
+  canvas.drawRect(x, y, w, h, WHITE);
 
-  M5Cardputer.Display.setTextSize(1);
+  canvas.setTextSize(1);
   for (int i = 0; i < mainMenuItemCount; i++) {
-    M5Cardputer.Display.setCursor(65, 45 + i * 15);
+    canvas.setCursor(65, 45 + i * 15);
     if (i == mainMenuSelection) {
-      M5Cardputer.Display.setTextColor(YELLOW);
-      M5Cardputer.Display.print("> ");
+      canvas.setTextColor(YELLOW);
+      canvas.print("> ");
     } else {
-      M5Cardputer.Display.setTextColor(WHITE);
-      M5Cardputer.Display.print("  ");
+      canvas.setTextColor(WHITE);
+      canvas.print("  ");
     }
-    M5Cardputer.Display.println(mainMenuItems[i]);
+    canvas.println(mainMenuItems[i]);
   }
 
-  M5Cardputer.Display.setTextColor(0x7BEF);
-  M5Cardputer.Display.setCursor(10, 115);
-  M5Cardputer.Display.println("W/S: Navigate, ENTER: Validate");
+  canvas.setTextColor(0x7BEF);
+  canvas.setCursor(10, 115);
+  canvas.println("W/S: Navigate, ENTER: Validate");
 }
 
 void drawDebugScreen() {
   switch (currentState) {
     case DEBUG_MODE:
-      M5Cardputer.Display.fillScreen(BLACK);
+      // canvas.fillScreen(BLACK);
+      // canvas.fillSprite(BLACK);
       drawText("DEBUG_MODE", 30, 30, false, ORANGE, 3);
       break;
     case CALIBRATION_1:
@@ -502,7 +510,8 @@ void drawDebugScreen() {
 }
 
 void drawHomeScreen() {
-  M5Cardputer.Display.fillScreen(BLACK);
+  // canvas.fillScreen(BLACK);
+  // canvas.fillSprite(BLACK);
   switch(natsumi.age) {
     case 11: case 12:
       drawImage(natsumi11age);
