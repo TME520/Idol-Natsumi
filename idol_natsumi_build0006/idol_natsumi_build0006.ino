@@ -13,7 +13,8 @@ enum GameState {
   NEW_GAME,
   CONTINUE_GAME,
   DEBUG_MODE,
-  HOME_LOOP
+  HOME_LOOP,
+  ACTION_MENU
 };
 
 GameState currentState = VERSION_SCREEN;
@@ -51,7 +52,9 @@ const unsigned long hygieneInterval = 240000;  // 4 minutes
 const unsigned long energyInterval = 240000;   // 4 minutes
 
 const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: DEBUG"};
+const char* actionMenuItems[] = {"0: EAT", "1: WASH", "2: REST", "3: BACK"};
 const int mainMenuItemCount = 3;
+int actionMenuSelection = 0;
 int mainMenuSelection = 0;
 bool bgNeedsRedraw = true;
 bool fgNeedsRedraw = true;
@@ -535,3 +538,7 @@ void drawHomeStats() {
   drawText(String("Mood: ") + natsumi.mood, 80, 110, false, WHITE, 1);
   drawText(String("Popularity: ") + natsumi.popularity, 80, 120, false, WHITE, 1);
 }
+
+void eat() { if (natsumi.hunger < 4) natsumi.hunger += 1; }
+void wash() { if (natsumi.hygiene < 4) natsumi.hygiene += 1; }
+void rest() { if (natsumi.energy < 4) natsumi.energy += 1; }
