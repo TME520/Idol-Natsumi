@@ -244,7 +244,15 @@ void loop() {
       break;
     case DEBUG_HOME:
       manageHomeScreen();
-      drawHomeStats();
+      break;
+    case ACTION_EAT:
+      eat();
+      break;
+    case ACTION_WASH:
+      wash();
+      break;
+    case ACTION_REST:
+      rest();
       break;
   }
 }
@@ -374,7 +382,6 @@ void manageTitleScreen() {
             currentState = DEV_SCREEN;
             bgNeedsRedraw = true;
             fgNeedsRedraw = true;
-            manageDevScreen();
           }
           break;
       }
@@ -399,8 +406,15 @@ void manageHomeScreen() {
     bgNeedsRedraw = false;
   }
   if (fgNeedsRedraw) {
-    drawActionMenu();
-    fgNeedsRedraw = false;
+    switch (currentState) {
+      case ACTION_MENU:
+        drawActionMenu();
+        fgNeedsRedraw = false;
+        break;
+      case DEBUG_HOME:
+        drawHomeStats();
+        break;
+    }
   }
 
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -409,12 +423,42 @@ void manageHomeScreen() {
       uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
       switch (key) {
         case 43:
+          // TAB
           currentState = ACTION_MENU;
           fgNeedsRedraw = true;
           break;
         case 96:
+          // ESC
           currentState = HOME_LOOP;
           bgNeedsRedraw = true;
+          break;
+        case 181: case 'w': case 'W':
+          actionMenuSelection = (actionMenuSelection - 1 + actionMenuItemCount) % actionMenuItemCount;
+          bgNeedsRedraw = false;
+          fgNeedsRedraw = true;
+          break;
+        case 182: case 's': case 'S':
+          actionMenuSelection = (actionMenuSelection + 1) % actionMenuItemCount;
+          bgNeedsRedraw = false;
+          fgNeedsRedraw = true;
+          break;
+        case 13: case 40: case ' ':
+          if (actionMenuSelection == 0) {
+            currentState = ACTION_EAT;
+          } else if (actionMenuSelection == 1) {
+            currentState = ACTION_WASH;
+          } else if (actionMenuSelection == 2) {
+            currentState = ACTION_REST;
+          } else {
+            if (currentState == DEBUG_HOME) {
+              currentState = HOME_LOOP;
+              bgNeedsRedraw = true;
+            } else {
+              currentState = DEBUG_HOME;
+              bgNeedsRedraw = true;
+              fgNeedsRedraw = true;
+            }
+          }
           break;
       }
     }
@@ -573,6 +617,23 @@ void drawHomeStats() {
   drawText(String("Popularity: ") + natsumi.popularity, 80, 120, false, WHITE, 1);
 }
 
-void eat() { if (natsumi.hunger < 4) natsumi.hunger += 1; }
-void wash() { if (natsumi.hygiene < 4) natsumi.hygiene += 1; }
-void rest() { if (natsumi.energy < 4) natsumi.energy += 1; }
+void eat() {
+  if (natsumi.hunger < 4) natsumi.hunger += 1;
+  currentState = HOME_LOOP;
+  bgNeedsRedraw = true;
+  fgNeedsRedraw = false;
+}
+
+void wash() {
+  if (natsumi.hygiene < 4) natsumi.hygiene += 1;
+  currentState = HOME_LOOP;
+  bgNeedsRedraw = true;
+  fgNeedsRedraw = false;
+}
+
+void rest() {
+  if (natsumi.energy < 4) natsumi.energy += 1;
+  currentState = HOME_LOOP;
+  bgNeedsRedraw = true;
+  fgNeedsRedraw = false;
+}
