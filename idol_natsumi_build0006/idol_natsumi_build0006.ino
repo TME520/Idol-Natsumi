@@ -74,7 +74,7 @@ struct ImageBuffer {
 };
 
 String copyright = "(c) 2025 - Pantsumatic";
-String versionNumber = "0.6.1002";
+String versionNumber = "0.6.1003";
 
 ImageBuffer titleImage;
 ImageBuffer calib1, calib2, calib3;
@@ -210,8 +210,8 @@ void loop() {
       playtimeTotalMs = 0;
       sessionStart = millis();
       lastAgeTick = 0;
-      bgNeedsRedraw = false;
-      fgNeedsRedraw = true;
+      bgNeedsRedraw = true;
+      fgNeedsRedraw = false;
       currentState = HOME_LOOP;
       break;
     case CONTINUE_GAME:
@@ -229,19 +229,18 @@ void loop() {
       playtimeTotalMs = 0;
       sessionStart = millis();
       lastAgeTick = 0;
-      bgNeedsRedraw = false;
-      fgNeedsRedraw = true;
+      bgNeedsRedraw = true;
+      fgNeedsRedraw = false;
       currentState = HOME_LOOP;
       break;
     case DEV_SCREEN: case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
-      manageDevSCreen();
+      manageDevScreen();
       break;
     case HOME_LOOP:
       manageHomeScreen();
       break;
     case ACTION_MENU:
       manageHomeScreen();
-      drawActionMenu();
       break;
     case DEBUG_HOME:
       manageHomeScreen();
@@ -375,7 +374,7 @@ void manageTitleScreen() {
             currentState = DEV_SCREEN;
             bgNeedsRedraw = true;
             fgNeedsRedraw = true;
-            manageDevSCreen();
+            manageDevScreen();
           }
           break;
       }
@@ -395,10 +394,13 @@ void manageHomeScreen() {
   if (natsumi.age > currentAge) {
     bgNeedsRedraw = true;
   }
-  fgNeedsRedraw = true;
   if (bgNeedsRedraw) {
     drawHomeScreen();
     bgNeedsRedraw = false;
+  }
+  if (fgNeedsRedraw) {
+    drawActionMenu();
+    fgNeedsRedraw = false;
   }
 
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -408,46 +410,44 @@ void manageHomeScreen() {
       switch (key) {
         case 43:
           currentState = ACTION_MENU;
+          fgNeedsRedraw = true;
+          break;
+        case 96:
+          currentState = HOME_LOOP;
+          bgNeedsRedraw = true;
           break;
       }
     }
   }
 }
 
-void manageDevSCreen() {
+void manageDevScreen() {
   if (bgNeedsRedraw) {
     drawDevSCreen();
     bgNeedsRedraw = false;
-  }
-  if (fgNeedsRedraw) {
-    drawDevSCreen();
-    fgNeedsRedraw = false;
   }
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      drawText("Key " + String(key) + " pressed...", 120, 110, true, WHITE, 1); // centered
+      drawText("Key " + String(key) + " pressed...", 120, 110, true, BLUE, 1); // centered
       switch (currentState) {
         case DEV_SCREEN:
           if (key == 43) {
             currentState = CALIBRATION_1;
             bgNeedsRedraw = true;
-            fgNeedsRedraw = false;
           }
           break;
         case CALIBRATION_1:
           if (key == 43) {
             currentState = CALIBRATION_2;
             bgNeedsRedraw = true;
-            fgNeedsRedraw = false;
           }
           break;
         case CALIBRATION_2:
           if (key == 43) {
             currentState = CALIBRATION_3;
             bgNeedsRedraw = true;
-            fgNeedsRedraw = false;
           }
           break;
         case CALIBRATION_3:
