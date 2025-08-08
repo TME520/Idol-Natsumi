@@ -363,12 +363,12 @@ void manageTitleScreen() {
     if (keyList.size() > 0) {
       uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
       switch (key) {
-        case 181: case 'w': case 'W':
+        case 181: case 'w': case 'W': case 59:
           mainMenuSelection = (mainMenuSelection - 1 + mainMenuItemCount) % mainMenuItemCount;
           bgNeedsRedraw = false;
           fgNeedsRedraw = true;
           break;
-        case 182: case 's': case 'S':
+        case 182: case 's': case 'S': case 46:
           mainMenuSelection = (mainMenuSelection + 1) % mainMenuItemCount;
           bgNeedsRedraw = false;
           fgNeedsRedraw = true;
@@ -432,12 +432,12 @@ void manageHomeScreen() {
           currentState = HOME_LOOP;
           bgNeedsRedraw = true;
           break;
-        case 181: case 'w': case 'W':
+        case 181: case 'w': case 'W': case 59:
           actionMenuSelection = (actionMenuSelection - 1 + actionMenuItemCount) % actionMenuItemCount;
           bgNeedsRedraw = false;
           fgNeedsRedraw = true;
           break;
-        case 182: case 's': case 'S':
+        case 182: case 's': case 'S': case 46:
           actionMenuSelection = (actionMenuSelection + 1) % actionMenuItemCount;
           bgNeedsRedraw = false;
           fgNeedsRedraw = true;
@@ -536,7 +536,7 @@ void drawMainMenu() {
 
   M5Cardputer.Display.setTextColor(0x7BEF);
   M5Cardputer.Display.setCursor(10, 115);
-  M5Cardputer.Display.println("W/S: Navigate, ENTER: Validate");
+  M5Cardputer.Display.println("↑/↓: Navigate, ENTER: Validate");
 }
 
 void drawActionMenu() {
@@ -561,7 +561,7 @@ void drawActionMenu() {
 
   M5Cardputer.Display.setTextColor(0x7BEF);
   M5Cardputer.Display.setCursor(10, 115);
-  M5Cardputer.Display.println("W/S: Navigate, ENTER: Validate");
+  M5Cardputer.Display.println("↑/↓: Navigate, ENTER: Validate");
 }
 
 void drawDevSCreen() {
