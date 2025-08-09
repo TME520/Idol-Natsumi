@@ -1,7 +1,6 @@
 #include <M5Cardputer.h>
 #include <SD.h>
 
-
 // === Game state definitions ===
 enum GameState {
   VERSION_SCREEN,
