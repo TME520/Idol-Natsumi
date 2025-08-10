@@ -66,6 +66,7 @@ bool fgNeedsRedraw = true;
 unsigned long lastUpdate = 0;
 const int FRAME_DELAY = 50;
 
+
 // === Image preload system ===
 struct ImageBuffer {
   uint8_t* data = nullptr;
@@ -79,6 +80,27 @@ ImageBuffer titleImage;
 ImageBuffer calib1, calib2, calib3;
 ImageBuffer natsumi11, natsumi13, natsumi15, natsumi18, natsumi21;
 ImageBuffer natsumi11age, natsumi13age, natsumi15age, natsumi18age, natsumi21age;
+
+// Toast messages
+String toastMsg = "";
+uint32_t toastUntil = 0;
+void showToast(const String& msg, uint32_t ms = shortWait) {
+  toastMsg = msg;
+  toastUntil = millis() + ms;
+}
+
+void drawToast() {
+  // Serial.println("> Entering drawToast()");
+  if (millis() < toastUntil) {
+    const int tx = 120;  // center X (screen is 240 wide in landscape)
+    const int ty = 122;  // near bottom for 135px height
+    M5Cardputer.Display.fillRect(0, ty - 8, 240, 18, BLACK); // clear strip
+    M5Cardputer.Display.setTextDatum(middle_center);
+    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.setTextColor(WHITE, BLACK);
+    M5Cardputer.Display.drawString(toastMsg, tx, ty);
+  }
+}
 
 // === UI Helper Functions ===
 void drawText(String text, int x, int y, bool centerAlign, uint16_t color = WHITE, int textSize = 2, uint16_t bgColor = BLACK) {
@@ -137,17 +159,23 @@ bool preloadImage(const char* path, ImageBuffer &imgBuf) {
 }
 
 void preloadImages() {
-  // screens
-  preloadImage("/idolnat/screens/title01.png", titleImage);
-  preloadImage("/idolnat/screens/setup_3tiers_busybar.png", calib1);
-  preloadImage("/idolnat/screens/setup_menubox.png", calib2);
-  preloadImage("/idolnat/screens/setup_dialog.png", calib3);
-  // sprites
-  preloadImage("/idolnat/sprites/natsumi_11yo-240x135.png", natsumi11age);
-  preloadImage("/idolnat/sprites/natsumi_13yo-240x135.png", natsumi13age);
-  preloadImage("/idolnat/sprites/natsumi_15yo-240x135.png", natsumi15age);
-  preloadImage("/idolnat/sprites/natsumi_18yo-240x135.png", natsumi18age);
-  preloadImage("/idolnat/sprites/natsumi_21yo-240x135.png", natsumi21age);
+  switch (currentState) {
+    case TITLE_SCREEN:
+      preloadImage("/idolnat/screens/title01.png", titleImage);
+      break;
+    case DEV_SCREEN:
+      preloadImage("/idolnat/screens/setup_3tiers_busybar.png", calib1);
+      preloadImage("/idolnat/screens/setup_menubox.png", calib2);
+      preloadImage("/idolnat/screens/setup_dialog.png", calib3);
+      break;
+    case HOME_LOOP:
+      preloadImage("/idolnat/sprites/natsumi_11yo-240x135.png", natsumi11age);
+      preloadImage("/idolnat/sprites/natsumi_13yo-240x135.png", natsumi13age);
+      preloadImage("/idolnat/sprites/natsumi_15yo-240x135.png", natsumi15age);
+      preloadImage("/idolnat/sprites/natsumi_18yo-240x135.png", natsumi18age);
+      preloadImage("/idolnat/sprites/natsumi_21yo-240x135.png", natsumi21age);
+      break;
+  }
 }
 
 void drawImage(const ImageBuffer& img) {
@@ -172,8 +200,6 @@ void setup() {
     Serial.println("SD init failed!");
     while (true);
   }
-
-  preloadImages();
 
   currentState = VERSION_SCREEN;
   bgNeedsRedraw = true;
@@ -212,6 +238,7 @@ void loop() {
       bgNeedsRedraw = true;
       fgNeedsRedraw = false;
       currentState = HOME_LOOP;
+      preloadImages();
       break;
     case CONTINUE_GAME:
       natsumi.age = 0;
@@ -231,6 +258,7 @@ void loop() {
       bgNeedsRedraw = true;
       fgNeedsRedraw = false;
       currentState = HOME_LOOP;
+      preloadImages();
       break;
     case DEV_SCREEN: case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
       manageDevScreen();
@@ -259,14 +287,14 @@ void loop() {
 // === Menu and state logic ===
 
 void updateAging() {
-  Serial.println("> Entering updateAging()");
+  // Serial.println("> Entering updateAging()");
   unsigned long currentMilli = millis();
   unsigned long currentPlaytime = currentMilli - sessionStart;
   unsigned long totalMs = playtimeTotalMs + currentPlaytime;
  
   natsumi.ageMilliseconds = currentPlaytime;
-  Serial.print("natsumi.age: ");
-  Serial.println(natsumi.age);
+  // Serial.print("natsumi.age: ");
+  // Serial.println(natsumi.age);
   if (natsumi.ageMilliseconds < agingIntervalMs) {
     // 11yo
     natsumi.age = 11;
@@ -304,12 +332,12 @@ void updateAging() {
     // 22yo - Game ends
     natsumi.age = 22;
   }
-  Serial.print("natsumi.age: ");
-  Serial.println(natsumi.age);
+  // Serial.print("natsumi.age: ");
+  // Serial.println(natsumi.age);
 }
 
 void updateStats() {
-  Serial.println("> Entering updateStats()");
+  // Serial.println("> Entering updateStats()");
   unsigned long currentMillis = millis();
 
   // Hunger decreases every 2 minutes
@@ -338,7 +366,7 @@ void updateStats() {
 }
 
 void manageVersionScreen() {
-  Serial.println("> Entering manageVersionScreen()");
+  // Serial.println("> Entering manageVersionScreen()");
   M5Cardputer.Display.fillScreen(BLACK);
   drawText("IDOL NATSUMI", 120, 30, true, RED, 3); // centered
   drawText("for M5 Cardputer", 120, 50, true, BLUE, 2); // centered
@@ -346,6 +374,7 @@ void manageVersionScreen() {
   drawText(versionNumber, 120, 110, true, WHITE, 1); // centered
   delay(mediumWait);
   currentState = TITLE_SCREEN;
+  preloadImages();
 }
 
 void manageTitleScreen() {
@@ -362,6 +391,21 @@ void manageTitleScreen() {
     if (keyList.size() > 0) {
       uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
       switch (key) {
+        case 48:
+          // 0: NEW GAME
+          currentState = NEW_GAME;
+          break;
+        case 49:
+          // 1: CONTINUE
+          currentState = CONTINUE_GAME;
+          break;
+        case 50:
+          // 2: DEV SCREEN
+          currentState = DEV_SCREEN;
+          preloadImages();
+          bgNeedsRedraw = true;
+          fgNeedsRedraw = true;
+          break;
         case 181: case 'w': case 'W': case 59:
           mainMenuSelection = (mainMenuSelection - 1 + mainMenuItemCount) % mainMenuItemCount;
           bgNeedsRedraw = false;
@@ -389,12 +433,12 @@ void manageTitleScreen() {
 }
 
 void manageHomeScreen() {
-  Serial.println("> Entering manageHomeScreen()");
+  // Serial.println("> Entering manageHomeScreen()");
   int currentAge = natsumi.age;
-  Serial.print("natsumi.age: ");
-  Serial.println(natsumi.age);
-  Serial.print("currentAge: ");
-  Serial.println(currentAge);
+  // Serial.print("natsumi.age: ");
+  // Serial.println(natsumi.age);
+  // Serial.print("currentAge: ");
+  // Serial.println(currentAge);
   updateAging();
   updateStats();
   if (natsumi.age > currentAge) {
@@ -421,6 +465,29 @@ void manageHomeScreen() {
     if (keyList.size() > 0) {
       uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
       switch (key) {
+        case 48:
+          // 0: EAT
+          currentState = ACTION_EAT;
+          break;
+        case 49:
+          // 1: WASH
+          currentState = ACTION_WASH;
+          break;
+        case 50:
+          // 2: REST
+          currentState = ACTION_REST;
+          break;
+        case 51:
+          // 3: DEBUG
+          if (currentState == DEBUG_HOME) {
+            currentState = HOME_LOOP;
+            bgNeedsRedraw = true;
+          } else {
+            currentState = DEBUG_HOME;
+            bgNeedsRedraw = true;
+            fgNeedsRedraw = true;
+          }
+          break;
         case 43:
           // TAB
           currentState = ACTION_MENU;
@@ -462,6 +529,7 @@ void manageHomeScreen() {
       }
     }
   }
+  drawToast();
 }
 
 void manageDevScreen() {
@@ -618,6 +686,7 @@ void drawHomeStats() {
 
 void eat() {
   if (natsumi.hunger < 4) natsumi.hunger += 1;
+  showToast("Ate (+1 Hunger)");
   currentState = HOME_LOOP;
   bgNeedsRedraw = true;
   fgNeedsRedraw = false;
@@ -625,6 +694,7 @@ void eat() {
 
 void wash() {
   if (natsumi.hygiene < 4) natsumi.hygiene += 1;
+  showToast("Washed (+1 Hygiene)");
   currentState = HOME_LOOP;
   bgNeedsRedraw = true;
   fgNeedsRedraw = false;
@@ -632,6 +702,7 @@ void wash() {
 
 void rest() {
   if (natsumi.energy < 4) natsumi.energy += 1;
+  showToast("Rested (+1 Energy)");
   currentState = HOME_LOOP;
   bgNeedsRedraw = true;
   fgNeedsRedraw = false;
