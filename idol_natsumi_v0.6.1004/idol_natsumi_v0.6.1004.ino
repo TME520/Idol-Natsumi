@@ -46,9 +46,9 @@ unsigned long agingIntervalMs = 60000;  // 1 minute for testing
 unsigned long sessionStart = 0;           // millis() when NEW_GAME starts
 unsigned long playtimeTotalMs = 0;        // total playtime in ms (could persist later)
 int lastAgeTick = 0;
-const unsigned long shortWait = 1000UL;
-const unsigned long mediumWait = 3000UL;
-const unsigned long longWait = 6000UL;
+const unsigned long shortWait = 1000;
+const unsigned long mediumWait = 3000;
+const unsigned long longWait = 6000;
 
 const unsigned long hungerInterval = 120000;   // 2 minutes
 const unsigned long hygieneInterval = 240000;  // 4 minutes
@@ -74,7 +74,7 @@ struct ImageBuffer {
 };
 
 String copyright = "(c) 2025 - Pantsumatic";
-String versionNumber = "0.6.1005";
+String versionNumber = "0.6.1004";
 
 ImageBuffer titleImage;
 ImageBuffer calib1, calib2, calib3;
