@@ -173,6 +173,7 @@ bool preloadImage(const char* path, ImageBuffer &imgBuf) {
 }
 
 void unloadImage(ImageBuffer &imgBuf) {
+  Serial.println("> Entering unloadImage()");
   if (imgBuf.data) {
     free(imgBuf.data);
     imgBuf.data = nullptr;
@@ -184,48 +185,23 @@ void unloadImage(ImageBuffer &imgBuf) {
   }
 }
 
-void unloadImages() {
-  unloadImage(titleImage);
-  unloadImage(calib1);
-  unloadImage(calib2);
-  unloadImage(calib3);
-  unloadImage(natsumi11);
-  unloadImage(natsumi13);
-  unloadImage(natsumi15);
-  unloadImage(natsumi18);
-  unloadImage(natsumi21);
-  /*
-  unloadImage(natsumi11age);
-  unloadImage(natsumi13age);
-  unloadImage(natsumi15age);
-  unloadImage(natsumi18age);
-  unloadImage(natsumi21age);
-  */
-  unloadImage(roomBathroom);
-  unloadImage(roomBedroom);
-  unloadImage(roomKitchen);
-  unloadImage(roomLounge);
-}
-
 void preloadImages() {
-  unloadImages();
   switch (currentState) {
     case TITLE_SCREEN:
       preloadImage("/idolnat/screens/title01.png", titleImage);
       break;
     case DEV_SCREEN:
+      // unloadImage(titleImage);
       preloadImage("/idolnat/screens/setup_3tiers_busybar.png", calib1);
       preloadImage("/idolnat/screens/setup_menubox.png", calib2);
       preloadImage("/idolnat/screens/setup_dialog.png", calib3);
       break;
     case HOME_LOOP:
-      preloadImage("/idolnat/sprites/natsumi_11yo.png", natsumi11);
-      preloadImage("/idolnat/sprites/natsumi_13yo.png", natsumi13);
-      preloadImage("/idolnat/sprites/natsumi_15yo.png", natsumi15);
-      preloadImage("/idolnat/sprites/natsumi_18yo.png", natsumi18);
-      preloadImage("/idolnat/sprites/natsumi_21yo.png", natsumi21);
-      preloadImage("/idolnat/screens/bathroom.png", roomBathroom);
-      preloadImage("/idolnat/screens/bedroom.png", roomBedroom);
+      // unloadImage(calib1);
+      // unloadImage(calib2);
+      // unloadImage(calib3);
+      // preloadImage("/idolnat/screens/bathroom.png", roomBathroom);
+      // preloadImage("/idolnat/screens/bedroom.png", roomBedroom);
       preloadImage("/idolnat/screens/kitchen.png", roomKitchen);
       preloadImage("/idolnat/screens/lounge.png", roomLounge);
       /*
@@ -717,18 +693,27 @@ void drawHomeScreen() {
   drawImage(homeBackground);
   switch(natsumi.age) {
     case 11: case 12:
+      preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", natsumi11);
       drawImage(natsumi11);
       break;
     case 13: case 14:
+      unloadImage(natsumi11);
+      preloadImage("/idolnat/sprites/natsumi_13yo-90x135.png", natsumi13);
       drawImage(natsumi13);
       break;
     case 15: case 16: case 17:
+      unloadImage(natsumi13);
+      preloadImage("/idolnat/sprites/natsumi_15yo-90x135.png", natsumi15);
       drawImage(natsumi15);
       break;
     case 18: case 19: case 20:
+      unloadImage(natsumi15);
+      preloadImage("/idolnat/sprites/natsumi_18yo-90x135.png", natsumi18);
       drawImage(natsumi18);
       break;
     case 21: case 22:
+      unloadImage(natsumi18);
+      preloadImage("/idolnat/sprites/natsumi_21yo-90x135.png", natsumi21);
       drawImage(natsumi21);
       break;
     default:
