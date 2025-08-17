@@ -77,10 +77,12 @@ struct ImageBuffer {
 String copyright = "(c) 2025 - Pantsumatic";
 String versionNumber = "0.6.1005";
 
+ImageBuffer homeBackground;
 ImageBuffer titleImage;
 ImageBuffer calib1, calib2, calib3;
 ImageBuffer natsumi11, natsumi13, natsumi15, natsumi18, natsumi21;
-ImageBuffer natsumi11age, natsumi13age, natsumi15age, natsumi18age, natsumi21age;
+// ImageBuffer natsumi11age, natsumi13age, natsumi15age, natsumi18age, natsumi21age;
+ImageBuffer roomBathroom, roomBedroom, roomKitchen, roomLounge;
 
 // Toast messages
 String toastMsg = "";
@@ -187,11 +189,22 @@ void unloadImages() {
   unloadImage(calib1);
   unloadImage(calib2);
   unloadImage(calib3);
+  unloadImage(natsumi11);
+  unloadImage(natsumi13);
+  unloadImage(natsumi15);
+  unloadImage(natsumi18);
+  unloadImage(natsumi21);
+  /*
   unloadImage(natsumi11age);
   unloadImage(natsumi13age);
   unloadImage(natsumi15age);
   unloadImage(natsumi18age);
   unloadImage(natsumi21age);
+  */
+  unloadImage(roomBathroom);
+  unloadImage(roomBedroom);
+  unloadImage(roomKitchen);
+  unloadImage(roomLounge);
 }
 
 void preloadImages() {
@@ -206,11 +219,22 @@ void preloadImages() {
       preloadImage("/idolnat/screens/setup_dialog.png", calib3);
       break;
     case HOME_LOOP:
+      preloadImage("/idolnat/sprites/natsumi_11yo.png", natsumi11);
+      preloadImage("/idolnat/sprites/natsumi_13yo.png", natsumi13);
+      preloadImage("/idolnat/sprites/natsumi_15yo.png", natsumi15);
+      preloadImage("/idolnat/sprites/natsumi_18yo.png", natsumi18);
+      preloadImage("/idolnat/sprites/natsumi_21yo.png", natsumi21);
+      preloadImage("/idolnat/screens/bathroom.png", roomBathroom);
+      preloadImage("/idolnat/screens/bedroom.png", roomBedroom);
+      preloadImage("/idolnat/screens/kitchen.png", roomKitchen);
+      preloadImage("/idolnat/screens/lounge.png", roomLounge);
+      /*
       preloadImage("/idolnat/sprites/natsumi_11yo-240x135.png", natsumi11age);
       preloadImage("/idolnat/sprites/natsumi_13yo-240x135.png", natsumi13age);
       preloadImage("/idolnat/sprites/natsumi_15yo-240x135.png", natsumi15age);
       preloadImage("/idolnat/sprites/natsumi_18yo-240x135.png", natsumi18age);
       preloadImage("/idolnat/sprites/natsumi_21yo-240x135.png", natsumi21age);
+      */
       break;
   }
 }
@@ -276,6 +300,7 @@ void loop() {
       fgNeedsRedraw = false;
       currentState = HOME_LOOP;
       preloadImages();
+      homeBackground = roomLounge;
       break;
     case CONTINUE_GAME:
       natsumi.age = 0;
@@ -296,6 +321,7 @@ void loop() {
       fgNeedsRedraw = false;
       currentState = HOME_LOOP;
       preloadImages();
+      homeBackground = roomLounge;
       break;
     case DEV_SCREEN: case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
       manageDevScreen();
@@ -687,27 +713,28 @@ void drawDevSCreen() {
 }
 
 void drawHomeScreen() {
-  M5Cardputer.Display.fillScreen(BLACK);
+  // M5Cardputer.Display.fillScreen(BLACK);
+  drawImage(homeBackground);
   switch(natsumi.age) {
     case 11: case 12:
-      drawImage(natsumi11age);
+      drawImage(natsumi11);
       break;
     case 13: case 14:
-      drawImage(natsumi13age);
+      drawImage(natsumi13);
       break;
     case 15: case 16: case 17:
-      drawImage(natsumi15age);
+      drawImage(natsumi15);
       break;
     case 18: case 19: case 20:
-      drawImage(natsumi18age);
+      drawImage(natsumi18);
       break;
     case 21: case 22:
-      drawImage(natsumi21age);
+      drawImage(natsumi21);
       break;
     default:
       break;
   }
-  drawText("Natsumi Hasegawa", 20, 20, false, CYAN, 2);
+  // drawText("Natsumi Hasegawa", 20, 20, false, CYAN, 2);
 }
 
 void drawHomeStats() {
@@ -727,6 +754,7 @@ void eat() {
   currentState = HOME_LOOP;
   bgNeedsRedraw = true;
   fgNeedsRedraw = false;
+  homeBackground = roomKitchen;
 }
 
 void wash() {
@@ -735,6 +763,7 @@ void wash() {
   currentState = HOME_LOOP;
   bgNeedsRedraw = true;
   fgNeedsRedraw = false;
+  homeBackground = roomBathroom;
 }
 
 void rest() {
@@ -743,4 +772,5 @@ void rest() {
   currentState = HOME_LOOP;
   bgNeedsRedraw = true;
   fgNeedsRedraw = false;
+  homeBackground = roomBedroom;
 }
