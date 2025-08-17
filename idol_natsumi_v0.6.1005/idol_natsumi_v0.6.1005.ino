@@ -46,9 +46,9 @@ unsigned long agingIntervalMs = 60000;  // 1 minute for testing
 unsigned long sessionStart = 0;           // millis() when NEW_GAME starts
 unsigned long playtimeTotalMs = 0;        // total playtime in ms (could persist later)
 int lastAgeTick = 0;
-int shortWait = 1000;
-int mediumWait = 3000;
-int longWait = 6000;
+const unsigned long shortWait = 1000;
+const unsigned long mediumWait = 3000;
+const unsigned long longWait = 6000;
 
 const unsigned long hungerInterval = 120000;   // 2 minutes
 const unsigned long hygieneInterval = 240000;  // 4 minutes
@@ -62,6 +62,7 @@ int actionMenuSelection = 0;
 int mainMenuSelection = 0;
 bool bgNeedsRedraw = true;
 bool fgNeedsRedraw = true;
+bool toastNeedsRedraw = false;
 
 unsigned long lastUpdate = 0;
 const int FRAME_DELAY = 50;
@@ -83,23 +84,34 @@ ImageBuffer natsumi11age, natsumi13age, natsumi15age, natsumi18age, natsumi21age
 
 // Toast messages
 String toastMsg = "";
-uint32_t toastUntil = 0;
-void showToast(const String& msg, uint32_t ms = shortWait) {
+unsigned long toastUntil = 0;  // timestamp when toast should disappear
+void showToast(const String& msg, unsigned long ms = mediumWait) {
   toastMsg = msg;
   toastUntil = millis() + ms;
+  toastNeedsRedraw = true;
+}
+
+void manageToast() {
+  // Serial.println("> Entering manageToast()");
+  if (toastNeedsRedraw==true) {
+    if (millis() < toastUntil) {
+      drawToast();
+    } else {
+      bgNeedsRedraw = true;
+      toastNeedsRedraw = false;
+    }
+  }
 }
 
 void drawToast() {
   // Serial.println("> Entering drawToast()");
-  if (millis() < toastUntil) {
-    const int tx = 120;  // center X (screen is 240 wide in landscape)
-    const int ty = 122;  // near bottom for 135px height
-    M5Cardputer.Display.fillRect(0, ty - 8, 240, 18, BLACK); // clear strip
-    M5Cardputer.Display.setTextDatum(middle_center);
-    M5Cardputer.Display.setTextSize(1);
-    M5Cardputer.Display.setTextColor(WHITE, BLACK);
-    M5Cardputer.Display.drawString(toastMsg, tx, ty);
-  }
+  const int tx = 120;  // center X (screen is 240 wide in landscape)
+  const int ty = 122;  // near bottom for 135px height
+  M5Cardputer.Display.fillRect(0, ty - 8, 240, 18, BLACK); // clear strip
+  M5Cardputer.Display.setTextDatum(middle_center);
+  M5Cardputer.Display.setTextSize(1);
+  M5Cardputer.Display.setTextColor(WHITE, BLACK);
+  M5Cardputer.Display.drawString(toastMsg, tx, ty);
 }
 
 // === UI Helper Functions ===
@@ -170,7 +182,20 @@ void unloadImage(ImageBuffer &imgBuf) {
   }
 }
 
+void unloadImages() {
+  unloadImage(titleImage);
+  unloadImage(calib1);
+  unloadImage(calib2);
+  unloadImage(calib3);
+  unloadImage(natsumi11age);
+  unloadImage(natsumi13age);
+  unloadImage(natsumi15age);
+  unloadImage(natsumi18age);
+  unloadImage(natsumi21age);
+}
+
 void preloadImages() {
+  unloadImages();
   switch (currentState) {
     case TITLE_SCREEN:
       preloadImage("/idolnat/screens/title01.png", titleImage);
@@ -294,6 +319,7 @@ void loop() {
       rest();
       break;
   }
+  manageToast();
 }
 
 // === Menu and state logic ===
@@ -541,7 +567,6 @@ void manageHomeScreen() {
       }
     }
   }
-  drawToast();
 }
 
 void manageDevScreen() {

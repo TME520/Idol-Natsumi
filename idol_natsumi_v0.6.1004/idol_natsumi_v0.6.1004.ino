@@ -62,6 +62,7 @@ int actionMenuSelection = 0;
 int mainMenuSelection = 0;
 bool bgNeedsRedraw = true;
 bool fgNeedsRedraw = true;
+bool toastNeedsRedraw = false;
 
 unsigned long lastUpdate = 0;
 const int FRAME_DELAY = 50;
@@ -84,22 +85,33 @@ ImageBuffer natsumi11age, natsumi13age, natsumi15age, natsumi18age, natsumi21age
 // Toast messages
 String toastMsg = "";
 unsigned long toastUntil = 0;  // timestamp when toast should disappear
-void showToast(const String& msg, unsigned long ms = shortWait) {
+void showToast(const String& msg, unsigned long ms = mediumWait) {
   toastMsg = msg;
   toastUntil = millis() + ms;
+  toastNeedsRedraw = true;
+}
+
+void manageToast() {
+  // Serial.println("> Entering manageToast()");
+  if (toastNeedsRedraw==true) {
+    if (millis() < toastUntil) {
+      drawToast();
+    } else {
+      bgNeedsRedraw = true;
+      toastNeedsRedraw = false;
+    }
+  }
 }
 
 void drawToast() {
   // Serial.println("> Entering drawToast()");
-  if (millis() < toastUntil) {
-    const int tx = 120;  // center X (screen is 240 wide in landscape)
-    const int ty = 122;  // near bottom for 135px height
-    M5Cardputer.Display.fillRect(0, ty - 8, 240, 18, BLACK); // clear strip
-    M5Cardputer.Display.setTextDatum(middle_center);
-    M5Cardputer.Display.setTextSize(1);
-    M5Cardputer.Display.setTextColor(WHITE, BLACK);
-    M5Cardputer.Display.drawString(toastMsg, tx, ty);
-  }
+  const int tx = 120;  // center X (screen is 240 wide in landscape)
+  const int ty = 122;  // near bottom for 135px height
+  M5Cardputer.Display.fillRect(0, ty - 8, 240, 18, BLACK); // clear strip
+  M5Cardputer.Display.setTextDatum(middle_center);
+  M5Cardputer.Display.setTextSize(1);
+  M5Cardputer.Display.setTextColor(WHITE, BLACK);
+  M5Cardputer.Display.drawString(toastMsg, tx, ty);
 }
 
 // === UI Helper Functions ===
@@ -282,6 +294,7 @@ void loop() {
       rest();
       break;
   }
+  manageToast();
 }
 
 // === Menu and state logic ===
@@ -529,7 +542,6 @@ void manageHomeScreen() {
       }
     }
   }
-  drawToast();
 }
 
 void manageDevScreen() {
