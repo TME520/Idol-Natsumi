@@ -46,9 +46,9 @@ unsigned long agingIntervalMs = 60000;  // 1 minute for testing
 unsigned long sessionStart = 0;           // millis() when NEW_GAME starts
 unsigned long playtimeTotalMs = 0;        // total playtime in ms (could persist later)
 int lastAgeTick = 0;
-int shortWait = 1000;
-int mediumWait = 3000;
-int longWait = 6000;
+const unsigned long shortWait = 1000UL;
+const unsigned long mediumWait = 3000UL;
+const unsigned long longWait = 6000UL;
 
 const unsigned long hungerInterval = 120000;   // 2 minutes
 const unsigned long hygieneInterval = 240000;  // 4 minutes
@@ -83,8 +83,8 @@ ImageBuffer natsumi11age, natsumi13age, natsumi15age, natsumi18age, natsumi21age
 
 // Toast messages
 String toastMsg = "";
-uint32_t toastUntil = 0;
-void showToast(const String& msg, uint32_t ms = shortWait) {
+unsigned long toastUntil = 0;  // timestamp when toast should disappear
+void showToast(const String& msg, unsigned long ms = shortWait) {
   toastMsg = msg;
   toastUntil = millis() + ms;
 }
