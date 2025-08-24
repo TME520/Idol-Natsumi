@@ -185,7 +185,37 @@ void unloadImage(ImageBuffer &imgBuf) {
   }
 }
 
+// Frees all preloaded image buffers to reclaim memory
+void unloadAllImages() {
+  size_t heapBefore = ESP.getFreeHeap();
+
+  unloadImage(titleImage);
+  unloadImage(calib1);
+  unloadImage(calib2);
+  unloadImage(calib3);
+  unloadImage(natsumi11);
+  unloadImage(natsumi13);
+  unloadImage(natsumi15);
+  unloadImage(natsumi18);
+  unloadImage(natsumi21);
+  unloadImage(roomBathroom);
+  unloadImage(roomBedroom);
+  unloadImage(roomKitchen);
+  unloadImage(roomLounge);
+
+  // homeBackground points to one of the room images, so just reset it
+  homeBackground.data = nullptr;
+  homeBackground.length = 0;
+
+  size_t heapAfter = ESP.getFreeHeap();
+  Serial.print("Unloaded all images. Freed bytes: ");
+  Serial.print(heapAfter - heapBefore);
+  Serial.print(", free heap now: ");
+  Serial.println(heapAfter);
+}
+
 void preloadImages() {
+  unloadAllImages();
   switch (currentState) {
     case TITLE_SCREEN:
       preloadImage("/idolnat/screens/title01.png", titleImage);
