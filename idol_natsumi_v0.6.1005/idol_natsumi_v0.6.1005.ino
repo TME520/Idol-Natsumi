@@ -482,6 +482,7 @@ void manageTitleScreen() {
             currentState = CONTINUE_GAME;
           } else {
             currentState = DEV_SCREEN;
+            preloadImages();
             bgNeedsRedraw = true;
             fgNeedsRedraw = true;
           }
