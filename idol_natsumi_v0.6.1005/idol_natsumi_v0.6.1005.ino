@@ -80,9 +80,7 @@ String versionNumber = "0.6.1005";
 ImageBuffer homeBackground;
 ImageBuffer titleImage;
 ImageBuffer calib1, calib2, calib3;
-ImageBuffer natsumi11, natsumi13, natsumi15, natsumi18, natsumi21;
-// ImageBuffer natsumi11age, natsumi13age, natsumi15age, natsumi18age, natsumi21age;
-ImageBuffer roomBathroom, roomBedroom, roomKitchen, roomLounge;
+ImageBuffer currentNatsumi;
 
 // Toast messages
 String toastMsg = "";
@@ -108,11 +106,11 @@ void manageToast() {
 void drawToast() {
   // Serial.println("> Entering drawToast()");
   const int tx = 120;  // center X (screen is 240 wide in landscape)
-  const int ty = 122;  // near bottom for 135px height
+  const int ty = 100;  // near bottom for 135px height
   M5Cardputer.Display.fillRect(0, ty - 8, 240, 18, BLACK); // clear strip
   M5Cardputer.Display.setTextDatum(middle_center);
   M5Cardputer.Display.setTextSize(1);
-  M5Cardputer.Display.setTextColor(WHITE, BLACK);
+  M5Cardputer.Display.setTextColor(YELLOW, BLACK);
   M5Cardputer.Display.drawString(toastMsg, tx, ty);
 }
 
@@ -158,7 +156,7 @@ bool preloadImage(const char* path, ImageBuffer &imgBuf) {
   imgBuf.data = (uint8_t*)malloc(imgBuf.length);
   if (!imgBuf.data) {
     f.close();
-    drawText("SD load image failed!", 120, 110, true, RED, 1); // centered
+    drawText("SD load image failed!", 120, 131, true, RED, 1); // centered
     Serial.println("SD load image failed!");
     return false;
   }
@@ -193,15 +191,8 @@ void unloadAllImages() {
   unloadImage(calib1);
   unloadImage(calib2);
   unloadImage(calib3);
-  unloadImage(natsumi11);
-  unloadImage(natsumi13);
-  unloadImage(natsumi15);
-  unloadImage(natsumi18);
-  unloadImage(natsumi21);
-  unloadImage(roomBathroom);
-  unloadImage(roomBedroom);
-  unloadImage(roomKitchen);
-  unloadImage(roomLounge);
+  unloadImage(homeBackground);
+  unloadImage(currentNatsumi);
 
   // homeBackground points to one of the room images, so just reset it
   homeBackground.data = nullptr;
@@ -216,6 +207,7 @@ void unloadAllImages() {
 
 void preloadImages() {
   unloadAllImages();
+  // Load backgrounds
   switch (currentState) {
     case TITLE_SCREEN:
       preloadImage("/idolnat/screens/title01.png", titleImage);
@@ -226,10 +218,36 @@ void preloadImages() {
       preloadImage("/idolnat/screens/setup_dialog.png", calib3);
       break;
     case HOME_LOOP:
-      preloadImage("/idolnat/screens/bathroom.png", roomBathroom);
-      preloadImage("/idolnat/screens/bedroom.png", roomBedroom);
-      preloadImage("/idolnat/screens/kitchen.png", roomKitchen);
-      preloadImage("/idolnat/screens/lounge.png", roomLounge);
+      preloadImage("/idolnat/screens/lounge.png", homeBackground);
+      break;
+    case ACTION_EAT:
+      preloadImage("/idolnat/screens/kitchen.png", homeBackground);
+      break;
+    case ACTION_WASH:
+      preloadImage("/idolnat/screens/bathroom.png", homeBackground);
+      break;
+    case ACTION_REST:
+      preloadImage("/idolnat/screens/bedroom.png", homeBackground);
+      break;
+  }
+  // Load portraits
+  switch(natsumi.age) {
+    case 11: case 12:
+      preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentNatsumi);
+      break;
+    case 13: case 14:
+      preloadImage("/idolnat/sprites/natsumi_13yo-90x135.png", currentNatsumi);
+      break;
+    case 15: case 16: case 17:
+      preloadImage("/idolnat/sprites/natsumi_15yo-90x135.png", currentNatsumi);
+      break;
+    case 18: case 19: case 20:
+      preloadImage("/idolnat/sprites/natsumi_18yo-90x135.png", currentNatsumi);
+      break;
+    case 21: case 22:
+      preloadImage("/idolnat/sprites/natsumi_21yo-90x135.png", currentNatsumi);
+      break;
+    default:
       break;
   }
 }
@@ -252,7 +270,7 @@ void setup() {
   Serial.println("*** BEGIN ***");
 
   if (!SD.begin()) {
-    drawText("SD init failed!", 120, 110, true, RED, 1); // centered
+    drawText("SD init failed!", 120, 131, true, RED, 1); // centered
     Serial.println("SD init failed!");
     while (true);
   }
@@ -277,7 +295,7 @@ void loop() {
       manageTitleScreen();
       break;
     case NEW_GAME:
-      natsumi.age = 0;
+      natsumi.age = 11;
       natsumi.ageMilliseconds = 0;
       natsumi.hunger = 4;
       natsumi.hygiene = 4;
@@ -295,10 +313,9 @@ void loop() {
       fgNeedsRedraw = false;
       currentState = HOME_LOOP;
       preloadImages();
-      homeBackground = roomLounge;
       break;
     case CONTINUE_GAME:
-      natsumi.age = 0;
+      natsumi.age = 11;
       natsumi.ageMilliseconds = 0;
       natsumi.hunger = 4;
       natsumi.hygiene = 4;
@@ -316,7 +333,6 @@ void loop() {
       fgNeedsRedraw = false;
       currentState = HOME_LOOP;
       preloadImages();
-      homeBackground = roomLounge;
       break;
     case DEV_SCREEN: case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
       manageDevScreen();
@@ -600,7 +616,7 @@ void manageDevScreen() {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      drawText("Key " + String(key) + " pressed...", 120, 110, true, BLUE, 1); // centered
+      drawText("Key " + String(key) + " pressed...", 120, 131, true, BLUE, 1);
       switch (currentState) {
         case DEV_SCREEN:
           if (key == 43) {
@@ -685,40 +701,12 @@ void drawDevSCreen() {
 }
 
 void drawHomeScreen() {
-  // M5Cardputer.Display.fillScreen(BLACK);
   drawImage(homeBackground);
-  switch(natsumi.age) {
-    case 11: case 12:
-      preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", natsumi11);
-      drawImage(natsumi11);
-      break;
-    case 13: case 14:
-      unloadImage(natsumi11);
-      preloadImage("/idolnat/sprites/natsumi_13yo-90x135.png", natsumi13);
-      drawImage(natsumi13);
-      break;
-    case 15: case 16: case 17:
-      unloadImage(natsumi13);
-      preloadImage("/idolnat/sprites/natsumi_15yo-90x135.png", natsumi15);
-      drawImage(natsumi15);
-      break;
-    case 18: case 19: case 20:
-      unloadImage(natsumi15);
-      preloadImage("/idolnat/sprites/natsumi_18yo-90x135.png", natsumi18);
-      drawImage(natsumi18);
-      break;
-    case 21: case 22:
-      unloadImage(natsumi18);
-      preloadImage("/idolnat/sprites/natsumi_21yo-90x135.png", natsumi21);
-      drawImage(natsumi21);
-      break;
-    default:
-      break;
-  }
-  // drawText("Natsumi Hasegawa", 20, 20, false, CYAN, 2);
+  drawImage(currentNatsumi);
 }
 
 void drawHomeStats() {
+  drawText(String("Memory: ") + ESP.getFreeHeap(), 80, 40, false, WHITE, 1);
   drawText(String("Time: ") + natsumi.ageMilliseconds, 80, 50, false, WHITE, 1);
   drawText(String("Age: ") + natsumi.age + " y.o.", 80, 60, false, WHITE, 1);
   drawText(String("Hunger: ") + natsumi.hunger, 80, 70, false, WHITE, 1);
@@ -732,26 +720,26 @@ void drawHomeStats() {
 void eat() {
   if (natsumi.hunger < 4) natsumi.hunger += 1;
   showToast("Ate (+1 Hunger)");
+  preloadImages();
   currentState = HOME_LOOP;
   bgNeedsRedraw = true;
   fgNeedsRedraw = false;
-  homeBackground = roomKitchen;
 }
 
 void wash() {
   if (natsumi.hygiene < 4) natsumi.hygiene += 1;
   showToast("Washed (+1 Hygiene)");
+  preloadImages();
   currentState = HOME_LOOP;
   bgNeedsRedraw = true;
   fgNeedsRedraw = false;
-  homeBackground = roomBathroom;
 }
 
 void rest() {
   if (natsumi.energy < 4) natsumi.energy += 1;
   showToast("Rested (+1 Energy)");
+  preloadImages();
   currentState = HOME_LOOP;
   bgNeedsRedraw = true;
   fgNeedsRedraw = false;
-  homeBackground = roomBedroom;
 }
