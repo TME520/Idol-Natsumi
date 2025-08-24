@@ -221,26 +221,15 @@ void preloadImages() {
       preloadImage("/idolnat/screens/title01.png", titleImage);
       break;
     case DEV_SCREEN:
-      // unloadImage(titleImage);
       preloadImage("/idolnat/screens/setup_3tiers_busybar.png", calib1);
       preloadImage("/idolnat/screens/setup_menubox.png", calib2);
       preloadImage("/idolnat/screens/setup_dialog.png", calib3);
       break;
     case HOME_LOOP:
-      // unloadImage(calib1);
-      // unloadImage(calib2);
-      // unloadImage(calib3);
-      // preloadImage("/idolnat/screens/bathroom.png", roomBathroom);
-      // preloadImage("/idolnat/screens/bedroom.png", roomBedroom);
+      preloadImage("/idolnat/screens/bathroom.png", roomBathroom);
+      preloadImage("/idolnat/screens/bedroom.png", roomBedroom);
       preloadImage("/idolnat/screens/kitchen.png", roomKitchen);
       preloadImage("/idolnat/screens/lounge.png", roomLounge);
-      /*
-      preloadImage("/idolnat/sprites/natsumi_11yo-240x135.png", natsumi11age);
-      preloadImage("/idolnat/sprites/natsumi_13yo-240x135.png", natsumi13age);
-      preloadImage("/idolnat/sprites/natsumi_15yo-240x135.png", natsumi15age);
-      preloadImage("/idolnat/sprites/natsumi_18yo-240x135.png", natsumi18age);
-      preloadImage("/idolnat/sprites/natsumi_21yo-240x135.png", natsumi21age);
-      */
       break;
   }
 }
@@ -633,6 +622,7 @@ void manageDevScreen() {
         case CALIBRATION_3:
           if (key == 43) {
             currentState = TITLE_SCREEN;
+            preloadImages();
             bgNeedsRedraw = true;
             fgNeedsRedraw = true;
           }
