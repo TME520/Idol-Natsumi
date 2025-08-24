@@ -661,9 +661,12 @@ void drawMenu(const char* items[], int itemCount, int selection) {
     M5Cardputer.Display.println(items[i]);
   }
 
-  M5Cardputer.Display.setTextColor(0x7BEF);
+  // Helper text at the bottom
+  M5Cardputer.Display.setTextSize(1); // smallest size
+  M5Cardputer.Display.setTextColor(WHITE, BLACK);
+  M5Cardputer.Display.fillRect(0, 115, 240, M5Cardputer.Display.fontHeight(), BLACK);
   M5Cardputer.Display.setCursor(10, 115);
-  M5Cardputer.Display.println("↑/↓: Navigate, ENTER: Validate");
+  M5Cardputer.Display.print("\x18/\x19: Navigate, ENTER: Validate");
 }
 
 void drawDevSCreen() {
