@@ -442,7 +442,7 @@ void manageTitleScreen() {
     bgNeedsRedraw = false;
   }
   if (fgNeedsRedraw) {
-    drawMainMenu();
+    drawMenu(mainMenuItems, mainMenuItemCount, mainMenuSelection);
     fgNeedsRedraw = false;
   }
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -510,7 +510,7 @@ void manageHomeScreen() {
   if (fgNeedsRedraw) {
     switch (currentState) {
       case ACTION_MENU:
-        drawActionMenu();
+        drawMenu(actionMenuItems, actionMenuItemCount, actionMenuSelection);
         fgNeedsRedraw = false;
         break;
       case DEBUG_HOME:
@@ -640,7 +640,7 @@ void drawTitleScreen() {
   drawImage(titleImage);
 }
 
-void drawMainMenu() {
+void drawMenu(const char* items[], int itemCount, int selection) {
   uint16_t overlayColor = M5Cardputer.Display.color888(30, 30, 30);
   int x = 60, y = 35, w = 120, h = 65;
 
@@ -648,41 +648,16 @@ void drawMainMenu() {
   M5Cardputer.Display.drawRect(x, y, w, h, WHITE);
 
   M5Cardputer.Display.setTextSize(1);
-  for (int i = 0; i < mainMenuItemCount; i++) {
+  for (int i = 0; i < itemCount; i++) {
     M5Cardputer.Display.setCursor(65, 45 + i * 15);
-    if (i == mainMenuSelection) {
+    if (i == selection) {
       M5Cardputer.Display.setTextColor(YELLOW);
       M5Cardputer.Display.print("> ");
     } else {
       M5Cardputer.Display.setTextColor(WHITE);
       M5Cardputer.Display.print("  ");
     }
-    M5Cardputer.Display.println(mainMenuItems[i]);
-  }
-
-  M5Cardputer.Display.setTextColor(0x7BEF);
-  M5Cardputer.Display.setCursor(10, 115);
-  M5Cardputer.Display.println("↑/↓: Navigate, ENTER: Validate");
-}
-
-void drawActionMenu() {
-  uint16_t overlayColor = M5Cardputer.Display.color888(30, 30, 30);
-  int x = 60, y = 35, w = 120, h = 65;
-
-  M5Cardputer.Display.fillRect(x, y, w, h, overlayColor);
-  M5Cardputer.Display.drawRect(x, y, w, h, WHITE);
-
-  M5Cardputer.Display.setTextSize(1);
-  for (int i = 0; i < actionMenuItemCount; i++) {
-    M5Cardputer.Display.setCursor(65, 45 + i * 15);
-    if (i == actionMenuSelection) {
-      M5Cardputer.Display.setTextColor(YELLOW);
-      M5Cardputer.Display.print("> ");
-    } else {
-      M5Cardputer.Display.setTextColor(WHITE);
-      M5Cardputer.Display.print("  ");
-    }
-    M5Cardputer.Display.println(actionMenuItems[i]);
+    M5Cardputer.Display.println(items[i]);
   }
 
   M5Cardputer.Display.setTextColor(0x7BEF);
