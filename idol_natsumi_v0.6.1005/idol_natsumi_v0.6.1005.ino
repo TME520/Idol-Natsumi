@@ -520,6 +520,7 @@ void manageHomeScreen() {
   if (natsumi.age > currentAge) {
     preloadImages();
     bgNeedsRedraw = true;
+    showToast(String("Natsumi turned ") + natsumi.age + " years old!");
   }
   if (bgNeedsRedraw) {
     drawHomeScreen();
@@ -535,7 +536,6 @@ void manageHomeScreen() {
         drawHomeStats();
         break;
     }
-    showToast(String("Natsumi turned ") + natsumi.age + " years old");
   }
 
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
