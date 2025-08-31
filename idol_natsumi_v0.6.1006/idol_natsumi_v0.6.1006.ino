@@ -297,16 +297,20 @@ void loop() {
   switch (screenConfig) {
     case CARD:
       /*
-      Transition bitmap (loading screen, narration...)
+      Transition bitmap (loading screen, narration, debug...)
       Background: 1 x bitmap
       Character: None
       Debug: Available
       Toast: None
-      Menu: None
-      Non-interactive (timer)
+      Menu: Yes
+      Interactive (timer + keypress)
       */
+      manageCard();
+      /*
       drawBackground(currentBackground);
       drawDebug();
+      drawMenu();
+      */
       break;
     case DIALOG:
       /*
@@ -318,9 +322,12 @@ void loop() {
       Menu: None
       Interactive (timer + keypress + escape)
       */
+      manageDialog();
+      /*
       drawBackground(currentBackground);
       drawCharacter();
       drawDebug();
+      */
       break;
     case GAME:
       /*
@@ -332,7 +339,7 @@ void loop() {
       Menu: None
       Interactive (timer + keypress + escape)
       */
-      playGame();
+      manageGame();
       break;
     case IDLE:
       /*
@@ -344,9 +351,12 @@ void loop() {
       Menu: None
       Interactive (escape)
       */
+      manageIdle();
+      /*
       drawCharacter();
       drawDebug();
       drawToast();
+      */
       break;
     case ROOM:
       /*
@@ -358,11 +368,14 @@ void loop() {
       Menu: Yes
       Interactive (timer + keypress + escape)
       */
+      manageRoom();
+      /*
       drawBackground(currentBackground);
       drawCharacter();
       drawDebug();
       drawToast();
       drawMenu();
+      */
       break;
     case TEXT:
       /*
@@ -374,84 +387,11 @@ void loop() {
       Menu: None
       Non-interactive (timer)
       */
+      manageText();
       break;
     default:
       break;
   }
-
-  switch (currentState) {
-    case VERSION_SCREEN:
-      manageVersionScreen();
-      break;
-    case TITLE_SCREEN:
-      // Serial.println("> Title screen");
-      manageTitleScreen();
-      break;
-    case NEW_GAME:
-      natsumi.age = 11;
-      natsumi.ageMilliseconds = 0;
-      natsumi.hunger = 4;
-      natsumi.hygiene = 4;
-      natsumi.energy = 4;
-      natsumi.skill = 0;
-      natsumi.mood = 0;
-      natsumi.popularity = 0;
-      natsumi.lastHungerUpdate = 0;
-      natsumi.lastHygieneUpdate = 0;
-      natsumi.lastEnergyUpdate = 0;
-      playtimeTotalMs = 0;
-      sessionStart = millis();
-      lastAgeTick = 0;
-      bgNeedsRedraw = true;
-      fgNeedsRedraw = false;
-      currentState = HOME_LOOP;
-      preloadImages();
-      break;
-    case CONTINUE_GAME:
-      natsumi.age = 11;
-      natsumi.ageMilliseconds = 0;
-      natsumi.hunger = 4;
-      natsumi.hygiene = 4;
-      natsumi.energy = 4;
-      natsumi.skill = 0;
-      natsumi.mood = 0;
-      natsumi.popularity = 0;
-      natsumi.lastHungerUpdate = 0;
-      natsumi.lastHygieneUpdate = 0;
-      natsumi.lastEnergyUpdate = 0;
-      playtimeTotalMs = 0;
-      sessionStart = millis();
-      lastAgeTick = 0;
-      bgNeedsRedraw = true;
-      fgNeedsRedraw = false;
-      currentState = HOME_LOOP;
-      preloadImages();
-      break;
-    case DEV_SCREEN: case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
-      manageDevScreen();
-      break;
-    case HOME_LOOP:
-      manageHomeScreen();
-      break;
-    case ACTION_MENU:
-      manageHomeScreen();
-      break;
-    case DEBUG_HOME:
-      manageHomeScreen();
-      break;
-    case ACTION_EAT:
-      eat();
-      break;
-    case ACTION_WASH:
-      wash();
-      break;
-    case ACTION_REST:
-      rest();
-      break;
-    default:
-      break;
-  }
-  manageToast();
 }
 
 // === Menu and state logic ===
@@ -535,8 +475,124 @@ void updateStats() {
   }
 }
 
-void manageVersionScreen() {
-  // Serial.println("> Entering manageVersionScreen()");
+void manageCard() {
+  // Manage CARD screens
+  switch (currentState) {
+    case TITLE_SCREEN:
+      displayTitleScreen();
+      break;
+    case NEW_GAME:
+      natsumi.age = 11;
+      natsumi.ageMilliseconds = 0;
+      natsumi.hunger = 4;
+      natsumi.hygiene = 4;
+      natsumi.energy = 4;
+      natsumi.skill = 0;
+      natsumi.mood = 0;
+      natsumi.popularity = 0;
+      natsumi.lastHungerUpdate = 0;
+      natsumi.lastHygieneUpdate = 0;
+      natsumi.lastEnergyUpdate = 0;
+      playtimeTotalMs = 0;
+      sessionStart = millis();
+      lastAgeTick = 0;
+      bgNeedsRedraw = true;
+      fgNeedsRedraw = false;
+      currentState = HOME_LOOP;
+      preloadImages();
+      break;
+    case CONTINUE_GAME:
+      natsumi.age = 11;
+      natsumi.ageMilliseconds = 0;
+      natsumi.hunger = 4;
+      natsumi.hygiene = 4;
+      natsumi.energy = 4;
+      natsumi.skill = 0;
+      natsumi.mood = 0;
+      natsumi.popularity = 0;
+      natsumi.lastHungerUpdate = 0;
+      natsumi.lastHygieneUpdate = 0;
+      natsumi.lastEnergyUpdate = 0;
+      playtimeTotalMs = 0;
+      sessionStart = millis();
+      lastAgeTick = 0;
+      bgNeedsRedraw = true;
+      fgNeedsRedraw = false;
+      currentState = HOME_LOOP;
+      preloadImages();
+      break;
+    case DEV_SCREEN: case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
+      manageDevScreen();
+      break;
+    default:
+      break;
+  }
+}
+
+void manageDialog() {
+  // Manage DIALOG screens
+  switch (currentState) {
+    default:
+      break;
+  }
+}
+
+void manageGame() {
+  // Manage GAME screens
+  switch (currentState) {
+    default:
+      playGame();
+      break;
+  }
+}
+
+void manageIdle() {
+  // Manage IDLE screens
+  switch (currentState) {
+    default:
+      break;
+  }
+}
+
+void manageRoom() {
+  // Manage ROOM screens
+  switch (currentState) {
+    case HOME_LOOP:
+      manageHomeScreen();
+      break;
+    case ACTION_MENU:
+      manageHomeScreen();
+      break;
+    case DEBUG_HOME:
+      manageHomeScreen();
+      break;
+    case ACTION_EAT:
+      eat();
+      break;
+    case ACTION_WASH:
+      wash();
+      break;
+    case ACTION_REST:
+      rest();
+      break;
+    default:
+      break;
+  }
+}
+
+void manageText() {
+  // Manage TEXT screens
+  switch (currentState) {
+    case VERSION_SCREEN:
+      displayVersionScreen();
+      break;
+    default:
+      break;
+  }
+}
+
+void displayVersionScreen() {
+  // Serial.println("> Entering displayVersionScreen()");
   M5Cardputer.Display.fillScreen(BLACK);
   drawText("IDOL NATSUMI", 120, 30, true, RED, 3); // centered
   drawText("for M5 Cardputer", 120, 50, true, BLUE, 2); // centered
@@ -547,7 +603,7 @@ void manageVersionScreen() {
   preloadImages();
 }
 
-void manageTitleScreen() {
+void displayTitleScreen() {
   if (bgNeedsRedraw) {
     drawTitleScreen();
     bgNeedsRedraw = false;
@@ -810,11 +866,13 @@ void rest() {
 void drawBackground(const ImageBuffer& bg) {
   // Draw the background of the screen (layer 0)
   drawImage(bg);
+  l0NeedsRedraw = false;
 }
 
 void drawCharacter() {
   // Draw the character(s) on the screen (layer 1)
   drawImage(currentCharacter);
+  l1NeedsRedraw = false;
 }
 
 void drawDebug() {
@@ -828,6 +886,7 @@ void drawDebug() {
   drawText(String("Skill: ") + natsumi.skill, 80, 100, false, WHITE, 1);
   drawText(String("Mood: ") + natsumi.mood, 80, 110, false, WHITE, 1);
   drawText(String("Popularity: ") + natsumi.popularity, 80, 120, false, WHITE, 1);
+  l2NeedsRedraw = false;
 }
 
 void drawToast() {
@@ -839,6 +898,7 @@ void drawToast() {
   M5Cardputer.Display.setTextSize(1);
   M5Cardputer.Display.setTextColor(YELLOW, BLACK);
   M5Cardputer.Display.drawString(toastMsg, tx, ty);
+  l3NeedsRedraw = false;
 }
 
 void drawMenu(const char* items[], int itemCount, int selection) {
@@ -865,6 +925,7 @@ void drawMenu(const char* items[], int itemCount, int selection) {
   // Helper text at the bottom
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
   drawText("UP/DOWN: Navigate, ENTER: Validate", 120, 131, true, WHITE, 1);
+  l4NeedsRedraw = false;
 }
 
 void playGame() {
