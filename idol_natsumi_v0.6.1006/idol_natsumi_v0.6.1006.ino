@@ -305,7 +305,7 @@ void loop() {
       Menu: None
       Non-interactive (timer)
       */
-      drawBackground();
+      drawBackground(currentBackground);
       drawDebug();
       break;
     case DIALOG:
@@ -318,7 +318,7 @@ void loop() {
       Menu: None
       Interactive (timer + keypress + escape)
       */
-      drawBackground();
+      drawBackground(currentBackground);
       drawCharacter();
       drawDebug();
       break;
@@ -358,7 +358,7 @@ void loop() {
       Menu: Yes
       Interactive (timer + keypress + escape)
       */
-      drawBackground();
+      drawBackground(currentBackground);
       drawCharacter();
       drawDebug();
       drawToast();
@@ -807,9 +807,9 @@ void rest() {
   fgNeedsRedraw = false;
 }
 
-void drawBackground() {
+void drawBackground(const ImageBuffer& bg) {
   // Draw the background of the screen (layer 0)
-  drawImage(currentBackground);
+  drawImage(bg);
 }
 
 void drawCharacter() {
