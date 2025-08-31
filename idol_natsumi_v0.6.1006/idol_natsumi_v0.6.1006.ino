@@ -22,6 +22,18 @@ enum GameState {
 
 GameState currentState = VERSION_SCREEN;
 
+// === Screen configs definitions ===
+enum ScreenState {
+  CARD,
+  DIALOG,
+  GAME,
+  IDLE,
+  ROOM,
+  TEXT
+};
+
+ScreenState screenConfig = TEXT;
+
 // === Player data ===
 struct NatsumiStats {
   int age;
@@ -63,10 +75,10 @@ int mainMenuSelection = 0;
 bool bgNeedsRedraw = true;
 bool fgNeedsRedraw = true;
 bool toastNeedsRedraw = false;
+bool debugModeEnabled = false;
 
 unsigned long lastUpdate = 0;
 const int FRAME_DELAY = 50;
-
 
 // === Image preload system ===
 struct ImageBuffer {
@@ -77,10 +89,10 @@ struct ImageBuffer {
 String copyright = "(c) 2025 - Pantzumatic";
 String versionNumber = "0.6.1006";
 
-ImageBuffer homeBackground;
+ImageBuffer currentBackground;
 ImageBuffer titleImage;
 ImageBuffer calib1, calib2, calib3;
-ImageBuffer currentNatsumi;
+ImageBuffer currentCharacter;
 
 // Toast messages
 String toastMsg = "";
@@ -191,12 +203,12 @@ void unloadAllImages() {
   unloadImage(calib1);
   unloadImage(calib2);
   unloadImage(calib3);
-  unloadImage(homeBackground);
-  unloadImage(currentNatsumi);
+  unloadImage(currentBackground);
+  unloadImage(currentCharacter);
 
-  // homeBackground points to one of the room images, so just reset it
-  homeBackground.data = nullptr;
-  homeBackground.length = 0;
+  // currentBackground points to one of the room images, so just reset it
+  currentBackground.data = nullptr;
+  currentBackground.length = 0;
 
   size_t heapAfter = ESP.getFreeHeap();
   Serial.print("Unloaded all images. Freed bytes: ");
@@ -218,37 +230,37 @@ void preloadImages() {
       preloadImage("/idolnat/screens/setup_dialog.png", calib3);
       break;
     case HOME_LOOP:
-      preloadImage("/idolnat/screens/lounge.png", homeBackground);
+      preloadImage("/idolnat/screens/lounge.png", currentBackground);
       break;
     case ACTION_EAT:
-      preloadImage("/idolnat/screens/kitchen.png", homeBackground);
+      preloadImage("/idolnat/screens/kitchen.png", currentBackground);
       break;
     case ACTION_WASH:
-      preloadImage("/idolnat/screens/bathroom.png", homeBackground);
+      preloadImage("/idolnat/screens/bathroom.png", currentBackground);
       break;
     case ACTION_REST:
-      preloadImage("/idolnat/screens/bedroom.png", homeBackground);
+      preloadImage("/idolnat/screens/bedroom.png", currentBackground);
       break;
   }
   // Load portraits
   switch(natsumi.age) {
     case 11: case 12:
-      preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentNatsumi);
+      preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentCharacter);
       break;
     case 13: case 14:
-      preloadImage("/idolnat/sprites/natsumi_13yo-90x135.png", currentNatsumi);
+      preloadImage("/idolnat/sprites/natsumi_13yo-90x135.png", currentCharacter);
       break;
     case 15: case 16: case 17:
-      preloadImage("/idolnat/sprites/natsumi_15yo-90x135.png", currentNatsumi);
+      preloadImage("/idolnat/sprites/natsumi_15yo-90x135.png", currentCharacter);
       break;
     case 18: case 19: case 20:
-      preloadImage("/idolnat/sprites/natsumi_18yo-90x135.png", currentNatsumi);
+      preloadImage("/idolnat/sprites/natsumi_18yo-90x135.png", currentCharacter);
       break;
     case 21: case 22:
-      preloadImage("/idolnat/sprites/natsumi_21yo-90x135.png", currentNatsumi);
+      preloadImage("/idolnat/sprites/natsumi_21yo-90x135.png", currentCharacter);
       break;
     default:
-      preloadImage("/idolnat/sprites/natsumi_21yo-90x135.png", currentNatsumi);
+      preloadImage("/idolnat/sprites/natsumi_21yo-90x135.png", currentCharacter);
       break;
   }
 }
@@ -276,7 +288,6 @@ void setup() {
     while (true);
   }
 
-  currentState = VERSION_SCREEN;
   bgNeedsRedraw = true;
   fgNeedsRedraw = true;
 }
@@ -286,6 +297,73 @@ void loop() {
 
   if (millis() - lastUpdate < FRAME_DELAY) return;
   lastUpdate = millis();
+
+  switch (screenConfig) {
+    case CARD:
+      /*
+      Transition bitmap (loading screen, narration...)
+      Background: 1 x bitmap
+      Character: None
+      Debug: Available
+      Toast: None
+      Menu: None
+      Non-interactive (timer)
+      */
+      break;
+    case DIALOG:
+      /*
+      Dialog between Natsumi and NPC
+      Background: 1 x bitmap
+      Character: Natsumi + NPC
+      Debug: Available
+      Menu: None
+      Interactive (timer + keypress + escape)
+      */
+      break;
+    case GAME:
+      /*
+      Mini-games
+      Background: None
+      Character: None
+      Debug: Available
+      Menu: None
+      Interactive (timer + keypress + escape)
+      */
+      break;
+    case IDLE:
+      /*
+      Idle mode, minimal screen activity
+      Background: None
+      Character: Natsumi
+      Debug: Available
+      Menu: None
+      Interactive (escape)
+      */
+      break;
+    case ROOM:
+      /*
+      Location: Bathroom, Bedroom, Kitchen, Lounge
+      Background: None
+      Character: None
+      Debug: Available
+      Menu: None
+      Interactive (timer + keypress + escape)
+      */
+      break;
+    case TEXT:
+      /*
+      Transition text (version)
+      Background: None
+      Character: None
+      Debug: None
+      Toast: None
+      Menu: None
+      Non-interactive (timer)
+      */
+      break;
+    default:
+      break;
+  }
 
   switch (currentState) {
     case VERSION_SCREEN:
@@ -355,6 +433,8 @@ void loop() {
       break;
     case ACTION_REST:
       rest();
+      break;
+    default:
       break;
   }
   manageToast();
@@ -704,8 +784,8 @@ void drawDevSCreen() {
 }
 
 void drawHomeScreen() {
-  drawImage(homeBackground);
-  drawImage(currentNatsumi);
+  drawImage(currentBackground);
+  drawImage(currentCharacter);
 }
 
 void drawHomeStats() {
