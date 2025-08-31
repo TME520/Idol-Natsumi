@@ -75,6 +75,13 @@ int mainMenuSelection = 0;
 bool bgNeedsRedraw = true;
 bool fgNeedsRedraw = true;
 bool toastNeedsRedraw = false;
+
+bool l0NeedsRedraw = false;
+bool l1NeedsRedraw = false;
+bool l2NeedsRedraw = false;
+bool l3NeedsRedraw = false;
+bool l4NeedsRedraw = false;
+
 bool debugModeEnabled = false;
 
 unsigned long lastUpdate = 0;
@@ -113,17 +120,6 @@ void manageToast() {
       toastNeedsRedraw = false;
     }
   }
-}
-
-void drawToast() {
-  // Serial.println("> Entering drawToast()");
-  const int tx = 120;  // center X (screen is 240 wide in landscape)
-  const int ty = 100;  // near bottom for 135px height
-  M5Cardputer.Display.fillRect(0, ty - 8, 240, 18, BLACK); // clear strip
-  M5Cardputer.Display.setTextDatum(middle_center);
-  M5Cardputer.Display.setTextSize(1);
-  M5Cardputer.Display.setTextColor(YELLOW, BLACK);
-  M5Cardputer.Display.drawString(toastMsg, tx, ty);
 }
 
 // === UI Helper Functions ===
@@ -309,6 +305,8 @@ void loop() {
       Menu: None
       Non-interactive (timer)
       */
+      drawBackground();
+      drawDebug();
       break;
     case DIALOG:
       /*
@@ -316,9 +314,13 @@ void loop() {
       Background: 1 x bitmap
       Character: Natsumi + NPC
       Debug: Available
+      Toast: None
       Menu: None
       Interactive (timer + keypress + escape)
       */
+      drawBackground();
+      drawCharacter();
+      drawDebug();
       break;
     case GAME:
       /*
@@ -326,9 +328,11 @@ void loop() {
       Background: None
       Character: None
       Debug: Available
+      Toast: None
       Menu: None
       Interactive (timer + keypress + escape)
       */
+      playGame();
       break;
     case IDLE:
       /*
@@ -336,9 +340,13 @@ void loop() {
       Background: None
       Character: Natsumi
       Debug: Available
+      Toast: Yes
       Menu: None
       Interactive (escape)
       */
+      drawCharacter();
+      drawDebug();
+      drawToast();
       break;
     case ROOM:
       /*
@@ -346,9 +354,15 @@ void loop() {
       Background: None
       Character: None
       Debug: Available
-      Menu: None
+      Toast: Yes
+      Menu: Yes
       Interactive (timer + keypress + escape)
       */
+      drawBackground();
+      drawCharacter();
+      drawDebug();
+      drawToast();
+      drawMenu();
       break;
     case TEXT:
       /*
@@ -740,31 +754,6 @@ void drawTitleScreen() {
   drawImage(titleImage);
 }
 
-void drawMenu(const char* items[], int itemCount, int selection) {
-  uint16_t overlayColor = M5Cardputer.Display.color888(30, 30, 30);
-  int x = 60, y = 35, w = 120, h = 65;
-
-  M5Cardputer.Display.fillRect(x, y, w, h, overlayColor);
-  M5Cardputer.Display.drawRect(x, y, w, h, WHITE);
-
-  M5Cardputer.Display.setTextSize(1);
-  for (int i = 0; i < itemCount; i++) {
-    M5Cardputer.Display.setCursor(65, 45 + i * 15);
-    if (i == selection) {
-      M5Cardputer.Display.setTextColor(YELLOW);
-      M5Cardputer.Display.print("> ");
-    } else {
-      M5Cardputer.Display.setTextColor(WHITE);
-      M5Cardputer.Display.print("  ");
-    }
-    M5Cardputer.Display.println(items[i]);
-  }
-
-  // Helper text at the bottom
-  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("UP/DOWN: Navigate, ENTER: Validate", 120, 131, true, WHITE, 1);
-}
-
 void drawDevSCreen() {
   switch (currentState) {
     case DEV_SCREEN:
@@ -784,20 +773,11 @@ void drawDevSCreen() {
 }
 
 void drawHomeScreen() {
-  drawImage(currentBackground);
-  drawImage(currentCharacter);
+  // Decom
 }
 
 void drawHomeStats() {
-  drawText(String("Memory: ") + ESP.getFreeHeap(), 80, 40, false, WHITE, 1);
-  drawText(String("Time: ") + natsumi.ageMilliseconds, 80, 50, false, WHITE, 1);
-  drawText(String("Age: ") + natsumi.age + " y.o.", 80, 60, false, WHITE, 1);
-  drawText(String("Hunger: ") + natsumi.hunger, 80, 70, false, WHITE, 1);
-  drawText(String("Hygiene: ") + natsumi.hygiene, 80, 80, false, WHITE, 1);
-  drawText(String("Energy: ") + natsumi.energy, 80, 90, false, WHITE, 1);
-  drawText(String("Skill: ") + natsumi.skill, 80, 100, false, WHITE, 1);
-  drawText(String("Mood: ") + natsumi.mood, 80, 110, false, WHITE, 1);
-  drawText(String("Popularity: ") + natsumi.popularity, 80, 120, false, WHITE, 1);
+  // Decom
 }
 
 void eat() {
@@ -825,4 +805,70 @@ void rest() {
   currentState = HOME_LOOP;
   bgNeedsRedraw = true;
   fgNeedsRedraw = false;
+}
+
+void drawBackground() {
+  // Draw the background of the screen (layer 0)
+  drawImage(currentBackground);
+}
+
+void drawCharacter() {
+  // Draw the character(s) on the screen (layer 1)
+  drawImage(currentCharacter);
+}
+
+void drawDebug() {
+  // Draw debug information (layer 2)
+  drawText(String("Memory: ") + ESP.getFreeHeap(), 80, 40, false, WHITE, 1);
+  drawText(String("Time: ") + natsumi.ageMilliseconds, 80, 50, false, WHITE, 1);
+  drawText(String("Age: ") + natsumi.age + " y.o.", 80, 60, false, WHITE, 1);
+  drawText(String("Hunger: ") + natsumi.hunger, 80, 70, false, WHITE, 1);
+  drawText(String("Hygiene: ") + natsumi.hygiene, 80, 80, false, WHITE, 1);
+  drawText(String("Energy: ") + natsumi.energy, 80, 90, false, WHITE, 1);
+  drawText(String("Skill: ") + natsumi.skill, 80, 100, false, WHITE, 1);
+  drawText(String("Mood: ") + natsumi.mood, 80, 110, false, WHITE, 1);
+  drawText(String("Popularity: ") + natsumi.popularity, 80, 120, false, WHITE, 1);
+}
+
+void drawToast() {
+  // Draw toast messages (layer 3)
+  const int tx = 120;  // center X (screen is 240 wide in landscape)
+  const int ty = 100;  // near bottom for 135px height
+  M5Cardputer.Display.fillRect(0, ty - 8, 240, 18, BLACK); // clear strip
+  M5Cardputer.Display.setTextDatum(middle_center);
+  M5Cardputer.Display.setTextSize(1);
+  M5Cardputer.Display.setTextColor(YELLOW, BLACK);
+  M5Cardputer.Display.drawString(toastMsg, tx, ty);
+}
+
+void drawMenu(const char* items[], int itemCount, int selection) {
+  // Draw menus on the screen (layer 4)
+  uint16_t overlayColor = M5Cardputer.Display.color888(30, 30, 30);
+  int x = 60, y = 35, w = 120, h = 65;
+
+  M5Cardputer.Display.fillRect(x, y, w, h, overlayColor);
+  M5Cardputer.Display.drawRect(x, y, w, h, WHITE);
+
+  M5Cardputer.Display.setTextSize(1);
+  for (int i = 0; i < itemCount; i++) {
+    M5Cardputer.Display.setCursor(65, 45 + i * 15);
+    if (i == selection) {
+      M5Cardputer.Display.setTextColor(YELLOW);
+      M5Cardputer.Display.print("> ");
+    } else {
+      M5Cardputer.Display.setTextColor(WHITE);
+      M5Cardputer.Display.print("  ");
+    }
+    M5Cardputer.Display.println(items[i]);
+  }
+
+  // Helper text at the bottom
+  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  drawText("UP/DOWN: Navigate, ENTER: Validate", 120, 131, true, WHITE, 1);
+}
+
+void playGame() {
+  // Play one of the mini-games
+  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  drawText("Mini-game", 120, 131, true, WHITE, 1);
 }
