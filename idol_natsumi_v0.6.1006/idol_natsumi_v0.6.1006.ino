@@ -8,11 +8,9 @@ enum GameState {
   CALIBRATION_1,
   CALIBRATION_2,
   CALIBRATION_3,
-  MAIN_MENU,
   NEW_GAME,
   CONTINUE_GAME,
   DEV_SCREEN,
-  DEBUG_HOME,
   HOME_LOOP,
   ACTION_MENU,
   ACTION_EAT,
@@ -66,23 +64,28 @@ const unsigned long hungerInterval = 120000;   // 2 minutes
 const unsigned long hygieneInterval = 240000;  // 4 minutes
 const unsigned long energyInterval = 240000;   // 4 minutes
 
+String currentMenuType = "main";
 const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: DEV SCREEN"};
 const char* actionMenuItems[] = {"0: EAT", "1: WASH", "2: REST", "3: DEBUG"};
+const char* devMenuItems[] = {"0: CALIB1", "1: CALIB2", "2: CALIB3", "3: EXIT"};
+char* currentMenuItems[] = {"", "", "", ""};
 const int mainMenuItemCount = 3;
 const int actionMenuItemCount = 4;
+const int devMenuItemCOunt = 4;
+int currentMenuItemsCount = 0;
 int actionMenuSelection = 0;
 int mainMenuSelection = 0;
-bool bgNeedsRedraw = true;
-bool fgNeedsRedraw = true;
-bool toastNeedsRedraw = false;
+int devMenuSelection = 0;
+int currentMenuSelection = 0;
 
-bool l0NeedsRedraw = false;
-bool l1NeedsRedraw = false;
-bool l2NeedsRedraw = false;
-bool l3NeedsRedraw = false;
-bool l4NeedsRedraw = false;
+bool l0NeedsRedraw = false; // Background
+bool l1NeedsRedraw = false; // Character
+bool l2NeedsRedraw = false; // Debug
+bool l3NeedsRedraw = false; // Toast
+bool l4NeedsRedraw = false; // Menu
 
-bool debugModeEnabled = false;
+bool debugEnabled = false;
+bool menuOpened = false;
 
 unsigned long lastUpdate = 0;
 const int FRAME_DELAY = 50;
@@ -97,7 +100,6 @@ String copyright = "(c) 2025 - Pantzumatic";
 String versionNumber = "0.6.1006";
 
 ImageBuffer currentBackground;
-ImageBuffer titleImage;
 ImageBuffer calib1, calib2, calib3;
 ImageBuffer currentCharacter;
 
@@ -107,17 +109,16 @@ unsigned long toastUntil = 0;  // timestamp when toast should disappear
 void showToast(const String& msg, unsigned long ms = mediumWait) {
   toastMsg = msg;
   toastUntil = millis() + ms;
-  toastNeedsRedraw = true;
+  l3NeedsRedraw = true;
 }
 
 void manageToast() {
   // Serial.println("> Entering manageToast()");
-  if (toastNeedsRedraw==true) {
+  if (l3NeedsRedraw==true) {
     if (millis() < toastUntil) {
       drawToast();
     } else {
-      bgNeedsRedraw = true;
-      toastNeedsRedraw = false;
+      l3NeedsRedraw = false;
     }
   }
 }
@@ -195,10 +196,6 @@ void unloadImage(ImageBuffer &imgBuf) {
 void unloadAllImages() {
   size_t heapBefore = ESP.getFreeHeap();
 
-  unloadImage(titleImage);
-  unloadImage(calib1);
-  unloadImage(calib2);
-  unloadImage(calib3);
   unloadImage(currentBackground);
   unloadImage(currentCharacter);
 
@@ -214,16 +211,20 @@ void unloadAllImages() {
 }
 
 void preloadImages() {
-  unloadAllImages();
+  // unloadAllImages();
   // Load backgrounds
   switch (currentState) {
     case TITLE_SCREEN:
-      preloadImage("/idolnat/screens/title01.png", titleImage);
+      preloadImage("/idolnat/screens/title01.png", currentBackground);
       break;
-    case DEV_SCREEN:
-      preloadImage("/idolnat/screens/setup_3tiers_busybar.png", calib1);
-      preloadImage("/idolnat/screens/setup_menubox.png", calib2);
-      preloadImage("/idolnat/screens/setup_dialog.png", calib3);
+    case CALIBRATION_1:
+      preloadImage("/idolnat/screens/setup_3tiers_busybar.png", currentBackground);
+      break;
+    case CALIBRATION_2:
+      preloadImage("/idolnat/screens/setup_menubox.png", currentBackground);
+      break;
+    case CALIBRATION_3:
+      preloadImage("/idolnat/screens/setup_dialog.png", currentBackground);
       break;
     case HOME_LOOP:
       preloadImage("/idolnat/screens/lounge.png", currentBackground);
@@ -268,7 +269,6 @@ void drawImage(const ImageBuffer& img) {
 }
 
 // === Setup and loop ===
-
 void setup() {
   auto cfg = M5.config();
   M5Cardputer.begin(cfg);
@@ -283,9 +283,6 @@ void setup() {
     Serial.println("SD init failed!");
     while (true);
   }
-
-  bgNeedsRedraw = true;
-  fgNeedsRedraw = true;
 }
 
 void loop() {
@@ -296,21 +293,7 @@ void loop() {
 
   switch (screenConfig) {
     case CARD:
-      /*
-      Transition bitmap (loading screen, narration, debug...)
-      Background: 1 x bitmap
-      Character: None
-      Debug: Available
-      Toast: None
-      Menu: Yes
-      Interactive (timer + keypress)
-      */
       manageCard();
-      /*
-      drawBackground(currentBackground);
-      drawDebug();
-      drawMenu();
-      */
       break;
     case DIALOG:
       /*
@@ -395,6 +378,42 @@ void loop() {
 }
 
 // === Menu and state logic ===
+void changeState(int baseLayer, GameState targetState) {
+  // Manage state transitions
+  switch (baseLayer) {
+    case 0:
+      l0NeedsRedraw = true;
+      break;
+    case 1:
+      l1NeedsRedraw = true;
+      break;
+    case 2:
+      l2NeedsRedraw = true;
+      break;
+    case 3:
+      l3NeedsRedraw = true;
+      break;
+    case 4:
+      l4NeedsRedraw = true;
+      break;
+    default:
+      l0NeedsRedraw = true;
+      break;
+  }
+  switch (targetState) {
+    case VERSION_SCREEN:
+      screenConfig = TEXT;
+      break;
+    case TITLE_SCREEN: case NEW_GAME: case CONTINUE_GAME: case DEV_SCREEN: case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
+      screenConfig = CARD;
+    case HOME_LOOP: case ACTION_EAT: case ACTION_WASH: case ACTION_REST:
+      screenConfig = ROOM;
+    default:
+      break;
+  }
+  currentState = targetState;
+  preloadImages();
+}
 
 void updateAging() {
   // Serial.println("> Entering updateAging()");
@@ -477,9 +496,21 @@ void updateStats() {
 
 void manageCard() {
   // Manage CARD screens
+  /*
+  Transition bitmap (loading screen, narration, debug...)
+  Background: 1 x bitmap
+  Character: None
+  Debug: Available
+  Toast: None
+  Menu: None
+  Interactive (timer + keypress)
+  */
   switch (currentState) {
     case TITLE_SCREEN:
-      displayTitleScreen();
+      currentMenuType = "main";
+      currentMenuItems = mainMenuItems;
+      currentMenuItemsCount = mainMenuItemCount;
+      currentMenuSelection = mainMenuSelection;
       break;
     case NEW_GAME:
       natsumi.age = 11;
@@ -496,10 +527,7 @@ void manageCard() {
       playtimeTotalMs = 0;
       sessionStart = millis();
       lastAgeTick = 0;
-      bgNeedsRedraw = true;
-      fgNeedsRedraw = false;
-      currentState = HOME_LOOP;
-      preloadImages();
+      changeState(0, HOME_LOOP);
       break;
     case CONTINUE_GAME:
       natsumi.age = 11;
@@ -516,17 +544,20 @@ void manageCard() {
       playtimeTotalMs = 0;
       sessionStart = millis();
       lastAgeTick = 0;
-      bgNeedsRedraw = true;
-      fgNeedsRedraw = false;
-      currentState = HOME_LOOP;
-      preloadImages();
+      changeState(0, HOME_LOOP);
       break;
-    case DEV_SCREEN: case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
-      manageDevScreen();
+    case DEV_SCREEN:
+      currentMenuType = "dev";
+      currentMenuItems = devMenuItems;
+      currentMenuItemsCount = devMenuItemCount;
+      currentMenuSelection = devMenuSelection;
       break;
     default:
       break;
   }
+  drawBackground(currentBackground);
+  drawDebug();
+  drawMenu(currentMenuType, currentMenuItems, currentMenuItemsCount, currentMenuSelection);
 }
 
 void manageDialog() {
@@ -560,12 +591,6 @@ void manageRoom() {
     case HOME_LOOP:
       manageHomeScreen();
       break;
-    case ACTION_MENU:
-      manageHomeScreen();
-      break;
-    case DEBUG_HOME:
-      manageHomeScreen();
-      break;
     case ACTION_EAT:
       eat();
       break;
@@ -585,78 +610,25 @@ void manageText() {
   switch (currentState) {
     case VERSION_SCREEN:
       displayVersionScreen();
+      changeState(0, TITLE_SCREEN);
       break;
     default:
       break;
   }
 }
 
+void displayBlackScreen() {
+  M5Cardputer.Display.fillScreen(BLACK);
+}
+
 void displayVersionScreen() {
   // Serial.println("> Entering displayVersionScreen()");
-  M5Cardputer.Display.fillScreen(BLACK);
+  displayBlackScreen();
   drawText("IDOL NATSUMI", 120, 30, true, RED, 3); // centered
   drawText("for M5 Cardputer", 120, 50, true, BLUE, 2); // centered
   drawText(copyright, 120, 100, true, WHITE, 1); // centered
   drawText(versionNumber, 120, 110, true, WHITE, 1); // centered
   delay(mediumWait);
-  currentState = TITLE_SCREEN;
-  preloadImages();
-}
-
-void displayTitleScreen() {
-  if (bgNeedsRedraw) {
-    drawTitleScreen();
-    bgNeedsRedraw = false;
-  }
-  if (fgNeedsRedraw) {
-    drawMenu(mainMenuItems, mainMenuItemCount, mainMenuSelection);
-    fgNeedsRedraw = false;
-  }
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-    auto keyList = M5Cardputer.Keyboard.keyList();
-    if (keyList.size() > 0) {
-      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      switch (key) {
-        case 48:
-          // 0: NEW GAME
-          currentState = NEW_GAME;
-          break;
-        case 49:
-          // 1: CONTINUE
-          currentState = CONTINUE_GAME;
-          break;
-        case 50:
-          // 2: DEV SCREEN
-          currentState = DEV_SCREEN;
-          preloadImages();
-          bgNeedsRedraw = true;
-          fgNeedsRedraw = true;
-          break;
-        case 181: case 'w': case 'W': case 59:
-          mainMenuSelection = (mainMenuSelection - 1 + mainMenuItemCount) % mainMenuItemCount;
-          bgNeedsRedraw = false;
-          fgNeedsRedraw = true;
-          break;
-        case 182: case 's': case 'S': case 46:
-          mainMenuSelection = (mainMenuSelection + 1) % mainMenuItemCount;
-          bgNeedsRedraw = false;
-          fgNeedsRedraw = true;
-          break;
-        case 13: case 40: case ' ':
-          if (mainMenuSelection == 0) {
-            currentState = NEW_GAME;
-          } else if (mainMenuSelection == 1) {
-            currentState = CONTINUE_GAME;
-          } else {
-            currentState = DEV_SCREEN;
-            preloadImages();
-            bgNeedsRedraw = true;
-            fgNeedsRedraw = true;
-          }
-          break;
-      }
-    }
-  }
 }
 
 void manageHomeScreen() {
@@ -669,102 +641,13 @@ void manageHomeScreen() {
   updateAging();
   updateStats();
   if (natsumi.age > currentAge) {
+    // Load updated portrait
     preloadImages();
-    bgNeedsRedraw = true;
     showToast(String("Natsumi turned ") + natsumi.age + " years old!");
-  }
-  if (bgNeedsRedraw) {
-    drawHomeScreen();
-    bgNeedsRedraw = false;
-  }
-  if (fgNeedsRedraw) {
-    switch (currentState) {
-      case ACTION_MENU:
-        drawMenu(actionMenuItems, actionMenuItemCount, actionMenuSelection);
-        fgNeedsRedraw = false;
-        break;
-      case DEBUG_HOME:
-        drawHomeStats();
-        break;
-    }
-  }
-
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-    auto keyList = M5Cardputer.Keyboard.keyList();
-    if (keyList.size() > 0) {
-      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      switch (key) {
-        case 48:
-          // 0: EAT
-          currentState = ACTION_EAT;
-          break;
-        case 49:
-          // 1: WASH
-          currentState = ACTION_WASH;
-          break;
-        case 50:
-          // 2: REST
-          currentState = ACTION_REST;
-          break;
-        case 51:
-          // 3: DEBUG
-          if (currentState == DEBUG_HOME) {
-            currentState = HOME_LOOP;
-            bgNeedsRedraw = true;
-          } else {
-            currentState = DEBUG_HOME;
-            bgNeedsRedraw = true;
-            fgNeedsRedraw = true;
-          }
-          break;
-        case 43:
-          // TAB
-          currentState = ACTION_MENU;
-          fgNeedsRedraw = true;
-          break;
-        case 96:
-          // ESC
-          currentState = HOME_LOOP;
-          bgNeedsRedraw = true;
-          break;
-        case 181: case 'w': case 'W': case 59:
-          actionMenuSelection = (actionMenuSelection - 1 + actionMenuItemCount) % actionMenuItemCount;
-          bgNeedsRedraw = false;
-          fgNeedsRedraw = true;
-          break;
-        case 182: case 's': case 'S': case 46:
-          actionMenuSelection = (actionMenuSelection + 1) % actionMenuItemCount;
-          bgNeedsRedraw = false;
-          fgNeedsRedraw = true;
-          break;
-        case 13: case 40: case ' ':
-          if (actionMenuSelection == 0) {
-            currentState = ACTION_EAT;
-          } else if (actionMenuSelection == 1) {
-            currentState = ACTION_WASH;
-          } else if (actionMenuSelection == 2) {
-            currentState = ACTION_REST;
-          } else {
-            if (currentState == DEBUG_HOME) {
-              currentState = HOME_LOOP;
-              bgNeedsRedraw = true;
-            } else {
-              currentState = DEBUG_HOME;
-              bgNeedsRedraw = true;
-              fgNeedsRedraw = true;
-            }
-          }
-          break;
-      }
-    }
   }
 }
 
 void manageDevScreen() {
-  if (bgNeedsRedraw) {
-    drawDevSCreen();
-    bgNeedsRedraw = false;
-  }
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
@@ -773,28 +656,22 @@ void manageDevScreen() {
       switch (currentState) {
         case DEV_SCREEN:
           if (key == 43) {
-            currentState = CALIBRATION_1;
-            bgNeedsRedraw = true;
+            changeState(0, CALIBRATION_1);
           }
           break;
         case CALIBRATION_1:
           if (key == 43) {
-            currentState = CALIBRATION_2;
-            bgNeedsRedraw = true;
+            changeState(0, CALIBRATION_2);
           }
           break;
         case CALIBRATION_2:
           if (key == 43) {
-            currentState = CALIBRATION_3;
-            bgNeedsRedraw = true;
+            changeState(0, CALIBRATION_3);
           }
           break;
         case CALIBRATION_3:
           if (key == 43) {
-            currentState = TITLE_SCREEN;
-            preloadImages();
-            bgNeedsRedraw = true;
-            fgNeedsRedraw = true;
+            changeState(0, TITLE_SCREEN);
           }
           break;
         default:
@@ -805,15 +682,10 @@ void manageDevScreen() {
 }
 
 // === Draw functions ===
-void drawTitleScreen() {
-  M5Cardputer.Display.fillScreen(BLACK);
-  drawImage(titleImage);
-}
-
 void drawDevSCreen() {
   switch (currentState) {
     case DEV_SCREEN:
-      M5Cardputer.Display.fillScreen(BLACK);
+      displayBlackScreen();
       drawText("DEV_SCREEN", 30, 30, false, ORANGE, 3);
       break;
     case CALIBRATION_1:
@@ -828,104 +700,300 @@ void drawDevSCreen() {
   }
 }
 
-void drawHomeScreen() {
-  // Decom
-}
-
-void drawHomeStats() {
-  // Decom
-}
-
 void eat() {
   if (natsumi.hunger < 4) natsumi.hunger += 1;
   showToast("Ate (+1 Hunger)");
-  preloadImages();
-  currentState = HOME_LOOP;
-  bgNeedsRedraw = true;
-  fgNeedsRedraw = false;
+  changeState(0, HOME_LOOP);
 }
 
 void wash() {
   if (natsumi.hygiene < 4) natsumi.hygiene += 1;
   showToast("Washed (+1 Hygiene)");
-  preloadImages();
-  currentState = HOME_LOOP;
-  bgNeedsRedraw = true;
-  fgNeedsRedraw = false;
+  changeState(0, HOME_LOOP);
 }
 
 void rest() {
   if (natsumi.energy < 4) natsumi.energy += 1;
   showToast("Rested (+1 Energy)");
-  preloadImages();
-  currentState = HOME_LOOP;
-  bgNeedsRedraw = true;
-  fgNeedsRedraw = false;
+  changeState(0, HOME_LOOP);
 }
 
 void drawBackground(const ImageBuffer& bg) {
   // Draw the background of the screen (layer 0)
-  drawImage(bg);
-  l0NeedsRedraw = false;
+  if (l0NeedsRedraw) {
+    drawImage(bg);
+    l0NeedsRedraw = false;
+    l1NeedsRedraw = true;
+    l2NeedsRedraw = true;
+    l3NeedsRedraw = true;
+    l4NeedsRedraw = true;
+  }
 }
 
 void drawCharacter() {
   // Draw the character(s) on the screen (layer 1)
-  drawImage(currentCharacter);
-  l1NeedsRedraw = false;
+  if (l1NeedsRedraw) {
+    drawImage(currentCharacter);
+    l1NeedsRedraw = false;
+    l2NeedsRedraw = true;
+    l3NeedsRedraw = true;
+    l4NeedsRedraw = true;
+  }
 }
 
 void drawDebug() {
   // Draw debug information (layer 2)
-  drawText(String("Memory: ") + ESP.getFreeHeap(), 80, 40, false, WHITE, 1);
-  drawText(String("Time: ") + natsumi.ageMilliseconds, 80, 50, false, WHITE, 1);
-  drawText(String("Age: ") + natsumi.age + " y.o.", 80, 60, false, WHITE, 1);
-  drawText(String("Hunger: ") + natsumi.hunger, 80, 70, false, WHITE, 1);
-  drawText(String("Hygiene: ") + natsumi.hygiene, 80, 80, false, WHITE, 1);
-  drawText(String("Energy: ") + natsumi.energy, 80, 90, false, WHITE, 1);
-  drawText(String("Skill: ") + natsumi.skill, 80, 100, false, WHITE, 1);
-  drawText(String("Mood: ") + natsumi.mood, 80, 110, false, WHITE, 1);
-  drawText(String("Popularity: ") + natsumi.popularity, 80, 120, false, WHITE, 1);
-  l2NeedsRedraw = false;
+  if (l2NeedsRedraw) || (debugModeEnabled) {
+    drawText(String("Memory: ") + ESP.getFreeHeap(), 80, 40, false, WHITE, 1);
+    drawText(String("Time: ") + natsumi.ageMilliseconds, 80, 50, false, WHITE, 1);
+    drawText(String("Age: ") + natsumi.age + " y.o.", 80, 60, false, WHITE, 1);
+    drawText(String("Hunger: ") + natsumi.hunger, 80, 70, false, WHITE, 1);
+    drawText(String("Hygiene: ") + natsumi.hygiene, 80, 80, false, WHITE, 1);
+    drawText(String("Energy: ") + natsumi.energy, 80, 90, false, WHITE, 1);
+    drawText(String("Skill: ") + natsumi.skill, 80, 100, false, WHITE, 1);
+    drawText(String("Mood: ") + natsumi.mood, 80, 110, false, WHITE, 1);
+    drawText(String("Popularity: ") + natsumi.popularity, 80, 120, false, WHITE, 1);
+    l2NeedsRedraw = false;
+    l3NeedsRedraw = true;
+    l4NeedsRedraw = true;
+  }
 }
 
 void drawToast() {
   // Draw toast messages (layer 3)
-  const int tx = 120;  // center X (screen is 240 wide in landscape)
-  const int ty = 100;  // near bottom for 135px height
-  M5Cardputer.Display.fillRect(0, ty - 8, 240, 18, BLACK); // clear strip
-  M5Cardputer.Display.setTextDatum(middle_center);
-  M5Cardputer.Display.setTextSize(1);
-  M5Cardputer.Display.setTextColor(YELLOW, BLACK);
-  M5Cardputer.Display.drawString(toastMsg, tx, ty);
-  l3NeedsRedraw = false;
+  if (l3NeedsRedraw) {
+    const int tx = 120;  // center X (screen is 240 wide in landscape)
+    const int ty = 100;  // near bottom for 135px height
+    M5Cardputer.Display.fillRect(0, ty - 8, 240, 18, BLACK); // clear strip
+    M5Cardputer.Display.setTextDatum(middle_center);
+    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.setTextColor(YELLOW, BLACK);
+    M5Cardputer.Display.drawString(toastMsg, tx, ty);
+    l3NeedsRedraw = false;
+    l4NeedsRedraw = true;
+  }
 }
 
-void drawMenu(const char* items[], int itemCount, int selection) {
+void drawMenu(String menuType, const char* items[], int itemCount, int selection) {
   // Draw menus on the screen (layer 4)
-  uint16_t overlayColor = M5Cardputer.Display.color888(30, 30, 30);
-  int x = 60, y = 35, w = 120, h = 65;
+  if (l4NeedsRedraw) || (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    uint16_t overlayColor = M5Cardputer.Display.color888(30, 30, 30);
+    int x = 60, y = 35, w = 120, h = 65;
 
-  M5Cardputer.Display.fillRect(x, y, w, h, overlayColor);
-  M5Cardputer.Display.drawRect(x, y, w, h, WHITE);
+    M5Cardputer.Display.fillRect(x, y, w, h, overlayColor);
+    M5Cardputer.Display.drawRect(x, y, w, h, WHITE);
 
-  M5Cardputer.Display.setTextSize(1);
-  for (int i = 0; i < itemCount; i++) {
-    M5Cardputer.Display.setCursor(65, 45 + i * 15);
-    if (i == selection) {
-      M5Cardputer.Display.setTextColor(YELLOW);
-      M5Cardputer.Display.print("> ");
-    } else {
-      M5Cardputer.Display.setTextColor(WHITE);
-      M5Cardputer.Display.print("  ");
+    M5Cardputer.Display.setTextSize(1);
+    for (int i = 0; i < itemCount; i++) {
+      M5Cardputer.Display.setCursor(65, 45 + i * 15);
+      if (i == selection) {
+        M5Cardputer.Display.setTextColor(YELLOW);
+        M5Cardputer.Display.print("> ");
+      } else {
+        M5Cardputer.Display.setTextColor(WHITE);
+        M5Cardputer.Display.print("  ");
+      }
+      M5Cardputer.Display.println(items[i]);
     }
-    M5Cardputer.Display.println(items[i]);
+
+    // Helper text at the bottom
+    M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+    drawText("UP/DOWN: Navigate, ENTER: Validate", 120, 131, true, WHITE, 1);
+    l4NeedsRedraw = false;
   }
 
-  // Helper text at the bottom
-  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("UP/DOWN: Navigate, ENTER: Validate", 120, 131, true, WHITE, 1);
-  l4NeedsRedraw = false;
+  // Keyboard management
+  switch (menuType) {
+    case "action":
+      auto keyList = M5Cardputer.Keyboard.keyList();
+      if (keyList.size() > 0) {
+        uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+        switch (key) {
+          case 48:
+            // 0: EAT
+            changeState(0, ACTION_EAT);
+            menuOpened = false;
+            break;
+          case 49:
+            // 1: WASH
+            changeState(0, ACTION_WASH);
+            menuOpened = false;
+            break;
+          case 50:
+            // 2: REST
+            changeState(0, ACTION_REST);
+            menuOpened = false;
+            break;
+          case 51:
+            // 3: DEBUG
+            if (debugEnabled) {
+              debugEnabled = false;
+            } else {
+              debugEnabled = true;
+            }
+            menuOpened = false;
+            break;
+          case 43:
+            // TAB
+            if (menuOpened) {
+              menuOpened = false;
+              l0NeedsRedraw = true;
+            } else {
+              menuOpened = true;
+              l4NeedsRedraw = true;
+            }
+            break;
+          case 96:
+            // ESC
+            if (menuOpened) {
+              menuOpened = false;
+              l0NeedsRedraw = true;
+            }
+            break;
+          case 181: case 'w': case 'W': case 59:
+            // UP
+            actionMenuSelection = (actionMenuSelection - 1 + actionMenuItemCount) % actionMenuItemCount;
+            l4NeedsRedraw = true;
+            break;
+          case 182: case 's': case 'S': case 46:
+            // DOWN
+            actionMenuSelection = (actionMenuSelection + 1) % actionMenuItemCount;
+            l4NeedsRedraw = true;
+            break;
+          case 13: case 40: case ' ':
+            // VALIDATE
+            if (actionMenuSelection == 0) {
+              changeState(0, ACTION_EAT);
+            } else if (actionMenuSelection == 1) {
+              changeState(0, ACTION_WASH);
+            } else if (actionMenuSelection == 2) {
+              changeState(0, ACTION_REST);
+            }
+            menuOpened = false;
+            break;
+        }
+      }
+      break;
+    case "dev":
+      auto keyList = M5Cardputer.Keyboard.keyList();
+      if (keyList.size() > 0) {
+        uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+        switch (key) {
+          case 48:
+            // 0: CALIB1
+            changeState(0, CALIBRATION_1);
+            menuOpened = false;
+            break;
+          case 49:
+            // 1: CALIB2
+            changeState(0, CALIBRATION_2);
+            menuOpened = false;
+            break;
+          case 50:
+            // 2: CALIB3
+            changeState(0, CALIBRATION_3);
+            menuOpened = false;
+            break;
+          case 51:
+            // 3: EXIT
+            changeState(0, TITLE_SCREEN);
+            menuOpened = true;
+            break;
+          case 43:
+            // TAB
+            if (menuOpened) {
+              menuOpened = false;
+              l0NeedsRedraw = true;
+            } else {
+              menuOpened = true;
+              l4NeedsRedraw = true;
+            }
+            break;
+          case 96:
+            // ESC
+            if (menuOpened) {
+              changeState(0, TITLE_SCREEN);
+              menuOpened = true;
+            }
+            break;
+          case 181: case 'w': case 'W': case 59:
+            // UP
+            devMenuSelection = (devMenuSelection - 1 + devMenuItemCount) % devMenuItemCount;
+            l4NeedsRedraw = true;
+            break;
+          case 182: case 's': case 'S': case 46:
+            // DOWN
+            devMenuSelection = (devMenuSelection + 1) % devMenuItemCount;
+            l4NeedsRedraw = true;
+            break;
+          case 13: case 40: case ' ':
+            // VALIDATE
+            if (devMenuSelection == 0) {
+              changeState(0, CALIBRATION_1);
+              menuOpened = false;
+            } else if (devMenuSelection == 1) {
+              changeState(0, CALIBRATION_2);
+              menuOpened = false;
+            } else if (devMenuSelection == 2) {
+              changeState(4, CALIBRATION_3);
+              menuOpened = false;
+            } else if (devMenuSelection == 3) {
+              changeState(0, TITLE_SCREEN);
+              menuOpened = true;
+            }
+            break;
+        }
+      }
+      break;
+    case "main":
+      auto keyList = M5Cardputer.Keyboard.keyList();
+      if (keyList.size() > 0) {
+        uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+        switch (key) {
+          case 48:
+            // 0: NEW GAME
+            changeState(0, NEW_GAME);
+            menuOpened = false;
+            break;
+          case 49:
+            // 1: CONTINUE
+            changeState(0, CONTINUE_GAME);
+            menuOpened = false;
+            break;
+          case 50:
+            // 2: DEV SCREEN
+            changeState(4, DEV_SCREEN);
+            menuOpened = true;
+            break;
+          case 181: case 'w': case 'W': case 59:
+            // UP
+            mainMenuSelection = (mainMenuSelection - 1 + mainMenuItemCount) % mainMenuItemCount;
+            l4NeedsRedraw = true;
+            break;
+          case 182: case 's': case 'S': case 46:
+            // DOWN
+            mainMenuSelection = (mainMenuSelection + 1) % mainMenuItemCount;
+            l4NeedsRedraw = true;
+            break;
+          case 13: case 40: case ' ':
+            // VALIDATE
+            if (mainMenuSelection == 0) {
+              changeState(0, NEW_GAME);
+              menuOpened = false;
+            } else if (mainMenuSelection == 1) {
+              changeState(0, CONTINUE_GAME);
+              menuOpened = false;
+            } else {
+              changeState(4, DEV_SCREEN);
+              menuOpened = true;
+            }
+            break;
+        }
+      }
+      break;
+    default:
+      break;
+  }
 }
 
 void playGame() {
