@@ -803,196 +803,190 @@ void drawMenu(String menuType, const char* items[], int itemCount, int selection
   }
 
   // Keyboard management
-  switch (menuType) {
-    case "action":
-      auto keyList = M5Cardputer.Keyboard.keyList();
-      if (keyList.size() > 0) {
-        uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
-        switch (key) {
-          case 48:
-            // 0: EAT
+  if (menuType == "action") {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (key) {
+        case 48:
+          // 0: EAT
+          changeState(0, ACTION_EAT);
+          menuOpened = false;
+          break;
+        case 49:
+          // 1: WASH
+          changeState(0, ACTION_WASH);
+          menuOpened = false;
+          break;
+        case 50:
+          // 2: REST
+          changeState(0, ACTION_REST);
+          menuOpened = false;
+          break;
+        case 51:
+          // 3: DEBUG
+          if (debugEnabled) {
+            debugEnabled = false;
+          } else {
+            debugEnabled = true;
+          }
+          menuOpened = false;
+          break;
+        case 43:
+          // TAB
+          if (menuOpened) {
+            menuOpened = false;
+            l0NeedsRedraw = true;
+          } else {
+            menuOpened = true;
+            l4NeedsRedraw = true;
+          }
+          break;
+        case 96:
+          // ESC
+          if (menuOpened) {
+            menuOpened = false;
+            l0NeedsRedraw = true;
+          }
+          break;
+        case 181: case 'w': case 'W': case 59:
+          // UP
+          actionMenuSelection = (actionMenuSelection - 1 + actionMenuItemCount) % actionMenuItemCount;
+          l4NeedsRedraw = true;
+          break;
+        case 182: case 's': case 'S': case 46:
+          // DOWN
+          actionMenuSelection = (actionMenuSelection + 1) % actionMenuItemCount;
+          l4NeedsRedraw = true;
+          break;
+        case 13: case 40: case ' ':
+          // VALIDATE
+          if (actionMenuSelection == 0) {
             changeState(0, ACTION_EAT);
-            menuOpened = false;
-            break;
-          case 49:
-            // 1: WASH
+          } else if (actionMenuSelection == 1) {
             changeState(0, ACTION_WASH);
-            menuOpened = false;
-            break;
-          case 50:
-            // 2: REST
+          } else if (actionMenuSelection == 2) {
             changeState(0, ACTION_REST);
-            menuOpened = false;
-            break;
-          case 51:
-            // 3: DEBUG
-            if (debugEnabled) {
-              debugEnabled = false;
-            } else {
-              debugEnabled = true;
-            }
-            menuOpened = false;
-            break;
-          case 43:
-            // TAB
-            if (menuOpened) {
-              menuOpened = false;
-              l0NeedsRedraw = true;
-            } else {
-              menuOpened = true;
-              l4NeedsRedraw = true;
-            }
-            break;
-          case 96:
-            // ESC
-            if (menuOpened) {
-              menuOpened = false;
-              l0NeedsRedraw = true;
-            }
-            break;
-          case 181: case 'w': case 'W': case 59:
-            // UP
-            actionMenuSelection = (actionMenuSelection - 1 + actionMenuItemCount) % actionMenuItemCount;
-            l4NeedsRedraw = true;
-            break;
-          case 182: case 's': case 'S': case 46:
-            // DOWN
-            actionMenuSelection = (actionMenuSelection + 1) % actionMenuItemCount;
-            l4NeedsRedraw = true;
-            break;
-          case 13: case 40: case ' ':
-            // VALIDATE
-            if (actionMenuSelection == 0) {
-              changeState(0, ACTION_EAT);
-            } else if (actionMenuSelection == 1) {
-              changeState(0, ACTION_WASH);
-            } else if (actionMenuSelection == 2) {
-              changeState(0, ACTION_REST);
-            }
-            menuOpened = false;
-            break;
-        }
+          }
+          menuOpened = false;
+          break;
       }
-      break;
-    case "dev":
-      auto keyList = M5Cardputer.Keyboard.keyList();
-      if (keyList.size() > 0) {
-        uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
-        switch (key) {
-          case 48:
-            // 0: CALIB1
-            changeState(0, CALIBRATION_1);
+    }
+  } else if (menuType == "dev") {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (key) {
+        case 48:
+          // 0: CALIB1
+          changeState(0, CALIBRATION_1);
+          menuOpened = false;
+          break;
+        case 49:
+          // 1: CALIB2
+          changeState(0, CALIBRATION_2);
+          menuOpened = false;
+          break;
+        case 50:
+          // 2: CALIB3
+          changeState(0, CALIBRATION_3);
+          menuOpened = false;
+          break;
+        case 51:
+          // 3: EXIT
+          changeState(0, TITLE_SCREEN);
+          menuOpened = true;
+          break;
+        case 43:
+          // TAB
+          if (menuOpened) {
             menuOpened = false;
-            break;
-          case 49:
-            // 1: CALIB2
-            changeState(0, CALIBRATION_2);
-            menuOpened = false;
-            break;
-          case 50:
-            // 2: CALIB3
-            changeState(0, CALIBRATION_3);
-            menuOpened = false;
-            break;
-          case 51:
-            // 3: EXIT
+            l0NeedsRedraw = true;
+          } else {
+            menuOpened = true;
+            l4NeedsRedraw = true;
+          }
+          break;
+        case 96:
+          // ESC
+          if (menuOpened) {
             changeState(0, TITLE_SCREEN);
             menuOpened = true;
-            break;
-          case 43:
-            // TAB
-            if (menuOpened) {
-              menuOpened = false;
-              l0NeedsRedraw = true;
-            } else {
-              menuOpened = true;
-              l4NeedsRedraw = true;
-            }
-            break;
-          case 96:
-            // ESC
-            if (menuOpened) {
-              changeState(0, TITLE_SCREEN);
-              menuOpened = true;
-            }
-            break;
-          case 181: case 'w': case 'W': case 59:
-            // UP
-            devMenuSelection = (devMenuSelection - 1 + devMenuItemCount) % devMenuItemCount;
-            l4NeedsRedraw = true;
-            break;
-          case 182: case 's': case 'S': case 46:
-            // DOWN
-            devMenuSelection = (devMenuSelection + 1) % devMenuItemCount;
-            l4NeedsRedraw = true;
-            break;
-          case 13: case 40: case ' ':
-            // VALIDATE
-            if (devMenuSelection == 0) {
-              changeState(0, CALIBRATION_1);
-              menuOpened = false;
-            } else if (devMenuSelection == 1) {
-              changeState(0, CALIBRATION_2);
-              menuOpened = false;
-            } else if (devMenuSelection == 2) {
-              changeState(4, CALIBRATION_3);
-              menuOpened = false;
-            } else if (devMenuSelection == 3) {
-              changeState(0, TITLE_SCREEN);
-              menuOpened = true;
-            }
-            break;
-        }
+          }
+          break;
+        case 181: case 'w': case 'W': case 59:
+          // UP
+          devMenuSelection = (devMenuSelection - 1 + devMenuItemCount) % devMenuItemCount;
+          l4NeedsRedraw = true;
+          break;
+        case 182: case 's': case 'S': case 46:
+          // DOWN
+          devMenuSelection = (devMenuSelection + 1) % devMenuItemCount;
+          l4NeedsRedraw = true;
+          break;
+        case 13: case 40: case ' ':
+          // VALIDATE
+          if (devMenuSelection == 0) {
+            changeState(0, CALIBRATION_1);
+            menuOpened = false;
+          } else if (devMenuSelection == 1) {
+            changeState(0, CALIBRATION_2);
+            menuOpened = false;
+          } else if (devMenuSelection == 2) {
+            changeState(4, CALIBRATION_3);
+            menuOpened = false;
+          } else if (devMenuSelection == 3) {
+            changeState(0, TITLE_SCREEN);
+            menuOpened = true;
+          }
+          break;
       }
-      break;
-    case "main":
-      auto keyList = M5Cardputer.Keyboard.keyList();
-      if (keyList.size() > 0) {
-        uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
-        switch (key) {
-          case 48:
-            // 0: NEW GAME
+    }
+  } else if (menuType == "main") {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (key) {
+        case 48:
+          // 0: NEW GAME
+          changeState(0, NEW_GAME);
+          menuOpened = false;
+          break;
+        case 49:
+          // 1: CONTINUE
+          changeState(0, CONTINUE_GAME);
+          menuOpened = false;
+          break;
+        case 50:
+          // 2: DEV SCREEN
+          changeState(4, DEV_SCREEN);
+          menuOpened = true;
+          break;
+        case 181: case 'w': case 'W': case 59:
+          // UP
+          mainMenuSelection = (mainMenuSelection - 1 + mainMenuItemCount) % mainMenuItemCount;
+          l4NeedsRedraw = true;
+          break;
+        case 182: case 's': case 'S': case 46:
+          // DOWN
+          mainMenuSelection = (mainMenuSelection + 1) % mainMenuItemCount;
+          l4NeedsRedraw = true;
+          break;
+        case 13: case 40: case ' ':
+          // VALIDATE
+          if (mainMenuSelection == 0) {
             changeState(0, NEW_GAME);
             menuOpened = false;
-            break;
-          case 49:
-            // 1: CONTINUE
+          } else if (mainMenuSelection == 1) {
             changeState(0, CONTINUE_GAME);
             menuOpened = false;
-            break;
-          case 50:
-            // 2: DEV SCREEN
+          } else {
             changeState(4, DEV_SCREEN);
             menuOpened = true;
-            break;
-          case 181: case 'w': case 'W': case 59:
-            // UP
-            mainMenuSelection = (mainMenuSelection - 1 + mainMenuItemCount) % mainMenuItemCount;
-            l4NeedsRedraw = true;
-            break;
-          case 182: case 's': case 'S': case 46:
-            // DOWN
-            mainMenuSelection = (mainMenuSelection + 1) % mainMenuItemCount;
-            l4NeedsRedraw = true;
-            break;
-          case 13: case 40: case ' ':
-            // VALIDATE
-            if (mainMenuSelection == 0) {
-              changeState(0, NEW_GAME);
-              menuOpened = false;
-            } else if (mainMenuSelection == 1) {
-              changeState(0, CONTINUE_GAME);
-              menuOpened = false;
-            } else {
-              changeState(4, DEV_SCREEN);
-              menuOpened = true;
-            }
-            break;
-        }
+          }
+          break;
       }
-      break;
-    default:
-      break;
+    }
   }
 }
 
