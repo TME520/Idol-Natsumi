@@ -899,7 +899,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         // 2: DEV SCREEN
         changeState(4, DEV_SCREEN);
         menuOpened = true;
-        break;
+        return;
       case 181: case 'w': case 'W': case 59:
         // UP
         selection = (selection - 1 + mainMenuItemCount) % mainMenuItemCount;
@@ -921,8 +921,9 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         } else {
           changeState(4, DEV_SCREEN);
           menuOpened = true;
+          return;
         }
-        break;
+        
     }
   }
 
