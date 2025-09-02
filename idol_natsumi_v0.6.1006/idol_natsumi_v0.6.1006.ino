@@ -424,7 +424,7 @@ void changeState(int baseLayer, GameState targetState) {
       currentMenuType = "action";
       currentMenuItems = actionMenuItems;
       currentMenuItemsCount = actionMenuItemCount;
-      menuOpened = false;
+      // menuOpened = false;
       break;
     case ACTION_EAT: case ACTION_WASH: case ACTION_REST:
       screenConfig = ROOM;
@@ -807,10 +807,12 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         // 3: DEBUG
         if (debugEnabled) {
           debugEnabled = false;
+          l0NeedsRedraw = true;
+          l2NeedsRedraw = false;
         } else {
           debugEnabled = true;
+          l2NeedsRedraw = true;
         }
-        menuOpened = false;
         break;
       case 43:
         // TAB
@@ -847,6 +849,15 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           changeState(0, ACTION_WASH);
         } else if (selection == 2) {
           changeState(0, ACTION_REST);
+        } else if (selection == 3) {
+          if (debugEnabled) {
+            debugEnabled = false;
+            l0NeedsRedraw = true;
+            l2NeedsRedraw = false;
+          } else {
+            debugEnabled = true;
+            l2NeedsRedraw = true;
+          }
         }
         menuOpened = false;
         break;
