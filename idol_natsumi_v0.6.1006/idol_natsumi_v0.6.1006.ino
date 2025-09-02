@@ -71,7 +71,7 @@ const char* devMenuItems[] = {"0: CALIB1", "1: CALIB2", "2: CALIB3", "3: EXIT"};
 char* currentMenuItems[] = {"", "", "", ""};
 const int mainMenuItemCount = 3;
 const int actionMenuItemCount = 4;
-const int devMenuItemCOunt = 4;
+const int devMenuItemCount = 4;
 int currentMenuItemsCount = 0;
 int actionMenuSelection = 0;
 int mainMenuSelection = 0;
@@ -743,7 +743,7 @@ void drawCharacter() {
 
 void drawDebug() {
   // Draw debug information (layer 2)
-  if (l2NeedsRedraw) || (debugModeEnabled) {
+  if (l2NeedsRedraw) || (debugEnabled) {
     drawText(String("Memory: ") + ESP.getFreeHeap(), 80, 40, false, WHITE, 1);
     drawText(String("Time: ") + natsumi.ageMilliseconds, 80, 50, false, WHITE, 1);
     drawText(String("Age: ") + natsumi.age + " y.o.", 80, 60, false, WHITE, 1);
