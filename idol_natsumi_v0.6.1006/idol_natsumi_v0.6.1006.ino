@@ -776,7 +776,7 @@ void drawToast() {
 
 void drawMenu(String menuType, const char* items[], int itemCount, int selection) {
   // Draw menus on the screen (layer 4)
-  if (l4NeedsRedraw) || (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+  if (l4NeedsRedraw || (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed())) {
     uint16_t overlayColor = M5Cardputer.Display.color888(30, 30, 30);
     int x = 60, y = 35, w = 120, h = 65;
 
