@@ -12,7 +12,6 @@ enum GameState {
   CONTINUE_GAME,
   DEV_SCREEN,
   HOME_LOOP,
-  ACTION_MENU,
   ACTION_EAT,
   ACTION_WASH,
   ACTION_REST
@@ -213,6 +212,7 @@ void unloadAllImages() {
 }
 
 void preloadImages() {
+  Serial.println("> Entering preloadImages() with currentState set to " + String(currentState));
   unloadAllImages();
   // Load backgrounds
   switch (currentState) {
@@ -384,6 +384,7 @@ void loop() {
 
 // === Menu and state logic ===
 void changeState(int baseLayer, GameState targetState) {
+  Serial.println("> Entering changeState() with baseLayer set to " + String(baseLayer) + " and targetState set to " + String(targetState));
   // Manage state transitions
   switch (baseLayer) {
     case 0:
@@ -409,8 +410,14 @@ void changeState(int baseLayer, GameState targetState) {
     case VERSION_SCREEN:
       screenConfig = TEXT;
       break;
-    case TITLE_SCREEN: case NEW_GAME: case CONTINUE_GAME: case DEV_SCREEN: case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
+    case TITLE_SCREEN:
       screenConfig = CARD;
+      currentMenuType = "main";
+      currentMenuItems = mainMenuItems;
+      currentMenuItemsCount = mainMenuItemCount;
+      currentMenuSelection = mainMenuSelection;
+      break;
+    case NEW_GAME: case CONTINUE_GAME: case DEV_SCREEN: case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
       break;
     case HOME_LOOP: case ACTION_EAT: case ACTION_WASH: case ACTION_REST:
       screenConfig = ROOM;
@@ -514,10 +521,12 @@ void manageCard() {
   */
   switch (currentState) {
     case TITLE_SCREEN:
+      /*
       currentMenuType = "main";
       currentMenuItems = mainMenuItems;
       currentMenuItemsCount = mainMenuItemCount;
       currentMenuSelection = mainMenuSelection;
+      */
       break;
     case NEW_GAME:
       natsumi.age = 11;
