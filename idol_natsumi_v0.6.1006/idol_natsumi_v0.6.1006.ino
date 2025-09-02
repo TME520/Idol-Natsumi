@@ -75,7 +75,6 @@ int currentMenuItemsCount = 0;
 int actionMenuSelection = 0;
 int mainMenuSelection = 0;
 int devMenuSelection = 0;
-int currentMenuSelection = 0;
 
 bool l0NeedsRedraw = false; // Background
 bool l1NeedsRedraw = false; // Character
@@ -415,7 +414,6 @@ void changeState(int baseLayer, GameState targetState) {
       currentMenuType = "main";
       currentMenuItems = mainMenuItems;
       currentMenuItemsCount = mainMenuItemCount;
-      currentMenuSelection = mainMenuSelection;
       break;
     case NEW_GAME: case CONTINUE_GAME: case DEV_SCREEN: case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
       break;
@@ -525,7 +523,6 @@ void manageCard() {
       currentMenuType = "main";
       currentMenuItems = mainMenuItems;
       currentMenuItemsCount = mainMenuItemCount;
-      currentMenuSelection = mainMenuSelection;
       */
       break;
     case NEW_GAME:
@@ -566,14 +563,21 @@ void manageCard() {
       currentMenuType = "dev";
       currentMenuItems = devMenuItems;
       currentMenuItemsCount = devMenuItemCount;
-      currentMenuSelection = devMenuSelection;
       break;
     default:
       break;
   }
   drawBackground(currentBackground);
   drawDebug();
-  drawMenu(currentMenuType, currentMenuItems, currentMenuItemsCount, currentMenuSelection);
+  int *selectionPtr;
+  if (currentMenuType == "action") {
+    selectionPtr = &actionMenuSelection;
+  } else if (currentMenuType == "dev") {
+    selectionPtr = &devMenuSelection;
+  } else {
+    selectionPtr = &mainMenuSelection;
+  }
+  drawMenu(currentMenuType, currentMenuItems, currentMenuItemsCount, *selectionPtr);
 }
 
 void manageDialog() {
@@ -738,7 +742,7 @@ void drawToast() {
   }
 }
 
-void drawMenu(String menuType, const char* items[], int itemCount, int selection) {
+void drawMenu(String menuType, const char* items[], int itemCount, int &selection) {
   // Draw menus on the screen (layer 4)
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -793,21 +797,21 @@ void drawMenu(String menuType, const char* items[], int itemCount, int selection
         break;
       case 181: case 'w': case 'W': case 59:
         // UP
-        actionMenuSelection = (actionMenuSelection - 1 + actionMenuItemCount) % actionMenuItemCount;
+        selection = (selection - 1 + actionMenuItemCount) % actionMenuItemCount;
         l4NeedsRedraw = true;
         break;
       case 182: case 's': case 'S': case 46:
         // DOWN
-        actionMenuSelection = (actionMenuSelection + 1) % actionMenuItemCount;
+        selection = (selection + 1) % actionMenuItemCount;
         l4NeedsRedraw = true;
         break;
       case 13: case 40: case ' ':
         // VALIDATE
-        if (actionMenuSelection == 0) {
+        if (selection == 0) {
           changeState(0, ACTION_EAT);
-        } else if (actionMenuSelection == 1) {
+        } else if (selection == 1) {
           changeState(0, ACTION_WASH);
-        } else if (actionMenuSelection == 2) {
+        } else if (selection == 2) {
           changeState(0, ACTION_REST);
         }
         menuOpened = false;
@@ -854,26 +858,26 @@ void drawMenu(String menuType, const char* items[], int itemCount, int selection
         break;
       case 181: case 'w': case 'W': case 59:
         // UP
-        devMenuSelection = (devMenuSelection - 1 + devMenuItemCount) % devMenuItemCount;
+        selection = (selection - 1 + devMenuItemCount) % devMenuItemCount;
         l4NeedsRedraw = true;
         break;
       case 182: case 's': case 'S': case 46:
         // DOWN
-        devMenuSelection = (devMenuSelection + 1) % devMenuItemCount;
+        selection = (selection + 1) % devMenuItemCount;
         l4NeedsRedraw = true;
         break;
       case 13: case 40: case ' ':
         // VALIDATE
-        if (devMenuSelection == 0) {
+        if (selection == 0) {
           changeState(0, CALIBRATION_1);
           menuOpened = false;
-        } else if (devMenuSelection == 1) {
+        } else if (selection == 1) {
           changeState(0, CALIBRATION_2);
           menuOpened = false;
-        } else if (devMenuSelection == 2) {
+        } else if (selection == 2) {
           changeState(4, CALIBRATION_3);
           menuOpened = false;
-        } else if (devMenuSelection == 3) {
+        } else if (selection == 3) {
           changeState(0, TITLE_SCREEN);
           menuOpened = true;
         }
@@ -898,20 +902,20 @@ void drawMenu(String menuType, const char* items[], int itemCount, int selection
         break;
       case 181: case 'w': case 'W': case 59:
         // UP
-        mainMenuSelection = (mainMenuSelection - 1 + mainMenuItemCount) % mainMenuItemCount;
+        selection = (selection - 1 + mainMenuItemCount) % mainMenuItemCount;
         l4NeedsRedraw = true;
         break;
       case 182: case 's': case 'S': case 46:
         // DOWN
-        mainMenuSelection = (mainMenuSelection + 1) % mainMenuItemCount;
+        selection = (selection + 1) % mainMenuItemCount;
         l4NeedsRedraw = true;
         break;
       case 13: case 40: case ' ':
         // VALIDATE
-        if (mainMenuSelection == 0) {
+        if (selection == 0) {
           changeState(0, NEW_GAME);
           menuOpened = false;
-        } else if (mainMenuSelection == 1) {
+        } else if (selection == 1) {
           changeState(0, CONTINUE_GAME);
           menuOpened = false;
         } else {
