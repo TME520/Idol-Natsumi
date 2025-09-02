@@ -84,6 +84,7 @@ bool l4NeedsRedraw = false; // Menu
 
 bool debugEnabled = false;
 bool menuOpened = false;
+bool toastActive = false;
 
 unsigned long lastUpdate = 0;
 const int FRAME_DELAY = 50;
@@ -107,20 +108,10 @@ ImageBuffer currentCharacter;
 String toastMsg = "";
 unsigned long toastUntil = 0;  // timestamp when toast should disappear
 void showToast(const String& msg, unsigned long ms = mediumWait) {
+  toastActive = true;
   toastMsg = msg;
   toastUntil = millis() + ms;
   l3NeedsRedraw = true;
-}
-
-void manageToast() {
-  // Serial.println("> Entering manageToast()");
-  if (l3NeedsRedraw==true) {
-    if (millis() < toastUntil) {
-      drawToast();
-    } else {
-      l3NeedsRedraw = false;
-    }
-  }
 }
 
 // === UI Helper Functions ===
@@ -294,6 +285,9 @@ void loop() {
 
   if (millis() - lastUpdate < FRAME_DELAY) return;
   lastUpdate = millis();
+
+  Serial.println("l0NeedsRedraw: " + String(l0NeedsRedraw) + " - l1NeedsRedraw: " + String(l1NeedsRedraw) + " - l2NeedsRedraw: " + String(l2NeedsRedraw) + " - l3NeedsRedraw: " + String(l3NeedsRedraw) + " - l4NeedsRedraw: " + String(l4NeedsRedraw));
+  Serial.println("debugEnabled: " + String(debugEnabled) + " - menuOpened: " + String(menuOpened) + " - toastActive: " + String(toastActive));
 
   switch (screenConfig) {
     case CARD:
@@ -535,6 +529,8 @@ void manageCard() {
   Menu: None
   Interactive (timer + keypress)
   */
+  l1NeedsRedraw = false;
+  l3NeedsRedraw = false;
   switch (currentState) {
     case TITLE_SCREEN:
       break;
@@ -638,7 +634,7 @@ void manageRoom() {
   drawBackground(currentBackground);
   drawCharacter();
   drawDebug();
-  manageToast();
+  drawToast();
 
   int *selectionPtr;
   if (currentMenuType == "action") {
@@ -747,15 +743,25 @@ void drawDebug() {
     drawText(String("Skill: ") + natsumi.skill, 80, 100, false, WHITE, 1);
     drawText(String("Mood: ") + natsumi.mood, 80, 110, false, WHITE, 1);
     drawText(String("Popularity: ") + natsumi.popularity, 80, 120, false, WHITE, 1);
-    l2NeedsRedraw = false;
+    l2NeedsRedraw = true;
     l3NeedsRedraw = true;
     l4NeedsRedraw = true;
+  } else {
+    l2NeedsRedraw = false;
   }
 }
 
 void drawToast() {
   // Draw toast messages (layer 3)
-  if (l3NeedsRedraw) {
+  if (toastActive) {
+    if (millis() > toastUntil) {
+      // Toast expired
+      toastActive = false;
+      l0NeedsRedraw = true;
+      l3NeedsRedraw = false;
+    }
+  }
+  if (l3NeedsRedraw && toastActive) {
     const int tx = 120;  // center X (screen is 240 wide in landscape)
     const int ty = 100;  // near bottom for 135px height
     M5Cardputer.Display.fillRect(0, ty - 8, 240, 18, BLACK); // clear strip
