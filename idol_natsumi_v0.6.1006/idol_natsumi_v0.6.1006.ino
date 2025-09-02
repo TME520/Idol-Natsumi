@@ -414,8 +414,16 @@ void changeState(int baseLayer, GameState targetState) {
       currentMenuType = "main";
       currentMenuItems = mainMenuItems;
       currentMenuItemsCount = mainMenuItemCount;
+      menuOpened = true;
       break;
-    case NEW_GAME: case CONTINUE_GAME: case DEV_SCREEN: case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
+    case NEW_GAME: case CONTINUE_GAME: case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
+      screenConfig = CARD;
+      break;
+    case DEV_SCREEN:
+      screenConfig = CARD;
+      currentMenuType = "dev";
+      currentMenuItems = devMenuItems;
+      currentMenuItemsCount = devMenuItemCount;
       break;
     case HOME_LOOP:
       screenConfig = ROOM;
@@ -529,11 +537,6 @@ void manageCard() {
   */
   switch (currentState) {
     case TITLE_SCREEN:
-      /*
-      currentMenuType = "main";
-      currentMenuItems = mainMenuItems;
-      currentMenuItemsCount = mainMenuItemCount;
-      */
       break;
     case NEW_GAME:
       natsumi.age = 11;
@@ -570,9 +573,6 @@ void manageCard() {
       changeState(0, HOME_LOOP);
       break;
     case DEV_SCREEN:
-      currentMenuType = "dev";
-      currentMenuItems = devMenuItems;
-      currentMenuItemsCount = devMenuItemCount;
       break;
     default:
       break;
