@@ -89,6 +89,8 @@ bool menuOpened = false;
 
 unsigned long lastUpdate = 0;
 const int FRAME_DELAY = 50;
+unsigned long lastKeyTime = 0;
+const unsigned long keyCooldown = 200;  // milliseconds between accepted presses
 
 // === Image preload system ===
 struct ImageBuffer {
@@ -153,6 +155,21 @@ void drawText(String text, int x, int y, bool centerAlign, uint16_t color = WHIT
     // Draw new text
     M5Cardputer.Display.setTextColor(color, bgColor); // Text with background
     M5Cardputer.Display.drawString(text, x, y);
+}
+
+bool getKeyOnce(uint8_t &key) {
+  if (millis() - lastKeyTime < keyCooldown) {
+    return false;
+  }
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      lastKeyTime = millis();
+      return true;
+    }
+  }
+  return false;
 }
 
 bool preloadImage(const char* path, ImageBuffer &imgBuf) {
@@ -650,35 +667,32 @@ void manageHomeScreen() {
 }
 
 void manageDevScreen() {
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-    auto keyList = M5Cardputer.Keyboard.keyList();
-    if (keyList.size() > 0) {
-      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      drawText("Key " + String(key) + " pressed...", 120, 131, true, BLUE, 1);
-      switch (currentState) {
-        case DEV_SCREEN:
-          if (key == 43) {
-            changeState(0, CALIBRATION_1);
-          }
-          break;
-        case CALIBRATION_1:
-          if (key == 43) {
-            changeState(0, CALIBRATION_2);
-          }
-          break;
-        case CALIBRATION_2:
-          if (key == 43) {
-            changeState(0, CALIBRATION_3);
-          }
-          break;
-        case CALIBRATION_3:
-          if (key == 43) {
-            changeState(0, TITLE_SCREEN);
-          }
-          break;
-        default:
-          break;
-      }
+  uint8_t key;
+  if (getKeyOnce(key)) {
+    drawText("Key " + String(key) + " pressed...", 120, 131, true, BLUE, 1);
+    switch (currentState) {
+      case DEV_SCREEN:
+        if (key == 43) {
+          changeState(0, CALIBRATION_1);
+        }
+        break;
+      case CALIBRATION_1:
+        if (key == 43) {
+          changeState(0, CALIBRATION_2);
+        }
+        break;
+      case CALIBRATION_2:
+        if (key == 43) {
+          changeState(0, CALIBRATION_3);
+        }
+        break;
+      case CALIBRATION_3:
+        if (key == 43) {
+          changeState(0, TITLE_SCREEN);
+        }
+        break;
+      default:
+        break;
     }
   }
 }
@@ -806,9 +820,8 @@ void drawMenu(String menuType, const char* items[], int itemCount, int selection
 
   // Keyboard management
   if (menuType == "action") {
-    auto keyList = M5Cardputer.Keyboard.keyList();
-    if (keyList.size() > 0) {
-      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+    uint8_t key;
+    if (getKeyOnce(key)) {
       switch (key) {
         case 48:
           // 0: EAT
@@ -875,9 +888,8 @@ void drawMenu(String menuType, const char* items[], int itemCount, int selection
       }
     }
   } else if (menuType == "dev") {
-    auto keyList = M5Cardputer.Keyboard.keyList();
-    if (keyList.size() > 0) {
-      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+    uint8_t key;
+    if (getKeyOnce(key)) {
       switch (key) {
         case 48:
           // 0: CALIB1
@@ -945,9 +957,8 @@ void drawMenu(String menuType, const char* items[], int itemCount, int selection
       }
     }
   } else if (menuType == "main") {
-    auto keyList = M5Cardputer.Keyboard.keyList();
-    if (keyList.size() > 0) {
-      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+    uint8_t key;
+    if (getKeyOnce(key)) {
       switch (key) {
         case 48:
           // 0: NEW GAME
