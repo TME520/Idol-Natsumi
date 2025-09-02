@@ -157,21 +157,6 @@ void drawText(String text, int x, int y, bool centerAlign, uint16_t color = WHIT
     M5Cardputer.Display.drawString(text, x, y);
 }
 
-bool getKeyOnce(uint8_t &key) {
-  if (millis() - lastKeyTime < keyCooldown) {
-    return false;
-  }
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-    auto keyList = M5Cardputer.Keyboard.keyList();
-    if (keyList.size() > 0) {
-      key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      lastKeyTime = millis();
-      return true;
-    }
-  }
-  return false;
-}
-
 bool preloadImage(const char* path, ImageBuffer &imgBuf) {
   File f = SD.open(path, FILE_READ);
   if (!f) return false;
@@ -666,56 +651,6 @@ void manageHomeScreen() {
   }
 }
 
-void manageDevScreen() {
-  uint8_t key;
-  if (getKeyOnce(key)) {
-    drawText("Key " + String(key) + " pressed...", 120, 131, true, BLUE, 1);
-    switch (currentState) {
-      case DEV_SCREEN:
-        if (key == 43) {
-          changeState(0, CALIBRATION_1);
-        }
-        break;
-      case CALIBRATION_1:
-        if (key == 43) {
-          changeState(0, CALIBRATION_2);
-        }
-        break;
-      case CALIBRATION_2:
-        if (key == 43) {
-          changeState(0, CALIBRATION_3);
-        }
-        break;
-      case CALIBRATION_3:
-        if (key == 43) {
-          changeState(0, TITLE_SCREEN);
-        }
-        break;
-      default:
-        break;
-    }
-  }
-}
-
-// === Draw functions ===
-void drawDevSCreen() {
-  switch (currentState) {
-    case DEV_SCREEN:
-      displayBlackScreen();
-      drawText("DEV_SCREEN", 30, 30, false, ORANGE, 3);
-      break;
-    case CALIBRATION_1:
-      drawImage(calib1);
-      break;
-    case CALIBRATION_2:
-      drawImage(calib2);
-      break;
-    case CALIBRATION_3:
-      drawImage(calib3);
-      break;
-  }
-}
-
 void eat() {
   if (natsumi.hunger < 4) natsumi.hunger += 1;
   showToast("Ate (+1 Hunger)");
@@ -734,6 +669,7 @@ void rest() {
   changeState(0, HOME_LOOP);
 }
 
+// === Draw functions ===
 void drawBackground(const ImageBuffer& bg) {
   // Draw the background of the screen (layer 0)
   if (l0NeedsRedraw) {
@@ -792,7 +728,189 @@ void drawToast() {
 
 void drawMenu(String menuType, const char* items[], int itemCount, int selection) {
   // Draw menus on the screen (layer 4)
-  if (l4NeedsRedraw || (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed())) {
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+    }
+  }
+
+  if (menuType == "action") {
+    switch (key) {
+      case 48:
+        // 0: EAT
+        changeState(0, ACTION_EAT);
+        menuOpened = false;
+        break;
+      case 49:
+        // 1: WASH
+        changeState(0, ACTION_WASH);
+        menuOpened = false;
+        break;
+      case 50:
+        // 2: REST
+        changeState(0, ACTION_REST);
+        menuOpened = false;
+        break;
+      case 51:
+        // 3: DEBUG
+        if (debugEnabled) {
+          debugEnabled = false;
+        } else {
+          debugEnabled = true;
+        }
+        menuOpened = false;
+        break;
+      case 43:
+        // TAB
+        if (menuOpened) {
+          menuOpened = false;
+          l0NeedsRedraw = true;
+        } else {
+          menuOpened = true;
+          l4NeedsRedraw = true;
+        }
+        break;
+      case 96:
+        // ESC
+        if (menuOpened) {
+          menuOpened = false;
+          l0NeedsRedraw = true;
+        }
+        break;
+      case 181: case 'w': case 'W': case 59:
+        // UP
+        actionMenuSelection = (actionMenuSelection - 1 + actionMenuItemCount) % actionMenuItemCount;
+        l4NeedsRedraw = true;
+        break;
+      case 182: case 's': case 'S': case 46:
+        // DOWN
+        actionMenuSelection = (actionMenuSelection + 1) % actionMenuItemCount;
+        l4NeedsRedraw = true;
+        break;
+      case 13: case 40: case ' ':
+        // VALIDATE
+        if (actionMenuSelection == 0) {
+          changeState(0, ACTION_EAT);
+        } else if (actionMenuSelection == 1) {
+          changeState(0, ACTION_WASH);
+        } else if (actionMenuSelection == 2) {
+          changeState(0, ACTION_REST);
+        }
+        menuOpened = false;
+        break;
+    }
+  } else if (menuType == "dev") {
+    switch (key) {
+      case 48:
+        // 0: CALIB1
+        changeState(0, CALIBRATION_1);
+        menuOpened = false;
+        break;
+      case 49:
+        // 1: CALIB2
+        changeState(0, CALIBRATION_2);
+        menuOpened = false;
+        break;
+      case 50:
+        // 2: CALIB3
+        changeState(0, CALIBRATION_3);
+        menuOpened = false;
+        break;
+      case 51:
+        // 3: EXIT
+        changeState(0, TITLE_SCREEN);
+        menuOpened = true;
+        break;
+      case 43:
+        // TAB
+        if (menuOpened) {
+          menuOpened = false;
+          l0NeedsRedraw = true;
+        } else {
+          menuOpened = true;
+          l4NeedsRedraw = true;
+        }
+        break;
+      case 96:
+        // ESC
+        if (menuOpened) {
+          changeState(0, TITLE_SCREEN);
+          menuOpened = true;
+        }
+        break;
+      case 181: case 'w': case 'W': case 59:
+        // UP
+        devMenuSelection = (devMenuSelection - 1 + devMenuItemCount) % devMenuItemCount;
+        l4NeedsRedraw = true;
+        break;
+      case 182: case 's': case 'S': case 46:
+        // DOWN
+        devMenuSelection = (devMenuSelection + 1) % devMenuItemCount;
+        l4NeedsRedraw = true;
+        break;
+      case 13: case 40: case ' ':
+        // VALIDATE
+        if (devMenuSelection == 0) {
+          changeState(0, CALIBRATION_1);
+          menuOpened = false;
+        } else if (devMenuSelection == 1) {
+          changeState(0, CALIBRATION_2);
+          menuOpened = false;
+        } else if (devMenuSelection == 2) {
+          changeState(4, CALIBRATION_3);
+          menuOpened = false;
+        } else if (devMenuSelection == 3) {
+          changeState(0, TITLE_SCREEN);
+          menuOpened = true;
+        }
+        break;
+    }
+  } else if (menuType == "main") {
+    switch (key) {
+      case 48:
+        // 0: NEW GAME
+        changeState(0, NEW_GAME);
+        menuOpened = false;
+        break;
+      case 49:
+        // 1: CONTINUE
+        changeState(0, CONTINUE_GAME);
+        menuOpened = false;
+        break;
+      case 50:
+        // 2: DEV SCREEN
+        changeState(4, DEV_SCREEN);
+        menuOpened = true;
+        break;
+      case 181: case 'w': case 'W': case 59:
+        // UP
+        mainMenuSelection = (mainMenuSelection - 1 + mainMenuItemCount) % mainMenuItemCount;
+        l4NeedsRedraw = true;
+        break;
+      case 182: case 's': case 'S': case 46:
+        // DOWN
+        mainMenuSelection = (mainMenuSelection + 1) % mainMenuItemCount;
+        l4NeedsRedraw = true;
+        break;
+      case 13: case 40: case ' ':
+        // VALIDATE
+        if (mainMenuSelection == 0) {
+          changeState(0, NEW_GAME);
+          menuOpened = false;
+        } else if (mainMenuSelection == 1) {
+          changeState(0, CONTINUE_GAME);
+          menuOpened = false;
+        } else {
+          changeState(4, DEV_SCREEN);
+          menuOpened = true;
+        }
+        break;
+    }
+  }
+
+  if (l4NeedsRedraw) {
     uint16_t overlayColor = M5Cardputer.Display.color888(30, 30, 30);
     int x = 60, y = 35, w = 120, h = 65;
 
@@ -816,190 +934,6 @@ void drawMenu(String menuType, const char* items[], int itemCount, int selection
     M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
     drawText("UP/DOWN: Navigate, ENTER: Validate", 120, 131, true, WHITE, 1);
     l4NeedsRedraw = false;
-  }
-
-  // Keyboard management
-  if (menuType == "action") {
-    uint8_t key;
-    if (getKeyOnce(key)) {
-      switch (key) {
-        case 48:
-          // 0: EAT
-          changeState(0, ACTION_EAT);
-          menuOpened = false;
-          break;
-        case 49:
-          // 1: WASH
-          changeState(0, ACTION_WASH);
-          menuOpened = false;
-          break;
-        case 50:
-          // 2: REST
-          changeState(0, ACTION_REST);
-          menuOpened = false;
-          break;
-        case 51:
-          // 3: DEBUG
-          if (debugEnabled) {
-            debugEnabled = false;
-          } else {
-            debugEnabled = true;
-          }
-          menuOpened = false;
-          break;
-        case 43:
-          // TAB
-          if (menuOpened) {
-            menuOpened = false;
-            l0NeedsRedraw = true;
-          } else {
-            menuOpened = true;
-            l4NeedsRedraw = true;
-          }
-          break;
-        case 96:
-          // ESC
-          if (menuOpened) {
-            menuOpened = false;
-            l0NeedsRedraw = true;
-          }
-          break;
-        case 181: case 'w': case 'W': case 59:
-          // UP
-          actionMenuSelection = (actionMenuSelection - 1 + actionMenuItemCount) % actionMenuItemCount;
-          l4NeedsRedraw = true;
-          break;
-        case 182: case 's': case 'S': case 46:
-          // DOWN
-          actionMenuSelection = (actionMenuSelection + 1) % actionMenuItemCount;
-          l4NeedsRedraw = true;
-          break;
-        case 13: case 40: case ' ':
-          // VALIDATE
-          if (actionMenuSelection == 0) {
-            changeState(0, ACTION_EAT);
-          } else if (actionMenuSelection == 1) {
-            changeState(0, ACTION_WASH);
-          } else if (actionMenuSelection == 2) {
-            changeState(0, ACTION_REST);
-          }
-          menuOpened = false;
-          break;
-      }
-    }
-  } else if (menuType == "dev") {
-    uint8_t key;
-    if (getKeyOnce(key)) {
-      switch (key) {
-        case 48:
-          // 0: CALIB1
-          changeState(0, CALIBRATION_1);
-          menuOpened = false;
-          break;
-        case 49:
-          // 1: CALIB2
-          changeState(0, CALIBRATION_2);
-          menuOpened = false;
-          break;
-        case 50:
-          // 2: CALIB3
-          changeState(0, CALIBRATION_3);
-          menuOpened = false;
-          break;
-        case 51:
-          // 3: EXIT
-          changeState(0, TITLE_SCREEN);
-          menuOpened = true;
-          break;
-        case 43:
-          // TAB
-          if (menuOpened) {
-            menuOpened = false;
-            l0NeedsRedraw = true;
-          } else {
-            menuOpened = true;
-            l4NeedsRedraw = true;
-          }
-          break;
-        case 96:
-          // ESC
-          if (menuOpened) {
-            changeState(0, TITLE_SCREEN);
-            menuOpened = true;
-          }
-          break;
-        case 181: case 'w': case 'W': case 59:
-          // UP
-          devMenuSelection = (devMenuSelection - 1 + devMenuItemCount) % devMenuItemCount;
-          l4NeedsRedraw = true;
-          break;
-        case 182: case 's': case 'S': case 46:
-          // DOWN
-          devMenuSelection = (devMenuSelection + 1) % devMenuItemCount;
-          l4NeedsRedraw = true;
-          break;
-        case 13: case 40: case ' ':
-          // VALIDATE
-          if (devMenuSelection == 0) {
-            changeState(0, CALIBRATION_1);
-            menuOpened = false;
-          } else if (devMenuSelection == 1) {
-            changeState(0, CALIBRATION_2);
-            menuOpened = false;
-          } else if (devMenuSelection == 2) {
-            changeState(4, CALIBRATION_3);
-            menuOpened = false;
-          } else if (devMenuSelection == 3) {
-            changeState(0, TITLE_SCREEN);
-            menuOpened = true;
-          }
-          break;
-      }
-    }
-  } else if (menuType == "main") {
-    uint8_t key;
-    if (getKeyOnce(key)) {
-      switch (key) {
-        case 48:
-          // 0: NEW GAME
-          changeState(0, NEW_GAME);
-          menuOpened = false;
-          break;
-        case 49:
-          // 1: CONTINUE
-          changeState(0, CONTINUE_GAME);
-          menuOpened = false;
-          break;
-        case 50:
-          // 2: DEV SCREEN
-          changeState(4, DEV_SCREEN);
-          menuOpened = true;
-          break;
-        case 181: case 'w': case 'W': case 59:
-          // UP
-          mainMenuSelection = (mainMenuSelection - 1 + mainMenuItemCount) % mainMenuItemCount;
-          l4NeedsRedraw = true;
-          break;
-        case 182: case 's': case 'S': case 46:
-          // DOWN
-          mainMenuSelection = (mainMenuSelection + 1) % mainMenuItemCount;
-          l4NeedsRedraw = true;
-          break;
-        case 13: case 40: case ' ':
-          // VALIDATE
-          if (mainMenuSelection == 0) {
-            changeState(0, NEW_GAME);
-            menuOpened = false;
-          } else if (mainMenuSelection == 1) {
-            changeState(0, CONTINUE_GAME);
-            menuOpened = false;
-          } else {
-            changeState(4, DEV_SCREEN);
-            menuOpened = true;
-          }
-          break;
-      }
-    }
   }
 }
 
