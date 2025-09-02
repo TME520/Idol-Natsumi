@@ -405,7 +405,7 @@ void changeState(int baseLayer, GameState targetState) {
   }
   switch (targetState) {
     case M5_SCREEN:
-      screenConfig = CARD;
+      screenConfig = IDLE;
       break;
     case VERSION_SCREEN:
       screenConfig = TEXT;
@@ -539,10 +539,6 @@ void manageCard() {
   l1NeedsRedraw = false;
   l3NeedsRedraw = false;
   switch (currentState) {
-    case M5_SCREEN:
-      displayM5Logo();
-      changeState(0, TITLE_SCREEN);
-      break;
     case TITLE_SCREEN:
       break;
     case NEW_GAME:
@@ -617,6 +613,10 @@ void manageGame() {
 void manageIdle() {
   // Manage IDLE screens
   switch (currentState) {
+    case M5_SCREEN:
+      displayM5Logo();
+      changeState(0, TITLE_SCREEN);
+      break;
     default:
       break;
   }
@@ -685,6 +685,7 @@ void displayVersionScreen() {
 }
 
 void displayM5Logo() {
+  drawBackground(currentBackground);
   delay(mediumWait);
 }
 
