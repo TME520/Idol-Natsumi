@@ -771,6 +771,8 @@ void drawToast() {
     M5Cardputer.Display.drawString(toastMsg, tx, ty);
     l3NeedsRedraw = false;
     l4NeedsRedraw = true;
+  } else {
+    l3NeedsRedraw = false;
   }
 }
 
