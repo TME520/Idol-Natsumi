@@ -4,6 +4,7 @@
 // === Game state definitions ===
 enum GameState {
   VERSION_SCREEN,
+  M5_SCREEN,
   TITLE_SCREEN,
   CALIBRATION_1,
   CALIBRATION_2,
@@ -206,6 +207,9 @@ void preloadImages() {
   unloadAllImages();
   // Load backgrounds
   switch (currentState) {
+    case M5_SCREEN:
+      preloadImage("/idolnat/screens/m5_logo.png", currentBackground);
+      break;
     case TITLE_SCREEN:
       preloadImage("/idolnat/screens/title01.png", currentBackground);
       break;
@@ -400,6 +404,9 @@ void changeState(int baseLayer, GameState targetState) {
       break;
   }
   switch (targetState) {
+    case M5_SCREEN:
+      screenConfig = CARD;
+      break;
     case VERSION_SCREEN:
       screenConfig = TEXT;
       break;
@@ -532,6 +539,10 @@ void manageCard() {
   l1NeedsRedraw = false;
   l3NeedsRedraw = false;
   switch (currentState) {
+    case M5_SCREEN:
+      displayM5Logo();
+      changeState(0, TITLE_SCREEN);
+      break;
     case TITLE_SCREEN:
       break;
     case NEW_GAME:
@@ -652,7 +663,7 @@ void manageText() {
   switch (currentState) {
     case VERSION_SCREEN:
       displayVersionScreen();
-      changeState(0, TITLE_SCREEN);
+      changeState(0, M5_SCREEN);
       break;
     default:
       break;
@@ -670,6 +681,10 @@ void displayVersionScreen() {
   drawText("for M5 Cardputer", 120, 50, true, BLUE, 2); // centered
   drawText(copyright, 120, 100, true, WHITE, 1); // centered
   drawText(versionNumber, 120, 110, true, WHITE, 1); // centered
+  delay(mediumWait);
+}
+
+void displayM5Logo() {
   delay(mediumWait);
 }
 
