@@ -213,10 +213,13 @@ void unloadAllImages() {
 }
 
 void preloadImages() {
-  // unloadAllImages();
+  unloadAllImages();
   // Load backgrounds
   switch (currentState) {
     case TITLE_SCREEN:
+      preloadImage("/idolnat/screens/title01.png", currentBackground);
+      break;
+    case DEV_SCREEN:
       preloadImage("/idolnat/screens/title01.png", currentBackground);
       break;
     case CALIBRATION_1:
