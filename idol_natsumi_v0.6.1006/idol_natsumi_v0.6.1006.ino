@@ -406,8 +406,10 @@ void changeState(int baseLayer, GameState targetState) {
       break;
     case TITLE_SCREEN: case NEW_GAME: case CONTINUE_GAME: case DEV_SCREEN: case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
       screenConfig = CARD;
+      break;
     case HOME_LOOP: case ACTION_EAT: case ACTION_WASH: case ACTION_REST:
       screenConfig = ROOM;
+      break;
     default:
       break;
   }
