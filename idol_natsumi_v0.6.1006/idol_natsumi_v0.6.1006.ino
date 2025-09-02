@@ -745,7 +745,7 @@ void drawCharacter() {
 
 void drawDebug() {
   // Draw debug information (layer 2)
-  if (l2NeedsRedraw || debugEnabled) {
+  if (l2NeedsRedraw && debugEnabled) {
     drawText(String("Memory: ") + ESP.getFreeHeap(), 80, 40, false, WHITE, 1);
     drawText(String("Time: ") + natsumi.ageMilliseconds, 80, 50, false, WHITE, 1);
     drawText(String("Age: ") + natsumi.age + " y.o.", 80, 60, false, WHITE, 1);
