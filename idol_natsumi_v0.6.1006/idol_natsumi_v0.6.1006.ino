@@ -68,7 +68,7 @@ String currentMenuType = "main";
 const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: DEV SCREEN"};
 const char* actionMenuItems[] = {"0: EAT", "1: WASH", "2: REST", "3: DEBUG"};
 const char* devMenuItems[] = {"0: CALIB1", "1: CALIB2", "2: CALIB3", "3: EXIT"};
-char* currentMenuItems[] = {"", "", "", ""};
+const char** currentMenuItems = nullptr;
 const int mainMenuItemCount = 3;
 const int actionMenuItemCount = 4;
 const int devMenuItemCount = 4;
@@ -743,7 +743,7 @@ void drawCharacter() {
 
 void drawDebug() {
   // Draw debug information (layer 2)
-  if (l2NeedsRedraw) || (debugEnabled) {
+  if (l2NeedsRedraw || debugEnabled) {
     drawText(String("Memory: ") + ESP.getFreeHeap(), 80, 40, false, WHITE, 1);
     drawText(String("Time: ") + natsumi.ageMilliseconds, 80, 50, false, WHITE, 1);
     drawText(String("Age: ") + natsumi.age + " y.o.", 80, 60, false, WHITE, 1);
