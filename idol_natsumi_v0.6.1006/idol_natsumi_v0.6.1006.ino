@@ -417,8 +417,18 @@ void changeState(int baseLayer, GameState targetState) {
       break;
     case NEW_GAME: case CONTINUE_GAME: case DEV_SCREEN: case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
       break;
-    case HOME_LOOP: case ACTION_EAT: case ACTION_WASH: case ACTION_REST:
+    case HOME_LOOP:
       screenConfig = ROOM;
+      currentMenuType = "action";
+      currentMenuItems = actionMenuItems;
+      currentMenuItemsCount = actionMenuItemCount;
+      menuOpened = false;
+      break;
+    case ACTION_EAT: case ACTION_WASH: case ACTION_REST:
+      screenConfig = ROOM;
+      currentMenuType = "action";
+      currentMenuItems = actionMenuItems;
+      currentMenuItemsCount = actionMenuItemCount;
       break;
     default:
       break;
@@ -623,6 +633,22 @@ void manageRoom() {
     default:
       break;
   }
+
+  // After state-specific updates, draw all layers for room screens
+  drawBackground(currentBackground);
+  drawCharacter();
+  drawDebug();
+  manageToast();
+
+  int *selectionPtr;
+  if (currentMenuType == "action") {
+    selectionPtr = &actionMenuSelection;
+  } else if (currentMenuType == "dev") {
+    selectionPtr = &devMenuSelection;
+  } else {
+    selectionPtr = &mainMenuSelection;
+  }
+  drawMenu(currentMenuType, currentMenuItems, currentMenuItemsCount, *selectionPtr);
 }
 
 void manageText() {
@@ -923,8 +949,12 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           menuOpened = true;
           return;
         }
-        
+
     }
+  }
+  if (!menuOpened) {
+    l4NeedsRedraw = false;
+    return;
   }
 
   if (l4NeedsRedraw) {
