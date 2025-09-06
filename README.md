@@ -51,7 +51,7 @@ Nap restores 2 Energy points while bedtime fully restores Energy.
 * 0: Display **statistics**
 * 1: **Food**: Cook/Restaurant/Order <- Influences Hunger
 * 2: **Train**: Singing/Dancing/Sport <- Mini games
-* 3: **Compete**: Participate into local/regional/departmental/national... competitions <- Influences popularity
+* 3: **Compete**: Participate into local/departmental/regional/national competitions <- Influences popularity
 * 4: **Health**: Wash/Go to the temple/Go to doctor
 * 5: **Rest**: Nap/Bedtime
 * 6: **Gardening**
