@@ -453,6 +453,7 @@ void updateAging() {
   unsigned long currentMilli = millis();
   unsigned long currentPlaytime = currentMilli - sessionStart;
   unsigned long totalMs = playtimeTotalMs + currentPlaytime;
+  int currentAge = natsumi.age;
  
   natsumi.ageMilliseconds = currentPlaytime;
   // Serial.print("natsumi.age: ");
@@ -496,6 +497,11 @@ void updateAging() {
   }
   // Serial.print("natsumi.age: ");
   // Serial.println(natsumi.age);
+  if (natsumi.age > currentAge) {
+    // Load updated portrait
+    preloadImages();
+    showToast(String("Natsumi turned ") + natsumi.age + " years old!");
+  }
 }
 
 void updateStats() {
@@ -696,36 +702,48 @@ void displayM5Logo() {
 
 void manageHomeScreen() {
   // Serial.println("> Entering manageHomeScreen()");
-  int currentAge = natsumi.age;
   // Serial.print("natsumi.age: ");
   // Serial.println(natsumi.age);
   // Serial.print("currentAge: ");
   // Serial.println(currentAge);
   updateAging();
   updateStats();
-  if (natsumi.age > currentAge) {
-    // Load updated portrait
-    preloadImages();
-    showToast(String("Natsumi turned ") + natsumi.age + " years old!");
-  }
 }
 
 void eat() {
-  if (natsumi.hunger < 4) natsumi.hunger += 1;
-  showToast("Ate (+1 Hunger)");
-  changeState(0, HOME_LOOP);
+  if (natsumi.hunger < 4) {
+    natsumi.hunger += 1;
+    showToast("Ate (+1 Hunger)");
+    delay(shortWait);
+    changeState(0, HOME_LOOP);
+  } else {
+    showToast("Natsumi is not hungry");
+    changeState(3, HOME_LOOP);
+  }
 }
 
 void wash() {
-  if (natsumi.hygiene < 4) natsumi.hygiene += 1;
-  showToast("Washed (+1 Hygiene)");
-  changeState(0, HOME_LOOP);
+  if (natsumi.hygiene < 4) {
+    natsumi.hygiene += 1;
+    showToast("Washed (+1 Hygiene)");
+    delay(shortWait);
+    changeState(0, HOME_LOOP);
+  } else {
+    showToast("Natsumi is not dirty");
+    changeState(3, HOME_LOOP);
+  }
 }
 
 void rest() {
-  if (natsumi.energy < 4) natsumi.energy += 1;
-  showToast("Rested (+1 Energy)");
-  changeState(0, HOME_LOOP);
+  if (natsumi.energy < 4) {
+    natsumi.energy += 1;
+    showToast("Rested (+1 Energy)");
+    delay(shortWait);
+    changeState(0, HOME_LOOP);
+  } else {
+    showToast("Natsumi is not tired");
+    changeState(3, HOME_LOOP);
+  }
 }
 
 // === Draw functions ===
