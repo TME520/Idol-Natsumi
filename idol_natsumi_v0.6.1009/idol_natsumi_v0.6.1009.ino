@@ -730,8 +730,7 @@ void manageGarden() {
 }
 
 void eat() {
-  Serial.println("> Entering eat()");
-  Serial.print(String(generalCounter));
+  // Serial.println("> Entering eat()");
   if (generalCounter==0) {
     if (natsumi.hunger < 4) {
       natsumi.hunger += 1;
@@ -741,8 +740,8 @@ void eat() {
     }
   }
   generalCounter += 1;
-  if (generalCounter >= longWait) {
-    changeState(3, HOME_LOOP);
+  if (generalCounter >= 100) {
+    changeState(0, HOME_LOOP);
   }
 }
 
@@ -756,8 +755,8 @@ void wash() {
     }
   }
   generalCounter += 1;
-  if (generalCounter >= longWait) {
-    changeState(3, HOME_LOOP);
+  if (generalCounter >= 100) {
+    changeState(0, HOME_LOOP);
   }
 }
 
@@ -771,8 +770,8 @@ void rest() {
     }
   }
   generalCounter += 1;
-  if (generalCounter >= longWait) {
-    changeState(3, HOME_LOOP);
+  if (generalCounter >= 100) {
+    changeState(0, HOME_LOOP);
   }
 }
 
