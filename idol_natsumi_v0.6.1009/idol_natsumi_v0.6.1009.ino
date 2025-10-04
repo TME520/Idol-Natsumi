@@ -1045,10 +1045,11 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
   }
 
   if (l4NeedsRedraw) {
-    uint16_t overlayColor = M5Cardputer.Display.color888(30, 30, 30);
+    uint16_t overlayColor = M5Cardputer.Display.color888(0, 0, 128);
     int x = 60, y = 35, w = 120, h = 65;
 
-    M5Cardputer.Display.fillRect(x, y, w, h, overlayColor);
+    // M5Cardputer.Display.fillRect(x, y, w, h, overlayColor);
+    M5Cardputer.Display.fillRect(x, y, w, h, TFT_NAVY);
     M5Cardputer.Display.drawRect(x, y, w, h, WHITE);
 
     M5Cardputer.Display.setTextSize(1);
