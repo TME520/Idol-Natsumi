@@ -1059,14 +1059,15 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
   }
 
   if (l4NeedsRedraw) {
-    int x = 60, y = 35, w = 120, h = 65;
+    // int x = 60, y = 35, w = 120, h = 65;
+    int x = 60, y = 67 - (7 * itemCount), w = 120, h = 5 + (20 * itemCount);
 
     M5Cardputer.Display.fillRect(x, y, w, h, TFT_NAVY);
     M5Cardputer.Display.drawRect(x, y, w, h, WHITE);
 
     M5Cardputer.Display.setTextSize(1);
     for (int i = 0; i < itemCount; i++) {
-      M5Cardputer.Display.setCursor(65, 45 + i * 15);
+      M5Cardputer.Display.setCursor(65, y + i * 15);
       if (i == selection) {
         M5Cardputer.Display.setTextColor(YELLOW);
         M5Cardputer.Display.print("> ");
