@@ -1067,7 +1067,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
 
     M5Cardputer.Display.setTextSize(1);
     for (int i = 0; i < itemCount; i++) {
-      M5Cardputer.Display.setCursor(65, y + i * 15);
+      M5Cardputer.Display.setCursor(65, y + (i * 15));
       if (i == selection) {
         M5Cardputer.Display.setTextColor(YELLOW);
         M5Cardputer.Display.print("> ");
