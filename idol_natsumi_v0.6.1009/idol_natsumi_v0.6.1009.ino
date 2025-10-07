@@ -1062,8 +1062,9 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
     const int x = 60;
     const int w = 120;
     const int padding = 8;
-    const int lineSpacing = 14;
-    const int h = padding * 2 + (itemCount * lineSpacing);
+    // const int lineSpacing = 14;
+    const int lineSpacing = 10;
+    const int h = padding * 2 + ((itemCount - 1) * lineSpacing);
     const int screenHeight = 135;
     const int topMargin = 8;
     const int bottomMargin = 6;
