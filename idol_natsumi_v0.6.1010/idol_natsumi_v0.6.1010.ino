@@ -41,9 +41,12 @@ struct NatsumiStats {
   int hunger;
   int hygiene;
   int energy;
-  int skill;
-  int mood;
+  int spirit;
   int popularity;
+  int performance;
+  int fitness;
+  int culture;
+  int charm;
   unsigned long lastHungerUpdate = 0;
   unsigned long lastHygieneUpdate = 0;
   unsigned long lastEnergyUpdate = 0;
@@ -579,9 +582,12 @@ void manageCard() {
       natsumi.hunger = 4;
       natsumi.hygiene = 4;
       natsumi.energy = 4;
-      natsumi.skill = 0;
-      natsumi.mood = 0;
+      natsumi.spirit = 4;
       natsumi.popularity = 0;
+      natsumi.performance = 0;
+      natsumi.fitness = 0;
+      natsumi.culture = 0;
+      natsumi.charm = 0;
       natsumi.lastHungerUpdate = 0;
       natsumi.lastHygieneUpdate = 0;
       natsumi.lastEnergyUpdate = 0;
@@ -596,9 +602,12 @@ void manageCard() {
       natsumi.hunger = 4;
       natsumi.hygiene = 4;
       natsumi.energy = 4;
-      natsumi.skill = 0;
-      natsumi.mood = 0;
+      natsumi.spirit = 4;
       natsumi.popularity = 0;
+      natsumi.performance = 0;
+      natsumi.fitness = 0;
+      natsumi.culture = 0;
+      natsumi.charm = 0;
       natsumi.lastHungerUpdate = 0;
       natsumi.lastHygieneUpdate = 0;
       natsumi.lastEnergyUpdate = 0;
@@ -816,15 +825,18 @@ void drawCharacter() {
 void drawDebug() {
   // Draw debug information (layer 2)
   if (l2NeedsRedraw && debugEnabled) {
-    drawText(String("Memory: ") + ESP.getFreeHeap(), 80, 40, false, WHITE, 1);
-    drawText(String("Time: ") + natsumi.ageMilliseconds, 80, 50, false, WHITE, 1);
-    drawText(String("Age: ") + natsumi.age + " y.o.", 80, 60, false, WHITE, 1);
-    drawText(String("Hunger: ") + natsumi.hunger, 80, 70, false, WHITE, 1);
-    drawText(String("Hygiene: ") + natsumi.hygiene, 80, 80, false, WHITE, 1);
-    drawText(String("Energy: ") + natsumi.energy, 80, 90, false, WHITE, 1);
-    drawText(String("Skill: ") + natsumi.skill, 80, 100, false, WHITE, 1);
-    drawText(String("Mood: ") + natsumi.mood, 80, 110, false, WHITE, 1);
-    drawText(String("Popularity: ") + natsumi.popularity, 80, 120, false, WHITE, 1);
+    drawText(String("Memory: ") + ESP.getFreeHeap(), 80, 10, false, WHITE, 1);
+    drawText(String("Time: ") + natsumi.ageMilliseconds, 80, 20, false, WHITE, 1);
+    drawText(String("Age: ") + natsumi.age + " y.o.", 80, 30, false, WHITE, 1);
+    drawText(String("Hunger: ") + natsumi.hunger, 80, 40, false, WHITE, 1);
+    drawText(String("Hygiene: ") + natsumi.hygiene, 80, 50, false, WHITE, 1);
+    drawText(String("Energy: ") + natsumi.energy, 80, 60, false, WHITE, 1);
+    drawText(String("Spirit: ") + natsumi.spirit, 80, 80, false, WHITE, 1);
+    drawText(String("Popularity: ") + natsumi.popularity, 80, 90, false, WHITE, 1);
+    drawText(String("Performance: ") + natsumi.performance, 80, 100, false, WHITE, 1);
+    drawText(String("Fitness: ") + natsumi.fitness, 80, 110, false, WHITE, 1);
+    drawText(String("Culture: ") + natsumi.culture, 80, 120, false, WHITE, 1);
+    drawText(String("Charm: ") + natsumi.charm, 80, 130, false, WHITE, 1);
     l2NeedsRedraw = true;
     l3NeedsRedraw = true;
     l4NeedsRedraw = true;
