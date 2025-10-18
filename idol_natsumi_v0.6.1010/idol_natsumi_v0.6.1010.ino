@@ -831,12 +831,12 @@ void drawDebug() {
     drawText(String("Hunger: ") + natsumi.hunger, 80, 40, false, WHITE, 1);
     drawText(String("Hygiene: ") + natsumi.hygiene, 80, 50, false, WHITE, 1);
     drawText(String("Energy: ") + natsumi.energy, 80, 60, false, WHITE, 1);
-    drawText(String("Spirit: ") + natsumi.spirit, 80, 80, false, WHITE, 1);
-    drawText(String("Popularity: ") + natsumi.popularity, 80, 90, false, WHITE, 1);
-    drawText(String("Performance: ") + natsumi.performance, 80, 100, false, WHITE, 1);
-    drawText(String("Fitness: ") + natsumi.fitness, 80, 110, false, WHITE, 1);
-    drawText(String("Culture: ") + natsumi.culture, 80, 120, false, WHITE, 1);
-    drawText(String("Charm: ") + natsumi.charm, 80, 130, false, WHITE, 1);
+    drawText(String("Spirit: ") + natsumi.spirit, 80, 70, false, WHITE, 1);
+    drawText(String("Popularity: ") + natsumi.popularity, 80, 80, false, WHITE, 1);
+    drawText(String("Performance: ") + natsumi.performance, 80, 90, false, WHITE, 1);
+    drawText(String("Fitness: ") + natsumi.fitness, 80, 100, false, WHITE, 1);
+    drawText(String("Culture: ") + natsumi.culture, 80, 110, false, WHITE, 1);
+    drawText(String("Charm: ") + natsumi.charm, 80, 120, false, WHITE, 1);
     l2NeedsRedraw = true;
     l3NeedsRedraw = true;
     l4NeedsRedraw = true;
