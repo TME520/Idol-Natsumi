@@ -14,10 +14,11 @@ In *Idol Natsumi*, the player takes care of and raises a Japanese girl named Nat
 * **TAB** key open or closes the main menu
 * **ESCAPE** key goes back to Home screen
 * **ENTER** key validates whatever option is selected
+* **UP/DOWN** Navigate menus
 
 ### The 4 stages of Natsumi's life
 
-* Between 11 years old and 13 years old: preteen - No access to Restaurant, Order and Conpetition
+* Between 11 years old and 13 years old: preteen - No access to Restaurant, Order and Competition
 * Between 13 years old and 15 years old: teenager phase 1 - Gains access to Order and local Competition
 * Between 15 and 18 years old: teenager phase 2 - All limits are lifted
 * Between 18 and 21 years old: young adult
@@ -26,33 +27,29 @@ Age progression is automatic, Natsumi ages one year every 24 hours.
 
 ### Statistics
 
+Stat caps: 0 is the lowest while 4 is the highest.
+
 * **Hunger** (integer; 0 to 4; indicates how hungry Natsumi is)
 * **Hygiene** (integer; 0 to 4; indicates how clean Natsumi is)
 * **Energy** (integer; 0 to 4; indicates how energized Natsumi is)
-* **Skill** (integer; 0 to 4; indicates how good of a performer Natsumi is)
-* **Mood** (integer; 0 to 2; indicates how good Natsumi feels)
+* **Spirit** (integer; 0 to 4; indicates the general mood of Natsumi)
 * **Popularity** (integer; 0 to 4; indicates how popular Natsumi is)
+* **Performance** (integer; 0 to 4; shows how good of an entertainer Natsumi is)
+* **Fitness** (integer; 0 to 4; indicates how healthy Natsumi is)
+* **Culture** (integer; 0 to 4; indicates how knowledgeable Natsumi is)
+* **Charm** (integer; 0 to 4; shows how well-mannered and likeable Natsumi is)
 
-Stat caps: 0 is the lowest while 4 is the highest. These stats are exclusively influenced by what the player does.
 
-* Hunger: goes down by one every 2 hours. If reaches 0, Natsumi looses all her energy and her mood goes down by 1
-* Hygiene: goes down by one every 4 hours. If reaches 0, Natsumi looses all her energy and her mood goes down by 1
-* Energy: goes down by one every 4 hours. If reaches 0, Natsumi can't train and/or compete
-* Skill: goes up by training and/or competing (0: Natsumi is limited to local competition, 1 & 2: Natsumi is limited to regional competition, 3+: Natsumi can participate in national competitions)
-* Mood: goes up by one after every player interaction; goes down by one every hour. If reaches 0, Natsumi looses all her energy
-* Popularity: goes up after every successful competition
-
-Competition success is tied to mini games in a way that is yet to be determined.
-Energy gets restored through food and/or visits to the temple.
-Nap restores 2 Energy points while bedtime fully restores Energy.
-
-### Main menu
-
-* 0: Display **statistics**
-* 1: **Food**: Cook/Restaurant/Order <- Influences Hunger
-* 2: **Train**: Singing/Dancing/Sport <- Mini games
-* 3: **Compete**: Participate into local/departmental/regional/national competitions <- Influences popularity
-* 4: **Health**: Wash/Go to the temple/Go to doctor
-* 5: **Rest**: Nap/Bedtime
-* 6: **Gardening**
+| STAT          | TYPE       | RANGE | UP (activities or events that raise it)                                   | DOWN (causes that lower it)                                      |
+|----------------|------------|--------|----------------------------------------------------------------------------|------------------------------------------------------------------|
+| **Age**        | Passive    | 0–∞    | Increases automatically every `agingInterval` ms                          | —                                                                |
+| **Hunger**     | Passive    | 0–4    | COOK, RESTAURANT, ORDER                                                   | Decreases by 1 every `hungerInterval` ms                         |
+| **Hygiene**    | Passive    | 0–4    | WASH, ONSEN                                                               | Decreases by 1 every `hygieneInterval` ms                        |
+| **Energy**     | Passive    | 0–4    | GARDEN, TEMPLE, ONSEN, NAP, BEDTIME                                       | Decreases by 1 every `energyInterval` ms                         |
+| **Spirit**     | Derived    | 0–4    | Improves when Hygiene, Energy, Hunger, Performance, or Popularity are high | Declines when those stats are low                                |
+| **Popularity** | Active     | 0–4    | COMPETITION (LOCAL, DEPARTMENTAL, REGIONAL, NATIONAL)                     | —                                                                |
+| **Performance**| Active     | 0–4    | TRAINING → SING, DANCE                                                   | —                                                                |
+| **Fitness**    | Passive    | 0–4    | TRAINING → SWIM, GYM, WALK                                               | Decreases by 1 every time Age increases by 1 year                |
+| **Culture**    | Active     | 0–4    | TRAINING → LIBRARY                                                      | —                                                                |
+| **Charm**      | Active     | 0–4    | FOOD → COOK, RESTAURANT, ORDER                                           | —                                                                |
 

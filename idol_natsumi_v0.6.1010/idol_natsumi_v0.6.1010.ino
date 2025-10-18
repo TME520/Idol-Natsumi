@@ -54,7 +54,7 @@ NatsumiStats natsumi;
 // === Game Time Tracking ===
 // 60000 milliseconds in a minute
 // 86,400,000 milliseconds in a day
-unsigned long agingIntervalMs = 60000;  // 1 minute for testing
+unsigned long agingInterval = 60000;  // 1 minute for testing
 unsigned long sessionStart = 0;           // millis() when NEW_GAME starts
 unsigned long playtimeTotalMs = 0;        // total playtime in ms (could persist later)
 int lastAgeTick = 0;
@@ -482,40 +482,40 @@ void updateAging() {
   natsumi.ageMilliseconds = currentPlaytime;
   // Serial.print("natsumi.age: ");
   // Serial.println(natsumi.age);
-  if (natsumi.ageMilliseconds < agingIntervalMs) {
+  if (natsumi.ageMilliseconds < agingInterval) {
     // 11yo
     natsumi.age = 11;
-  } else if ((natsumi.ageMilliseconds >= agingIntervalMs) && (natsumi.ageMilliseconds < (agingIntervalMs * 2))) {
+  } else if ((natsumi.ageMilliseconds >= agingInterval) && (natsumi.ageMilliseconds < (agingInterval * 2))) {
     // 12yo
     natsumi.age = 12;
-  } else if ((natsumi.ageMilliseconds >= (agingIntervalMs * 2)) && (natsumi.ageMilliseconds < (agingIntervalMs * 3))) {
+  } else if ((natsumi.ageMilliseconds >= (agingInterval * 2)) && (natsumi.ageMilliseconds < (agingInterval * 3))) {
     // 13yo
     natsumi.age = 13;
-  } else if ((natsumi.ageMilliseconds >= (agingIntervalMs * 3)) && (natsumi.ageMilliseconds < (agingIntervalMs * 4))) {
+  } else if ((natsumi.ageMilliseconds >= (agingInterval * 3)) && (natsumi.ageMilliseconds < (agingInterval * 4))) {
     // 14yo
     natsumi.age = 14;
-  } else if ((natsumi.ageMilliseconds >= (agingIntervalMs * 4)) && (natsumi.ageMilliseconds < (agingIntervalMs * 5))) {
+  } else if ((natsumi.ageMilliseconds >= (agingInterval * 4)) && (natsumi.ageMilliseconds < (agingInterval * 5))) {
     // 15yo
     natsumi.age = 15;
-  } else if ((natsumi.ageMilliseconds >= (agingIntervalMs * 5)) && (natsumi.ageMilliseconds < (agingIntervalMs * 6))) {
+  } else if ((natsumi.ageMilliseconds >= (agingInterval * 5)) && (natsumi.ageMilliseconds < (agingInterval * 6))) {
     // 16yo
     natsumi.age = 16;
-  } else if ((natsumi.ageMilliseconds >= (agingIntervalMs * 6)) && (natsumi.ageMilliseconds < (agingIntervalMs * 7))) {
+  } else if ((natsumi.ageMilliseconds >= (agingInterval * 6)) && (natsumi.ageMilliseconds < (agingInterval * 7))) {
     // 17yo
     natsumi.age = 17;
-  } else if ((natsumi.ageMilliseconds >= (agingIntervalMs * 7)) && (natsumi.ageMilliseconds < (agingIntervalMs * 8))) {
+  } else if ((natsumi.ageMilliseconds >= (agingInterval * 7)) && (natsumi.ageMilliseconds < (agingInterval * 8))) {
     // 18yo
     natsumi.age = 18;
-  } else if ((natsumi.ageMilliseconds >= (agingIntervalMs * 8)) && (natsumi.ageMilliseconds < (agingIntervalMs * 9))) {
+  } else if ((natsumi.ageMilliseconds >= (agingInterval * 8)) && (natsumi.ageMilliseconds < (agingInterval * 9))) {
     // 19yo
     natsumi.age = 19;
-  } else if ((natsumi.ageMilliseconds >= (agingIntervalMs * 9)) && (natsumi.ageMilliseconds < (agingIntervalMs * 10))) {
+  } else if ((natsumi.ageMilliseconds >= (agingInterval * 9)) && (natsumi.ageMilliseconds < (agingInterval * 10))) {
     // 20yo
     natsumi.age = 20;
-  } else if ((natsumi.ageMilliseconds >= (agingIntervalMs * 10)) && (natsumi.ageMilliseconds < (agingIntervalMs * 11))) {
+  } else if ((natsumi.ageMilliseconds >= (agingInterval * 10)) && (natsumi.ageMilliseconds < (agingInterval * 11))) {
     // 21 yo
     natsumi.age = 21;
-  } else if ((natsumi.ageMilliseconds >= (agingIntervalMs * 11)) && (natsumi.ageMilliseconds < (agingIntervalMs * 12))) {
+  } else if ((natsumi.ageMilliseconds >= (agingInterval * 11)) && (natsumi.ageMilliseconds < (agingInterval * 12))) {
     // 22yo - Game ends
     natsumi.age = 22;
   }
