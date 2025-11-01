@@ -17,7 +17,12 @@ enum GameState {
   ACTION_WASH,
   ACTION_REST,
   STATS_SCREEN,
-  GARDEN_LOOP
+  GARDEN_LOOP,
+  FOOD_SCREEN,
+  TRAINING_SCREEN,
+  COMP_SCREEN,
+  HEALTH_SCREEN,
+  REST_SCREEN
 };
 
 GameState currentState = VERSION_SCREEN;
@@ -262,6 +267,24 @@ void preloadImages() {
     case GARDEN_LOOP:
       preloadImage("/idolnat/screens/garden_bg.png", currentBackground);
       break;
+    case STATS_SCREEN:
+      preloadImage("/idolnat/screens/stats_bg.png", currentBackground);
+      break;
+    case FOOD_SCREEN:
+      preloadImage("/idolnat/screens/kitchen.png", currentBackground);
+      break;
+    case TRAINING_SCREEN:
+      preloadImage("/idolnat/screens/map_training.png", currentBackground);
+      break;
+    case COMP_SCREEN:
+      preloadImage("/idolnat/screens/map_comp.png", currentBackground);
+      break;
+    case HEALTH_SCREEN:
+      preloadImage("/idolnat/screens/map_health.png", currentBackground);
+      break;
+    case REST_SCREEN:
+      preloadImage("/idolnat/screens/bedroom.png", currentBackground);
+      break;
   }
   // Load portraits
   switch(natsumi.age) {
@@ -461,9 +484,42 @@ void changeState(int baseLayer, GameState targetState) {
       break;
     case ACTION_EAT: case ACTION_WASH: case ACTION_REST:
       screenConfig = ROOM;
-      currentMenuType = "home";
-      currentMenuItems = homeMenuItems;
-      currentMenuItemsCount = homeMenuItemCount;
+      currentMenuType = "food";
+      currentMenuItems = foodMenuItems;
+      currentMenuItemsCount = foodMenuItemCount;
+      break;
+    case STATS_SCREEN:
+      screenConfig = ROOM;
+      break;
+    case FOOD_SCREEN:
+      screenConfig = ROOM;
+      currentMenuType = "food";
+      currentMenuItems = foodMenuItems;
+      currentMenuItemsCount = foodMenuItemCount;
+      break;
+    case TRAINING_SCREEN:
+      screenConfig = ROOM;
+      currentMenuType = "training";
+      currentMenuItems = trainingMenuItems;
+      currentMenuItemsCount = trainingMenuItemCount;
+      break;
+    case COMP_SCREEN:
+      screenConfig = ROOM;
+      currentMenuType = "competition";
+      currentMenuItems = competitionMenuItems;
+      currentMenuItemsCount = competitionMenuItemCount;
+      break;
+    case HEALTH_SCREEN:
+      screenConfig = ROOM;
+      currentMenuType = "health";
+      currentMenuItems = healthMenuItems;
+      currentMenuItemsCount = healthMenuItemCount;
+      break;
+    case REST_SCREEN:
+      screenConfig = ROOM;
+      currentMenuType = "rest";
+      currentMenuItems = restMenuItems;
+      currentMenuItemsCount = restMenuItemCount;
       break;
     case GARDEN_LOOP:
       screenConfig = ROOM;
@@ -683,6 +739,18 @@ void manageRoom() {
       break;
     case GARDEN_LOOP:
       manageGarden();
+      break;
+    case STATS_SCREEN:
+      break;
+    case FOOD_SCREEN:
+      break;
+    case TRAINING_SCREEN:
+      break;
+    case COMP_SCREEN:
+      break;
+    case HEALTH_SCREEN:
+      break;
+    case REST_SCREEN:
       break;
     default:
       break;
