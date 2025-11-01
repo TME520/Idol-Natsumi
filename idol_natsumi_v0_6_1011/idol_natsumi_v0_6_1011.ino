@@ -73,7 +73,7 @@ const unsigned long energyInterval = 240000;   // 4 minutes
 
 String currentMenuType = "main";
 const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: DEV SCREEN"};
-const char* actionMenuItems[] = {"0: STATS", "1: FOOD", "2: TRAINING", "3: COMPETITION", "4: HEALTH", "5: REST", "6: GARDEN", "7: DEBUG"};
+const char* homeMenuItems[] = {"0: STATS", "1: FOOD", "2: TRAINING", "3: COMPETITION", "4: HEALTH", "5: REST", "6: GARDEN", "7: DEBUG"};
 const char* devMenuItems[] = {"0: CALIB1", "1: CALIB2", "2: CALIB3", "3: EXIT"};
 const char* foodMenuItems[] = {"0: COOK", "1: RESTAURANT", "2: ORDER"};
 const char* trainingMenuItems[] = {"0: SING", "1: DANCE", "2: SWIM", "3: GYM", "4: WALK", "5: LIBRARY"};
@@ -82,7 +82,7 @@ const char* healthMenuItems[] = {"0: WASH", "1: DOCTOR", "2: TEMPLE", "3: ONSEN"
 const char* restMenuItems[] = {"0: MEDITATE", "1: NAP", "2: BEDTIME"};
 const char** currentMenuItems = nullptr;
 const int mainMenuItemCount = 3;
-const int actionMenuItemCount = 8;
+const int homeMenuItemCount = 8;
 const int devMenuItemCount = 4;
 const int foodMenuItemCount = 3;
 const int trainingMenuItemCount = 6;
@@ -90,7 +90,7 @@ const int competitionMenuItemCount = 4;
 const int healthMenuItemCount = 4;
 const int restMenuItemCount = 3;
 int currentMenuItemsCount = 0;
-int actionMenuSelection = 0;
+int homeMenuSelection = 0;
 int mainMenuSelection = 0;
 int devMenuSelection = 0;
 int foodMenuSelection = 0;
@@ -454,16 +454,16 @@ void changeState(int baseLayer, GameState targetState) {
       break;
     case HOME_LOOP:
       screenConfig = ROOM;
-      currentMenuType = "action";
-      currentMenuItems = actionMenuItems;
-      currentMenuItemsCount = actionMenuItemCount;
+      currentMenuType = "home";
+      currentMenuItems = homeMenuItems;
+      currentMenuItemsCount = homeMenuItemCount;
       // menuOpened = false;
       break;
     case ACTION_EAT: case ACTION_WASH: case ACTION_REST:
       screenConfig = ROOM;
-      currentMenuType = "action";
-      currentMenuItems = actionMenuItems;
-      currentMenuItemsCount = actionMenuItemCount;
+      currentMenuType = "home";
+      currentMenuItems = homeMenuItems;
+      currentMenuItemsCount = homeMenuItemCount;
       break;
     case GARDEN_LOOP:
       screenConfig = ROOM;
@@ -624,8 +624,8 @@ void manageCard() {
   drawBackground(currentBackground);
   drawDebug();
   int *selectionPtr;
-  if (currentMenuType == "action") {
-    selectionPtr = &actionMenuSelection;
+  if (currentMenuType == "home") {
+    selectionPtr = &homeMenuSelection;
   } else if (currentMenuType == "dev") {
     selectionPtr = &devMenuSelection;
   } else {
@@ -695,8 +695,8 @@ void manageRoom() {
   drawToast();
 
   int *selectionPtr;
-  if (currentMenuType == "action") {
-    selectionPtr = &actionMenuSelection;
+  if (currentMenuType == "home") {
+    selectionPtr = &homeMenuSelection;
   } else if (currentMenuType == "dev") {
     selectionPtr = &devMenuSelection;
   } else {
@@ -880,7 +880,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
     }
   }
 
-  if (menuType == "action") {
+  if (menuType == "home") {
     switch (key) {
       case 48:
         // 0: EAT
@@ -927,12 +927,12 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         break;
       case 181: case 'w': case 'W': case 59:
         // UP
-        selection = (selection - 1 + actionMenuItemCount) % actionMenuItemCount;
+        selection = (selection - 1 + homeMenuItemCount) % homeMenuItemCount;
         l4NeedsRedraw = true;
         break;
       case 182: case 's': case 'S': case 46:
         // DOWN
-        selection = (selection + 1) % actionMenuItemCount;
+        selection = (selection + 1) % homeMenuItemCount;
         l4NeedsRedraw = true;
         break;
       case 13: case 40: case ' ':
