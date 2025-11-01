@@ -1024,6 +1024,386 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         menuOpened = false;
         break;
     }
+  } else if (menuType == "food") {
+    switch (key) {
+      case 48:
+        // 0: EAT
+        changeState(0, ACTION_EAT);
+        menuOpened = false;
+        break;
+      case 49:
+        // 1: WASH
+        changeState(0, ACTION_WASH);
+        menuOpened = false;
+        break;
+      case 50:
+        // 2: REST
+        changeState(0, ACTION_REST);
+        menuOpened = false;
+        break;
+      case 51:
+        // 3: DEBUG
+        if (debugEnabled) {
+          debugEnabled = false;
+          l0NeedsRedraw = true;
+          l2NeedsRedraw = false;
+        } else {
+          debugEnabled = true;
+          l2NeedsRedraw = true;
+        }
+        break;
+      case 43:
+        // TAB
+        if (menuOpened) {
+          menuOpened = false;
+          l0NeedsRedraw = true;
+        } else {
+          menuOpened = true;
+          l4NeedsRedraw = true;
+        }
+        break;
+      case 96:
+        // ESC
+        if (menuOpened) {
+          menuOpened = false;
+          l0NeedsRedraw = true;
+        }
+        break;
+      case 181: case 'w': case 'W': case 59:
+        // UP
+        selection = (selection - 1 + foodMenuItemCount) % foodMenuItemCount;
+        l4NeedsRedraw = true;
+        break;
+      case 182: case 's': case 'S': case 46:
+        // DOWN
+        selection = (selection + 1) % foodMenuItemCount;
+        l4NeedsRedraw = true;
+        break;
+      case 13: case 40: case ' ':
+        // VALIDATE
+        if (selection == 0) {
+          changeState(0, ACTION_EAT);
+        } else if (selection == 1) {
+          changeState(0, ACTION_WASH);
+        } else if (selection == 2) {
+          changeState(0, ACTION_REST);
+        } else if (selection == 3) {
+          if (debugEnabled) {
+            debugEnabled = false;
+            l0NeedsRedraw = true;
+            l2NeedsRedraw = false;
+          } else {
+            debugEnabled = true;
+            l2NeedsRedraw = true;
+          }
+        }
+        menuOpened = false;
+        break;
+    }
+  } else if (menuType == "training") {
+    switch (key) {
+      case 48:
+        // 0: EAT
+        changeState(0, ACTION_EAT);
+        menuOpened = false;
+        break;
+      case 49:
+        // 1: WASH
+        changeState(0, ACTION_WASH);
+        menuOpened = false;
+        break;
+      case 50:
+        // 2: REST
+        changeState(0, ACTION_REST);
+        menuOpened = false;
+        break;
+      case 51:
+        // 3: DEBUG
+        if (debugEnabled) {
+          debugEnabled = false;
+          l0NeedsRedraw = true;
+          l2NeedsRedraw = false;
+        } else {
+          debugEnabled = true;
+          l2NeedsRedraw = true;
+        }
+        break;
+      case 43:
+        // TAB
+        if (menuOpened) {
+          menuOpened = false;
+          l0NeedsRedraw = true;
+        } else {
+          menuOpened = true;
+          l4NeedsRedraw = true;
+        }
+        break;
+      case 96:
+        // ESC
+        if (menuOpened) {
+          menuOpened = false;
+          l0NeedsRedraw = true;
+        }
+        break;
+      case 181: case 'w': case 'W': case 59:
+        // UP
+        selection = (selection - 1 + trainingMenuItemCount) % trainingMenuItemCount;
+        l4NeedsRedraw = true;
+        break;
+      case 182: case 's': case 'S': case 46:
+        // DOWN
+        selection = (selection + 1) % trainingMenuItemCount;
+        l4NeedsRedraw = true;
+        break;
+      case 13: case 40: case ' ':
+        // VALIDATE
+        if (selection == 0) {
+          changeState(0, ACTION_EAT);
+        } else if (selection == 1) {
+          changeState(0, ACTION_WASH);
+        } else if (selection == 2) {
+          changeState(0, ACTION_REST);
+        } else if (selection == 3) {
+          if (debugEnabled) {
+            debugEnabled = false;
+            l0NeedsRedraw = true;
+            l2NeedsRedraw = false;
+          } else {
+            debugEnabled = true;
+            l2NeedsRedraw = true;
+          }
+        }
+        menuOpened = false;
+        break;
+    }
+  } else if (menuType == "competition") {
+    switch (key) {
+      case 48:
+        // 0: EAT
+        changeState(0, ACTION_EAT);
+        menuOpened = false;
+        break;
+      case 49:
+        // 1: WASH
+        changeState(0, ACTION_WASH);
+        menuOpened = false;
+        break;
+      case 50:
+        // 2: REST
+        changeState(0, ACTION_REST);
+        menuOpened = false;
+        break;
+      case 51:
+        // 3: DEBUG
+        if (debugEnabled) {
+          debugEnabled = false;
+          l0NeedsRedraw = true;
+          l2NeedsRedraw = false;
+        } else {
+          debugEnabled = true;
+          l2NeedsRedraw = true;
+        }
+        break;
+      case 43:
+        // TAB
+        if (menuOpened) {
+          menuOpened = false;
+          l0NeedsRedraw = true;
+        } else {
+          menuOpened = true;
+          l4NeedsRedraw = true;
+        }
+        break;
+      case 96:
+        // ESC
+        if (menuOpened) {
+          menuOpened = false;
+          l0NeedsRedraw = true;
+        }
+        break;
+      case 181: case 'w': case 'W': case 59:
+        // UP
+        selection = (selection - 1 + competitionMenuItemCount) % competitionMenuItemCount;
+        l4NeedsRedraw = true;
+        break;
+      case 182: case 's': case 'S': case 46:
+        // DOWN
+        selection = (selection + 1) % competitionMenuItemCount;
+        l4NeedsRedraw = true;
+        break;
+      case 13: case 40: case ' ':
+        // VALIDATE
+        if (selection == 0) {
+          changeState(0, ACTION_EAT);
+        } else if (selection == 1) {
+          changeState(0, ACTION_WASH);
+        } else if (selection == 2) {
+          changeState(0, ACTION_REST);
+        } else if (selection == 3) {
+          if (debugEnabled) {
+            debugEnabled = false;
+            l0NeedsRedraw = true;
+            l2NeedsRedraw = false;
+          } else {
+            debugEnabled = true;
+            l2NeedsRedraw = true;
+          }
+        }
+        menuOpened = false;
+        break;
+    }
+  } else if (menuType == "health") {
+    switch (key) {
+      case 48:
+        // 0: EAT
+        changeState(0, ACTION_EAT);
+        menuOpened = false;
+        break;
+      case 49:
+        // 1: WASH
+        changeState(0, ACTION_WASH);
+        menuOpened = false;
+        break;
+      case 50:
+        // 2: REST
+        changeState(0, ACTION_REST);
+        menuOpened = false;
+        break;
+      case 51:
+        // 3: DEBUG
+        if (debugEnabled) {
+          debugEnabled = false;
+          l0NeedsRedraw = true;
+          l2NeedsRedraw = false;
+        } else {
+          debugEnabled = true;
+          l2NeedsRedraw = true;
+        }
+        break;
+      case 43:
+        // TAB
+        if (menuOpened) {
+          menuOpened = false;
+          l0NeedsRedraw = true;
+        } else {
+          menuOpened = true;
+          l4NeedsRedraw = true;
+        }
+        break;
+      case 96:
+        // ESC
+        if (menuOpened) {
+          menuOpened = false;
+          l0NeedsRedraw = true;
+        }
+        break;
+      case 181: case 'w': case 'W': case 59:
+        // UP
+        selection = (selection - 1 + healthMenuItemCount) % healthMenuItemCount;
+        l4NeedsRedraw = true;
+        break;
+      case 182: case 's': case 'S': case 46:
+        // DOWN
+        selection = (selection + 1) % healthMenuItemCount;
+        l4NeedsRedraw = true;
+        break;
+      case 13: case 40: case ' ':
+        // VALIDATE
+        if (selection == 0) {
+          changeState(0, ACTION_EAT);
+        } else if (selection == 1) {
+          changeState(0, ACTION_WASH);
+        } else if (selection == 2) {
+          changeState(0, ACTION_REST);
+        } else if (selection == 3) {
+          if (debugEnabled) {
+            debugEnabled = false;
+            l0NeedsRedraw = true;
+            l2NeedsRedraw = false;
+          } else {
+            debugEnabled = true;
+            l2NeedsRedraw = true;
+          }
+        }
+        menuOpened = false;
+        break;
+    }
+  } else if (menuType == "rest") {
+    switch (key) {
+      case 48:
+        // 0: EAT
+        changeState(0, ACTION_EAT);
+        menuOpened = false;
+        break;
+      case 49:
+        // 1: WASH
+        changeState(0, ACTION_WASH);
+        menuOpened = false;
+        break;
+      case 50:
+        // 2: REST
+        changeState(0, ACTION_REST);
+        menuOpened = false;
+        break;
+      case 51:
+        // 3: DEBUG
+        if (debugEnabled) {
+          debugEnabled = false;
+          l0NeedsRedraw = true;
+          l2NeedsRedraw = false;
+        } else {
+          debugEnabled = true;
+          l2NeedsRedraw = true;
+        }
+        break;
+      case 43:
+        // TAB
+        if (menuOpened) {
+          menuOpened = false;
+          l0NeedsRedraw = true;
+        } else {
+          menuOpened = true;
+          l4NeedsRedraw = true;
+        }
+        break;
+      case 96:
+        // ESC
+        if (menuOpened) {
+          menuOpened = false;
+          l0NeedsRedraw = true;
+        }
+        break;
+      case 181: case 'w': case 'W': case 59:
+        // UP
+        selection = (selection - 1 + restMenuItemCount) % restMenuItemCount;
+        l4NeedsRedraw = true;
+        break;
+      case 182: case 's': case 'S': case 46:
+        // DOWN
+        selection = (selection + 1) % restMenuItemCount;
+        l4NeedsRedraw = true;
+        break;
+      case 13: case 40: case ' ':
+        // VALIDATE
+        if (selection == 0) {
+          changeState(0, ACTION_EAT);
+        } else if (selection == 1) {
+          changeState(0, ACTION_WASH);
+        } else if (selection == 2) {
+          changeState(0, ACTION_REST);
+        } else if (selection == 3) {
+          if (debugEnabled) {
+            debugEnabled = false;
+            l0NeedsRedraw = true;
+            l2NeedsRedraw = false;
+          } else {
+            debugEnabled = true;
+            l2NeedsRedraw = true;
+          }
+        }
+        menuOpened = false;
+        break;
+    }
   } else if (menuType == "dev") {
     switch (key) {
       case 48:
