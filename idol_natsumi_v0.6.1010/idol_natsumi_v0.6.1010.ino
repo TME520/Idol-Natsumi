@@ -121,7 +121,7 @@ struct ImageBuffer {
 };
 
 String copyright = "(c) 2025 - Pantzumatic";
-String versionNumber = "0.6.1010";
+String versionNumber = "0.6.1011";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
