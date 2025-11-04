@@ -741,6 +741,7 @@ void manageRoom() {
       manageGarden();
       break;
     case STATS_SCREEN:
+      displayStats();
       break;
     case FOOD_SCREEN:
       break;
@@ -951,19 +952,19 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
   if (menuType == "home") {
     switch (key) {
       case 48:
-        // 0: EAT
-        changeState(0, ACTION_EAT);
+        // 0: STATS
+        changeState(0, STATS_SCREEN);
         menuOpened = false;
         break;
       case 49:
-        // 1: WASH
-        changeState(0, ACTION_WASH);
-        menuOpened = false;
+        // 1: FOOD
+        changeState(0, FOOD_SCREEN);
+        menuOpened = true;
         break;
       case 50:
-        // 2: REST
-        changeState(0, ACTION_REST);
-        menuOpened = false;
+        // 2: TRAINING
+        changeState(0, TRAINING_SCREEN);
+        menuOpened = true;
         break;
       case 51:
         // 3: DEBUG
