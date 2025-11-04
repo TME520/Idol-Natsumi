@@ -967,7 +967,27 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         menuOpened = true;
         break;
       case 51:
-        // 3: DEBUG
+        // 3: COMPETITION
+        changeState(0, COMP_SCREEN);
+        menuOpened = true;
+        break;
+      case 52:
+        // 4: HEALTH
+        changeState(0, HEALTH_SCREEN);
+        menuOpened = true;
+        break;
+      case 53:
+        // 5: REST
+        changeState(0, REST_SCREEN);
+        menuOpened = true;
+        break;
+      case 54:
+        // 6: GARDEN
+        changeState(0, GARDEN_LOOP);
+        menuOpened = false;
+        break;
+      case 55:
+        // 7: DEBUG
         if (debugEnabled) {
           debugEnabled = false;
           l0NeedsRedraw = true;
@@ -1571,4 +1591,8 @@ void playGame() {
   // Play one of the mini-games
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
   drawText("Mini-game", 120, 131, true, WHITE, 1);
+}
+
+void displayStats() {
+  // Display Natsumi's statistics
 }
