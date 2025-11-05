@@ -303,6 +303,24 @@ void preloadImages() {
     case TRAIN_MENU:
       preloadImage("/idolnat/screens/map_training.png", currentBackground);
       break;
+    case TRAIN_SING:
+      preloadImage("/idolnat/screens/singing_school_bg.png", currentBackground);
+      break;
+    case TRAIN_DANCE:
+      preloadImage("/idolnat/screens/ballet_school_bg.png", currentBackground);
+      break;
+    case TRAIN_SWIM:
+      preloadImage("/idolnat/screens/swimming_pool_bg.png", currentBackground);
+      break;
+    case TRAIN_GYM:
+      preloadImage("/idolnat/screens/gym_bg.png", currentBackground);
+      break;
+    case TRAIN_WALK:
+      preloadImage("/idolnat/screens/forest_bg.png", currentBackground);
+      break;
+    case TRAIN_LIBRARY:
+      preloadImage("/idolnat/screens/library_bg.png", currentBackground);
+      break;
     case COMP_MENU:
       preloadImage("/idolnat/screens/competition.png", currentBackground);
       break;
@@ -537,6 +555,24 @@ void changeState(int baseLayer, GameState targetState) {
       currentMenuType = "training";
       currentMenuItems = trainingMenuItems;
       currentMenuItemsCount = trainingMenuItemCount;
+      break;
+    case TRAIN_SING:
+      screenConfig = ROOM;
+      break;
+    case TRAIN_DANCE:
+      screenConfig = ROOM;
+      break;
+    case TRAIN_SWIM:
+      screenConfig = ROOM;
+      break;
+    case TRAIN_GYM:
+      screenConfig = ROOM;
+      break;
+    case TRAIN_WALK:
+      screenConfig = ROOM;
+      break;
+    case TRAIN_LIBRARY:
+      screenConfig = ROOM;
       break;
     case COMP_MENU:
       screenConfig = ROOM;
@@ -782,10 +818,13 @@ void manageRoom() {
       menuOpened = true;
       break;
     case FOOD_COOK:
+      cookFood();
       break;
     case FOOD_REST:
+      gotoRestaurant();
       break;
     case FOOD_ORDER:
+      orderFood();
       break;
     case TRAIN_MENU:
       menuOpened = true;
@@ -1685,4 +1724,16 @@ void playGame() {
 
 void displayStats() {
   // Display Natsumi's statistics
+}
+
+void cookFood() {
+  // FOOD_COOK
+}
+
+void gotoRestaurant() {
+  // FOOD_REST
+}
+
+void orderFood() {
+  // FOOD_ORDER
 }
