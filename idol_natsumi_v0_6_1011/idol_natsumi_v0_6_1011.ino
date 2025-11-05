@@ -273,7 +273,19 @@ void preloadImages() {
     case HOME_LOOP:
       preloadImage("/idolnat/screens/lounge.png", currentBackground);
       break;
+    case FOOD_MENU:
+      preloadImage("/idolnat/screens/kitchen.png", currentBackground);
+      break;
     case FOOD_EAT:
+      preloadImage("/idolnat/screens/kitchen.png", currentBackground);
+      break;
+    case FOOD_COOK:
+      preloadImage("/idolnat/screens/kitchen.png", currentBackground);
+      break;
+    case FOOD_REST:
+      preloadImage("/idolnat/screens/restaurant_bg.png", currentBackground);
+      break;
+    case FOOD_ORDER:
       preloadImage("/idolnat/screens/kitchen.png", currentBackground);
       break;
     case HEALTH_WASH:
@@ -287,9 +299,6 @@ void preloadImages() {
       break;
     case STATS_SCREEN:
       preloadImage("/idolnat/screens/stats_bg.png", currentBackground);
-      break;
-    case FOOD_MENU:
-      preloadImage("/idolnat/screens/kitchen.png", currentBackground);
       break;
     case TRAIN_MENU:
       preloadImage("/idolnat/screens/map_training.png", currentBackground);
