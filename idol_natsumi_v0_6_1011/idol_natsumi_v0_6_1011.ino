@@ -286,7 +286,7 @@ void preloadImages() {
       preloadImage("/idolnat/screens/restaurant_bg.png", currentBackground);
       break;
     case FOOD_ORDER:
-      preloadImage("/idolnat/screens/kitchen.png", currentBackground);
+      preloadImage("/idolnat/screens/phone_app_food_order.png", currentBackground);
       break;
     case HEALTH_WASH:
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
@@ -522,6 +522,15 @@ void changeState(int baseLayer, GameState targetState) {
       currentMenuType = "food";
       currentMenuItems = foodMenuItems;
       currentMenuItemsCount = foodMenuItemCount;
+      break;
+    case FOOD_COOK:
+      screenConfig = ROOM;
+      break;
+    case FOOD_REST:
+      screenConfig = ROOM;
+      break;
+    case FOOD_ORDER:
+      screenConfig = ROOM;
       break;
     case TRAIN_MENU:
       screenConfig = ROOM;
@@ -771,6 +780,12 @@ void manageRoom() {
       break;
     case FOOD_MENU:
       menuOpened = true;
+      break;
+    case FOOD_COOK:
+      break;
+    case FOOD_REST:
+      break;
+    case FOOD_ORDER:
       break;
     case TRAIN_MENU:
       menuOpened = true;
