@@ -295,10 +295,10 @@ void preloadImages() {
       preloadImage("/idolnat/screens/map_training.png", currentBackground);
       break;
     case COMP_MENU:
-      preloadImage("/idolnat/screens/map_comp.png", currentBackground);
+      preloadImage("/idolnat/screens/competition.png", currentBackground);
       break;
     case HEALTH_MENU:
-      preloadImage("/idolnat/screens/map_health.png", currentBackground);
+      preloadImage("/idolnat/screens/bathroom.png", currentBackground);
       break;
     case REST_MENU:
       preloadImage("/idolnat/screens/bedroom.png", currentBackground);
