@@ -1722,8 +1722,122 @@ void playGame() {
   drawText("Mini-game", 120, 131, true, WHITE, 1);
 }
 
+void drawStatBar(const String &label, int value, int maxValue, int x, int y, int width, int barHeight, uint16_t barColor, uint16_t bgColor, uint16_t frameColor) {
+  if (maxValue <= 0) {
+    maxValue = 1;
+  }
+
+  int clampedValue = value;
+  if (clampedValue < 0) {
+    clampedValue = 0;
+  }
+  if (clampedValue > maxValue) {
+    clampedValue = maxValue;
+  }
+
+  const int labelHeight = 8;
+  M5Cardputer.Display.setTextSize(1);
+  M5Cardputer.Display.setTextDatum(top_left);
+  M5Cardputer.Display.setTextColor(TFT_WHITE, bgColor);
+  M5Cardputer.Display.drawString(label, x, y);
+
+  String valueStr = String(clampedValue) + "/" + String(maxValue);
+  M5Cardputer.Display.setTextDatum(top_right);
+  M5Cardputer.Display.setTextColor(frameColor, bgColor);
+  M5Cardputer.Display.drawString(valueStr, x + width, y);
+
+  const int barY = y + labelHeight;
+  M5Cardputer.Display.fillRoundRect(x, barY, width, barHeight, 3, M5Cardputer.Display.color565(30, 30, 40));
+  M5Cardputer.Display.drawRoundRect(x, barY, width, barHeight, 3, frameColor);
+
+  int innerWidth = width - 4;
+  int filled = (innerWidth * clampedValue) / maxValue;
+  if (filled < 0) {
+    filled = 0;
+  }
+  if (filled > innerWidth) {
+    filled = innerWidth;
+  }
+
+  if (filled > 0) {
+    M5Cardputer.Display.fillRoundRect(x + 2, barY + 2, filled, barHeight - 4, 2, barColor);
+    // glossy highlight line
+    uint16_t highlight = M5Cardputer.Display.color565(220, 220, 255);
+    int highlightWidth = filled;
+    if (highlightWidth > 0) {
+      M5Cardputer.Display.drawFastHLine(x + 2, barY + 2, highlightWidth, highlight);
+    }
+  }
+}
+
 void displayStats() {
-  // Display Natsumi's statistics
+  static unsigned long lastDraw = 0;
+  unsigned long now = millis();
+  if (now - lastDraw < 120 && (l0NeedsRedraw || l1NeedsRedraw || l3NeedsRedraw)) {
+    return;
+  }
+  lastDraw = now;
+
+  const int cardX = 8;
+  const int cardY = 8;
+  const int cardW = 224;
+  const int cardH = 119;
+
+  uint16_t shadowColor = M5Cardputer.Display.color565(10, 14, 32);
+  uint16_t panelColor = M5Cardputer.Display.color565(20, 28, 64);
+  uint16_t accentColor = M5Cardputer.Display.color565(120, 170, 255);
+
+  M5Cardputer.Display.fillRoundRect(cardX + 3, cardY + 4, cardW, cardH, 12, shadowColor);
+  M5Cardputer.Display.fillRoundRect(cardX, cardY, cardW, cardH, 12, panelColor);
+  M5Cardputer.Display.drawRoundRect(cardX, cardY, cardW, cardH, 12, accentColor);
+
+  M5Cardputer.Display.setTextColor(TFT_WHITE, panelColor);
+  M5Cardputer.Display.setTextDatum(middle_center);
+  M5Cardputer.Display.setTextSize(2);
+  M5Cardputer.Display.drawString("Status Board", cardX + cardW / 2, cardY + 16);
+
+  M5Cardputer.Display.setTextSize(1);
+  M5Cardputer.Display.setTextColor(accentColor, panelColor);
+  M5Cardputer.Display.drawString(String("Age: ") + natsumi.age + " yrs", cardX + cardW / 2, cardY + 32);
+  M5Cardputer.Display.drawFastHLine(cardX + 16, cardY + 35, cardW - 32, accentColor);
+
+  struct StatEntry {
+    const char* name;
+    int value;
+    int maxValue;
+    uint16_t color;
+  };
+
+  StatEntry stats[] = {
+    {"Hunger", natsumi.hunger, 4, M5Cardputer.Display.color565(255, 149, 64)},
+    {"Hygiene", natsumi.hygiene, 4, M5Cardputer.Display.color565(64, 224, 208)},
+    {"Energy", natsumi.energy, 4, M5Cardputer.Display.color565(102, 255, 128)},
+    {"Spirit", natsumi.spirit, 4, M5Cardputer.Display.color565(255, 99, 255)},
+    {"Popularity", natsumi.popularity, 100, M5Cardputer.Display.color565(255, 234, 102)},
+    {"Performance", natsumi.performance, 100, M5Cardputer.Display.color565(102, 163, 255)},
+    {"Fitness", natsumi.fitness, 100, M5Cardputer.Display.color565(140, 255, 182)},
+    {"Culture", natsumi.culture, 100, M5Cardputer.Display.color565(178, 130, 255)},
+    {"Charm", natsumi.charm, 100, M5Cardputer.Display.color565(255, 163, 210)}
+  };
+
+  const int statsCount = sizeof(stats) / sizeof(stats[0]);
+  const int barHeight = 8;
+  const int spacing = 17;
+  const int columnWidth = (cardW - 36) / 2;
+  const int columnGap = columnWidth + 12;
+  const int firstColumnCount = (statsCount + 1) / 2;
+  int startY = cardY + 38;
+
+  for (int i = 0; i < statsCount; ++i) {
+    int column = (i < firstColumnCount) ? 0 : 1;
+    int rowIndex = (column == 0) ? i : (i - firstColumnCount);
+    int x = cardX + 12 + column * columnGap;
+    int rowY = startY + rowIndex * spacing;
+    drawStatBar(stats[i].name, stats[i].value, stats[i].maxValue, x, rowY, columnWidth, barHeight, stats[i].color, panelColor, accentColor);
+  }
+
+  M5Cardputer.Display.setTextDatum(top_left);
+  M5Cardputer.Display.setTextSize(1);
 }
 
 void cookFood() {
