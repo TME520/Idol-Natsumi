@@ -1796,10 +1796,10 @@ void displayStats() {
   M5Cardputer.Display.setTextSize(2);
   M5Cardputer.Display.drawString("Status Board", cardX + cardW / 2, cardY + 16);
 
-  M5Cardputer.Display.setTextSize(1);
+  /* M5Cardputer.Display.setTextSize(1);
   M5Cardputer.Display.setTextColor(accentColor, panelColor);
   M5Cardputer.Display.drawString(String("Age: ") + natsumi.age + " yrs", cardX + cardW / 2, cardY + 32);
-  M5Cardputer.Display.drawFastHLine(cardX + 16, cardY + 35, cardW - 32, accentColor);
+  M5Cardputer.Display.drawFastHLine(cardX + 16, cardY + 35, cardW - 32, accentColor); */
 
   struct StatEntry {
     const char* name;
@@ -1813,11 +1813,12 @@ void displayStats() {
     {"Hygiene", natsumi.hygiene, 4, M5Cardputer.Display.color565(64, 224, 208)},
     {"Energy", natsumi.energy, 4, M5Cardputer.Display.color565(102, 255, 128)},
     {"Spirit", natsumi.spirit, 4, M5Cardputer.Display.color565(255, 99, 255)},
-    {"Popularity", natsumi.popularity, 100, M5Cardputer.Display.color565(255, 234, 102)},
-    {"Performance", natsumi.performance, 100, M5Cardputer.Display.color565(102, 163, 255)},
-    {"Fitness", natsumi.fitness, 100, M5Cardputer.Display.color565(140, 255, 182)},
-    {"Culture", natsumi.culture, 100, M5Cardputer.Display.color565(178, 130, 255)},
-    {"Charm", natsumi.charm, 100, M5Cardputer.Display.color565(255, 163, 210)}
+    {"Popularity", natsumi.popularity, 4, M5Cardputer.Display.color565(255, 234, 102)},
+    {"Performance", natsumi.performance, 4, M5Cardputer.Display.color565(102, 163, 255)},
+    {"Fitness", natsumi.fitness, 4, M5Cardputer.Display.color565(140, 255, 182)},
+    {"Culture", natsumi.culture, 4, M5Cardputer.Display.color565(178, 130, 255)},
+    {"Charm", natsumi.charm, 4, M5Cardputer.Display.color565(255, 163, 210)},
+    {"Age", natsumi.age, 120, M5Cardputer.Display.color565(255, 149, 64)}
   };
 
   const int statsCount = sizeof(stats) / sizeof(stats[0]);
@@ -1826,7 +1827,8 @@ void displayStats() {
   const int columnWidth = (cardW - 36) / 2;
   const int columnGap = columnWidth + 12;
   const int firstColumnCount = (statsCount + 1) / 2;
-  int startY = cardY + 38;
+  // int startY = cardY + 38;
+  int startY = cardY + 28;
 
   for (int i = 0; i < statsCount; ++i) {
     int column = (i < firstColumnCount) ? 0 : 1;
