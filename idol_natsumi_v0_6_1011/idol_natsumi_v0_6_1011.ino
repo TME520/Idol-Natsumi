@@ -127,6 +127,7 @@ bool l1NeedsRedraw = false; // Character
 bool l2NeedsRedraw = false; // Debug
 bool l3NeedsRedraw = false; // Toast
 bool l4NeedsRedraw = false; // Menu
+bool statsNeedsRedraw = false;
 
 bool debugEnabled = false;
 bool menuOpened = false;
@@ -295,7 +296,7 @@ void preloadImages() {
       preloadImage("/idolnat/screens/bedroom.png", currentBackground);
       break;
     case GARDEN_LOOP:
-      preloadImage("/idolnat/screens/garden_bg.png", currentBackground);
+      // preloadImage("/idolnat/screens/garden_bg.png", currentBackground);
       break;
     case STATS_SCREEN:
       preloadImage("/idolnat/screens/stats_bg.png", currentBackground);
@@ -480,6 +481,7 @@ void changeState(int baseLayer, GameState targetState) {
   switch (baseLayer) {
     case 0:
       l0NeedsRedraw = true;
+      statsNeedsRedraw = true;
       break;
     case 1:
       l1NeedsRedraw = true;
@@ -533,7 +535,7 @@ void changeState(int baseLayer, GameState targetState) {
       currentMenuItemsCount = foodMenuItemCount;
       break;
     case STATS_SCREEN:
-      screenConfig = ROOM;
+      screenConfig = GAME;
       break;
     case FOOD_MENU:
       screenConfig = ROOM;
@@ -655,6 +657,7 @@ void updateAging() {
     // Load updated portrait
     preloadImages();
     showToast(String("Natsumi turned ") + natsumi.age + " years old!");
+    statsNeedsRedraw=true;
   }
 }
 
@@ -668,6 +671,7 @@ void updateStats() {
     natsumi.lastHungerUpdate = currentMillis;
     Serial.print("Hunger decreased: ");
     Serial.println(natsumi.hunger);
+    statsNeedsRedraw=true;
   }
 
   // Hygiene decreases every 4 minutes
@@ -676,6 +680,7 @@ void updateStats() {
     natsumi.lastHygieneUpdate = currentMillis;
     Serial.print("Hygiene decreased: ");
     Serial.println(natsumi.hygiene);
+    statsNeedsRedraw=true;
   }
 
   // Energy decreases every 4 minutes
@@ -684,6 +689,7 @@ void updateStats() {
     natsumi.lastEnergyUpdate = currentMillis;
     Serial.print("Energy decreased: ");
     Serial.println(natsumi.energy);
+    statsNeedsRedraw=true;
   }
 }
 
@@ -772,10 +778,15 @@ void manageDialog() {
 void manageGame() {
   // Manage GAME screens
   switch (currentState) {
+    case STATS_SCREEN:
+      manageStats();
+      break;
     default:
       playGame();
       break;
   }
+  updateAging();
+  updateStats();
 }
 
 void manageIdle() {
@@ -784,9 +795,6 @@ void manageIdle() {
     case M5_SCREEN:
       displayM5Logo();
       changeState(0, TITLE_SCREEN);
-      break;
-    case STATS_SCREEN:
-      changeState(0, HOME_LOOP);
       break;
     default:
       break;
@@ -810,9 +818,6 @@ void manageRoom() {
       break;
     case GARDEN_LOOP:
       manageGarden();
-      break;
-    case STATS_SCREEN:
-      displayStats();
       break;
     case FOOD_MENU:
       menuOpened = true;
@@ -1722,58 +1727,11 @@ void playGame() {
   drawText("Mini-game", 120, 131, true, WHITE, 1);
 }
 
-void drawStatBar(const String &label, int value, int maxValue, int x, int y, int width, int barHeight, uint16_t barColor, uint16_t bgColor, uint16_t frameColor) {
-  if (maxValue <= 0) {
-    maxValue = 1;
-  }
-
-  int clampedValue = value;
-  if (clampedValue < 0) {
-    clampedValue = 0;
-  }
-  if (clampedValue > maxValue) {
-    clampedValue = maxValue;
-  }
-
-  const int labelHeight = 8;
-  M5Cardputer.Display.setTextSize(1);
-  M5Cardputer.Display.setTextDatum(top_left);
-  M5Cardputer.Display.setTextColor(TFT_WHITE, bgColor);
-  M5Cardputer.Display.drawString(label, x, y);
-
-  String valueStr = String(clampedValue) + "/" + String(maxValue);
-  M5Cardputer.Display.setTextDatum(top_right);
-  M5Cardputer.Display.setTextColor(frameColor, bgColor);
-  M5Cardputer.Display.drawString(valueStr, x + width, y);
-
-  const int barY = y + labelHeight;
-  M5Cardputer.Display.fillRoundRect(x, barY, width, barHeight, 3, M5Cardputer.Display.color565(30, 30, 40));
-  M5Cardputer.Display.drawRoundRect(x, barY, width, barHeight, 3, frameColor);
-
-  int innerWidth = width - 4;
-  int filled = (innerWidth * clampedValue) / maxValue;
-  if (filled < 0) {
-    filled = 0;
-  }
-  if (filled > innerWidth) {
-    filled = innerWidth;
-  }
-
-  if (filled > 0) {
-    M5Cardputer.Display.fillRoundRect(x + 2, barY + 2, filled, barHeight - 4, 2, barColor);
-    // glossy highlight line
-    uint16_t highlight = M5Cardputer.Display.color565(220, 220, 255);
-    int highlightWidth = filled;
-    if (highlightWidth > 0) {
-      M5Cardputer.Display.drawFastHLine(x + 2, barY + 2, highlightWidth, highlight);
-    }
-  }
-}
-
-void displayStats() {
+void drawStats() {
+  // Draw the Status Board / Statistics screen
   static unsigned long lastDraw = 0;
   unsigned long now = millis();
-  if (now - lastDraw < 120 && (l0NeedsRedraw || l1NeedsRedraw || l3NeedsRedraw)) {
+    if (now - lastDraw < 120 && (l0NeedsRedraw || l1NeedsRedraw || l3NeedsRedraw)) {
     return;
   }
   lastDraw = now;
@@ -1840,6 +1798,69 @@ void displayStats() {
 
   M5Cardputer.Display.setTextDatum(top_left);
   M5Cardputer.Display.setTextSize(1);
+}
+
+void drawStatBar(const String &label, int value, int maxValue, int x, int y, int width, int barHeight, uint16_t barColor, uint16_t bgColor, uint16_t frameColor) {
+  if (maxValue <= 0) {
+    maxValue = 1;
+  }
+
+  int clampedValue = value;
+  if (clampedValue < 0) {
+    clampedValue = 0;
+  }
+  if (clampedValue > maxValue) {
+    clampedValue = maxValue;
+  }
+
+  const int labelHeight = 8;
+  M5Cardputer.Display.setTextSize(1);
+  M5Cardputer.Display.setTextDatum(top_left);
+  M5Cardputer.Display.setTextColor(TFT_WHITE, bgColor);
+  M5Cardputer.Display.drawString(label, x, y);
+
+  String valueStr = String(clampedValue) + "/" + String(maxValue);
+  M5Cardputer.Display.setTextDatum(top_right);
+  M5Cardputer.Display.setTextColor(frameColor, bgColor);
+  M5Cardputer.Display.drawString(valueStr, x + width, y);
+
+  const int barY = y + labelHeight;
+  M5Cardputer.Display.fillRoundRect(x, barY, width, barHeight, 3, M5Cardputer.Display.color565(30, 30, 40));
+  M5Cardputer.Display.drawRoundRect(x, barY, width, barHeight, 3, frameColor);
+
+  int innerWidth = width - 4;
+  int filled = (innerWidth * clampedValue) / maxValue;
+  if (filled < 0) {
+    filled = 0;
+  }
+  if (filled > innerWidth) {
+    filled = innerWidth;
+  }
+
+  if (filled > 0) {
+    M5Cardputer.Display.fillRoundRect(x + 2, barY + 2, filled, barHeight - 4, 2, barColor);
+    // glossy highlight line
+    uint16_t highlight = M5Cardputer.Display.color565(220, 220, 255);
+    int highlightWidth = filled;
+    if (highlightWidth > 0) {
+      M5Cardputer.Display.drawFastHLine(x + 2, barY + 2, highlightWidth, highlight);
+    }
+  }
+}
+
+void manageStats() {
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      changeState(0, HOME_LOOP);
+    }
+  }
+  if (statsNeedsRedraw) {
+    drawStats();
+    statsNeedsRedraw=false;
+  }
 }
 
 void cookFood() {
