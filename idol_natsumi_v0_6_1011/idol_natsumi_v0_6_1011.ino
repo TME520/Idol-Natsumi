@@ -296,10 +296,10 @@ void preloadImages() {
       preloadImage("/idolnat/screens/bedroom.png", currentBackground);
       break;
     case GARDEN_LOOP:
-      // preloadImage("/idolnat/screens/garden_bg.png", currentBackground);
+      preloadImage("/idolnat/screens/garden_bg.png", currentBackground);
       break;
     case STATS_SCREEN:
-      preloadImage("/idolnat/screens/stats_bg.png", currentBackground);
+      // preloadImage("/idolnat/screens/stats_bg.png", currentBackground);
       break;
     case TRAIN_MENU:
       preloadImage("/idolnat/screens/map_training.png", currentBackground);
