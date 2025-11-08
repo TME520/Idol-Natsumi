@@ -299,7 +299,6 @@ void preloadImages() {
       preloadImage("/idolnat/screens/garden_bg.png", currentBackground);
       break;
     case STATS_SCREEN:
-      // preloadImage("/idolnat/screens/stats_bg.png", currentBackground);
       break;
     case TRAIN_MENU:
       preloadImage("/idolnat/screens/map_training.png", currentBackground);
@@ -392,15 +391,6 @@ void loop() {
       manageCard();
       break;
     case DIALOG:
-      /*
-      Dialog between Natsumi and NPC
-      Background: 1 x bitmap
-      Character: Natsumi + NPC
-      Debug: Available
-      Toast: None
-      Menu: None
-      Interactive (timer + keypress + escape)
-      */
       manageDialog();
       /*
       drawBackground(currentBackground);
@@ -409,27 +399,9 @@ void loop() {
       */
       break;
     case GAME:
-      /*
-      Mini-games
-      Background: None
-      Character: None
-      Debug: Available
-      Toast: None
-      Menu: None
-      Interactive (timer + keypress + escape)
-      */
       manageGame();
       break;
     case IDLE:
-      /*
-      Idle mode, minimal screen activity
-      Background: None
-      Character: Natsumi
-      Debug: Available
-      Toast: Yes
-      Menu: None
-      Interactive (escape)
-      */
       manageIdle();
       /*
       drawCharacter();
@@ -769,6 +741,15 @@ void manageCard() {
 
 void manageDialog() {
   // Manage DIALOG screens
+  /*
+      Dialog between Natsumi and NPC
+      Background: 1 x bitmap
+      Character: Natsumi + NPC
+      Debug: Available
+      Toast: None
+      Menu: None
+      Interactive (timer + keypress + escape)
+  */
   switch (currentState) {
     default:
       break;
@@ -777,6 +758,15 @@ void manageDialog() {
 
 void manageGame() {
   // Manage GAME screens
+  /*
+      Mini-games
+      Background: None
+      Character: None
+      Debug: Available
+      Toast: None
+      Menu: None
+      Interactive (timer + keypress + escape)
+  */
   switch (currentState) {
     case STATS_SCREEN:
       manageStats();
@@ -791,6 +781,15 @@ void manageGame() {
 
 void manageIdle() {
   // Manage IDLE screens
+  /*
+      Idle mode, minimal screen activity
+      Background: None
+      Character: Natsumi
+      Debug: Available
+      Toast: Yes
+      Menu: None
+      Interactive (escape)
+  */
   switch (currentState) {
     case M5_SCREEN:
       displayM5Logo();
