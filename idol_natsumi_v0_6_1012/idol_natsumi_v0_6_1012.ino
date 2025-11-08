@@ -84,10 +84,10 @@ unsigned long agingInterval = 60000;  // 1 minute for testing
 unsigned long sessionStart = 0;           // millis() when NEW_GAME starts
 unsigned long playtimeTotalMs = 0;        // total playtime in ms (could persist later)
 int lastAgeTick = 0;
-const unsigned long microWait = 100;
-const unsigned long shortWait = 200;
-const unsigned long mediumWait = 400;
-const unsigned long longWait = 800;
+const unsigned long microWait = 60;
+const unsigned long shortWait = 800;
+const unsigned long mediumWait = 3200;
+const unsigned long longWait = 6400;
 
 unsigned long changeStateCounter = 0;
 
