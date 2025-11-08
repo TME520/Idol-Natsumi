@@ -392,52 +392,17 @@ void loop() {
       break;
     case DIALOG:
       manageDialog();
-      /*
-      drawBackground(currentBackground);
-      drawCharacter();
-      drawDebug();
-      */
       break;
     case GAME:
       manageGame();
       break;
     case IDLE:
       manageIdle();
-      /*
-      drawCharacter();
-      drawDebug();
-      drawToast();
-      */
       break;
     case ROOM:
-      /*
-      Location: Bathroom, Bedroom, Kitchen, Lounge
-      Background: None
-      Character: None
-      Debug: Available
-      Toast: Yes
-      Menu: Yes
-      Interactive (timer + keypress + escape)
-      */
       manageRoom();
-      /*
-      drawBackground(currentBackground);
-      drawCharacter();
-      drawDebug();
-      drawToast();
-      drawMenu();
-      */
       break;
     case TEXT:
-      /*
-      Transition text (version)
-      Background: None
-      Character: None
-      Debug: None
-      Toast: None
-      Menu: None
-      Non-interactive (timer)
-      */
       manageText();
       break;
     default:
@@ -679,6 +644,9 @@ void manageCard() {
   l1NeedsRedraw = false;
   l3NeedsRedraw = false;
   switch (currentState) {
+    case M5_SCREEN:
+      // changeState(0, TITLE_SCREEN);
+      break;
     case TITLE_SCREEN:
       break;
     case NEW_GAME:
@@ -754,6 +722,15 @@ void manageDialog() {
     default:
       break;
   }
+
+  // Stats management
+  updateAging();
+  updateStats();
+  
+  // Draw required layers for DIALOG screens
+  drawBackground(currentBackground);
+  drawCharacter();
+  drawDebug();
 }
 
 void manageGame() {
@@ -775,8 +752,13 @@ void manageGame() {
       playGame();
       break;
   }
+
+  // Stats management
   updateAging();
   updateStats();
+
+  // Draw required layers for GAME screens
+  drawDebug();
 }
 
 void manageIdle() {
@@ -791,17 +773,26 @@ void manageIdle() {
       Interactive (escape)
   */
   switch (currentState) {
-    case M5_SCREEN:
-      displayM5Logo();
-      changeState(0, TITLE_SCREEN);
-      break;
     default:
       break;
   }
+
+  // Draw required layers for IDLE screens
+  drawCharacter();
+  drawDebug();
+  drawToast();
 }
 
 void manageRoom() {
   // Manage ROOM screens
+  /*
+      Background: None
+      Character: None
+      Debug: Available
+      Toast: Yes
+      Menu: Yes
+      Interactive (timer + keypress + escape)
+  */
   switch (currentState) {
     case HOME_LOOP:
       manageHomeScreen();
@@ -846,7 +837,7 @@ void manageRoom() {
       break;
   }
 
-  // After state-specific updates, draw all layers for room screens
+  // Draw required layers for ROOM screens
   drawBackground(currentBackground);
   drawCharacter();
   drawDebug();
@@ -865,6 +856,15 @@ void manageRoom() {
 
 void manageText() {
   // Manage TEXT screens
+  /*
+      Transition text (version)
+      Background: None
+      Character: None
+      Debug: None
+      Toast: None
+      Menu: None
+      Non-interactive (timer)
+  */
   switch (currentState) {
     case VERSION_SCREEN:
       displayVersionScreen();
@@ -873,6 +873,9 @@ void manageText() {
     default:
       break;
   }
+
+  // Draw required layers for TEXT screens
+  // Meh
 }
 
 void displayBlackScreen() {
@@ -886,11 +889,6 @@ void displayVersionScreen() {
   drawText("for M5 Cardputer", 120, 50, true, BLUE, 2); // centered
   drawText(copyright, 120, 100, true, WHITE, 1); // centered
   drawText(versionNumber, 120, 110, true, WHITE, 1); // centered
-  delay(mediumWait);
-}
-
-void displayM5Logo() {
-  drawBackground(currentBackground);
   delay(mediumWait);
 }
 
