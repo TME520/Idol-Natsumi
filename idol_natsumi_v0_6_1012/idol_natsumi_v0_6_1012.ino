@@ -1776,7 +1776,7 @@ void drawStats() {
     {"Fitness", natsumi.fitness, 4, M5Cardputer.Display.color565(140, 255, 182)},
     {"Culture", natsumi.culture, 4, M5Cardputer.Display.color565(178, 130, 255)},
     {"Charm", natsumi.charm, 4, M5Cardputer.Display.color565(255, 163, 210)},
-    {"Age", natsumi.age, 120, M5Cardputer.Display.color565(255, 149, 64)}
+    {"Age", natsumi.age, 22, M5Cardputer.Display.color565(255, 149, 64)}
   };
 
   const int statsCount = sizeof(stats) / sizeof(stats[0]);
