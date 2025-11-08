@@ -98,7 +98,7 @@ String currentMenuType = "main";
 const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: DEV SCREEN"};
 const char* homeMenuItems[] = {"0: STATS", "1: FOOD", "2: TRAINING", "3: COMPETITION", "4: HEALTH", "5: REST", "6: GARDEN", "7: DEBUG"};
 const char* devMenuItems[] = {"0: CALIB1", "1: CALIB2", "2: CALIB3", "3: EXIT"};
-const char* foodMenuItems[] = {"0: COOK", "1: RESTAURANT", "2: ORDER"};
+const char* foodMenuItems[] = {"0: FRIDGE", "1: RESTAURANT", "2: ORDER"};
 const char* trainingMenuItems[] = {"0: SING", "1: DANCE", "2: SWIM", "3: GYM", "4: WALK", "5: LIBRARY"};
 const char* competitionMenuItems[] = {"0: LOCAL", "1: DEPARTMENTAL", "2: REGIONAL", "3: NATIONAL"};
 const char* healthMenuItems[] = {"0: WASH", "1: DOCTOR", "2: TEMPLE", "3: ONSEN"};
@@ -1148,7 +1148,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
   } else if (menuType == "food") {
     switch (key) {
       case 48:
-        // 0: COOK
+        // 0: FRIDGE
         changeState(0, FOOD_COOK);
         menuOpened = false;
         break;
@@ -1864,13 +1864,13 @@ void manageStats() {
 }
 
 void cookFood() {
-  // FOOD_COOK
+  // Cook food from the fridge
 }
 
 void gotoRestaurant() {
-  // FOOD_REST
+  // Eat at the restaurant
 }
 
 void orderFood() {
-  // FOOD_ORDER
+  // Order takeaway food
 }
