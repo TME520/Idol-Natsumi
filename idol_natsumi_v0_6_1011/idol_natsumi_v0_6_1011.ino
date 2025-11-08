@@ -1,4 +1,5 @@
 #include <M5Cardputer.h>
+#include "M5GFX.h"
 #include <SD.h>
 
 // === Game state definitions ===
@@ -150,6 +151,17 @@ String versionNumber = "0.6.1011";
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
 ImageBuffer currentCharacter;
+ImageBuffer foodIconSheet;
+
+M5Canvas iconCanvas(&M5Cardputer.Display);
+
+const int FOOD_ICON_SIZE = 18;
+const int FOOD_ICON_LINE_SPACING = 26;
+const char* FOOD_ICON_SHEET_PATH = "/idolnat/sprites/Iconset_18x18grid_basic.png";
+
+bool ensureFoodIconsLoaded();
+bool drawSpriteSheetTile(const ImageBuffer& sheet, int tileX, int tileY, int tileWidth, int tileHeight, int destX, int destY);
+bool drawFoodMenuIcon(int menuIndex, int destX, int destY);
 
 // Toast messages
 String toastMsg = "";
@@ -236,6 +248,7 @@ void unloadAllImages() {
 
   unloadImage(currentBackground);
   unloadImage(currentCharacter);
+  unloadImage(foodIconSheet);
 
   // currentBackground points to one of the room images, so just reset it
   currentBackground.data = nullptr;
@@ -353,12 +366,98 @@ void preloadImages() {
       preloadImage("/idolnat/sprites/natsumi_21yo-90x135.png", currentCharacter);
       break;
   }
+
+  if (currentState == FOOD_MENU || currentState == FOOD_COOK ||
+      currentState == FOOD_REST || currentState == FOOD_ORDER) {
+    ensureFoodIconsLoaded();
+  }
 }
 
 void drawImage(const ImageBuffer& img) {
   if (img.data && img.length > 0) {
     M5Cardputer.Display.drawPng(img.data, img.length, 0, 0);
   }
+}
+
+static bool ensureIconCanvasSize(int width, int height) {
+  static int currentWidth = 0;
+  static int currentHeight = 0;
+
+  if (iconCanvas.getBuffer() && currentWidth == width && currentHeight == height) {
+    return true;
+  }
+
+  iconCanvas.deleteSprite();
+  iconCanvas.setColorDepth(16);
+
+  void* buffer = iconCanvas.createSprite(width, height);
+  if (!buffer) {
+    Serial.println("Failed to allocate icon canvas");
+    return false;
+  }
+
+  iconCanvas.fillScreen(0);
+  currentWidth = width;
+  currentHeight = height;
+  return true;
+}
+
+bool ensureFoodIconsLoaded() {
+  if (foodIconSheet.data && foodIconSheet.length > 0) {
+    return true;
+  }
+
+  if (!preloadImage(FOOD_ICON_SHEET_PATH, foodIconSheet)) {
+    Serial.println("Failed to load food icon sprite sheet");
+    return false;
+  }
+
+  return true;
+}
+
+bool drawSpriteSheetTile(const ImageBuffer& sheet, int tileX, int tileY, int tileWidth,
+                         int tileHeight, int destX, int destY) {
+  if (!sheet.data || sheet.length == 0) {
+    return false;
+  }
+
+  if (!ensureIconCanvasSize(tileWidth, tileHeight)) {
+    return false;
+  }
+
+  iconCanvas.fillScreen(0);
+
+  int32_t offsetX = -tileX * tileWidth;
+  int32_t offsetY = -tileY * tileHeight;
+  iconCanvas.drawPng(sheet.data, sheet.length, offsetX, offsetY);
+  iconCanvas.pushSprite(destX, destY, 0);
+
+  return true;
+}
+
+bool drawFoodMenuIcon(int menuIndex, int destX, int destY) {
+  if (!ensureFoodIconsLoaded()) {
+    return false;
+  }
+
+  struct IconFrame {
+    int col;
+    int row;
+  };
+
+  static const IconFrame iconFrames[] = {
+    {0, 0}, // COOK
+    {1, 0}, // RESTAURANT
+    {2, 0}, // ORDER
+  };
+
+  if (menuIndex < 0 || menuIndex >= static_cast<int>(sizeof(iconFrames) / sizeof(iconFrames[0]))) {
+    return false;
+  }
+
+  const IconFrame& frame = iconFrames[menuIndex];
+  return drawSpriteSheetTile(foodIconSheet, frame.col, frame.row, FOOD_ICON_SIZE,
+                             FOOD_ICON_SIZE, destX, destY);
 }
 
 // === Setup and loop ===
@@ -1677,9 +1776,19 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
     const int x = 60;
     const int w = 120;
     const int padding = 8;
-    // const int lineSpacing = 14;
-    const int lineSpacing = 10;
-    const int h = padding * 2 + ((itemCount - 1) * lineSpacing);
+    const bool isFoodMenu = (menuType == "food");
+    const int lineSpacing = isFoodMenu ? FOOD_ICON_LINE_SPACING : 10;
+    int h = padding * 2;
+    if (itemCount > 0) {
+      if (isFoodMenu) {
+        h += FOOD_ICON_SIZE;
+        if (itemCount > 1) {
+          h += (itemCount - 1) * lineSpacing;
+        }
+      } else {
+        h += (itemCount - 1) * lineSpacing;
+      }
+    }
     const int screenHeight = 135;
     const int topMargin = 8;
     const int bottomMargin = 6;
@@ -1703,7 +1812,20 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
 
     M5Cardputer.Display.setTextSize(1);
     for (int i = 0; i < itemCount; i++) {
-      M5Cardputer.Display.setCursor(x + padding + 5, y + padding + (i * lineSpacing));
+      int rowY = y + padding + (i * lineSpacing);
+      int textX = x + padding + 5;
+      int textY = rowY;
+
+      if (isFoodMenu) {
+        const int iconX = x + padding + 1;
+        const int iconY = rowY;
+        if (drawFoodMenuIcon(i, iconX, iconY)) {
+          textX = iconX + FOOD_ICON_SIZE + 6;
+          textY = iconY + (FOOD_ICON_SIZE / 2) - 4;
+        }
+      }
+
+      M5Cardputer.Display.setCursor(textX, textY);
       if (i == selection) {
         M5Cardputer.Display.setTextColor(YELLOW);
         M5Cardputer.Display.print("> ");
