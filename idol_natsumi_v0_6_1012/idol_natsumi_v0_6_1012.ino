@@ -415,8 +415,9 @@ void loop() {
 void changeState(int baseLayer, GameState targetState, int delay) {
   // Manage state transitions
   Serial.println("> Entering changeState() with baseLayer set to " + String(baseLayer) + " and targetState set to " + String(targetState) + " with delay set to " + String(delay));
-  if (changeStateCounter = delay) {
+  if (changeStateCounter == delay) {
     // Proceed with transition
+    Serial.println("Proceed with transition");
     changeStateCounter = 0;
       switch (baseLayer) {
         case 0:
@@ -543,6 +544,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       currentState = targetState;
       preloadImages();
   } else {
+    Serial.println("Delay transition");
     changeStateCounter += 1;
   }
 }
