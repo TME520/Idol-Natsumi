@@ -85,9 +85,9 @@ unsigned long sessionStart = 0;           // millis() when NEW_GAME starts
 unsigned long playtimeTotalMs = 0;        // total playtime in ms (could persist later)
 int lastAgeTick = 0;
 const unsigned long microWait = 100;
-const unsigned long shortWait = 1000;
-const unsigned long mediumWait = 3000;
-const unsigned long longWait = 6000;
+const unsigned long shortWait = 200;
+const unsigned long mediumWait = 400;
+const unsigned long longWait = 800;
 
 unsigned long changeStateCounter = 0;
 
@@ -155,7 +155,7 @@ ImageBuffer currentCharacter;
 // Toast messages
 String toastMsg = "";
 unsigned long toastUntil = 0;  // timestamp when toast should disappear
-void showToast(const String& msg, unsigned long ms = mediumWait) {
+void showToast(const String& msg, unsigned long ms = shortWait) {
   toastActive = true;
   toastMsg = msg;
   toastUntil = millis() + ms;
@@ -876,7 +876,6 @@ void manageText() {
   switch (currentState) {
     case VERSION_SCREEN:
       displayVersionScreen();
-      changeState(0, M5_SCREEN, 0);
       break;
     default:
       break;
@@ -892,12 +891,14 @@ void displayBlackScreen() {
 
 void displayVersionScreen() {
   // Serial.println("> Entering displayVersionScreen()");
-  displayBlackScreen();
-  drawText("IDOL NATSUMI", 120, 30, true, RED, 3); // centered
-  drawText("for M5 Cardputer", 120, 50, true, BLUE, 2); // centered
-  drawText(copyright, 120, 100, true, WHITE, 1); // centered
-  drawText(versionNumber, 120, 110, true, WHITE, 1); // centered
-  delay(mediumWait);
+  if (changeStateCounter==0) {
+    displayBlackScreen();
+    drawText("IDOL NATSUMI", 120, 30, true, RED, 3); // centered
+    drawText("for M5 Cardputer", 120, 50, true, BLUE, 2); // centered
+    drawText(copyright, 120, 100, true, WHITE, 1); // centered
+    drawText(versionNumber, 120, 110, true, WHITE, 1); // centered
+  }
+  changeState(0, M5_SCREEN, microWait);
 }
 
 void manageHomeScreen() {
@@ -926,7 +927,7 @@ void eat() {
       showToast("Natsumi is not hungry");
     }
   }
-  changeState(0, HOME_LOOP, 0);
+  changeState(0, HOME_LOOP, shortWait);
 }
 
 void wash() {
@@ -938,7 +939,7 @@ void wash() {
       showToast("Natsumi is not dirty");
     }
   }
-  changeState(0, HOME_LOOP, 0);
+  changeState(0, HOME_LOOP, shortWait);
 }
 
 void rest() {
@@ -950,7 +951,7 @@ void rest() {
       showToast("Natsumi is not tired");
     }
   }
-  changeState(0, HOME_LOOP, microWait);
+  changeState(0, HOME_LOOP, shortWait);
 }
 
 // === Draw functions ===
