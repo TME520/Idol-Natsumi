@@ -84,11 +84,12 @@ unsigned long agingInterval = 60000;  // 1 minute for testing
 unsigned long sessionStart = 0;           // millis() when NEW_GAME starts
 unsigned long playtimeTotalMs = 0;        // total playtime in ms (could persist later)
 int lastAgeTick = 0;
+const unsigned long microWait = 100;
 const unsigned long shortWait = 1000;
 const unsigned long mediumWait = 3000;
 const unsigned long longWait = 6000;
 
-unsigned long generalCounter = 0;
+unsigned long changeStateCounter = 0;
 
 const unsigned long hungerInterval = 120000;   // 2 minutes
 const unsigned long hygieneInterval = 240000;  // 4 minutes
@@ -411,134 +412,139 @@ void loop() {
 }
 
 // === Menu and state logic ===
-void changeState(int baseLayer, GameState targetState) {
-  Serial.println("> Entering changeState() with baseLayer set to " + String(baseLayer) + " and targetState set to " + String(targetState));
-  generalCounter = 0;
+void changeState(int baseLayer, GameState targetState, int delay) {
   // Manage state transitions
-  switch (baseLayer) {
-    case 0:
-      l0NeedsRedraw = true;
-      statsNeedsRedraw = true;
-      break;
-    case 1:
-      l1NeedsRedraw = true;
-      break;
-    case 2:
-      l2NeedsRedraw = true;
-      break;
-    case 3:
-      l3NeedsRedraw = true;
-      break;
-    case 4:
-      l4NeedsRedraw = true;
-      break;
-    default:
-      l0NeedsRedraw = true;
-      break;
+  Serial.println("> Entering changeState() with baseLayer set to " + String(baseLayer) + " and targetState set to " + String(targetState) + " with delay set to " + String(delay));
+  if (changeStateCounter = delay) {
+    // Proceed with transition
+    changeStateCounter = 0;
+      switch (baseLayer) {
+        case 0:
+          l0NeedsRedraw = true;
+          statsNeedsRedraw = true;
+          break;
+        case 1:
+          l1NeedsRedraw = true;
+          break;
+        case 2:
+          l2NeedsRedraw = true;
+          break;
+        case 3:
+          l3NeedsRedraw = true;
+          break;
+        case 4:
+          l4NeedsRedraw = true;
+          break;
+        default:
+          l0NeedsRedraw = true;
+          break;
+      }
+      switch (targetState) {
+        case M5_SCREEN:
+          screenConfig = CARD;
+          break;
+        case VERSION_SCREEN:
+          screenConfig = TEXT;
+          break;
+        case TITLE_SCREEN:
+          screenConfig = CARD;
+          currentMenuType = "main";
+          currentMenuItems = mainMenuItems;
+          currentMenuItemsCount = mainMenuItemCount;
+          menuOpened = true;
+          break;
+        case NEW_GAME: case CONTINUE_GAME: case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
+          screenConfig = CARD;
+          break;
+        case DEV_SCREEN:
+          screenConfig = CARD;
+          currentMenuType = "dev";
+          currentMenuItems = devMenuItems;
+          currentMenuItemsCount = devMenuItemCount;
+          break;
+        case HOME_LOOP:
+          screenConfig = ROOM;
+          currentMenuType = "home";
+          currentMenuItems = homeMenuItems;
+          currentMenuItemsCount = homeMenuItemCount;
+          break;
+        case FOOD_EAT: case HEALTH_WASH: case REST_NAP:
+          screenConfig = ROOM;
+          currentMenuType = "food";
+          currentMenuItems = foodMenuItems;
+          currentMenuItemsCount = foodMenuItemCount;
+          break;
+        case STATS_SCREEN:
+          screenConfig = GAME;
+          break;
+        case FOOD_MENU:
+          screenConfig = ROOM;
+          currentMenuType = "food";
+          currentMenuItems = foodMenuItems;
+          currentMenuItemsCount = foodMenuItemCount;
+          break;
+        case FOOD_COOK:
+          screenConfig = ROOM;
+          break;
+        case FOOD_REST:
+          screenConfig = ROOM;
+          break;
+        case FOOD_ORDER:
+          screenConfig = ROOM;
+          break;
+        case TRAIN_MENU:
+          screenConfig = ROOM;
+          currentMenuType = "training";
+          currentMenuItems = trainingMenuItems;
+          currentMenuItemsCount = trainingMenuItemCount;
+          break;
+        case TRAIN_SING:
+          screenConfig = ROOM;
+          break;
+        case TRAIN_DANCE:
+          screenConfig = ROOM;
+          break;
+        case TRAIN_SWIM:
+          screenConfig = ROOM;
+          break;
+        case TRAIN_GYM:
+          screenConfig = ROOM;
+          break;
+        case TRAIN_WALK:
+          screenConfig = ROOM;
+          break;
+        case TRAIN_LIBRARY:
+          screenConfig = ROOM;
+          break;
+        case COMP_MENU:
+          screenConfig = ROOM;
+          currentMenuType = "competition";
+          currentMenuItems = competitionMenuItems;
+          currentMenuItemsCount = competitionMenuItemCount;
+          break;
+        case HEALTH_MENU:
+          screenConfig = ROOM;
+          currentMenuType = "health";
+          currentMenuItems = healthMenuItems;
+          currentMenuItemsCount = healthMenuItemCount;
+          break;
+        case REST_MENU:
+          screenConfig = ROOM;
+          currentMenuType = "rest";
+          currentMenuItems = restMenuItems;
+          currentMenuItemsCount = restMenuItemCount;
+          break;
+        case GARDEN_LOOP:
+          screenConfig = ROOM;
+          break;
+        default:
+          break;
+      }
+      currentState = targetState;
+      preloadImages();
+  } else {
+    changeStateCounter += 1;
   }
-  switch (targetState) {
-    case M5_SCREEN:
-      screenConfig = IDLE;
-      break;
-    case VERSION_SCREEN:
-      screenConfig = TEXT;
-      break;
-    case TITLE_SCREEN:
-      screenConfig = CARD;
-      currentMenuType = "main";
-      currentMenuItems = mainMenuItems;
-      currentMenuItemsCount = mainMenuItemCount;
-      menuOpened = true;
-      break;
-    case NEW_GAME: case CONTINUE_GAME: case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
-      screenConfig = CARD;
-      break;
-    case DEV_SCREEN:
-      screenConfig = CARD;
-      currentMenuType = "dev";
-      currentMenuItems = devMenuItems;
-      currentMenuItemsCount = devMenuItemCount;
-      break;
-    case HOME_LOOP:
-      screenConfig = ROOM;
-      currentMenuType = "home";
-      currentMenuItems = homeMenuItems;
-      currentMenuItemsCount = homeMenuItemCount;
-      break;
-    case FOOD_EAT: case HEALTH_WASH: case REST_NAP:
-      screenConfig = ROOM;
-      currentMenuType = "food";
-      currentMenuItems = foodMenuItems;
-      currentMenuItemsCount = foodMenuItemCount;
-      break;
-    case STATS_SCREEN:
-      screenConfig = GAME;
-      break;
-    case FOOD_MENU:
-      screenConfig = ROOM;
-      currentMenuType = "food";
-      currentMenuItems = foodMenuItems;
-      currentMenuItemsCount = foodMenuItemCount;
-      break;
-    case FOOD_COOK:
-      screenConfig = ROOM;
-      break;
-    case FOOD_REST:
-      screenConfig = ROOM;
-      break;
-    case FOOD_ORDER:
-      screenConfig = ROOM;
-      break;
-    case TRAIN_MENU:
-      screenConfig = ROOM;
-      currentMenuType = "training";
-      currentMenuItems = trainingMenuItems;
-      currentMenuItemsCount = trainingMenuItemCount;
-      break;
-    case TRAIN_SING:
-      screenConfig = ROOM;
-      break;
-    case TRAIN_DANCE:
-      screenConfig = ROOM;
-      break;
-    case TRAIN_SWIM:
-      screenConfig = ROOM;
-      break;
-    case TRAIN_GYM:
-      screenConfig = ROOM;
-      break;
-    case TRAIN_WALK:
-      screenConfig = ROOM;
-      break;
-    case TRAIN_LIBRARY:
-      screenConfig = ROOM;
-      break;
-    case COMP_MENU:
-      screenConfig = ROOM;
-      currentMenuType = "competition";
-      currentMenuItems = competitionMenuItems;
-      currentMenuItemsCount = competitionMenuItemCount;
-      break;
-    case HEALTH_MENU:
-      screenConfig = ROOM;
-      currentMenuType = "health";
-      currentMenuItems = healthMenuItems;
-      currentMenuItemsCount = healthMenuItemCount;
-      break;
-    case REST_MENU:
-      screenConfig = ROOM;
-      currentMenuType = "rest";
-      currentMenuItems = restMenuItems;
-      currentMenuItemsCount = restMenuItemCount;
-      break;
-    case GARDEN_LOOP:
-      screenConfig = ROOM;
-      break;
-    default:
-      break;
-  }
-  currentState = targetState;
-  preloadImages();
 }
 
 void updateAging() {
@@ -645,7 +651,7 @@ void manageCard() {
   l3NeedsRedraw = false;
   switch (currentState) {
     case M5_SCREEN:
-      // changeState(0, TITLE_SCREEN);
+      changeState(0, TITLE_SCREEN, microWait);
       break;
     case TITLE_SCREEN:
       break;
@@ -667,7 +673,7 @@ void manageCard() {
       playtimeTotalMs = 0;
       sessionStart = millis();
       lastAgeTick = 0;
-      changeState(0, HOME_LOOP);
+      changeState(0, HOME_LOOP, 0);
       break;
     case CONTINUE_GAME:
       natsumi.age = 11;
@@ -687,7 +693,7 @@ void manageCard() {
       playtimeTotalMs = 0;
       sessionStart = millis();
       lastAgeTick = 0;
-      changeState(0, HOME_LOOP);
+      changeState(0, HOME_LOOP, 0);
       break;
     case DEV_SCREEN:
       break;
@@ -868,7 +874,7 @@ void manageText() {
   switch (currentState) {
     case VERSION_SCREEN:
       displayVersionScreen();
-      changeState(0, M5_SCREEN);
+      changeState(0, M5_SCREEN, 0);
       break;
     default:
       break;
@@ -910,7 +916,7 @@ void manageGarden() {
 
 void eat() {
   // Serial.println("> Entering eat()");
-  if (generalCounter==0) {
+  if (changeStateCounter==0) {
     if (natsumi.hunger < 4) {
       natsumi.hunger += 1;
       showToast("Ate (+1 Hunger)");
@@ -918,14 +924,11 @@ void eat() {
       showToast("Natsumi is not hungry");
     }
   }
-  generalCounter += 1;
-  if (generalCounter >= 100) {
-    changeState(0, HOME_LOOP);
-  }
+  changeState(0, HOME_LOOP, 0);
 }
 
 void wash() {
-  if (generalCounter==0) {
+  if (changeStateCounter==0) {
     if (natsumi.hygiene < 4) {
       natsumi.hygiene += 1;
       showToast("Washed (+1 Hygiene)");
@@ -933,14 +936,11 @@ void wash() {
       showToast("Natsumi is not dirty");
     }
   }
-  generalCounter += 1;
-  if (generalCounter >= 100) {
-    changeState(0, HOME_LOOP);
-  }
+  changeState(0, HOME_LOOP, 0);
 }
 
 void rest() {
-  if (generalCounter==0) {
+  if (changeStateCounter==0) {
     if (natsumi.energy < 4) {
       natsumi.energy += 1;
       showToast("Rested (+1 Energy)");
@@ -948,10 +948,7 @@ void rest() {
       showToast("Natsumi is not tired");
     }
   }
-  generalCounter += 1;
-  if (generalCounter >= 100) {
-    changeState(0, HOME_LOOP);
-  }
+  changeState(0, HOME_LOOP, microWait);
 }
 
 // === Draw functions ===
@@ -1040,37 +1037,37 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
     switch (key) {
       case 48:
         // 0: STATS
-        changeState(0, STATS_SCREEN);
+        changeState(0, STATS_SCREEN, 0);
         menuOpened = false;
         break;
       case 49:
         // 1: FOOD
-        changeState(0, FOOD_MENU);
+        changeState(0, FOOD_MENU, 0);
         menuOpened = true;
         break;
       case 50:
         // 2: TRAINING
-        changeState(0, TRAIN_MENU);
+        changeState(0, TRAIN_MENU, 0);
         menuOpened = true;
         break;
       case 51:
         // 3: COMPETITION
-        changeState(0, COMP_MENU);
+        changeState(0, COMP_MENU, 0);
         menuOpened = true;
         break;
       case 52:
         // 4: HEALTH
-        changeState(0, HEALTH_MENU);
+        changeState(0, HEALTH_MENU, 0);
         menuOpened = true;
         break;
       case 53:
         // 5: REST
-        changeState(0, REST_MENU);
+        changeState(0, REST_MENU, 0);
         menuOpened = true;
         break;
       case 54:
         // 6: GARDEN
-        changeState(0, GARDEN_LOOP);
+        changeState(0, GARDEN_LOOP, 0);
         menuOpened = false;
         break;
       case 55:
@@ -1087,7 +1084,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       case 43:
         // TAB
         if (menuOpened) {
-          changeState(0, HOME_LOOP);
+          changeState(0, HOME_LOOP, 0);
           menuOpened = false;
           l0NeedsRedraw = true;
         } else {
@@ -1097,7 +1094,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         break;
       case 96:
         // ESC
-        changeState(0, HOME_LOOP);
+        changeState(0, HOME_LOOP, 0);
         if (menuOpened) {
           menuOpened = false;
           l0NeedsRedraw = true;
@@ -1116,19 +1113,19 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       case 13: case 40: case ' ':
         // VALIDATE
         if (selection == 0) {
-          changeState(0, STATS_SCREEN);
+          changeState(0, STATS_SCREEN, 0);
         } else if (selection == 1) {
-          changeState(0, FOOD_MENU);
+          changeState(0, FOOD_MENU, 0);
         } else if (selection == 2) {
-          changeState(0, TRAIN_MENU);
+          changeState(0, TRAIN_MENU, 0);
         } else if (selection == 3) {
-          changeState(0, COMP_MENU);
+          changeState(0, COMP_MENU, 0);
         } else if (selection == 4) {
-          changeState(0, HEALTH_MENU);
+          changeState(0, HEALTH_MENU, 0);
         } else if (selection == 5) {
-          changeState(0, REST_MENU);
+          changeState(0, REST_MENU, 0);
         } else if (selection == 6) {
-          changeState(0, GARDEN_LOOP);
+          changeState(0, GARDEN_LOOP, 0);
         } else if (selection == 7) {
           if (debugEnabled) {
             debugEnabled = false;
@@ -1146,23 +1143,23 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
     switch (key) {
       case 48:
         // 0: FRIDGE
-        changeState(0, FOOD_COOK);
+        changeState(0, FOOD_COOK, 0);
         menuOpened = false;
         break;
       case 49:
         // 1: RESTAURANT
-        changeState(0, FOOD_REST);
+        changeState(0, FOOD_REST, 0);
         menuOpened = false;
         break;
       case 50:
         // 2: ORDER
-        changeState(0, FOOD_ORDER);
+        changeState(0, FOOD_ORDER, 0);
         menuOpened = false;
         break;
       case 43:
         // TAB
         if (menuOpened) {
-          changeState(0, HOME_LOOP);
+          changeState(0, HOME_LOOP, 0);
           menuOpened = false;
           l0NeedsRedraw = true;
         } else {
@@ -1172,7 +1169,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         break;
       case 96:
         // ESC
-        changeState(0, HOME_LOOP);
+        changeState(0, HOME_LOOP, 0);
         if (menuOpened) {
           menuOpened = false;
           l0NeedsRedraw = true;
@@ -1191,11 +1188,11 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       case 13: case 40: case ' ':
         // VALIDATE
         if (selection == 0) {
-          changeState(0, FOOD_COOK);
+          changeState(0, FOOD_COOK, 0);
         } else if (selection == 1) {
-          changeState(0, FOOD_REST);
+          changeState(0, FOOD_REST, 0);
         } else if (selection == 2) {
-          changeState(0, FOOD_ORDER);
+          changeState(0, FOOD_ORDER, 0);
         } else if (selection == 3) {
           if (debugEnabled) {
             debugEnabled = false;
@@ -1213,32 +1210,32 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
     switch (key) {
       case 48:
         // 0: SING
-        changeState(0, TRAIN_SING);
+        changeState(0, TRAIN_SING, 0);
         menuOpened = false;
         break;
       case 49:
         // 1: DANCE
-        changeState(0, TRAIN_DANCE);
+        changeState(0, TRAIN_DANCE, 0);
         menuOpened = false;
         break;
       case 50:
         // 2: SWIM
-        changeState(0, TRAIN_SWIM);
+        changeState(0, TRAIN_SWIM, 0);
         menuOpened = false;
         break;
       case 51:
         // 3: GYM
-        changeState(0, TRAIN_GYM);
+        changeState(0, TRAIN_GYM, 0);
         menuOpened = false;
         break;
       case 52:
         // 4: WALK
-        changeState(0, TRAIN_WALK);
+        changeState(0, TRAIN_WALK, 0);
         menuOpened = false;
         break;
       case 53:
         // 5: LIBRARY
-        changeState(0, TRAIN_LIBRARY);
+        changeState(0, TRAIN_LIBRARY, 0);
         menuOpened = false;
         break;
       case 55:
@@ -1255,7 +1252,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       case 43:
         // TAB
         if (menuOpened) {
-          changeState(0, HOME_LOOP);
+          changeState(0, HOME_LOOP, 0);
           menuOpened = false;
           l0NeedsRedraw = true;
         } else {
@@ -1265,7 +1262,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         break;
       case 96:
         // ESC
-        changeState(0, HOME_LOOP);
+        changeState(0, HOME_LOOP, 0);
         if (menuOpened) {
           menuOpened = false;
           l0NeedsRedraw = true;
@@ -1284,17 +1281,17 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       case 13: case 40: case ' ':
         // VALIDATE
         if (selection == 0) {
-          changeState(0, TRAIN_SING);
+          changeState(0, TRAIN_SING, 0);
         } else if (selection == 1) {
-          changeState(0, TRAIN_DANCE);
+          changeState(0, TRAIN_DANCE, 0);
         } else if (selection == 2) {
-          changeState(0, TRAIN_SWIM);
+          changeState(0, TRAIN_SWIM, 0);
         } else if (selection == 3) {
-          changeState(0, TRAIN_GYM);
+          changeState(0, TRAIN_GYM, 0);
         } else if (selection == 4) {
-          changeState(0, TRAIN_WALK);
+          changeState(0, TRAIN_WALK, 0);
         } else if (selection == 5) {
-          changeState(0, TRAIN_LIBRARY);
+          changeState(0, TRAIN_LIBRARY, 0);
         } else if (selection == 7) {
           if (debugEnabled) {
             debugEnabled = false;
@@ -1312,22 +1309,22 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
     switch (key) {
       case 48:
         // 0: LOCAL
-        changeState(0, COMP_LOCAL);
+        changeState(0, COMP_LOCAL, 0);
         menuOpened = false;
         break;
       case 49:
         // 1: DEPARTMENTAL
-        changeState(0, COMP_DEPT);
+        changeState(0, COMP_DEPT, 0);
         menuOpened = false;
         break;
       case 50:
         // 2: REGIONAL
-        changeState(0, COMP_REG);
+        changeState(0, COMP_REG, 0);
         menuOpened = false;
         break;
       case 51:
         // 3: NATIONAL
-        changeState(0, COMP_NAT);
+        changeState(0, COMP_NAT, 0);
         menuOpened = false;
         break;
       case 55:
@@ -1344,7 +1341,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       case 43:
         // TAB
         if (menuOpened) {
-          changeState(0, HOME_LOOP);
+          changeState(0, HOME_LOOP, 0);
           menuOpened = false;
           l0NeedsRedraw = true;
         } else {
@@ -1354,7 +1351,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         break;
       case 96:
         // ESC
-        changeState(0, HOME_LOOP);
+        changeState(0, HOME_LOOP, 0);
         if (menuOpened) {
           menuOpened = false;
           l0NeedsRedraw = true;
@@ -1373,13 +1370,13 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       case 13: case 40: case ' ':
         // VALIDATE
         if (selection == 0) {
-          changeState(0, COMP_LOCAL);
+          changeState(0, COMP_LOCAL, 0);
         } else if (selection == 1) {
-          changeState(0, COMP_DEPT);
+          changeState(0, COMP_DEPT, 0);
         } else if (selection == 2) {
-          changeState(0, COMP_REG);
+          changeState(0, COMP_REG, 0);
         } else if (selection == 3) {
-          changeState(0, COMP_NAT);
+          changeState(0, COMP_NAT, 0);
         } else if (selection == 7) {
           if (debugEnabled) {
             debugEnabled = false;
@@ -1397,22 +1394,22 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
     switch (key) {
       case 48:
         // 0: WASH
-        changeState(0, HEALTH_WASH);
+        changeState(0, HEALTH_WASH, 0);
         menuOpened = false;
         break;
       case 49:
         // 1: DOCTOR
-        changeState(0, HEALTH_DOCTOR);
+        changeState(0, HEALTH_DOCTOR, 0);
         menuOpened = false;
         break;
       case 50:
         // 2: TEMPLE
-        changeState(0, HEALTH_TEMPLE);
+        changeState(0, HEALTH_TEMPLE, 0);
         menuOpened = false;
         break;
       case 51:
         // 3: ONSEN
-        changeState(0, HEALTH_ONSEN);
+        changeState(0, HEALTH_ONSEN, 0);
         menuOpened = false;
         break;
       case 55:
@@ -1429,7 +1426,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       case 43:
         // TAB
         if (menuOpened) {
-          changeState(0, HOME_LOOP);
+          changeState(0, HOME_LOOP, 0);
           menuOpened = false;
           l0NeedsRedraw = true;
         } else {
@@ -1439,7 +1436,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         break;
       case 96:
         // ESC
-        changeState(0, HOME_LOOP);
+        changeState(0, HOME_LOOP, 0);
         if (menuOpened) {
           menuOpened = false;
           l0NeedsRedraw = true;
@@ -1458,13 +1455,13 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       case 13: case 40: case ' ':
         // VALIDATE
         if (selection == 0) {
-          changeState(0, HEALTH_WASH);
+          changeState(0, HEALTH_WASH, 0);
         } else if (selection == 1) {
-          changeState(0, HEALTH_DOCTOR);
+          changeState(0, HEALTH_DOCTOR, 0);
         } else if (selection == 2) {
-          changeState(0, HEALTH_TEMPLE);
+          changeState(0, HEALTH_TEMPLE, 0);
         } else if (selection == 3) {
-          changeState(0, HEALTH_ONSEN);
+          changeState(0, HEALTH_ONSEN, 0);
         } else if (selection == 7) {
           if (debugEnabled) {
             debugEnabled = false;
@@ -1482,17 +1479,17 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
     switch (key) {
       case 48:
         // 0: MEDITATE
-        changeState(0, REST_MEDITATE);
+        changeState(0, REST_MEDITATE, 0);
         menuOpened = false;
         break;
       case 49:
         // 1: NAP
-        changeState(0, REST_NAP);
+        changeState(0, REST_NAP, 0);
         menuOpened = false;
         break;
       case 50:
         // 2: BEDTIME
-        changeState(0, REST_BEDTIME);
+        changeState(0, REST_BEDTIME, 0);
         menuOpened = false;
         break;
       case 55:
@@ -1509,7 +1506,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       case 43:
         // TAB
         if (menuOpened) {
-          changeState(0, HOME_LOOP);
+          changeState(0, HOME_LOOP, 0);
           menuOpened = false;
           l0NeedsRedraw = true;
         } else {
@@ -1519,7 +1516,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         break;
       case 96:
         // ESC
-        changeState(0, HOME_LOOP);
+        changeState(0, HOME_LOOP, 0);
         if (menuOpened) {
           menuOpened = false;
           l0NeedsRedraw = true;
@@ -1538,11 +1535,11 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       case 13: case 40: case ' ':
         // VALIDATE
         if (selection == 0) {
-          changeState(0, REST_MEDITATE);
+          changeState(0, REST_MEDITATE, 0);
         } else if (selection == 1) {
-          changeState(0, REST_NAP);
+          changeState(0, REST_NAP, 0);
         } else if (selection == 2) {
-          changeState(0, REST_BEDTIME);
+          changeState(0, REST_BEDTIME, 0);
         } else if (selection == 7) {
           if (debugEnabled) {
             debugEnabled = false;
@@ -1560,22 +1557,22 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
     switch (key) {
       case 48:
         // 0: CALIB1
-        changeState(0, CALIBRATION_1);
+        changeState(0, CALIBRATION_1, 0);
         menuOpened = false;
         break;
       case 49:
         // 1: CALIB2
-        changeState(0, CALIBRATION_2);
+        changeState(0, CALIBRATION_2, 0);
         menuOpened = false;
         break;
       case 50:
         // 2: CALIB3
-        changeState(0, CALIBRATION_3);
+        changeState(0, CALIBRATION_3, 0);
         menuOpened = false;
         break;
       case 51:
         // 3: EXIT
-        changeState(0, TITLE_SCREEN);
+        changeState(0, TITLE_SCREEN, 0);
         menuOpened = true;
         break;
       case 43:
@@ -1590,7 +1587,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         break;
       case 96:
         // ESC
-        changeState(0, TITLE_SCREEN);
+        changeState(0, TITLE_SCREEN, 0);
         if (menuOpened) {
           menuOpened = true;
         }
@@ -1608,16 +1605,16 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       case 13: case 40: case ' ':
         // VALIDATE
         if (selection == 0) {
-          changeState(0, CALIBRATION_1);
+          changeState(0, CALIBRATION_1, 0);
           menuOpened = false;
         } else if (selection == 1) {
-          changeState(0, CALIBRATION_2);
+          changeState(0, CALIBRATION_2, 0);
           menuOpened = false;
         } else if (selection == 2) {
-          changeState(4, CALIBRATION_3);
+          changeState(4, CALIBRATION_3, 0);
           menuOpened = false;
         } else if (selection == 3) {
-          changeState(0, TITLE_SCREEN);
+          changeState(0, TITLE_SCREEN, 0);
           menuOpened = true;
         }
         break;
@@ -1626,17 +1623,17 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
     switch (key) {
       case 48:
         // 0: NEW GAME
-        changeState(0, NEW_GAME);
+        changeState(0, NEW_GAME, 0);
         menuOpened = false;
         break;
       case 49:
         // 1: CONTINUE
-        changeState(0, CONTINUE_GAME);
+        changeState(0, CONTINUE_GAME, 0);
         menuOpened = false;
         break;
       case 50:
         // 2: DEV SCREEN
-        changeState(4, DEV_SCREEN);
+        changeState(4, DEV_SCREEN, 0);
         menuOpened = true;
         return;
       case 181: case 'w': case 'W': case 59:
@@ -1652,13 +1649,13 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       case 13: case 40: case ' ':
         // VALIDATE
         if (selection == 0) {
-          changeState(0, NEW_GAME);
+          changeState(0, NEW_GAME, 0);
           menuOpened = false;
         } else if (selection == 1) {
-          changeState(0, CONTINUE_GAME);
+          changeState(0, CONTINUE_GAME, 0);
           menuOpened = false;
         } else {
-          changeState(4, DEV_SCREEN);
+          changeState(4, DEV_SCREEN, 0);
           menuOpened = true;
           return;
         }
@@ -1851,7 +1848,7 @@ void manageStats() {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      changeState(0, HOME_LOOP);
+      changeState(0, HOME_LOOP, 0);
     }
   }
   if (statsNeedsRedraw) {
