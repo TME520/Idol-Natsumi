@@ -281,7 +281,7 @@ void preloadImages() {
       preloadImage("/idolnat/screens/kitchen.png", currentBackground);
       break;
     case FOOD_COOK:
-      preloadImage("/idolnat/screens/kitchen.png", currentBackground);
+      preloadImage("/idolnat/screens/fridge_open.png", currentBackground);
       break;
     case FOOD_REST:
       preloadImage("/idolnat/screens/restaurant_bg.png", currentBackground);
