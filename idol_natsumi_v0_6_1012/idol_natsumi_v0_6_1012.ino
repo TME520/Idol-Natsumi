@@ -155,7 +155,7 @@ ImageBuffer currentCharacter;
 // Toast messages
 String toastMsg = "";
 unsigned long toastUntil = 0;  // timestamp when toast should disappear
-void showToast(const String& msg, unsigned long ms = shortWait) {
+void showToast(const String& msg, unsigned long ms = longWait) {
   toastActive = true;
   toastMsg = msg;
   toastUntil = millis() + ms;
@@ -386,6 +386,7 @@ void loop() {
 
   Serial.println("l0NeedsRedraw: " + String(l0NeedsRedraw) + " - l1NeedsRedraw: " + String(l1NeedsRedraw) + " - l2NeedsRedraw: " + String(l2NeedsRedraw) + " - l3NeedsRedraw: " + String(l3NeedsRedraw) + " - l4NeedsRedraw: " + String(l4NeedsRedraw));
   Serial.println("debugEnabled: " + String(debugEnabled) + " - menuOpened: " + String(menuOpened) + " - toastActive: " + String(toastActive));
+  Serial.println("changeStateCounter: " + String(changeStateCounter));
 
   switch (screenConfig) {
     case CARD:
@@ -544,7 +545,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       currentState = targetState;
       preloadImages();
   } else {
-    Serial.println("Delay transition");
+    // Serial.println("Delay transition");
     changeStateCounter += 1;
   }
 }
