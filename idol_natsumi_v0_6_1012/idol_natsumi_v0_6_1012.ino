@@ -1106,8 +1106,8 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           menuOpened = false;
           l0NeedsRedraw = true;
           helperNeedsRedraw = true;
+          changeState(0, HOME_LOOP, 0);
         }
-        changeState(0, HOME_LOOP, 0);
         break;
       case 181: case 'w': case 'W': case 59:
         // UP
@@ -1858,6 +1858,7 @@ void manageStats() {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      helperNeedsRedraw = true;
       changeState(0, HOME_LOOP, 0);
     }
   }
