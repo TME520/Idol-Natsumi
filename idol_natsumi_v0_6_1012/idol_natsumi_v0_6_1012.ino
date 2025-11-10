@@ -128,7 +128,9 @@ bool l1NeedsRedraw = false; // Character
 bool l2NeedsRedraw = false; // Debug
 bool l3NeedsRedraw = false; // Toast
 bool l4NeedsRedraw = false; // Menu
+
 bool statsNeedsRedraw = false;
+bool helperNeedsRedraw = false;
 
 bool debugEnabled = false;
 bool menuOpened = false;
@@ -469,6 +471,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           currentMenuType = "home";
           currentMenuItems = homeMenuItems;
           currentMenuItemsCount = homeMenuItemCount;
+          helperNeedsRedraw = true;
           break;
         case FOOD_EAT: case HEALTH_WASH: case REST_NAP:
           screenConfig = ROOM;
@@ -1668,6 +1671,13 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
   }
   if (!menuOpened) {
     l4NeedsRedraw = false;
+
+    if (helperNeedsRedraw) {
+      // Helper text at the bottom
+      M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+      drawText("TAB: Open menu", 120, 131, true, WHITE, 1);
+      helperNeedsRedraw = false;
+    }
     return;
   }
 
@@ -1675,7 +1685,6 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
     const int x = 60;
     const int w = 120;
     const int padding = 8;
-    // const int lineSpacing = 14;
     const int lineSpacing = 10;
     const int h = padding * 2 + ((itemCount - 1) * lineSpacing);
     const int screenHeight = 135;
@@ -1751,11 +1760,6 @@ void drawStats() {
   M5Cardputer.Display.setTextDatum(middle_center);
   M5Cardputer.Display.setTextSize(2);
   M5Cardputer.Display.drawString("Status Board", cardX + cardW / 2, cardY + 16);
-
-  /* M5Cardputer.Display.setTextSize(1);
-  M5Cardputer.Display.setTextColor(accentColor, panelColor);
-  M5Cardputer.Display.drawString(String("Age: ") + natsumi.age + " yrs", cardX + cardW / 2, cardY + 32);
-  M5Cardputer.Display.drawFastHLine(cardX + 16, cardY + 35, cardW - 32, accentColor); */
 
   struct StatEntry {
     const char* name;
@@ -1863,12 +1867,24 @@ void manageStats() {
 
 void cookFood() {
   // Cook food from the fridge
+  if (changeStateCounter==0) {
+    // Select food
+  }
+  changeState(0, HOME_LOOP, shortWait);
 }
 
 void gotoRestaurant() {
   // Eat at the restaurant
+  if (changeStateCounter==0) {
+    // Select food
+  }
+  changeState(0, HOME_LOOP, shortWait);
 }
 
 void orderFood() {
   // Order takeaway food
+  if (changeStateCounter==0) {
+    // Select food
+  }
+  changeState(0, HOME_LOOP, shortWait);
 }
