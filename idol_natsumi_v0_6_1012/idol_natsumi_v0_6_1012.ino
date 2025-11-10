@@ -1092,6 +1092,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         // TAB
         if (menuOpened) {
           menuOpened = false;
+          helperNeedsRedraw = true;
           l0NeedsRedraw = true;
           changeState(0, HOME_LOOP, 0);
         } else {
@@ -1103,6 +1104,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         // ESC
         if (menuOpened) {
           menuOpened = false;
+          helperNeedsRedraw = true;
           l0NeedsRedraw = true;
           changeState(0, HOME_LOOP, 0);
         }
@@ -1142,6 +1144,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             debugEnabled = true;
             l2NeedsRedraw = true;
           }
+          helperNeedsRedraw = true;
         }
         menuOpened = false;
         break;
