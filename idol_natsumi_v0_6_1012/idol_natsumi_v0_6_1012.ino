@@ -385,11 +385,11 @@ void loop() {
 
   if (millis() - lastUpdate < FRAME_DELAY) return;
   lastUpdate = millis();
-
+/*
   Serial.println("l0NeedsRedraw: " + String(l0NeedsRedraw) + " - l1NeedsRedraw: " + String(l1NeedsRedraw) + " - l2NeedsRedraw: " + String(l2NeedsRedraw) + " - l3NeedsRedraw: " + String(l3NeedsRedraw) + " - l4NeedsRedraw: " + String(l4NeedsRedraw));
   Serial.println("debugEnabled: " + String(debugEnabled) + " - menuOpened: " + String(menuOpened) + " - toastActive: " + String(toastActive));
   Serial.println("changeStateCounter: " + String(changeStateCounter) + " - helperNeedsRedraw: " + String(helperNeedsRedraw));
-
+*/
   switch (screenConfig) {
     case CARD:
       manageCard();
@@ -472,6 +472,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           currentMenuItems = homeMenuItems;
           currentMenuItemsCount = homeMenuItemCount;
           helperNeedsRedraw = true;
+          Serial.println("[DEBUG] helperNeedsRedraw: " + String(helperNeedsRedraw));
           break;
         case FOOD_EAT: case HEALTH_WASH: case REST_NAP:
           screenConfig = ROOM;
@@ -854,6 +855,13 @@ void manageRoom() {
   drawCharacter();
   drawDebug();
   drawToast();
+  if (helperNeedsRedraw) {
+    // Helper text at the bottom
+    Serial.println("[DEBUG] manageHomeScreen() -> helperNeedsRedraw TRUE");
+    M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+    drawText("TAB: Open menu", 120, 131, true, WHITE, 1);
+    helperNeedsRedraw = false;
+  }
 
   int *selectionPtr;
   if (currentMenuType == "home") {
@@ -961,6 +969,7 @@ void rest() {
 // === Draw functions ===
 void drawBackground(const ImageBuffer& bg) {
   // Draw the background of the screen (layer 0)
+  Serial.println("> Entering drawBackground() L0");
   if (l0NeedsRedraw) {
     drawImage(bg);
     l0NeedsRedraw = false;
@@ -973,6 +982,7 @@ void drawBackground(const ImageBuffer& bg) {
 
 void drawCharacter() {
   // Draw the character(s) on the screen (layer 1)
+  Serial.println("> Entering drawCharacter() L1");
   if (l1NeedsRedraw) {
     drawImage(currentCharacter);
     l1NeedsRedraw = false;
@@ -984,6 +994,7 @@ void drawCharacter() {
 
 void drawDebug() {
   // Draw debug information (layer 2)
+  Serial.println("> Entering drawDebug() L2");
   if (l2NeedsRedraw && debugEnabled) {
     drawText(String("Memory: ") + ESP.getFreeHeap(), 80, 10, false, WHITE, 1);
     drawText(String("Time: ") + natsumi.ageMilliseconds, 80, 20, false, WHITE, 1);
@@ -1007,12 +1018,14 @@ void drawDebug() {
 
 void drawToast() {
   // Draw toast messages (layer 3)
+  Serial.println("> Entering drawToast() L3");
   if (toastActive) {
     if (millis() > toastUntil) {
       // Toast expired
       toastActive = false;
       l0NeedsRedraw = true;
       l3NeedsRedraw = false;
+      helperNeedsRedraw = true;
     }
   }
   if (l3NeedsRedraw && toastActive) {
@@ -1032,6 +1045,7 @@ void drawToast() {
 
 void drawMenu(String menuType, const char* items[], int itemCount, int &selection) {
   // Draw menus on the screen (layer 4)
+  Serial.println("> Entering drawMenu() L4");
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
@@ -1083,6 +1097,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           debugEnabled = false;
           l0NeedsRedraw = true;
           l2NeedsRedraw = false;
+          helperNeedsRedraw = true;
         } else {
           debugEnabled = true;
           l2NeedsRedraw = true;
@@ -1092,7 +1107,6 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         // TAB
         if (menuOpened) {
           menuOpened = false;
-          helperNeedsRedraw = true;
           l0NeedsRedraw = true;
           changeState(0, HOME_LOOP, 0);
         } else {
@@ -1104,7 +1118,6 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         // ESC
         if (menuOpened) {
           menuOpened = false;
-          helperNeedsRedraw = true;
           l0NeedsRedraw = true;
           changeState(0, HOME_LOOP, 0);
         }
@@ -1144,8 +1157,8 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             debugEnabled = true;
             l2NeedsRedraw = true;
           }
-          helperNeedsRedraw = true;
         }
+        helperNeedsRedraw = true;
         menuOpened = false;
         break;
     }
@@ -1674,13 +1687,6 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
   }
   if (!menuOpened) {
     l4NeedsRedraw = false;
-
-    if (helperNeedsRedraw) {
-      // Helper text at the bottom
-      M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-      drawText("TAB: Open menu", 120, 131, true, WHITE, 1);
-      helperNeedsRedraw = false;
-    }
     return;
   }
 
@@ -1854,12 +1860,12 @@ void drawStatBar(const String &label, int value, int maxValue, int x, int y, int
 }
 
 void manageStats() {
+  Serial.println("> Entering manageStats()");
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      helperNeedsRedraw = true;
       changeState(0, HOME_LOOP, 0);
     }
   }
