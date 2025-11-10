@@ -388,7 +388,7 @@ void loop() {
 
   Serial.println("l0NeedsRedraw: " + String(l0NeedsRedraw) + " - l1NeedsRedraw: " + String(l1NeedsRedraw) + " - l2NeedsRedraw: " + String(l2NeedsRedraw) + " - l3NeedsRedraw: " + String(l3NeedsRedraw) + " - l4NeedsRedraw: " + String(l4NeedsRedraw));
   Serial.println("debugEnabled: " + String(debugEnabled) + " - menuOpened: " + String(menuOpened) + " - toastActive: " + String(toastActive));
-  Serial.println("changeStateCounter: " + String(changeStateCounter));
+  Serial.println("changeStateCounter: " + String(changeStateCounter) + " - helperNeedsRedraw: " + String(helperNeedsRedraw));
 
   switch (screenConfig) {
     case CARD:
@@ -1093,7 +1093,6 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         if (menuOpened) {
           menuOpened = false;
           l0NeedsRedraw = true;
-          helperNeedsRedraw = true;
           changeState(0, HOME_LOOP, 0);
         } else {
           menuOpened = true;
@@ -1105,7 +1104,6 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         if (menuOpened) {
           menuOpened = false;
           l0NeedsRedraw = true;
-          helperNeedsRedraw = true;
           changeState(0, HOME_LOOP, 0);
         }
         break;
