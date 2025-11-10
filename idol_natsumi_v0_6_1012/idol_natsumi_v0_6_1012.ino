@@ -1044,38 +1044,38 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
     switch (key) {
       case 48:
         // 0: STATS
-        changeState(0, STATS_SCREEN, 0);
         menuOpened = false;
+        changeState(0, STATS_SCREEN, 0);
         break;
       case 49:
         // 1: FOOD
-        changeState(0, FOOD_MENU, 0);
         menuOpened = true;
+        changeState(0, FOOD_MENU, 0);
         break;
       case 50:
         // 2: TRAINING
-        changeState(0, TRAIN_MENU, 0);
         menuOpened = true;
+        changeState(0, TRAIN_MENU, 0);
         break;
       case 51:
         // 3: COMPETITION
-        changeState(0, COMP_MENU, 0);
         menuOpened = true;
+        changeState(0, COMP_MENU, 0);
         break;
       case 52:
         // 4: HEALTH
-        changeState(0, HEALTH_MENU, 0);
         menuOpened = true;
+        changeState(0, HEALTH_MENU, 0);
         break;
       case 53:
         // 5: REST
-        changeState(0, REST_MENU, 0);
         menuOpened = true;
+        changeState(0, REST_MENU, 0);
         break;
       case 54:
         // 6: GARDEN
-        changeState(0, GARDEN_LOOP, 0);
         menuOpened = false;
+        changeState(0, GARDEN_LOOP, 0);
         break;
       case 55:
         // 7: DEBUG
@@ -1091,9 +1091,10 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       case 43:
         // TAB
         if (menuOpened) {
-          changeState(0, HOME_LOOP, 0);
           menuOpened = false;
           l0NeedsRedraw = true;
+          helperNeedsRedraw = true;
+          changeState(0, HOME_LOOP, 0);
         } else {
           menuOpened = true;
           l4NeedsRedraw = true;
@@ -1101,11 +1102,12 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         break;
       case 96:
         // ESC
-        changeState(0, HOME_LOOP, 0);
         if (menuOpened) {
           menuOpened = false;
           l0NeedsRedraw = true;
+          helperNeedsRedraw = true;
         }
+        changeState(0, HOME_LOOP, 0);
         break;
       case 181: case 'w': case 'W': case 59:
         // UP
@@ -1150,25 +1152,25 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
     switch (key) {
       case 48:
         // 0: FRIDGE
-        changeState(0, FOOD_COOK, 0);
         menuOpened = false;
+        changeState(0, FOOD_COOK, 0);
         break;
       case 49:
         // 1: RESTAURANT
-        changeState(0, FOOD_REST, 0);
         menuOpened = false;
+        changeState(0, FOOD_REST, 0);
         break;
       case 50:
         // 2: ORDER
-        changeState(0, FOOD_ORDER, 0);
         menuOpened = false;
+        changeState(0, FOOD_ORDER, 0);
         break;
       case 43:
         // TAB
         if (menuOpened) {
-          changeState(0, HOME_LOOP, 0);
           menuOpened = false;
           l0NeedsRedraw = true;
+          changeState(0, HOME_LOOP, 0);
         } else {
           menuOpened = true;
           l4NeedsRedraw = true;
@@ -1176,11 +1178,11 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         break;
       case 96:
         // ESC
-        changeState(0, HOME_LOOP, 0);
         if (menuOpened) {
           menuOpened = false;
           l0NeedsRedraw = true;
         }
+        changeState(0, HOME_LOOP, 0);
         break;
       case 181: case 'w': case 'W': case 59:
         // UP
@@ -1217,33 +1219,33 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
     switch (key) {
       case 48:
         // 0: SING
-        changeState(0, TRAIN_SING, 0);
         menuOpened = false;
+        changeState(0, TRAIN_SING, 0);
         break;
       case 49:
         // 1: DANCE
-        changeState(0, TRAIN_DANCE, 0);
         menuOpened = false;
+        changeState(0, TRAIN_DANCE, 0);
         break;
       case 50:
         // 2: SWIM
-        changeState(0, TRAIN_SWIM, 0);
         menuOpened = false;
+        changeState(0, TRAIN_SWIM, 0);
         break;
       case 51:
         // 3: GYM
-        changeState(0, TRAIN_GYM, 0);
         menuOpened = false;
+        changeState(0, TRAIN_GYM, 0);
         break;
       case 52:
         // 4: WALK
-        changeState(0, TRAIN_WALK, 0);
         menuOpened = false;
+        changeState(0, TRAIN_WALK, 0);
         break;
       case 53:
         // 5: LIBRARY
-        changeState(0, TRAIN_LIBRARY, 0);
         menuOpened = false;
+        changeState(0, TRAIN_LIBRARY, 0);
         break;
       case 55:
         // 7: DEBUG
@@ -1259,9 +1261,9 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       case 43:
         // TAB
         if (menuOpened) {
-          changeState(0, HOME_LOOP, 0);
           menuOpened = false;
           l0NeedsRedraw = true;
+          changeState(0, HOME_LOOP, 0);
         } else {
           menuOpened = true;
           l4NeedsRedraw = true;
@@ -1269,11 +1271,11 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         break;
       case 96:
         // ESC
-        changeState(0, HOME_LOOP, 0);
         if (menuOpened) {
           menuOpened = false;
           l0NeedsRedraw = true;
         }
+        changeState(0, HOME_LOOP, 0);
         break;
       case 181: case 'w': case 'W': case 59:
         // UP
@@ -1316,23 +1318,23 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
     switch (key) {
       case 48:
         // 0: LOCAL
-        changeState(0, COMP_LOCAL, 0);
         menuOpened = false;
+        changeState(0, COMP_LOCAL, 0);
         break;
       case 49:
         // 1: DEPARTMENTAL
-        changeState(0, COMP_DEPT, 0);
         menuOpened = false;
+        changeState(0, COMP_DEPT, 0);
         break;
       case 50:
         // 2: REGIONAL
-        changeState(0, COMP_REG, 0);
         menuOpened = false;
+        changeState(0, COMP_REG, 0);
         break;
       case 51:
         // 3: NATIONAL
-        changeState(0, COMP_NAT, 0);
         menuOpened = false;
+        changeState(0, COMP_NAT, 0);
         break;
       case 55:
         // 7: DEBUG
@@ -1348,9 +1350,9 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       case 43:
         // TAB
         if (menuOpened) {
-          changeState(0, HOME_LOOP, 0);
           menuOpened = false;
           l0NeedsRedraw = true;
+          changeState(0, HOME_LOOP, 0);
         } else {
           menuOpened = true;
           l4NeedsRedraw = true;
@@ -1358,11 +1360,11 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         break;
       case 96:
         // ESC
-        changeState(0, HOME_LOOP, 0);
         if (menuOpened) {
           menuOpened = false;
           l0NeedsRedraw = true;
         }
+        changeState(0, HOME_LOOP, 0);
         break;
       case 181: case 'w': case 'W': case 59:
         // UP
@@ -1401,23 +1403,23 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
     switch (key) {
       case 48:
         // 0: WASH
-        changeState(0, HEALTH_WASH, 0);
         menuOpened = false;
+        changeState(0, HEALTH_WASH, 0);
         break;
       case 49:
         // 1: DOCTOR
-        changeState(0, HEALTH_DOCTOR, 0);
         menuOpened = false;
+        changeState(0, HEALTH_DOCTOR, 0);
         break;
       case 50:
         // 2: TEMPLE
-        changeState(0, HEALTH_TEMPLE, 0);
         menuOpened = false;
+        changeState(0, HEALTH_TEMPLE, 0);
         break;
       case 51:
         // 3: ONSEN
-        changeState(0, HEALTH_ONSEN, 0);
         menuOpened = false;
+        changeState(0, HEALTH_ONSEN, 0);
         break;
       case 55:
         // 7: DEBUG
@@ -1433,9 +1435,9 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       case 43:
         // TAB
         if (menuOpened) {
-          changeState(0, HOME_LOOP, 0);
           menuOpened = false;
           l0NeedsRedraw = true;
+          changeState(0, HOME_LOOP, 0);
         } else {
           menuOpened = true;
           l4NeedsRedraw = true;
@@ -1443,11 +1445,11 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         break;
       case 96:
         // ESC
-        changeState(0, HOME_LOOP, 0);
         if (menuOpened) {
           menuOpened = false;
           l0NeedsRedraw = true;
         }
+        changeState(0, HOME_LOOP, 0);
         break;
       case 181: case 'w': case 'W': case 59:
         // UP
@@ -1486,18 +1488,18 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
     switch (key) {
       case 48:
         // 0: MEDITATE
-        changeState(0, REST_MEDITATE, 0);
         menuOpened = false;
+        changeState(0, REST_MEDITATE, 0);
         break;
       case 49:
         // 1: NAP
-        changeState(0, REST_NAP, 0);
         menuOpened = false;
+        changeState(0, REST_NAP, 0);
         break;
       case 50:
         // 2: BEDTIME
-        changeState(0, REST_BEDTIME, 0);
         menuOpened = false;
+        changeState(0, REST_BEDTIME, 0);
         break;
       case 55:
         // 7: DEBUG
@@ -1513,9 +1515,9 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       case 43:
         // TAB
         if (menuOpened) {
-          changeState(0, HOME_LOOP, 0);
           menuOpened = false;
           l0NeedsRedraw = true;
+          changeState(0, HOME_LOOP, 0);
         } else {
           menuOpened = true;
           l4NeedsRedraw = true;
@@ -1523,11 +1525,11 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         break;
       case 96:
         // ESC
-        changeState(0, HOME_LOOP, 0);
         if (menuOpened) {
           menuOpened = false;
           l0NeedsRedraw = true;
         }
+        changeState(0, HOME_LOOP, 0);
         break;
       case 181: case 'w': case 'W': case 59:
         // UP
@@ -1564,23 +1566,23 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
     switch (key) {
       case 48:
         // 0: CALIB1
-        changeState(0, CALIBRATION_1, 0);
         menuOpened = false;
+        changeState(0, CALIBRATION_1, 0);
         break;
       case 49:
         // 1: CALIB2
-        changeState(0, CALIBRATION_2, 0);
         menuOpened = false;
+        changeState(0, CALIBRATION_2, 0);
         break;
       case 50:
         // 2: CALIB3
-        changeState(0, CALIBRATION_3, 0);
         menuOpened = false;
+        changeState(0, CALIBRATION_3, 0);
         break;
       case 51:
         // 3: EXIT
-        changeState(0, TITLE_SCREEN, 0);
         menuOpened = true;
+        changeState(0, TITLE_SCREEN, 0);
         break;
       case 43:
         // TAB
@@ -1594,10 +1596,10 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         break;
       case 96:
         // ESC
-        changeState(0, TITLE_SCREEN, 0);
         if (menuOpened) {
           menuOpened = true;
         }
+        changeState(0, TITLE_SCREEN, 0);
         break;
       case 181: case 'w': case 'W': case 59:
         // UP
@@ -1612,17 +1614,17 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       case 13: case 40: case ' ':
         // VALIDATE
         if (selection == 0) {
+          menuOpened = false;
           changeState(0, CALIBRATION_1, 0);
-          menuOpened = false;
         } else if (selection == 1) {
+          menuOpened = false;
           changeState(0, CALIBRATION_2, 0);
-          menuOpened = false;
         } else if (selection == 2) {
-          changeState(4, CALIBRATION_3, 0);
           menuOpened = false;
+          changeState(4, CALIBRATION_3, 0);
         } else if (selection == 3) {
-          changeState(0, TITLE_SCREEN, 0);
           menuOpened = true;
+          changeState(0, TITLE_SCREEN, 0);
         }
         break;
     }
@@ -1630,18 +1632,18 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
     switch (key) {
       case 48:
         // 0: NEW GAME
-        changeState(0, NEW_GAME, 0);
         menuOpened = false;
+        changeState(0, NEW_GAME, 0);
         break;
       case 49:
         // 1: CONTINUE
-        changeState(0, CONTINUE_GAME, 0);
         menuOpened = false;
+        changeState(0, CONTINUE_GAME, 0);
         break;
       case 50:
         // 2: DEV SCREEN
-        changeState(4, DEV_SCREEN, 0);
         menuOpened = true;
+        changeState(4, DEV_SCREEN, 0);
         return;
       case 181: case 'w': case 'W': case 59:
         // UP
@@ -1656,14 +1658,14 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       case 13: case 40: case ' ':
         // VALIDATE
         if (selection == 0) {
+          menuOpened = false;
           changeState(0, NEW_GAME, 0);
-          menuOpened = false;
         } else if (selection == 1) {
-          changeState(0, CONTINUE_GAME, 0);
           menuOpened = false;
+          changeState(0, CONTINUE_GAME, 0);
         } else {
-          changeState(4, DEV_SCREEN, 0);
           menuOpened = true;
+          changeState(4, DEV_SCREEN, 0);
           return;
         }
 
