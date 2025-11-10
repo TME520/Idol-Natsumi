@@ -855,13 +855,6 @@ void manageRoom() {
   drawCharacter();
   drawDebug();
   drawToast();
-  if (helperNeedsRedraw) {
-    // Helper text at the bottom
-    Serial.println("[DEBUG] manageHomeScreen() -> helperNeedsRedraw TRUE");
-    M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-    drawText("TAB: Open menu", 120, 131, true, WHITE, 1);
-    helperNeedsRedraw = false;
-  }
 
   int *selectionPtr;
   if (currentMenuType == "home") {
@@ -872,6 +865,14 @@ void manageRoom() {
     selectionPtr = &mainMenuSelection;
   }
   drawMenu(currentMenuType, currentMenuItems, currentMenuItemsCount, *selectionPtr);
+
+  if (helperNeedsRedraw && !menuOpened) {
+    // Helper text at the bottom
+    Serial.println("[DEBUG] manageHomeScreen() -> helperNeedsRedraw TRUE");
+    M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+    drawText("TAB: Open menu", 120, 131, true, WHITE, 1);
+    helperNeedsRedraw = false;
+  }
 }
 
 void manageText() {
@@ -989,6 +990,7 @@ void drawCharacter() {
     l2NeedsRedraw = true;
     l3NeedsRedraw = true;
     l4NeedsRedraw = true;
+    helperNeedsRedraw = true;
   }
 }
 
@@ -1025,7 +1027,6 @@ void drawToast() {
       toastActive = false;
       l0NeedsRedraw = true;
       l3NeedsRedraw = false;
-      helperNeedsRedraw = true;
     }
   }
   if (l3NeedsRedraw && toastActive) {
