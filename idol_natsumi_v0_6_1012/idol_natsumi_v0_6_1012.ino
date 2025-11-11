@@ -296,7 +296,7 @@ void preloadImages() {
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
       break;
     case REST_NAP:
-      preloadImage("/idolnat/screens/bedroom_dark.png", currentBackground);
+      preloadImage("/idolnat/screens/black.png", currentBackground);
       break;
     case GARDEN_LOOP:
       preloadImage("/idolnat/screens/garden_bg.png", currentBackground);
@@ -544,7 +544,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           currentMenuItemsCount = restMenuItemCount;
           break;
         case REST_NAP:
-          screenConfig = ROOM;
+          screenConfig = IDLE;
           break;
         case GARDEN_LOOP:
           screenConfig = ROOM;
@@ -792,11 +792,15 @@ void manageIdle() {
       Interactive (escape)
   */
   switch (currentState) {
+    case REST_NAP:
+      nap();
+      break;
     default:
       break;
   }
 
   // Draw required layers for IDLE screens
+  drawBackground(currentBackground);
   drawCharacter();
   drawDebug();
   drawToast();
@@ -805,8 +809,8 @@ void manageIdle() {
 void manageRoom() {
   // Manage ROOM screens
   /*
-      Background: None
-      Character: None
+      Background: Yes
+      Character: Yes
       Debug: Available
       Toast: Yes
       Menu: Yes
@@ -821,9 +825,6 @@ void manageRoom() {
       break;
     case HEALTH_WASH:
       wash();
-      break;
-    case REST_NAP:
-      nap();
       break;
     case GARDEN_LOOP:
       manageGarden();
