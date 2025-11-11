@@ -296,7 +296,7 @@ void preloadImages() {
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
       break;
     case REST_NAP:
-      preloadImage("/idolnat/screens/bedroom.png", currentBackground);
+      preloadImage("/idolnat/screens/bedroom_dark.png", currentBackground);
       break;
     case GARDEN_LOOP:
       preloadImage("/idolnat/screens/garden_bg.png", currentBackground);
@@ -474,7 +474,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           helperNeedsRedraw = true;
           Serial.println("[DEBUG] helperNeedsRedraw: " + String(helperNeedsRedraw));
           break;
-        case FOOD_EAT: case HEALTH_WASH: case REST_NAP:
+        case FOOD_EAT:
           screenConfig = ROOM;
           currentMenuType = "food";
           currentMenuItems = foodMenuItems;
@@ -534,11 +534,17 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           currentMenuItems = healthMenuItems;
           currentMenuItemsCount = healthMenuItemCount;
           break;
+        case HEALTH_WASH:
+          screenConfig = ROOM;
+          break;
         case REST_MENU:
           screenConfig = ROOM;
           currentMenuType = "rest";
           currentMenuItems = restMenuItems;
           currentMenuItemsCount = restMenuItemCount;
+          break;
+        case REST_NAP:
+          screenConfig = ROOM;
           break;
         case GARDEN_LOOP:
           screenConfig = ROOM;
@@ -817,7 +823,7 @@ void manageRoom() {
       wash();
       break;
     case REST_NAP:
-      rest();
+      nap();
       break;
     case GARDEN_LOOP:
       manageGarden();
@@ -955,13 +961,15 @@ void wash() {
   changeState(0, HOME_LOOP, shortWait);
 }
 
-void rest() {
+void nap() {
   if (changeStateCounter==0) {
     if (natsumi.energy < 4) {
-      natsumi.energy += 1;
-      showToast("Rested (+1 Energy)");
+      // natsumi.energy += 1;
+      showToast("Natsumi is having a nap");
     } else {
       showToast("Natsumi is not tired");
+      changeState(0, HOME_LOOP, 0);
+      return;
     }
   }
   changeState(0, HOME_LOOP, shortWait);
