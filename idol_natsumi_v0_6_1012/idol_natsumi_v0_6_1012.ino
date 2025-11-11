@@ -641,7 +641,14 @@ void updateStats() {
 
   // Energy decreases every 4 minutes
   if (currentMillis - natsumi.lastEnergyUpdate >= energyInterval) {
-    if (natsumi.energy > 0) natsumi.energy--;
+    switch (currentState) {
+      case REST_NAP:
+        if (natsumi.energy < 4) natsumi.energy++;
+        break;
+      default:
+        if (natsumi.energy > 0) natsumi.energy--;
+        break;
+    }
     natsumi.lastEnergyUpdate = currentMillis;
     Serial.print("Energy decreased: ");
     Serial.println(natsumi.energy);
@@ -800,7 +807,7 @@ void manageIdle() {
   }
 
   // Draw required layers for IDLE screens
-  drawBackground(currentBackground);
+  drawBackground(currentBackground); // Always set to black.png
   drawCharacter();
   drawDebug();
   drawToast();
@@ -965,7 +972,6 @@ void wash() {
 void nap() {
   if (changeStateCounter==0) {
     if (natsumi.energy < 4) {
-      // natsumi.energy += 1;
       showToast("Natsumi is having a nap");
     } else {
       showToast("Natsumi is not tired");
@@ -973,7 +979,9 @@ void nap() {
       return;
     }
   }
-  changeState(0, HOME_LOOP, shortWait);
+  if (natsumi.energy >= 4) {
+    changeState(0, HOME_LOOP, 0);
+  }
 }
 
 // === Draw functions ===
