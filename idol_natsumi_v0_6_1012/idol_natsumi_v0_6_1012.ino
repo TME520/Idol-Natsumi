@@ -296,7 +296,7 @@ void preloadImages() {
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
       break;
     case REST_NAP:
-      preloadImage("/idolnat/screens/black.png", currentBackground);
+      preloadImage("/idolnat/screens/bedroom_dark.png", currentBackground);
       break;
     case GARDEN_LOOP:
       preloadImage("/idolnat/screens/garden_bg.png", currentBackground);
@@ -970,16 +970,8 @@ void wash() {
 }
 
 void nap() {
-  if (changeStateCounter==0) {
-    if (natsumi.energy < 4) {
-      showToast("Natsumi is having a nap");
-    } else {
-      showToast("Natsumi is not tired");
-      changeState(0, HOME_LOOP, 0);
-      return;
-    }
-  }
   if (natsumi.energy >= 4) {
+    showToast("Natsumi is not tired");
     changeState(0, HOME_LOOP, 0);
   }
 }
