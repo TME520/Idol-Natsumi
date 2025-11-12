@@ -806,6 +806,10 @@ void manageIdle() {
       break;
   }
 
+  // Stats management
+  updateAging();
+  updateStats();
+
   // Draw required layers for IDLE screens
   drawBackground(currentBackground); // Always set to black.png
   drawCharacter();
