@@ -337,19 +337,54 @@ void preloadImages() {
   // Load portraits
   switch(natsumi.age) {
     case 11: case 12:
-      preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentCharacter);
+      switch(currentState) {
+        case REST_NAP:
+          preloadImage("/idolnat/sprites/natsumi_11yo_asleep-90x135.png", currentCharacter);
+          break; 
+        default:
+          preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentCharacter);
+          break;
+      }
       break;
     case 13: case 14:
-      preloadImage("/idolnat/sprites/natsumi_13yo-90x135.png", currentCharacter);
+      switch(currentState) {
+        case REST_NAP:
+          preloadImage("/idolnat/sprites/natsumi_13yo_asleep-90x135.png", currentCharacter);
+          break; 
+        default:
+          preloadImage("/idolnat/sprites/natsumi_13yo-90x135.png", currentCharacter);
+          break;
+      }
       break;
     case 15: case 16: case 17:
-      preloadImage("/idolnat/sprites/natsumi_15yo-90x135.png", currentCharacter);
+      switch(currentState) {
+        case REST_NAP:
+          preloadImage("/idolnat/sprites/natsumi_15yo_asleep-90x135.png", currentCharacter);
+          break; 
+        default:
+          preloadImage("/idolnat/sprites/natsumi_15yo-90x135.png", currentCharacter);
+          break;
+      }
       break;
     case 18: case 19: case 20:
-      preloadImage("/idolnat/sprites/natsumi_18yo-90x135.png", currentCharacter);
+      switch(currentState) {
+        case REST_NAP:
+          preloadImage("/idolnat/sprites/natsumi_18yo_asleep-90x135.png", currentCharacter);
+          break; 
+        default:
+          preloadImage("/idolnat/sprites/natsumi_18yo-90x135.png", currentCharacter);
+          break;
+      }
       break;
     case 21: case 22:
-      preloadImage("/idolnat/sprites/natsumi_21yo-90x135.png", currentCharacter);
+      switch(currentState) {
+        case REST_NAP:
+          preloadImage("/idolnat/sprites/natsumi_21yo_asleep-90x135.png", currentCharacter);
+          break; 
+        default:
+          preloadImage("/idolnat/sprites/natsumi_21yo-90x135.png", currentCharacter);
+          break;
+      }
       break;
     default:
       preloadImage("/idolnat/sprites/natsumi_21yo-90x135.png", currentCharacter);
