@@ -974,9 +974,19 @@ void wash() {
 }
 
 void nap() {
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      changeState(0, HOME_LOOP, 0);
+      return;
+    }
+  }
   if (natsumi.energy >= 4) {
     showToast("Natsumi is not tired");
     changeState(0, HOME_LOOP, 0);
+    return;
   }
 }
 
