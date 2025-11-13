@@ -1056,7 +1056,7 @@ void drawNapEnergyOverlay() {
 
 void nap() {
   uint8_t key = 0;
-  if (l5NeedsRedraw || lastNapEnergyDisplayed != natsumi.energy) {
+  if ((l5NeedsRedraw || lastNapEnergyDisplayed != natsumi.energy) && natsumi.energy < 4) {
     drawNapEnergyOverlay();
     lastNapEnergyDisplayed = natsumi.energy;
     l5NeedsRedraw = false;
