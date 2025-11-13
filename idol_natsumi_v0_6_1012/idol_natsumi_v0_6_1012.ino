@@ -1019,7 +1019,7 @@ void nap() {
     }
   }
   if (natsumi.energy >= 4) {
-    showToast("Natsumi is not tired");
+    showToast("Natsumi is well rested");
     changeState(0, HOME_LOOP, 0);
     return;
   }
