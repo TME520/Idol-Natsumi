@@ -1047,9 +1047,11 @@ void drawNapEnergyOverlay() {
     startX += segmentWidth + segmentSpacing;
   }
 
+  /*
   drawText(String(natsumi.energy) + "/4", panelX + panelW - 45, panelY + panelH - 16, false, accentColor, 1, panelColor);
   drawText("tap any key to wake", panelX + panelW / 2, panelY + panelH - 12, true, borderColor, 1, panelColor);
   drawText("z z z", panelX + 20, panelY + panelH - 20, false, WHITE, 1, panelColor);
+  */
 }
 
 void nap() {
@@ -1868,7 +1870,9 @@ void drawOverlay() {
         }
         break;
       case REST_NAP:
-        drawNapEnergyOverlay();
+        if (natsumi.energy < 4) {
+          drawNapEnergyOverlay();
+        }
         break;
       default:
         break; 
