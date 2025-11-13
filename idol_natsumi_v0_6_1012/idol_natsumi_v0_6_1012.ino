@@ -131,6 +131,8 @@ bool l4NeedsRedraw = false; // Menu
 
 bool statsNeedsRedraw = false;
 bool helperNeedsRedraw = false;
+bool napOverlayNeedsRedraw = false;
+int lastNapEnergyDisplayed = -1;
 
 bool debugEnabled = false;
 bool menuOpened = false;
@@ -163,6 +165,8 @@ void showToast(const String& msg, unsigned long ms = longWait) {
   toastUntil = millis() + ms;
   l3NeedsRedraw = true;
 }
+
+void drawNapEnergyOverlay();
 
 // === UI Helper Functions ===
 void drawText(String text, int x, int y, bool centerAlign, uint16_t color = WHITE, int textSize = 2, uint16_t bgColor = BLACK) {
@@ -580,6 +584,8 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           break;
         case REST_NAP:
           screenConfig = IDLE;
+          napOverlayNeedsRedraw = true;
+          lastNapEnergyDisplayed = -1;
           break;
         case GARDEN_LOOP:
           screenConfig = ROOM;
@@ -655,6 +661,7 @@ void updateAging() {
 void updateStats() {
   // Serial.println("> Entering updateStats()");
   unsigned long currentMillis = millis();
+  int previousEnergy = natsumi.energy;
 
   // Hunger decreases every 2 minutes
   if (currentMillis - natsumi.lastHungerUpdate >= hungerInterval) {
@@ -688,6 +695,12 @@ void updateStats() {
     Serial.print("Energy decreased: ");
     Serial.println(natsumi.energy);
     statsNeedsRedraw=true;
+  }
+
+  if (previousEnergy != natsumi.energy) {
+    if (currentState == REST_NAP) {
+      napOverlayNeedsRedraw = true;
+    }
   }
 }
 
@@ -1008,8 +1021,57 @@ void wash() {
   changeState(0, HOME_LOOP, shortWait);
 }
 
+void drawNapEnergyOverlay() {
+  const int panelX = 20;
+  const int panelY = 30;
+  const int panelW = 200;
+  const int panelH = 75;
+  const uint16_t panelColor = M5Cardputer.Display.color565(12, 20, 32);
+  const uint16_t borderColor = M5Cardputer.Display.color565(0, 180, 200);
+  const uint16_t accentColor = M5Cardputer.Display.color565(255, 200, 40);
+  const uint16_t emptyColor = M5Cardputer.Display.color565(28, 36, 48);
+  const uint16_t fillHighlight = M5Cardputer.Display.color565(120, 255, 200);
+
+  M5Cardputer.Display.fillRoundRect(panelX - 4, panelY - 4, panelW + 8, panelH + 8, 12, BLACK);
+  M5Cardputer.Display.fillRoundRect(panelX, panelY, panelW, panelH, 10, panelColor);
+  M5Cardputer.Display.drawRoundRect(panelX, panelY, panelW, panelH, 10, borderColor);
+  M5Cardputer.Display.drawRoundRect(panelX + 2, panelY + 2, panelW - 4, panelH - 4, 8, borderColor);
+
+  drawText("REST MODE", panelX + panelW / 2, panelY + 12, true, borderColor, 1, panelColor);
+  drawText("Energy", panelX + panelW / 2, panelY + 28, true, WHITE, 2, panelColor);
+
+  const int segmentCount = 4;
+  const int barY = panelY + 42;
+  const int barHeight = 20;
+  const int barWidth = panelW - 40;
+  const int segmentSpacing = 6;
+  const int totalSegmentsWidth = barWidth - segmentSpacing * (segmentCount - 1);
+  const int segmentWidth = totalSegmentsWidth / segmentCount;
+  int startX = panelX + (panelW - (segmentWidth * segmentCount + segmentSpacing * (segmentCount - 1))) / 2;
+
+  for (int i = 0; i < segmentCount; ++i) {
+    bool filled = i < natsumi.energy;
+    uint16_t segmentColor = filled ? accentColor : emptyColor;
+    M5Cardputer.Display.fillRoundRect(startX, barY, segmentWidth, barHeight, 4, segmentColor);
+    M5Cardputer.Display.drawRoundRect(startX, barY, segmentWidth, barHeight, 4, borderColor);
+    if (filled) {
+      M5Cardputer.Display.fillRoundRect(startX + 2, barY + 2, segmentWidth - 4, barHeight / 2, 4, fillHighlight);
+    }
+    startX += segmentWidth + segmentSpacing;
+  }
+
+  drawText(String(natsumi.energy) + "/4", panelX + panelW - 45, panelY + panelH - 16, false, accentColor, 1, panelColor);
+  drawText("tap any key to wake", panelX + panelW / 2, panelY + panelH - 12, true, borderColor, 1, panelColor);
+  drawText("z z z", panelX + 20, panelY + panelH - 20, false, WHITE, 1, panelColor);
+}
+
 void nap() {
   uint8_t key = 0;
+  if (napOverlayNeedsRedraw || lastNapEnergyDisplayed != natsumi.energy) {
+    drawNapEnergyOverlay();
+    lastNapEnergyDisplayed = natsumi.energy;
+    napOverlayNeedsRedraw = false;
+  }
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
