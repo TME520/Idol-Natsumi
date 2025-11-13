@@ -122,21 +122,19 @@ int trainingMenuSelection = 0;
 int competitionMenuSelection = 0;
 int healthMenuSelection = 0;
 int restMenuSelection = 0;
+int lastNapEnergyDisplayed = -1;
 
 bool l0NeedsRedraw = false; // Background
 bool l1NeedsRedraw = false; // Character
 bool l2NeedsRedraw = false; // Debug
 bool l3NeedsRedraw = false; // Toast
 bool l4NeedsRedraw = false; // Menu
-
-bool statsNeedsRedraw = false;
-bool helperNeedsRedraw = false;
-bool napOverlayNeedsRedraw = false;
-int lastNapEnergyDisplayed = -1;
+bool l5NeedsRedraw = false; // Overlay (user-defined)
 
 bool debugEnabled = false;
 bool menuOpened = false;
 bool toastActive = false;
+bool statsActive = false;
 
 unsigned long lastUpdate = 0;
 const int FRAME_DELAY = 50;
@@ -423,9 +421,10 @@ void loop() {
   if (millis() - lastUpdate < FRAME_DELAY) return;
   lastUpdate = millis();
 /*
-  Serial.println("l0NeedsRedraw: " + String(l0NeedsRedraw) + " - l1NeedsRedraw: " + String(l1NeedsRedraw) + " - l2NeedsRedraw: " + String(l2NeedsRedraw) + " - l3NeedsRedraw: " + String(l3NeedsRedraw) + " - l4NeedsRedraw: " + String(l4NeedsRedraw));
+  Serial.println("l0NeedsRedraw: " + String(l0NeedsRedraw) + " - l1NeedsRedraw: " + String(l1NeedsRedraw) + " - l2NeedsRedraw: " + String(l2NeedsRedraw) + " - l3NeedsRedraw: " + String(l3NeedsRedraw));
+  Serial.println("l4NeedsRedraw: " + String(l4NeedsRedraw) + " - l5NeedsRedraw: " + String(l5NeedsRedraw));
   Serial.println("debugEnabled: " + String(debugEnabled) + " - menuOpened: " + String(menuOpened) + " - toastActive: " + String(toastActive));
-  Serial.println("changeStateCounter: " + String(changeStateCounter) + " - helperNeedsRedraw: " + String(helperNeedsRedraw));
+  Serial.println("changeStateCounter: " + String(changeStateCounter) + " - l5NeedsRedraw: " + String(l5NeedsRedraw));
 */
   switch (screenConfig) {
     case CARD:
@@ -462,7 +461,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       switch (baseLayer) {
         case 0:
           l0NeedsRedraw = true;
-          statsNeedsRedraw = true;
           break;
         case 1:
           l1NeedsRedraw = true;
@@ -475,6 +473,9 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           break;
         case 4:
           l4NeedsRedraw = true;
+          break;
+        case 5:
+          l5NeedsRedraw = true;
           break;
         default:
           l0NeedsRedraw = true;
@@ -508,8 +509,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           currentMenuType = "home";
           currentMenuItems = homeMenuItems;
           currentMenuItemsCount = homeMenuItemCount;
-          helperNeedsRedraw = true;
-          Serial.println("[DEBUG] helperNeedsRedraw: " + String(helperNeedsRedraw));
           break;
         case FOOD_EAT:
           screenConfig = ROOM;
@@ -519,6 +518,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           break;
         case STATS_SCREEN:
           screenConfig = GAME;
+          statsActive = true;
           break;
         case FOOD_MENU:
           screenConfig = ROOM;
@@ -582,7 +582,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           break;
         case REST_NAP:
           screenConfig = IDLE;
-          napOverlayNeedsRedraw = true;
           lastNapEnergyDisplayed = -1;
           break;
         case GARDEN_LOOP:
@@ -652,7 +651,7 @@ void updateAging() {
     // Load updated portrait
     preloadImages();
     showToast(String("Natsumi turned ") + natsumi.age + " years old!");
-    statsNeedsRedraw=true;
+    l5NeedsRedraw=true;
   }
 }
 
@@ -667,7 +666,7 @@ void updateStats() {
     natsumi.lastHungerUpdate = currentMillis;
     Serial.print("Hunger decreased: ");
     Serial.println(natsumi.hunger);
-    statsNeedsRedraw=true;
+    l5NeedsRedraw=true;
   }
 
   // Hygiene decreases every 4 minutes
@@ -676,7 +675,7 @@ void updateStats() {
     natsumi.lastHygieneUpdate = currentMillis;
     Serial.print("Hygiene decreased: ");
     Serial.println(natsumi.hygiene);
-    statsNeedsRedraw=true;
+    l5NeedsRedraw=true;
   }
 
   // Energy decreases every 4 minutes
@@ -692,13 +691,7 @@ void updateStats() {
     natsumi.lastEnergyUpdate = currentMillis;
     Serial.print("Energy decreased: ");
     Serial.println(natsumi.energy);
-    statsNeedsRedraw=true;
-  }
-
-  if (previousEnergy != natsumi.energy) {
-    if (currentState == REST_NAP) {
-      napOverlayNeedsRedraw = true;
-    }
+    l5NeedsRedraw=true;
   }
 }
 
@@ -861,6 +854,7 @@ void manageIdle() {
   drawCharacter();
   drawDebug();
   drawToast();
+  drawOverlay();
 }
 
 void manageRoom() {
@@ -919,6 +913,7 @@ void manageRoom() {
   drawCharacter();
   drawDebug();
   drawToast();
+  drawOverlay();
 
   int *selectionPtr;
   if (currentMenuType == "home") {
@@ -930,12 +925,12 @@ void manageRoom() {
   }
   drawMenu(currentMenuType, currentMenuItems, currentMenuItemsCount, *selectionPtr);
 
-  if (helperNeedsRedraw && !menuOpened) {
+  if (l5NeedsRedraw && !menuOpened) {
     // Helper text at the bottom
-    Serial.println("[DEBUG] manageHomeScreen() -> helperNeedsRedraw TRUE");
+    Serial.println("[DEBUG] manageHomeScreen() -> l5NeedsRedraw TRUE");
     M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
     drawText("TAB: Open menu", 120, 131, true, WHITE, 1);
-    helperNeedsRedraw = false;
+    l5NeedsRedraw = false;
   }
 }
 
@@ -1065,10 +1060,10 @@ void drawNapEnergyOverlay() {
 
 void nap() {
   uint8_t key = 0;
-  if (napOverlayNeedsRedraw || lastNapEnergyDisplayed != natsumi.energy) {
+  if (l5NeedsRedraw || lastNapEnergyDisplayed != natsumi.energy) {
     drawNapEnergyOverlay();
     lastNapEnergyDisplayed = natsumi.energy;
-    napOverlayNeedsRedraw = false;
+    l5NeedsRedraw = false;
   }
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
@@ -1096,6 +1091,7 @@ void drawBackground(const ImageBuffer& bg) {
     l2NeedsRedraw = true;
     l3NeedsRedraw = true;
     l4NeedsRedraw = true;
+    l5NeedsRedraw = true;
   }
 }
 
@@ -1108,7 +1104,7 @@ void drawCharacter() {
     l2NeedsRedraw = true;
     l3NeedsRedraw = true;
     l4NeedsRedraw = true;
-    helperNeedsRedraw = true;
+    l5NeedsRedraw = true;
   }
 }
 
@@ -1131,6 +1127,7 @@ void drawDebug() {
     l2NeedsRedraw = true;
     l3NeedsRedraw = true;
     l4NeedsRedraw = true;
+    l5NeedsRedraw = true;
   } else {
     l2NeedsRedraw = false;
   }
@@ -1216,7 +1213,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           debugEnabled = false;
           l0NeedsRedraw = true;
           l2NeedsRedraw = false;
-          helperNeedsRedraw = true;
+          l5NeedsRedraw = true;
         } else {
           debugEnabled = true;
           l2NeedsRedraw = true;
@@ -1277,7 +1274,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             l2NeedsRedraw = true;
           }
         }
-        helperNeedsRedraw = true;
+        l5NeedsRedraw = true;
         menuOpened = false;
         break;
     }
@@ -1856,6 +1853,26 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
   }
 }
 
+void drawOverlay() {
+  // Draw the overlay (L5)
+  Serial.println("> Entering drawOverlay() L5 with l5NeedsRedraw set to " + String(l5NeedsRedraw));
+  if (l5NeedsRedraw) {
+    switch (currentState) {
+      case HOME_LOOP:
+        if (statsActive) {
+          drawStats();
+        }
+        break;
+      case REST_NAP:
+        drawNapEnergyOverlay();
+        break;
+      default:
+        break; 
+    }
+    l5NeedsRedraw = false;
+  }
+}
+
 void playGame() {
   // Play one of the mini-games
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
@@ -1864,6 +1881,7 @@ void playGame() {
 
 void drawStats() {
   // Draw the Status Board / Statistics screen
+  Serial.println("> Entering drawStats()");
   static unsigned long lastDraw = 0;
   unsigned long now = millis();
     if (now - lastDraw < 120 && (l0NeedsRedraw || l1NeedsRedraw || l3NeedsRedraw)) {
@@ -1985,12 +2003,10 @@ void manageStats() {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      statsActive = false;
       changeState(0, HOME_LOOP, 0);
+      return;
     }
-  }
-  if (statsNeedsRedraw) {
-    drawStats();
-    statsNeedsRedraw=false;
   }
 }
 
