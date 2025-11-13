@@ -166,8 +166,6 @@ void showToast(const String& msg, unsigned long ms = longWait) {
   l3NeedsRedraw = true;
 }
 
-void drawNapEnergyOverlay();
-
 // === UI Helper Functions ===
 void drawText(String text, int x, int y, bool centerAlign, uint16_t color = WHITE, int textSize = 2, uint16_t bgColor = BLACK) {
     M5Cardputer.Display.setTextSize(textSize);
