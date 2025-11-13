@@ -811,7 +811,8 @@ void manageGame() {
   */
   switch (currentState) {
     case STATS_SCREEN:
-      manageStats();
+      // manageStats();
+      // l5NeedsRedraw = true;
       break;
     default:
       playGame();
@@ -824,6 +825,7 @@ void manageGame() {
 
   // Draw required layers for GAME screens
   drawDebug();
+  drawOverlay();
 }
 
 void manageIdle() {
@@ -924,14 +926,6 @@ void manageRoom() {
     selectionPtr = &mainMenuSelection;
   }
   drawMenu(currentMenuType, currentMenuItems, currentMenuItemsCount, *selectionPtr);
-
-  if (l5NeedsRedraw && !menuOpened) {
-    // Helper text at the bottom
-    Serial.println("[DEBUG] manageHomeScreen() -> l5NeedsRedraw TRUE");
-    M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-    drawText("TAB: Open menu", 120, 131, true, WHITE, 1);
-    l5NeedsRedraw = false;
-  }
 }
 
 void manageText() {
@@ -1855,12 +1849,22 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
 
 void drawOverlay() {
   // Draw the overlay (L5)
-  Serial.println("> Entering drawOverlay() L5 with l5NeedsRedraw set to " + String(l5NeedsRedraw));
+  Serial.println("> Entering drawOverlay() L5 with l5NeedsRedraw set to " + String(l5NeedsRedraw) + " and statsActive set to " + String(statsActive));
   if (l5NeedsRedraw) {
+    // Serial.println(">> l5NeedsRedraw is TRUE");
     switch (currentState) {
       case HOME_LOOP:
+        if (!menuOpened) {
+          // Helper text at the bottom
+          Serial.println("[DEBUG] manageHomeScreen() -> l5NeedsRedraw TRUE");
+          M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+          drawText("TAB: Open menu", 120, 131, true, WHITE, 1);
+        }
+        break;
+      case STATS_SCREEN:
+        // Serial.println(">> Entering drawStats()");
         if (statsActive) {
-          drawStats();
+          manageStats();
         }
         break;
       case REST_NAP:
@@ -1884,7 +1888,7 @@ void drawStats() {
   Serial.println("> Entering drawStats()");
   static unsigned long lastDraw = 0;
   unsigned long now = millis();
-    if (now - lastDraw < 120 && (l0NeedsRedraw || l1NeedsRedraw || l3NeedsRedraw)) {
+  if (now - lastDraw < 120 && (l0NeedsRedraw || l1NeedsRedraw || l3NeedsRedraw)) {
     return;
   }
   lastDraw = now;
@@ -1946,9 +1950,11 @@ void drawStats() {
 
   M5Cardputer.Display.setTextDatum(top_left);
   M5Cardputer.Display.setTextSize(1);
+  Serial.println("> Exiting drawStats()");
 }
 
 void drawStatBar(const String &label, int value, int maxValue, int x, int y, int width, int barHeight, uint16_t barColor, uint16_t bgColor, uint16_t frameColor) {
+  Serial.println("> Entering drawStatBar()");
   if (maxValue <= 0) {
     maxValue = 1;
   }
@@ -2007,6 +2013,8 @@ void manageStats() {
       changeState(0, HOME_LOOP, 0);
       return;
     }
+  } else {
+    drawStats();
   }
 }
 
