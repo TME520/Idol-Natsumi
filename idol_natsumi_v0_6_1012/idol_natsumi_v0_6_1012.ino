@@ -519,6 +519,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         case STATS_SCREEN:
           screenConfig = GAME;
           statsActive = true;
+          l5NeedsRedraw = true;
           break;
         case FOOD_MENU:
           screenConfig = ROOM;
@@ -811,8 +812,7 @@ void manageGame() {
   */
   switch (currentState) {
     case STATS_SCREEN:
-      // manageStats();
-      // l5NeedsRedraw = true;
+      manageStats();
       break;
     default:
       playGame();
@@ -1851,7 +1851,7 @@ void drawOverlay() {
   // Draw the overlay (L5)
   Serial.println("> Entering drawOverlay() L5 with l5NeedsRedraw set to " + String(l5NeedsRedraw) + " and statsActive set to " + String(statsActive));
   if (l5NeedsRedraw) {
-    // Serial.println(">> l5NeedsRedraw is TRUE");
+    Serial.println(">> l5NeedsRedraw is TRUE");
     switch (currentState) {
       case HOME_LOOP:
         if (!menuOpened) {
@@ -1862,9 +1862,9 @@ void drawOverlay() {
         }
         break;
       case STATS_SCREEN:
-        // Serial.println(">> Entering drawStats()");
+        Serial.println(">> Entering drawStats()");
         if (statsActive) {
-          manageStats();
+          drawStats();
         }
         break;
       case REST_NAP:
@@ -2013,8 +2013,6 @@ void manageStats() {
       changeState(0, HOME_LOOP, 0);
       return;
     }
-  } else {
-    drawStats();
   }
 }
 
