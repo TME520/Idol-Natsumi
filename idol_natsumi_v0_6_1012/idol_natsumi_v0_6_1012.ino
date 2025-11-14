@@ -1621,11 +1621,6 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         menuOpened = false;
         changeState(0, REST_SLEEP, 0);
         break;
-      case 50:
-        // 2: BEDTIME
-        menuOpened = false;
-        changeState(0, REST_BEDTIME, 0);
-        break;
       case 55:
         // 7: DEBUG
         if (debugEnabled) {
@@ -1672,8 +1667,6 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           changeState(0, REST_MEDITATE, 0);
         } else if (selection == 1) {
           changeState(0, REST_SLEEP, 0);
-        } else if (selection == 2) {
-          changeState(0, REST_BEDTIME, 0);
         } else if (selection == 7) {
           if (debugEnabled) {
             debugEnabled = false;
