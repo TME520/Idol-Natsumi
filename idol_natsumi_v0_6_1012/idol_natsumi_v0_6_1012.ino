@@ -83,6 +83,7 @@ unsigned long agingInterval = 60000;  // 1 minute for testing
 unsigned long sessionStart = 0;           // millis() when NEW_GAME starts
 unsigned long playtimeTotalMs = 0;        // total playtime in ms (could persist later)
 int lastAgeTick = 0;
+int spiritScore = 0;
 const unsigned long microWait = 60;
 const unsigned long shortWait = 200;
 const unsigned long mediumWait = 3200;
@@ -650,6 +651,7 @@ void updateAging() {
   if (natsumi.age > currentAge) {
     // Load updated portrait
     preloadImages();
+    updateSpirit();
     showToast(String("Natsumi turned ") + natsumi.age + " years old!");
     l5NeedsRedraw=true;
   }
@@ -693,6 +695,23 @@ void updateStats() {
     Serial.println(natsumi.energy);
     l5NeedsRedraw=true;
   }
+}
+
+void updateSpirit() {
+  Serial.println("> Entering updateSpirit()");
+  spiritScore = natsumi.hygiene + natsumi.energy + natsumi.hunger + natsumi.performance + natsumi.popularity;
+  if ( spiritScore >= 0 && spiritScore < 5 ) {
+    natsumi.spirit = 0;
+  } else if ( spiritScore >= 5 && spiritScore < 10 ) {
+    natsumi.spirit = 1;
+  } else if ( spiritScore >= 10 && spiritScore < 15 ) {
+    natsumi.spirit = 2;
+  } else if ( spiritScore >= 15 && spiritScore < 20 ) {
+    natsumi.spirit = 3;
+  } else if ( spiritScore == 20 ) {
+    natsumi.spirit = 4;
+  }
+  return;
 }
 
 void manageCard() {
