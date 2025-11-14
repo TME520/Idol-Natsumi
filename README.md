@@ -46,7 +46,7 @@ Stat caps: 0 is the lowest while 4 is the highest.
 | **Hunger**     | Passive    | 0–4    | COOK, RESTAURANT, ORDER                                                   | Decreases by 1 every `hungerInterval` ms                         |
 | **Hygiene**    | Passive    | 0–4    | WASH, ONSEN                                                               | Decreases by 1 every `hygieneInterval` ms                        |
 | **Energy**     | Passive    | 0–4    | GARDEN, TEMPLE, ONSEN, NAP, BEDTIME                                       | Decreases by 1 every `energyInterval` ms                         |
-| **Spirit**     | Derived    | 0–4    | Improves when Hygiene, Energy, Hunger, Performance, or Popularity are high | Declines when those stats are low                                |
+| **Spirit**     | Derived    | 0–4    | Improves when Hygiene, Energy, Hunger, Performance, or Popularity are high or through meditation | Declines when those stats are low                                |
 | **Popularity** | Active     | 0–4    | COMPETITION (LOCAL, DEPARTMENTAL, REGIONAL, NATIONAL)                     | —                                                                |
 | **Performance**| Active     | 0–4    | TRAINING → SING, DANCE                                                   | —                                                                |
 | **Fitness**    | Passive    | 0–4    | TRAINING → SWIM, GYM, WALK                                               | Decreases by 1 every time Age increases by 1 year                |
