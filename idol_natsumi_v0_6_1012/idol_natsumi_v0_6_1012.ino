@@ -25,8 +25,7 @@ enum GameState {
   HEALTH_ONSEN,
   REST_MENU,
   REST_MEDITATE,
-  REST_NAP,
-  REST_BEDTIME,
+  REST_SLEEP,
   STATS_SCREEN,
   GARDEN_LOOP,
   TRAIN_MENU,
@@ -103,7 +102,7 @@ const char* foodMenuItems[] = {"0: FRIDGE", "1: RESTAURANT", "2: ORDER"};
 const char* trainingMenuItems[] = {"0: SING", "1: DANCE", "2: SWIM", "3: GYM", "4: WALK", "5: LIBRARY"};
 const char* competitionMenuItems[] = {"0: LOCAL", "1: DEPARTMENTAL", "2: REGIONAL", "3: NATIONAL"};
 const char* healthMenuItems[] = {"0: WASH", "1: DOCTOR", "2: TEMPLE", "3: ONSEN"};
-const char* restMenuItems[] = {"0: MEDITATE", "1: NAP", "2: BEDTIME"};
+const char* restMenuItems[] = {"0: MEDITATE", "1: SLEEP"};
 const char** currentMenuItems = nullptr;
 const int mainMenuItemCount = 3;
 const int homeMenuItemCount = 8;
@@ -112,7 +111,7 @@ const int foodMenuItemCount = 3;
 const int trainingMenuItemCount = 6;
 const int competitionMenuItemCount = 4;
 const int healthMenuItemCount = 4;
-const int restMenuItemCount = 3;
+const int restMenuItemCount = 2;
 int currentMenuItemsCount = 0;
 int homeMenuSelection = 0;
 int mainMenuSelection = 0;
@@ -295,7 +294,7 @@ void preloadImages() {
     case HEALTH_WASH:
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
       break;
-    case REST_NAP:
+    case REST_SLEEP:
       preloadImage("/idolnat/screens/bedroom_dark.png", currentBackground);
       break;
     case GARDEN_LOOP:
@@ -338,7 +337,7 @@ void preloadImages() {
   switch(natsumi.age) {
     case 11: case 12:
       switch(currentState) {
-        case REST_NAP:
+        case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_11yo_asleep-90x135.png", currentCharacter);
           break; 
         default:
@@ -348,7 +347,7 @@ void preloadImages() {
       break;
     case 13: case 14:
       switch(currentState) {
-        case REST_NAP:
+        case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_13yo_asleep-90x135.png", currentCharacter);
           break; 
         default:
@@ -358,7 +357,7 @@ void preloadImages() {
       break;
     case 15: case 16: case 17:
       switch(currentState) {
-        case REST_NAP:
+        case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_15yo_asleep-90x135.png", currentCharacter);
           break; 
         default:
@@ -368,7 +367,7 @@ void preloadImages() {
       break;
     case 18: case 19: case 20:
       switch(currentState) {
-        case REST_NAP:
+        case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_18yo_asleep-90x135.png", currentCharacter);
           break; 
         default:
@@ -378,7 +377,7 @@ void preloadImages() {
       break;
     case 21: case 22:
       switch(currentState) {
-        case REST_NAP:
+        case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_21yo_asleep-90x135.png", currentCharacter);
           break; 
         default:
@@ -581,7 +580,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           currentMenuItems = restMenuItems;
           currentMenuItemsCount = restMenuItemCount;
           break;
-        case REST_NAP:
+        case REST_SLEEP:
           screenConfig = IDLE;
           lastNapEnergyDisplayed = -1;
           break;
@@ -682,7 +681,7 @@ void updateStats() {
   // Energy decreases every 4 minutes
   if (currentMillis - natsumi.lastEnergyUpdate >= energyInterval) {
     switch (currentState) {
-      case REST_NAP:
+      case REST_SLEEP:
         if (natsumi.energy < 4) natsumi.energy++;
         break;
       default:
@@ -840,8 +839,8 @@ void manageIdle() {
       Interactive (escape)
   */
   switch (currentState) {
-    case REST_NAP:
-      nap();
+    case REST_SLEEP:
+      sleep();
       break;
     default:
       break;
@@ -1054,7 +1053,7 @@ void drawNapEnergyOverlay() {
   */
 }
 
-void nap() {
+void sleep() {
   uint8_t key = 0;
   if ((l5NeedsRedraw || lastNapEnergyDisplayed != natsumi.energy) && natsumi.energy < 4) {
     drawNapEnergyOverlay();
@@ -1620,7 +1619,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       case 49:
         // 1: NAP
         menuOpened = false;
-        changeState(0, REST_NAP, 0);
+        changeState(0, REST_SLEEP, 0);
         break;
       case 50:
         // 2: BEDTIME
@@ -1672,7 +1671,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         if (selection == 0) {
           changeState(0, REST_MEDITATE, 0);
         } else if (selection == 1) {
-          changeState(0, REST_NAP, 0);
+          changeState(0, REST_SLEEP, 0);
         } else if (selection == 2) {
           changeState(0, REST_BEDTIME, 0);
         } else if (selection == 7) {
@@ -1869,7 +1868,7 @@ void drawOverlay() {
           drawStats();
         }
         break;
-      case REST_NAP:
+      case REST_SLEEP:
         if (natsumi.energy < 4) {
           drawNapEnergyOverlay();
         }
