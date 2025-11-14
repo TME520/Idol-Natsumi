@@ -295,6 +295,9 @@ void preloadImages() {
     case HEALTH_WASH:
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
       break;
+    case REST_MEDITATE:
+      preloadImage("/idolnat/screens/bedroom.png", currentBackground);
+      break;
     case REST_SLEEP:
       preloadImage("/idolnat/screens/bedroom_dark.png", currentBackground);
       break;
@@ -338,6 +341,9 @@ void preloadImages() {
   switch(natsumi.age) {
     case 11: case 12:
       switch(currentState) {
+        case REST_MEDITATE:
+          preloadImage("/idolnat/sprites/natsumi_11yo_meditate-90x135.png", currentCharacter);
+          break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_11yo_asleep-90x135.png", currentCharacter);
           break; 
@@ -348,6 +354,9 @@ void preloadImages() {
       break;
     case 13: case 14:
       switch(currentState) {
+        case REST_MEDITATE:
+          preloadImage("/idolnat/sprites/natsumi_13yo_meditate-90x135.png", currentCharacter);
+          break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_13yo_asleep-90x135.png", currentCharacter);
           break; 
@@ -358,6 +367,9 @@ void preloadImages() {
       break;
     case 15: case 16: case 17:
       switch(currentState) {
+        case REST_MEDITATE:
+          preloadImage("/idolnat/sprites/natsumi_15yo_meditate-90x135.png", currentCharacter);
+          break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_15yo_asleep-90x135.png", currentCharacter);
           break; 
@@ -368,6 +380,9 @@ void preloadImages() {
       break;
     case 18: case 19: case 20:
       switch(currentState) {
+        case REST_MEDITATE:
+          preloadImage("/idolnat/sprites/natsumi_18yo_meditate-90x135.png", currentCharacter);
+          break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_18yo_asleep-90x135.png", currentCharacter);
           break; 
@@ -378,6 +393,9 @@ void preloadImages() {
       break;
     case 21: case 22:
       switch(currentState) {
+        case REST_MEDITATE:
+          preloadImage("/idolnat/sprites/natsumi_21yo_meditate-90x135.png", currentCharacter);
+          break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_21yo_asleep-90x135.png", currentCharacter);
           break; 
@@ -858,6 +876,9 @@ void manageIdle() {
       Interactive (escape)
   */
   switch (currentState) {
+    case REST_MEDITATE():
+      meditate();
+      break;
     case REST_SLEEP:
       sleep();
       break;
@@ -1073,6 +1094,28 @@ void drawNapEnergyOverlay() {
 }
 
 void sleep() {
+  uint8_t key = 0;
+  if ((l5NeedsRedraw || lastNapEnergyDisplayed != natsumi.energy) && natsumi.energy < 4) {
+    drawNapEnergyOverlay();
+    lastNapEnergyDisplayed = natsumi.energy;
+    l5NeedsRedraw = false;
+  }
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      changeState(0, HOME_LOOP, 0);
+      return;
+    }
+  }
+  if (natsumi.energy >= 4) {
+    showToast("Natsumi is well rested");
+    changeState(0, HOME_LOOP, 0);
+    return;
+  }
+}
+
+void meditate() {
   uint8_t key = 0;
   if ((l5NeedsRedraw || lastNapEnergyDisplayed != natsumi.energy) && natsumi.energy < 4) {
     drawNapEnergyOverlay();
