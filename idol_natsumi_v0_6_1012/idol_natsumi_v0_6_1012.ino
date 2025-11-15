@@ -143,7 +143,7 @@ bool l5NeedsRedraw = false; // Overlay (user-defined)
 bool debugEnabled = false;
 bool menuOpened = false;
 bool toastActive = false;
-bool statsActive = false;
+bool overlayActive = false;
 
 unsigned long lastUpdate = 0;
 const int FRAME_DELAY = 50;
@@ -546,7 +546,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           break;
         case STATS_SCREEN:
           screenConfig = GAME;
-          statsActive = true;
+          overlayActive = true;
           l5NeedsRedraw = true;
           break;
         case FOOD_MENU:
@@ -1234,7 +1234,7 @@ void meditate() {
 void drawBackground(const ImageBuffer& bg) {
   // Draw the background of the screen (layer 0)
   // Serial.println("> Entering drawBackground() L0");
-  if (l0NeedsRedraw) {
+  if (l0NeedsRedraw && !overlayActive) {
     drawImage(bg);
     l0NeedsRedraw = false;
     l1NeedsRedraw = true;
@@ -1248,7 +1248,7 @@ void drawBackground(const ImageBuffer& bg) {
 void drawCharacter() {
   // Draw the character(s) on the screen (layer 1)
   // Serial.println("> Entering drawCharacter() L1");
-  if (l1NeedsRedraw) {
+  if (l1NeedsRedraw && !overlayActive) {
     drawImage(currentCharacter);
     l1NeedsRedraw = false;
     l2NeedsRedraw = true;
@@ -2001,7 +2001,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
 
 void drawOverlay() {
   // Draw the overlay (L5)
-  Serial.println("> Entering drawOverlay() L5 with l5NeedsRedraw set to " + String(l5NeedsRedraw) + " and statsActive set to " + String(statsActive));
+  Serial.println("> Entering drawOverlay() L5 with l5NeedsRedraw set to " + String(l5NeedsRedraw) + " and overlayActive set to " + String(overlayActive));
   if (l5NeedsRedraw) {
     Serial.println(">> drawOverlay: l5NeedsRedraw is TRUE");
     uint8_t key = 0;
@@ -2026,7 +2026,7 @@ void drawOverlay() {
         break;
       case STATS_SCREEN:
         Serial.println(">>> drawOverlay: STATS_SCREEN");
-        if (statsActive) {
+        if (overlayActive) {
           drawStats();
         }
         break;
@@ -2180,7 +2180,7 @@ void manageStats() {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      statsActive = false;
+      overlayActive = false;
       changeState(0, HOME_LOOP, 0);
       return;
     }
