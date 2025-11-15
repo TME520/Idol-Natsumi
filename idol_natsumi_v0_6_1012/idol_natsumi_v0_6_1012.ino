@@ -1255,6 +1255,7 @@ void drawCharacter() {
     l3NeedsRedraw = true;
     l4NeedsRedraw = true;
     l5NeedsRedraw = true;
+    lastMeditationDisplayed = 0;
   }
 }
 
