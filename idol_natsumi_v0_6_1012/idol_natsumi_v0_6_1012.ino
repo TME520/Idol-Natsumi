@@ -749,6 +749,10 @@ void updateSpirit() {
     } else if ( spiritScore == 20 ) {
       natsumi.spirit = 4;
     }
+    Serial.println(">> updateSpirit: spiritScore=" + String(spiritScore));
+    Serial.println(">> updateSpirit: natsumi.spirit=" + String(natsumi.spirit));
+  } else {
+    Serial.println(">> updateSpirit: meditationActive is TRUE, no refresh of Spirit");
   }
   return;
 }
@@ -1181,10 +1185,12 @@ void drawMeditationOverlay() {
     M5Cardputer.Display.drawRoundRect(barX - 1, barY - 1, barW + 2, barH + 2, 7, borderColor);
   }
   if (remaining == 0) {
+    Serial.println(">> drawMeditationOverlay: End of meditation session");
     meditationActive = false;
     if (!meditationRewardApplied) {
       if (natsumi.spirit < 4 ) {
         natsumi.spirit += 1;
+        Serial.println(">> drawMeditationOverlay: natsumi.spirit=" + String(natsumi.spirit));
       }
       meditationRewardApplied = true;
     }
