@@ -824,8 +824,12 @@ void manageCard() {
   Menu: None
   Interactive (timer + keypress)
   */
+  /*
   l1NeedsRedraw = false;
   l3NeedsRedraw = false;
+  l4NeedsRedraw = false;
+  l5NeedsRedraw = false;
+  */
   switch (currentState) {
     case M5_SCREEN:
       changeState(0, TITLE_SCREEN, microWait);
@@ -867,6 +871,11 @@ void manageDialog() {
       Menu: None
       Interactive (timer + keypress + escape)
   */
+  /*
+  l3NeedsRedraw = false;
+  l4NeedsRedraw = false;
+  l5NeedsRedraw = false;
+  */
   switch (currentState) {
     default:
       break;
@@ -893,6 +902,13 @@ void manageGame() {
       Menu: None
       Interactive (timer + keypress + escape)
   */
+  /*
+  l0NeedsRedraw = false;
+  l1NeedsRedraw = false;
+  l3NeedsRedraw = false;
+  l4NeedsRedraw = false;
+  l5NeedsRedraw = false;
+  */
   switch (currentState) {
     case STATS_SCREEN:
       manageStats();
@@ -915,13 +931,14 @@ void manageIdle() {
   // Manage IDLE screens
   /*
       Idle mode, minimal screen activity
-      Background: None
+      Background: Yes, Always black
       Character: Natsumi
       Debug: Available
       Toast: Yes
       Menu: None
       Interactive (escape)
   */
+  l4NeedsRedraw = false;
   switch (currentState) {
     case REST_MEDITATE:
       meditate();
@@ -1024,6 +1041,14 @@ void manageText() {
       Toast: None
       Menu: None
       Non-interactive (timer)
+  */
+  /*
+  l0NeedsRedraw = false;
+  l1NeedsRedraw = false;
+  l2NeedsRedraw = false;
+  l3NeedsRedraw = false;
+  l4NeedsRedraw = false;
+  l5NeedsRedraw = false;
   */
   switch (currentState) {
     case VERSION_SCREEN:
@@ -1263,6 +1288,12 @@ void drawCharacter() {
   // Serial.println("> Entering drawCharacter() L1");
   if (l1NeedsRedraw) {
     drawImage(currentCharacter);
+    if (!menuOpened && !overlayActive) {
+      // Helper text at the bottom
+      Serial.println("[DEBUG] manageHomeScreen() -> l5NeedsRedraw TRUE");
+      M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+      drawText("TAB: Open menu", 120, 131, true, WHITE, 1);
+    }
     l1NeedsRedraw = false;
     l2NeedsRedraw = true;
     l3NeedsRedraw = true;
@@ -2013,7 +2044,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
 void drawOverlay() {
   // Draw the overlay (L5)
   Serial.println("> Entering drawOverlay() L5 with l5NeedsRedraw set to " + String(l5NeedsRedraw) + " and overlayActive set to " + String(overlayActive));
-  if (l5NeedsRedraw) {
+  if (overlayActive) {
     Serial.println(">> drawOverlay: l5NeedsRedraw is TRUE");
     uint8_t key = 0;
     if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -2021,40 +2052,31 @@ void drawOverlay() {
       Serial.println(">>> drawOverlay: Testing for key pressed");
       if (keyList.size() > 0) {
         key = M5Cardputer.Keyboard.getKey(keyList[0]);
+        overlayActive = false;
         changeState(0, HOME_LOOP, 0);
         return;
       }
     }
+  }
+  if (l5NeedsRedraw && overlayActive) {
     switch (currentState) {
       case HOME_LOOP:
         Serial.println(">>> drawOverlay: HOME_LOOP");
-        if (!menuOpened) {
-          // Helper text at the bottom
-          Serial.println("[DEBUG] manageHomeScreen() -> l5NeedsRedraw TRUE");
-          M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-          drawText("TAB: Open menu", 120, 131, true, WHITE, 1);
-        }
         break;
       case STATS_SCREEN:
         Serial.println(">>> drawOverlay: STATS_SCREEN");
-        if (overlayActive) {
-          drawStats();
-        }
+        drawStats();
         break;
       case REST_SLEEP:
         Serial.println(">>> drawOverlay: REST_SLEEP");
-        if (overlayActive) {
-          if (natsumi.energy < 4) {
-            drawNapEnergyOverlay();
-          }
+        if (natsumi.energy < 4) {
+          drawNapEnergyOverlay();
         }
         break;
       case REST_MEDITATE:
         Serial.println(">>> drawOverlay: REST_MEDITATE");
         Serial.println(">>> drawOverlay: lastMeditationDisplayed=" + String(lastMeditationDisplayed));
-        if (overlayActive) {
-          drawMeditationOverlay();
-        }
+        drawMeditationOverlay();
         break;
       default:
         break;
