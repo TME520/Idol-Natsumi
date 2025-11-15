@@ -1291,7 +1291,7 @@ void drawDebug() {
     l2NeedsRedraw = true;
     l3NeedsRedraw = true;
     l4NeedsRedraw = true;
-    l5NeedsRedraw = true;
+    // l5NeedsRedraw = true;
   } else {
     l2NeedsRedraw = false;
   }
