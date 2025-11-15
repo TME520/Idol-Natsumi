@@ -1311,7 +1311,7 @@ void drawToast() {
   }
   if (l3NeedsRedraw && toastActive) {
     const int tx = 120;  // center X (screen is 240 wide in landscape)
-    const int ty = 100;  // near bottom for 135px height
+    const int ty = 117;  // near bottom for 135px height
     M5Cardputer.Display.fillRect(0, ty - 8, 240, 18, BLACK); // clear strip
     M5Cardputer.Display.setTextDatum(middle_center);
     M5Cardputer.Display.setTextSize(1);
@@ -1963,9 +1963,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
   if (!menuOpened) {
     l4NeedsRedraw = false;
     return;
-  }
-
-  if (l4NeedsRedraw) {
+  } else if (l4NeedsRedraw && menuOpened) {
     const int x = 60;
     const int w = 120;
     const int padding = 8;
@@ -2045,14 +2043,18 @@ void drawOverlay() {
         break;
       case REST_SLEEP:
         Serial.println(">>> drawOverlay: REST_SLEEP");
-        if (natsumi.energy < 4) {
-          drawNapEnergyOverlay();
+        if (overlayActive) {
+          if (natsumi.energy < 4) {
+            drawNapEnergyOverlay();
+          }
         }
         break;
       case REST_MEDITATE:
         Serial.println(">>> drawOverlay: REST_MEDITATE");
         Serial.println(">>> drawOverlay: lastMeditationDisplayed=" + String(lastMeditationDisplayed));
-        drawMeditationOverlay();
+        if (overlayActive) {
+          drawMeditationOverlay();
+        }
         break;
       default:
         break;
