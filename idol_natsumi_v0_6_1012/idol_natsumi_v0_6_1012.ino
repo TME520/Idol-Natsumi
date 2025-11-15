@@ -95,6 +95,10 @@ const unsigned long hungerInterval = 120000;   // 2 minutes
 const unsigned long hygieneInterval = 240000;  // 4 minutes
 const unsigned long energyInterval = 240000;   // 4 minutes
 const unsigned long meditateInterval = 300000;   // 5 minutes
+unsigned long meditateStart = 0;
+unsigned long lastMeditationRedraw = 0;
+bool meditationActive = false;
+bool meditationRewardApplied = false;
 
 String currentMenuType = "main";
 const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: DEV SCREEN"};
@@ -600,6 +604,14 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           currentMenuItems = restMenuItems;
           currentMenuItemsCount = restMenuItemCount;
           break;
+        case REST_MEDITATE:
+          screenConfig = IDLE;
+          meditateStart = millis();
+          lastMeditationRedraw = 0;
+          meditationActive = true;
+          meditationRewardApplied = false;
+          l5NeedsRedraw = true;
+          break;
         case REST_SLEEP:
           screenConfig = IDLE;
           lastNapEnergyDisplayed = -1;
@@ -1095,7 +1107,95 @@ void drawNapEnergyOverlay() {
 }
 
 void drawMeditationOverlay() {
-  // Shows how much time is left to meditate
+  const int panelX = 18;
+  const int panelY = 20;
+  const int panelW = 204;
+  const int panelH = 96;
+
+  const uint16_t shadowColor = M5Cardputer.Display.color565(6, 10, 24);
+  const uint16_t panelColor = M5Cardputer.Display.color565(16, 24, 48);
+  const uint16_t borderColor = M5Cardputer.Display.color565(80, 160, 200);
+  const uint16_t accentColor = M5Cardputer.Display.color565(180, 255, 210);
+  const uint16_t accentMuted = M5Cardputer.Display.color565(40, 70, 110);
+  const uint16_t textColor = WHITE;
+
+  unsigned long now = millis();
+  unsigned long elapsed = (now >= meditateStart) ? (now - meditateStart) : 0;
+  if (elapsed > meditateInterval) {
+    elapsed = meditateInterval;
+  }
+
+  unsigned long remaining = (elapsed >= meditateInterval) ? 0 : (meditateInterval - elapsed);
+  float progress = meditateInterval == 0 ? 1.0f : (float)elapsed / (float)meditateInterval;
+  if (progress > 1.0f) progress = 1.0f;
+
+  // Panel frame
+  M5Cardputer.Display.fillRoundRect(panelX + 3, panelY + 4, panelW, panelH, 14, shadowColor);
+  M5Cardputer.Display.fillRoundRect(panelX, panelY, panelW, panelH, 12, panelColor);
+  M5Cardputer.Display.drawRoundRect(panelX, panelY, panelW, panelH, 12, borderColor);
+  M5Cardputer.Display.drawRoundRect(panelX + 2, panelY + 2, panelW - 4, panelH - 4, 10, accentMuted);
+
+  // Title
+  drawText("INNER CALM", panelX + panelW / 2, panelY + 14, true, borderColor, 1, panelColor);
+  drawText("Meditation", panelX + panelW / 2, panelY + 30, true, textColor, 2, panelColor);
+
+  // Countdown timer display
+  unsigned long remainingMinutes = remaining / 60000UL;
+  unsigned long remainingSeconds = (remaining / 1000UL) % 60UL;
+  String timeText = "";
+  if (remainingMinutes < 10) {
+    timeText += "0";
+  }
+  timeText += String(remainingMinutes);
+  timeText += ":";
+  if (remainingSeconds < 10) {
+    timeText += "0";
+  }
+  timeText += String(remainingSeconds);
+  drawText(timeText, panelX + panelW / 2, panelY + 52, true, accentColor, 3, panelColor);
+
+  // Breathing guidance
+  bool inhalePhase = ((elapsed / 1000UL) % 8UL) < 4UL;
+  String guidance = inhalePhase ? "Inhale gently" : "Exhale slowly";
+  drawText(guidance, panelX + panelW / 2, panelY + 72, true, borderColor, 1, panelColor);
+
+  // Progress bar made of soft segments
+  const int barX = panelX + 24;
+  const int barY = panelY + panelH - 32;
+  const int barW = panelW - 48;
+  const int barH = 14;
+  const int segmentCount = 24;
+  const int gap = 2;
+  int availableWidth = barW - (segmentCount - 1) * gap;
+  int segmentWidth = availableWidth / segmentCount;
+  int extraPixels = availableWidth % segmentCount;
+
+  M5Cardputer.Display.fillRoundRect(barX - 2, barY - 2, barW + 4, barH + 4, 8, shadowColor);
+  int filledSegments = (int)(progress * segmentCount + 0.5f);
+  int currentX = barX;
+  for (int i = 0; i < segmentCount; ++i) {
+    int width = segmentWidth + (i < extraPixels ? 1 : 0);
+    uint16_t color = (i < filledSegments) ? accentColor : accentMuted;
+    M5Cardputer.Display.fillRoundRect(currentX, barY, width, barH, 6, color);
+    currentX += width + gap;
+  }
+  M5Cardputer.Display.drawRoundRect(barX - 1, barY - 1, barW + 2, barH + 2, 7, borderColor);
+
+  if (remaining == 0) {
+    drawText("Meditation complete", panelX + panelW / 2, panelY + panelH - 16, true, accentColor, 1, panelColor);
+    drawText("Press any key to return", panelX + panelW / 2, panelY + panelH - 4, true, textColor, 1, panelColor);
+  } else {
+    drawText("Stay present. Calm is growing", panelX + panelW / 2, panelY + panelH - 16, true, textColor, 1, panelColor);
+  }
+
+  if (remaining == 0) {
+    meditationActive = false;
+    if (!meditationRewardApplied) {
+      natsumi.spirit += 1;
+      meditationRewardApplied = true;
+      showToast("Natsumi feels more centered");
+    }
+  }
 }
 
 void sleep() {
@@ -1122,22 +1222,31 @@ void sleep() {
 
 void meditate() {
   uint8_t key = 0;
-  if ((l5NeedsRedraw || natsumi.spirit < 4) {
-    drawMeditationOverlay();
-    l5NeedsRedraw = false;
-  }
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-    auto keyList = M5Cardputer.Keyboard.keyList();
-    if (keyList.size() > 0) {
-      key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      changeState(0, HOME_LOOP, 0);
-      return;
+  unsigned long now = millis();
+
+  if (meditationActive) {
+    if (now - meditateStart >= meditateInterval) {
+      meditationActive = false;
+      l5NeedsRedraw = true;
+    } else if (now - lastMeditationRedraw >= 500) {
+      l5NeedsRedraw = true;
+      lastMeditationRedraw = now;
     }
+  } else if (!meditationRewardApplied) {
+    l5NeedsRedraw = true;
   }
-  if (natsumi.spirit == 4) {
-    showToast("Natsumi\'s mind is fine");
-    changeState(0, HOME_LOOP, 0);
-    return;
+
+  bool meditationFinished = (!meditationActive && meditationRewardApplied);
+
+  if (meditationFinished) {
+    if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+      auto keyList = M5Cardputer.Keyboard.keyList();
+      if (keyList.size() > 0) {
+        key = M5Cardputer.Keyboard.getKey(keyList[0]);
+        changeState(0, HOME_LOOP, 0);
+        return;
+      }
+    }
   }
 }
 
@@ -1932,8 +2041,11 @@ void drawOverlay() {
           drawNapEnergyOverlay();
         }
         break;
+      case REST_MEDITATE:
+        drawMeditationOverlay();
+        break;
       default:
-        break; 
+        break;
     }
     l5NeedsRedraw = false;
   }
