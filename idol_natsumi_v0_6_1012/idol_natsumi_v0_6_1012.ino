@@ -95,10 +95,13 @@ const unsigned long hungerInterval = 120000;   // 2 minutes
 const unsigned long hygieneInterval = 240000;  // 4 minutes
 const unsigned long energyInterval = 240000;   // 4 minutes
 const unsigned long meditateInterval = 300000;   // 5 minutes
+const unsigned long fiveSecondInterval = 5000;  // 5 seconds
 unsigned long meditateStart = 0;
 unsigned long lastMeditationRedraw = 0;
 bool meditationActive = false;
 bool meditationRewardApplied = false;
+unsigned long lastFiveSecondTick = 0;
+bool fiveSecondPulse = false;  // Set true by updateFiveSecondPulse() every five seconds
 
 String currentMenuType = "main";
 const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: DEV SCREEN"};
@@ -128,6 +131,7 @@ int competitionMenuSelection = 0;
 int healthMenuSelection = 0;
 int restMenuSelection = 0;
 int lastNapEnergyDisplayed = -1;
+int lastMeditationDisplayed = 0;
 
 bool l0NeedsRedraw = false; // Background
 bool l1NeedsRedraw = false; // Character
@@ -443,6 +447,7 @@ void loop() {
 
   if (millis() - lastUpdate < FRAME_DELAY) return;
   lastUpdate = millis();
+  updateFiveSecondPulse();
 /*
   Serial.println("l0NeedsRedraw: " + String(l0NeedsRedraw) + " - l1NeedsRedraw: " + String(l1NeedsRedraw) + " - l2NeedsRedraw: " + String(l2NeedsRedraw) + " - l3NeedsRedraw: " + String(l3NeedsRedraw));
   Serial.println("l4NeedsRedraw: " + String(l4NeedsRedraw) + " - l5NeedsRedraw: " + String(l5NeedsRedraw));
@@ -745,6 +750,21 @@ void updateSpirit() {
     }
   }
   return;
+}
+
+void updateFiveSecondPulse() {
+  unsigned long now = millis();
+  if (now < lastFiveSecondTick) {
+    lastFiveSecondTick = now;
+    Serial.println(">> 5 sec tick");
+  }
+  if (now - lastFiveSecondTick >= fiveSecondInterval) {
+    lastFiveSecondTick = now;
+    Serial.println(">>> 5 sec tick");
+    fiveSecondPulse = true;
+  } else {
+    fiveSecondPulse = false;
+  }
 }
 
 void manageCard() {
@@ -1124,48 +1144,52 @@ void drawMeditationOverlay() {
   unsigned long remaining = (elapsed >= meditateInterval) ? 0 : (meditateInterval - elapsed);
   float progress = meditateInterval == 0 ? 1.0f : (float)elapsed / (float)meditateInterval;
   if (progress > 1.0f) progress = 1.0f;
-
-  // Panel frame
-  M5Cardputer.Display.fillRoundRect(panelX + 3, panelY + 4, panelW, panelH, 14, shadowColor);
-  M5Cardputer.Display.fillRoundRect(panelX, panelY, panelW, panelH, 12, panelColor);
-  M5Cardputer.Display.drawRoundRect(panelX, panelY, panelW, panelH, 12, borderColor);
-  M5Cardputer.Display.drawRoundRect(panelX + 2, panelY + 2, panelW - 4, panelH - 4, 10, accentMuted);
-
-  // Title
-  drawText("INNER CALM", panelX + panelW / 2, panelY + 14, true, borderColor, 1, panelColor);
-  drawText("Meditation", panelX + panelW / 2, panelY + 30, true, textColor, 2, panelColor);
-
-  // Progress bar made of soft segments
-  const int barX = panelX + 24;
-  const int barY = panelY + panelH - 30;
-  const int barW = panelW - 48;
-  const int barH = 14;
-  const int segmentCount = 24;
-  const int gap = 2;
-  int availableWidth = barW - (segmentCount - 1) * gap;
-  int segmentWidth = availableWidth / segmentCount;
-  int extraPixels = availableWidth % segmentCount;
-
-  M5Cardputer.Display.fillRoundRect(barX - 2, barY - 2, barW + 4, barH + 4, 8, shadowColor);
-  int filledSegments = (int)(progress * segmentCount + 0.5f);
-  int currentX = barX;
-  for (int i = 0; i < segmentCount; ++i) {
-    int width = segmentWidth + (i < extraPixels ? 1 : 0);
-    uint16_t color = (i < filledSegments) ? accentColor : accentMuted;
-    M5Cardputer.Display.fillRoundRect(currentX, barY, width, barH, 6, color);
-    currentX += width + gap;
-  }
-  M5Cardputer.Display.drawRoundRect(barX - 1, barY - 1, barW + 2, barH + 2, 7, borderColor);
-
-  if (remaining == 0) {
-    meditationActive = false;
-    if (!meditationRewardApplied) {
-      if (natsumi.spirit < 4 ) {
-        natsumi.spirit += 1;
+  
+  if ( lastMeditationDisplayed == 0 || lastMeditationDisplayed == 10 ) {
+    lastMeditationDisplayed = 0;
+    // Panel frame
+    M5Cardputer.Display.fillRoundRect(panelX + 3, panelY + 4, panelW, panelH, 14, shadowColor);
+    M5Cardputer.Display.fillRoundRect(panelX, panelY, panelW, panelH, 12, panelColor);
+    M5Cardputer.Display.drawRoundRect(panelX, panelY, panelW, panelH, 12, borderColor);
+    M5Cardputer.Display.drawRoundRect(panelX + 2, panelY + 2, panelW - 4, panelH - 4, 10, accentMuted);
+  
+    // Title
+    drawText("INNER CALM", panelX + panelW / 2, panelY + 14, true, borderColor, 1, panelColor);
+    drawText("Meditation", panelX + panelW / 2, panelY + 30, true, textColor, 2, panelColor);
+  
+    // Progress bar made of soft segments
+    const int barX = panelX + 24;
+    const int barY = panelY + panelH - 30;
+    const int barW = panelW - 48;
+    const int barH = 14;
+    const int segmentCount = 24;
+    const int gap = 2;
+    int availableWidth = barW - (segmentCount - 1) * gap;
+    int segmentWidth = availableWidth / segmentCount;
+    int extraPixels = availableWidth % segmentCount;
+  
+    M5Cardputer.Display.fillRoundRect(barX - 2, barY - 2, barW + 4, barH + 4, 8, shadowColor);
+    int filledSegments = (int)(progress * segmentCount + 0.5f);
+    int currentX = barX;
+    for (int i = 0; i < segmentCount; ++i) {
+      int width = segmentWidth + (i < extraPixels ? 1 : 0);
+      uint16_t color = (i < filledSegments) ? accentColor : accentMuted;
+      M5Cardputer.Display.fillRoundRect(currentX, barY, width, barH, 6, color);
+      currentX += width + gap;
+    }
+    M5Cardputer.Display.drawRoundRect(barX - 1, barY - 1, barW + 2, barH + 2, 7, borderColor);
+  
+    if (remaining == 0) {
+      meditationActive = false;
+      if (!meditationRewardApplied) {
+        if (natsumi.spirit < 4 ) {
+          natsumi.spirit += 1;
+        }
+        meditationRewardApplied = true;
       }
-      meditationRewardApplied = true;
     }
   }
+  lastMeditationDisplayed++;
 }
 
 void sleep() {
@@ -1274,6 +1298,7 @@ void drawToast() {
       toastActive = false;
       l0NeedsRedraw = true;
       l3NeedsRedraw = false;
+      lastMeditationDisplayed = 0;
     }
   }
   if (l3NeedsRedraw && toastActive) {
