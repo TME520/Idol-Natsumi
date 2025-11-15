@@ -523,14 +523,52 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           currentMenuItemsCount = mainMenuItemCount;
           menuOpened = true;
           break;
-        case NEW_GAME: case CONTINUE_GAME: case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
+        case NEW_GAME:
           screenConfig = CARD;
+          natsumi.age = 11;
+          natsumi.ageMilliseconds = 0;
+          natsumi.hunger = 4;
+          natsumi.hygiene = 4;
+          natsumi.energy = 4;
+          natsumi.spirit = 4;
+          natsumi.popularity = 0;
+          natsumi.performance = 0;
+          natsumi.fitness = 0;
+          natsumi.culture = 0;
+          natsumi.charm = 0;
+          natsumi.lastHungerUpdate = 0;
+          natsumi.lastHygieneUpdate = 0;
+          natsumi.lastEnergyUpdate = 0;
+          playtimeTotalMs = 0;
+          sessionStart = millis();
+          lastAgeTick = 0;
+          break;
+        case CONTINUE_GAME:
+          natsumi.age = 11;
+          natsumi.ageMilliseconds = 0;
+          natsumi.hunger = 4;
+          natsumi.hygiene = 4;
+          natsumi.energy = 4;
+          natsumi.spirit = 4;
+          natsumi.popularity = 0;
+          natsumi.performance = 0;
+          natsumi.fitness = 0;
+          natsumi.culture = 0;
+          natsumi.charm = 0;
+          natsumi.lastHungerUpdate = 0;
+          natsumi.lastHygieneUpdate = 0;
+          natsumi.lastEnergyUpdate = 0;
+          playtimeTotalMs = 0;
+          sessionStart = millis();
+          lastAgeTick = 0;
           break;
         case DEV_SCREEN:
           screenConfig = CARD;
           currentMenuType = "dev";
           currentMenuItems = devMenuItems;
           currentMenuItemsCount = devMenuItemCount;
+          break;
+        case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
           break;
         case HOME_LOOP:
           screenConfig = ROOM;
@@ -615,12 +653,15 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           lastMeditationRedraw = 0;
           meditationActive = true;
           meditationRewardApplied = false;
+          overlayActive = true;
           l5NeedsRedraw = true;
           lastMeditationDisplayed = 0;
           break;
         case REST_SLEEP:
           screenConfig = IDLE;
           lastNapEnergyDisplayed = -1;
+          overlayActive = true;
+          l5NeedsRedraw = true;
           break;
         case GARDEN_LOOP:
           screenConfig = ROOM;
@@ -792,43 +833,9 @@ void manageCard() {
     case TITLE_SCREEN:
       break;
     case NEW_GAME:
-      natsumi.age = 11;
-      natsumi.ageMilliseconds = 0;
-      natsumi.hunger = 4;
-      natsumi.hygiene = 4;
-      natsumi.energy = 4;
-      natsumi.spirit = 4;
-      natsumi.popularity = 0;
-      natsumi.performance = 0;
-      natsumi.fitness = 0;
-      natsumi.culture = 0;
-      natsumi.charm = 0;
-      natsumi.lastHungerUpdate = 0;
-      natsumi.lastHygieneUpdate = 0;
-      natsumi.lastEnergyUpdate = 0;
-      playtimeTotalMs = 0;
-      sessionStart = millis();
-      lastAgeTick = 0;
       changeState(0, HOME_LOOP, 0);
       break;
     case CONTINUE_GAME:
-      natsumi.age = 11;
-      natsumi.ageMilliseconds = 0;
-      natsumi.hunger = 4;
-      natsumi.hygiene = 4;
-      natsumi.energy = 4;
-      natsumi.spirit = 4;
-      natsumi.popularity = 0;
-      natsumi.performance = 0;
-      natsumi.fitness = 0;
-      natsumi.culture = 0;
-      natsumi.charm = 0;
-      natsumi.lastHungerUpdate = 0;
-      natsumi.lastHygieneUpdate = 0;
-      natsumi.lastEnergyUpdate = 0;
-      playtimeTotalMs = 0;
-      sessionStart = millis();
-      lastAgeTick = 0;
       changeState(0, HOME_LOOP, 0);
       break;
     case DEV_SCREEN:
@@ -1240,7 +1247,7 @@ void meditate() {
 void drawBackground(const ImageBuffer& bg) {
   // Draw the background of the screen (layer 0)
   // Serial.println("> Entering drawBackground() L0");
-  if (l0NeedsRedraw && !overlayActive) {
+  if (l0NeedsRedraw) {
     drawImage(bg);
     l0NeedsRedraw = false;
     l1NeedsRedraw = true;
@@ -1254,7 +1261,7 @@ void drawBackground(const ImageBuffer& bg) {
 void drawCharacter() {
   // Draw the character(s) on the screen (layer 1)
   // Serial.println("> Entering drawCharacter() L1");
-  if (l1NeedsRedraw && !overlayActive) {
+  if (l1NeedsRedraw) {
     drawImage(currentCharacter);
     l1NeedsRedraw = false;
     l2NeedsRedraw = true;
