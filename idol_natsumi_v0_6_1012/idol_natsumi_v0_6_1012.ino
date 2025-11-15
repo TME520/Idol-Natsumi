@@ -1146,7 +1146,7 @@ void drawMeditationOverlay() {
   float progress = meditateInterval == 0 ? 1.0f : (float)elapsed / (float)meditateInterval;
   if (progress > 1.0f) progress = 1.0f;
   
-  if ( lastMeditationDisplayed == 0 || lastMeditationDisplayed == 10 ) {
+  if ( lastMeditationDisplayed == 0 || lastMeditationDisplayed == 100 ) {
     lastMeditationDisplayed = 0;
     // Panel frame
     M5Cardputer.Display.fillRoundRect(panelX + 3, panelY + 4, panelW, panelH, 14, shadowColor);
@@ -1179,15 +1179,14 @@ void drawMeditationOverlay() {
       currentX += width + gap;
     }
     M5Cardputer.Display.drawRoundRect(barX - 1, barY - 1, barW + 2, barH + 2, 7, borderColor);
-  
-    if (remaining == 0) {
-      meditationActive = false;
-      if (!meditationRewardApplied) {
-        if (natsumi.spirit < 4 ) {
-          natsumi.spirit += 1;
-        }
-        meditationRewardApplied = true;
+  }
+  if (remaining == 0) {
+    meditationActive = false;
+    if (!meditationRewardApplied) {
+      if (natsumi.spirit < 4 ) {
+        natsumi.spirit += 1;
       }
+      meditationRewardApplied = true;
     }
   }
   lastMeditationDisplayed++;
@@ -2037,6 +2036,7 @@ void drawOverlay() {
         break;
       case REST_MEDITATE:
         Serial.println(">>> drawOverlay: REST_MEDITATE");
+        Serial.println(">>> drawOverlay: lastMeditationDisplayed=" + String(lastMeditationDisplayed));
         drawMeditationOverlay();
         break;
       default:
