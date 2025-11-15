@@ -1100,12 +1100,6 @@ void drawNapEnergyOverlay() {
     }
     startX += segmentWidth + segmentSpacing;
   }
-
-  /*
-  drawText(String(natsumi.energy) + "/4", panelX + panelW - 45, panelY + panelH - 16, false, accentColor, 1, panelColor);
-  drawText("tap any key to wake", panelX + panelW / 2, panelY + panelH - 12, true, borderColor, 1, panelColor);
-  drawText("z z z", panelX + 20, panelY + panelH - 20, false, WHITE, 1, panelColor);
-  */
 }
 
 void drawMeditationOverlay() {
@@ -1121,18 +1115,11 @@ void drawMeditationOverlay() {
   const uint16_t accentMuted = M5Cardputer.Display.color565(40, 70, 110);
   const uint16_t textColor = WHITE;
 
-  // static unsigned long lastDraw = 0;
   unsigned long now = millis();
   unsigned long elapsed = (now >= meditateStart) ? (now - meditateStart) : 0;
   if (elapsed > meditateInterval) {
     elapsed = meditateInterval;
   }
-  /*
-  if (now - lastDraw < 120) {
-    return;
-  }
-  lastDraw = now;
-  */
 
   unsigned long remaining = (elapsed >= meditateInterval) ? 0 : (meditateInterval - elapsed);
   float progress = meditateInterval == 0 ? 1.0f : (float)elapsed / (float)meditateInterval;
@@ -1148,32 +1135,9 @@ void drawMeditationOverlay() {
   drawText("INNER CALM", panelX + panelW / 2, panelY + 14, true, borderColor, 1, panelColor);
   drawText("Meditation", panelX + panelW / 2, panelY + 30, true, textColor, 2, panelColor);
 
-  /*
-  // Countdown timer display
-  unsigned long remainingMinutes = remaining / 60000UL;
-  unsigned long remainingSeconds = (remaining / 1000UL) % 60UL;
-  String timeText = "";
-  if (remainingMinutes < 10) {
-    timeText += "0";
-  }
-  timeText += String(remainingMinutes);
-  timeText += ":";
-  if (remainingSeconds < 10) {
-    timeText += "0";
-  }
-  timeText += String(remainingSeconds);
-  drawText(timeText, panelX + panelW / 2, panelY + 52, true, accentColor, 3, panelColor);
-
-  // Breathing guidance
-  bool inhalePhase = ((elapsed / 1000UL) % 8UL) < 4UL;
-  String guidance = inhalePhase ? "Inhale gently" : "Exhale slowly";
-  drawText(guidance, panelX + panelW / 2, panelY + 72, true, borderColor, 1, panelColor);
-  */
-  
   // Progress bar made of soft segments
   const int barX = panelX + 24;
-  // const int barY = panelY + panelH - 32;
-  const int barY = panelY + panelH - 28;
+  const int barY = panelY + panelH - 30;
   const int barW = panelW - 48;
   const int barH = 14;
   const int segmentCount = 24;
@@ -1193,15 +1157,6 @@ void drawMeditationOverlay() {
   }
   M5Cardputer.Display.drawRoundRect(barX - 1, barY - 1, barW + 2, barH + 2, 7, borderColor);
 
-  /*
-  if (remaining == 0) {
-    drawText("Meditation complete", panelX + panelW / 2, panelY + panelH - 16, true, accentColor, 1, panelColor);
-    drawText("Press any key to return", panelX + panelW / 2, panelY + panelH - 4, true, textColor, 1, panelColor);
-  } else {
-    drawText("Stay present. Calm is growing", panelX + panelW / 2, panelY + panelH - 16, true, textColor, 1, panelColor);
-  }
-  */
-
   if (remaining == 0) {
     meditationActive = false;
     if (!meditationRewardApplied) {
@@ -1209,7 +1164,6 @@ void drawMeditationOverlay() {
         natsumi.spirit += 1;
       }
       meditationRewardApplied = true;
-      // showToast("Natsumi feels more centered");
     }
   }
 }
@@ -1243,12 +1197,10 @@ void meditate() {
     if (now - meditateStart >= meditateInterval) {
       meditationActive = false;
       l5NeedsRedraw = true;
-    } else if (now - lastMeditationRedraw >= 500) {
+    } else if (now - lastMeditationRedraw >= 1000) {
       l5NeedsRedraw = true;
       lastMeditationRedraw = now;
     }
-  } else if (!meditationRewardApplied) {
-    // l5NeedsRedraw = true;
   }
 
   bool meditationFinished = (!meditationActive && meditationRewardApplied);
