@@ -876,7 +876,7 @@ void manageIdle() {
       Interactive (escape)
   */
   switch (currentState) {
-    case REST_MEDITATE():
+    case REST_MEDITATE:
       meditate();
       break;
     case REST_SLEEP:
