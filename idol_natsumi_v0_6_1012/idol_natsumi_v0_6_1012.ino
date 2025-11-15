@@ -730,17 +730,19 @@ void updateStats() {
 
 void updateSpirit() {
   Serial.println("> Entering updateSpirit()");
-  spiritScore = natsumi.hygiene + natsumi.energy + natsumi.hunger + natsumi.performance + natsumi.popularity;
-  if ( spiritScore >= 0 && spiritScore < 5 ) {
-    natsumi.spirit = 0;
-  } else if ( spiritScore >= 5 && spiritScore < 10 ) {
-    natsumi.spirit = 1;
-  } else if ( spiritScore >= 10 && spiritScore < 15 ) {
-    natsumi.spirit = 2;
-  } else if ( spiritScore >= 15 && spiritScore < 20 ) {
-    natsumi.spirit = 3;
-  } else if ( spiritScore == 20 ) {
-    natsumi.spirit = 4;
+  if (!meditationActive) {
+    spiritScore = natsumi.hygiene + natsumi.energy + natsumi.hunger + natsumi.performance + natsumi.popularity;
+    if ( spiritScore >= 0 && spiritScore < 5 ) {
+      natsumi.spirit = 0;
+    } else if ( spiritScore >= 5 && spiritScore < 10 ) {
+      natsumi.spirit = 1;
+    } else if ( spiritScore >= 10 && spiritScore < 15 ) {
+      natsumi.spirit = 2;
+    } else if ( spiritScore >= 15 && spiritScore < 20 ) {
+      natsumi.spirit = 3;
+    } else if ( spiritScore == 20 ) {
+      natsumi.spirit = 4;
+    }
   }
   return;
 }
@@ -1119,11 +1121,18 @@ void drawMeditationOverlay() {
   const uint16_t accentMuted = M5Cardputer.Display.color565(40, 70, 110);
   const uint16_t textColor = WHITE;
 
+  // static unsigned long lastDraw = 0;
   unsigned long now = millis();
   unsigned long elapsed = (now >= meditateStart) ? (now - meditateStart) : 0;
   if (elapsed > meditateInterval) {
     elapsed = meditateInterval;
   }
+  /*
+  if (now - lastDraw < 120) {
+    return;
+  }
+  lastDraw = now;
+  */
 
   unsigned long remaining = (elapsed >= meditateInterval) ? 0 : (meditateInterval - elapsed);
   float progress = meditateInterval == 0 ? 1.0f : (float)elapsed / (float)meditateInterval;
@@ -1139,6 +1148,7 @@ void drawMeditationOverlay() {
   drawText("INNER CALM", panelX + panelW / 2, panelY + 14, true, borderColor, 1, panelColor);
   drawText("Meditation", panelX + panelW / 2, panelY + 30, true, textColor, 2, panelColor);
 
+  /*
   // Countdown timer display
   unsigned long remainingMinutes = remaining / 60000UL;
   unsigned long remainingSeconds = (remaining / 1000UL) % 60UL;
@@ -1158,10 +1168,12 @@ void drawMeditationOverlay() {
   bool inhalePhase = ((elapsed / 1000UL) % 8UL) < 4UL;
   String guidance = inhalePhase ? "Inhale gently" : "Exhale slowly";
   drawText(guidance, panelX + panelW / 2, panelY + 72, true, borderColor, 1, panelColor);
-
+  */
+  
   // Progress bar made of soft segments
   const int barX = panelX + 24;
-  const int barY = panelY + panelH - 32;
+  // const int barY = panelY + panelH - 32;
+  const int barY = panelY + panelH - 28;
   const int barW = panelW - 48;
   const int barH = 14;
   const int segmentCount = 24;
@@ -1181,19 +1193,23 @@ void drawMeditationOverlay() {
   }
   M5Cardputer.Display.drawRoundRect(barX - 1, barY - 1, barW + 2, barH + 2, 7, borderColor);
 
+  /*
   if (remaining == 0) {
     drawText("Meditation complete", panelX + panelW / 2, panelY + panelH - 16, true, accentColor, 1, panelColor);
     drawText("Press any key to return", panelX + panelW / 2, panelY + panelH - 4, true, textColor, 1, panelColor);
   } else {
     drawText("Stay present. Calm is growing", panelX + panelW / 2, panelY + panelH - 16, true, textColor, 1, panelColor);
   }
+  */
 
   if (remaining == 0) {
     meditationActive = false;
     if (!meditationRewardApplied) {
-      natsumi.spirit += 1;
+      if (natsumi.spirit < 4 ) {
+        natsumi.spirit += 1;
+      }
       meditationRewardApplied = true;
-      showToast("Natsumi feels more centered");
+      // showToast("Natsumi feels more centered");
     }
   }
 }
@@ -1221,7 +1237,6 @@ void sleep() {
 }
 
 void meditate() {
-  uint8_t key = 0;
   unsigned long now = millis();
 
   if (meditationActive) {
@@ -1233,20 +1248,15 @@ void meditate() {
       lastMeditationRedraw = now;
     }
   } else if (!meditationRewardApplied) {
-    l5NeedsRedraw = true;
+    // l5NeedsRedraw = true;
   }
 
   bool meditationFinished = (!meditationActive && meditationRewardApplied);
 
   if (meditationFinished) {
-    if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-      auto keyList = M5Cardputer.Keyboard.keyList();
-      if (keyList.size() > 0) {
-        key = M5Cardputer.Keyboard.getKey(keyList[0]);
-        changeState(0, HOME_LOOP, 0);
-        return;
-      }
-    }
+    showToast("Natsumi feels relaxed");
+    changeState(0, HOME_LOOP, 0);
+    return;
   }
 }
 
@@ -2021,6 +2031,15 @@ void drawOverlay() {
   Serial.println("> Entering drawOverlay() L5 with l5NeedsRedraw set to " + String(l5NeedsRedraw) + " and statsActive set to " + String(statsActive));
   if (l5NeedsRedraw) {
     Serial.println(">> l5NeedsRedraw is TRUE");
+    uint8_t key = 0;
+    if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+      auto keyList = M5Cardputer.Keyboard.keyList();
+      if (keyList.size() > 0) {
+        key = M5Cardputer.Keyboard.getKey(keyList[0]);
+        changeState(0, HOME_LOOP, 0);
+        return;
+      }
+    }
     switch (currentState) {
       case HOME_LOOP:
         if (!menuOpened) {
