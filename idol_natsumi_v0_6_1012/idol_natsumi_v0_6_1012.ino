@@ -94,6 +94,7 @@ unsigned long changeStateCounter = 0;
 const unsigned long hungerInterval = 120000;   // 2 minutes
 const unsigned long hygieneInterval = 240000;  // 4 minutes
 const unsigned long energyInterval = 240000;   // 4 minutes
+const unsigned long meditateInterval = 300000;   // 5 minutes
 
 String currentMenuType = "main";
 const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: DEV SCREEN"};
@@ -1093,6 +1094,10 @@ void drawNapEnergyOverlay() {
   */
 }
 
+void drawMeditationOverlay() {
+  // Shows how much time is left to meditate
+}
+
 void sleep() {
   uint8_t key = 0;
   if ((l5NeedsRedraw || lastNapEnergyDisplayed != natsumi.energy) && natsumi.energy < 4) {
@@ -1117,9 +1122,8 @@ void sleep() {
 
 void meditate() {
   uint8_t key = 0;
-  if ((l5NeedsRedraw || lastNapEnergyDisplayed != natsumi.energy) && natsumi.energy < 4) {
-    drawNapEnergyOverlay();
-    lastNapEnergyDisplayed = natsumi.energy;
+  if ((l5NeedsRedraw || natsumi.spirit < 4) {
+    drawMeditationOverlay();
     l5NeedsRedraw = false;
   }
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -1130,8 +1134,8 @@ void meditate() {
       return;
     }
   }
-  if (natsumi.energy >= 4) {
-    showToast("Natsumi is well rested");
+  if (natsumi.spirit == 4) {
+    showToast("Natsumi\'s mind is fine");
     changeState(0, HOME_LOOP, 0);
     return;
   }
