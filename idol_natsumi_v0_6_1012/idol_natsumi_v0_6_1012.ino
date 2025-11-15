@@ -616,6 +616,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           meditationActive = true;
           meditationRewardApplied = false;
           l5NeedsRedraw = true;
+          lastMeditationDisplayed = 0;
           break;
         case REST_SLEEP:
           screenConfig = IDLE;
