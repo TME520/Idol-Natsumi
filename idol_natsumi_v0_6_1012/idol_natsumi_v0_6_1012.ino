@@ -1219,13 +1219,7 @@ void meditate() {
   unsigned long now = millis();
 
   if (meditationActive) {
-    if (now - meditateStart >= meditateInterval) {
-      meditationActive = false;
-      l5NeedsRedraw = true;
-    } else if (now - lastMeditationRedraw >= 1000) {
-      l5NeedsRedraw = true;
-      lastMeditationRedraw = now;
-    }
+    l5NeedsRedraw = true;
   }
 
   bool meditationFinished = (!meditationActive && meditationRewardApplied);
@@ -1240,7 +1234,7 @@ void meditate() {
 // === Draw functions ===
 void drawBackground(const ImageBuffer& bg) {
   // Draw the background of the screen (layer 0)
-  Serial.println("> Entering drawBackground() L0");
+  // Serial.println("> Entering drawBackground() L0");
   if (l0NeedsRedraw) {
     drawImage(bg);
     l0NeedsRedraw = false;
@@ -1254,7 +1248,7 @@ void drawBackground(const ImageBuffer& bg) {
 
 void drawCharacter() {
   // Draw the character(s) on the screen (layer 1)
-  Serial.println("> Entering drawCharacter() L1");
+  // Serial.println("> Entering drawCharacter() L1");
   if (l1NeedsRedraw) {
     drawImage(currentCharacter);
     l1NeedsRedraw = false;
@@ -1267,7 +1261,7 @@ void drawCharacter() {
 
 void drawDebug() {
   // Draw debug information (layer 2)
-  Serial.println("> Entering drawDebug() L2");
+  // Serial.println("> Entering drawDebug() L2");
   if (l2NeedsRedraw && debugEnabled) {
     drawText(String("Memory: ") + ESP.getFreeHeap(), 80, 10, false, WHITE, 1);
     drawText(String("Time: ") + natsumi.ageMilliseconds, 80, 20, false, WHITE, 1);
@@ -1292,7 +1286,7 @@ void drawDebug() {
 
 void drawToast() {
   // Draw toast messages (layer 3)
-  Serial.println("> Entering drawToast() L3");
+  // Serial.println("> Entering drawToast() L3");
   if (toastActive) {
     if (millis() > toastUntil) {
       // Toast expired
@@ -1319,7 +1313,7 @@ void drawToast() {
 
 void drawMenu(String menuType, const char* items[], int itemCount, int &selection) {
   // Draw menus on the screen (layer 4)
-  Serial.println("> Entering drawMenu() L4");
+  // Serial.println("> Entering drawMenu() L4");
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
@@ -2008,10 +2002,11 @@ void drawOverlay() {
   // Draw the overlay (L5)
   Serial.println("> Entering drawOverlay() L5 with l5NeedsRedraw set to " + String(l5NeedsRedraw) + " and statsActive set to " + String(statsActive));
   if (l5NeedsRedraw) {
-    Serial.println(">> l5NeedsRedraw is TRUE");
+    Serial.println(">> drawOverlay: l5NeedsRedraw is TRUE");
     uint8_t key = 0;
     if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
       auto keyList = M5Cardputer.Keyboard.keyList();
+      Serial.println(">>> drawOverlay: Testing for key pressed");
       if (keyList.size() > 0) {
         key = M5Cardputer.Keyboard.getKey(keyList[0]);
         changeState(0, HOME_LOOP, 0);
@@ -2020,6 +2015,7 @@ void drawOverlay() {
     }
     switch (currentState) {
       case HOME_LOOP:
+        Serial.println(">>> drawOverlay: HOME_LOOP");
         if (!menuOpened) {
           // Helper text at the bottom
           Serial.println("[DEBUG] manageHomeScreen() -> l5NeedsRedraw TRUE");
@@ -2028,17 +2024,19 @@ void drawOverlay() {
         }
         break;
       case STATS_SCREEN:
-        Serial.println(">> Entering drawStats()");
+        Serial.println(">>> drawOverlay: STATS_SCREEN");
         if (statsActive) {
           drawStats();
         }
         break;
       case REST_SLEEP:
+        Serial.println(">>> drawOverlay: REST_SLEEP");
         if (natsumi.energy < 4) {
           drawNapEnergyOverlay();
         }
         break;
       case REST_MEDITATE:
+        Serial.println(">>> drawOverlay: REST_MEDITATE");
         drawMeditationOverlay();
         break;
       default:
