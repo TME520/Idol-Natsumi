@@ -997,8 +997,8 @@ void resetBathGame() {
 }
 
 void drawBathStaticLayout() {
-  drawBackground(currentBackground);
-  drawCharacter();
+  drawImage(currentBackground);
+  drawImage(currentCharacter);
   const uint16_t frameColor = WHITE;
   const uint16_t fillColor = M5Cardputer.Display.color565(22, 32, 48);
   const uint16_t idealColor = M5Cardputer.Display.color565(64, 200, 120);
