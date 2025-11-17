@@ -90,13 +90,13 @@ const unsigned long mediumWait = 3200;
 const unsigned long longWait = 6400;
 
 // Onsen mini-game helpers
-void resetOnsenGame();
-void manageOnsenGame();
-void drawOnsenStaticLayout();
+void resetBathGame();
+void manageBathGame();
+void drawBathStaticLayout();
 void clearOnsenSlider(int y);
-void drawOnsenSlider(int y);
-void finalizeOnsenOutcome(String outcomeText);
-void startOnsenGame();
+void drawBathSlider(int y);
+void finalizeBathOutcome(String outcomeText);
+void startBathGame();
 
 unsigned long changeStateCounter = 0;
 
@@ -160,13 +160,13 @@ unsigned long lastKeyTime = 0;
 const unsigned long keyCooldown = 200;  // milliseconds between accepted presses
 
 // Onsen mini-game state
-bool onsenGameRunning = false;
-bool onsenBackgroundDrawn = false;
-bool onsenResultShown = false;
-unsigned long onsenGameStart = 0;
-unsigned long onsenOutcomeTime = 0;
-const unsigned long onsenGameDuration = 8000;  // milliseconds
-const unsigned long onsenExitDelay = 1000;      // milliseconds to display the result
+bool bathGameRunning = false;
+bool bathBackgroundDrawn = false;
+bool bathResultShown = false;
+unsigned long bathGameStart = 0;
+unsigned long bathOutcomeTime = 0;
+const unsigned long bathGameDuration = 8000;  // milliseconds
+const unsigned long bathExitDelay = 3000;      // milliseconds to display the result
 const int thermometerX = 200;
 const int thermometerY = 18;
 const int thermometerWidth = 20;
@@ -374,7 +374,7 @@ void preloadImages() {
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
       break;
     case HEALTH_ONSEN:
-      // Mini-game drawn manually
+      preloadImage("/idolnat/screens/onsen_bg.png", currentBackground);
       break;
     case REST_MENU:
       preloadImage("/idolnat/screens/bedroom.png", currentBackground);
@@ -386,6 +386,9 @@ void preloadImages() {
       switch(currentState) {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_11yo_meditate-90x135.png", currentCharacter);
+          break;
+        case HEALTH_WASH:
+          preloadImage("/idolnat/sprites/natsumi_11yo_washing-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_11yo_asleep-90x135.png", currentCharacter);
@@ -400,6 +403,9 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_13yo_meditate-90x135.png", currentCharacter);
           break;
+        case HEALTH_WASH:
+          preloadImage("/idolnat/sprites/natsumi_13yo_washing-90x135.png", currentCharacter);
+          break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_13yo_asleep-90x135.png", currentCharacter);
           break; 
@@ -412,6 +418,9 @@ void preloadImages() {
       switch(currentState) {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_15yo_meditate-90x135.png", currentCharacter);
+          break;
+        case HEALTH_WASH:
+          preloadImage("/idolnat/sprites/natsumi_15yo_washing-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_15yo_asleep-90x135.png", currentCharacter);
@@ -426,6 +435,9 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_18yo_meditate-90x135.png", currentCharacter);
           break;
+        case HEALTH_WASH:
+          preloadImage("/idolnat/sprites/natsumi_18yo_washing-90x135.png", currentCharacter);
+          break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_18yo_asleep-90x135.png", currentCharacter);
           break; 
@@ -438,6 +450,9 @@ void preloadImages() {
       switch(currentState) {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_21yo_meditate-90x135.png", currentCharacter);
+          break;
+        case HEALTH_WASH:
+          preloadImage("/idolnat/sprites/natsumi_21yo_washing-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_21yo_asleep-90x135.png", currentCharacter);
@@ -673,13 +688,13 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           currentMenuItemsCount = healthMenuItemCount;
           break;
         case HEALTH_WASH:
-          screenConfig = ROOM;
-          break;
-        case HEALTH_ONSEN:
           screenConfig = GAME;
           overlayActive = false;
           menuOpened = false;
-          resetOnsenGame();
+          resetBathGame();
+          break;
+        case HEALTH_ONSEN:
+          screenConfig = ROOM;
           break;
         case REST_MENU:
           screenConfig = ROOM;
@@ -950,8 +965,8 @@ void manageGame() {
   l5NeedsRedraw = false;
   */
   switch (currentState) {
-    case HEALTH_ONSEN:
-      manageOnsenGame();
+    case HEALTH_WASH:
+      manageBathGame();
       break;
     case STATS_SCREEN:
       manageStats();
@@ -970,18 +985,20 @@ void manageGame() {
   drawOverlay();
 }
 
-void resetOnsenGame() {
-  onsenGameRunning = false;
-  onsenBackgroundDrawn = false;
-  onsenResultShown = false;
+void resetBathGame() {
+  bathGameRunning = false;
+  bathBackgroundDrawn = false;
+  bathResultShown = false;
   sliderYPosition = thermometerY + thermometerHeight - sliderHeight;
   sliderDirection = -1;
   lastSliderUpdate = 0;
-  onsenGameStart = 0;
-  onsenOutcomeTime = 0;
+  bathGameStart = 0;
+  bathOutcomeTime = 0;
 }
 
-void drawOnsenStaticLayout() {
+void drawBathStaticLayout() {
+  drawBackground(currentBackground);
+  drawCharacter();
   const uint16_t frameColor = WHITE;
   const uint16_t fillColor = M5Cardputer.Display.color565(22, 32, 48);
   const uint16_t idealColor = M5Cardputer.Display.color565(64, 200, 120);
@@ -989,17 +1006,19 @@ void drawOnsenStaticLayout() {
   const int innerX = thermometerX + thermometerInnerPadding;
   const int innerWidth = thermometerWidth - thermometerInnerPadding * 2;
 
+  /*
   M5Cardputer.Display.fillScreen(BLACK);
-  drawText("TEMPÉRATURE", 12, 14, false, WHITE, 2);
-  drawText("parfaite", 12, 32, false, WHITE, 2);
-  drawText("Appuie quand l'aiguille est dans le vert", 12, 54, false, M5Cardputer.Display.color565(180, 200, 220), 1);
-  drawText("Règle la température !", 12, 118, false, YELLOW, 1);
+  drawText("TEMPERATURE", 12, 14, false, WHITE, 2);
+  drawText("perfect", 12, 32, false, WHITE, 2);
+  drawText("Press any key when\nin the green zone", 12, 54, false, M5Cardputer.Display.color565(180, 200, 220), 1);
+  drawText("Get the temp right!", 12, 118, false, YELLOW, 1);
+  */
 
   M5Cardputer.Display.drawRect(thermometerX, thermometerY, thermometerWidth, thermometerHeight, frameColor);
   M5Cardputer.Display.fillRect(innerX, thermometerY + thermometerInnerPadding, innerWidth, thermometerHeight - thermometerInnerPadding * 2, fillColor);
   M5Cardputer.Display.fillRect(innerX, idealZoneY, innerWidth, idealZoneHeight, idealColor);
   M5Cardputer.Display.drawRect(innerX - 1, idealZoneY - 1, innerWidth + 2, idealZoneHeight + 2, idealOutline);
-  onsenBackgroundDrawn = true;
+  bathBackgroundDrawn = true;
 }
 
 void clearOnsenSlider(int y) {
@@ -1019,65 +1038,63 @@ void clearOnsenSlider(int y) {
   }
 }
 
-void drawOnsenSlider(int y) {
+void drawBathSlider(int y) {
   const uint16_t sliderColor = M5Cardputer.Display.color565(240, 170, 60);
   const int innerX = thermometerX + thermometerInnerPadding;
   const int innerWidth = thermometerWidth - thermometerInnerPadding * 2;
   M5Cardputer.Display.fillRect(innerX, y, innerWidth, sliderHeight, sliderColor);
 }
 
-void finalizeOnsenOutcome(String outcomeText) {
-  onsenOutcomeTime = millis();
-  onsenGameRunning = false;
+void finalizeBathOutcome(String outcomeText) {
+  bathOutcomeTime = millis();
+  bathGameRunning = false;
   M5Cardputer.Display.fillRect(0, 118, 240, 17, BLACK);
   drawText(outcomeText, 120, 126, true, WHITE, 1);
+  showToast("Bath is " + outcomeText);
 
-  if (outcomeText == "Bain parfait !") {
+  if (outcomeText == "Perfect!") {
     if (natsumi.hygiene < 4) {
       natsumi.hygiene += 1;
-    }
-    if (natsumi.spirit < 4) {
-      natsumi.spirit += 1;
     }
   }
 }
 
-void startOnsenGame() {
-  resetOnsenGame();
-  onsenGameStart = millis();
-  onsenGameRunning = true;
-  drawOnsenStaticLayout();
-  drawOnsenSlider(sliderYPosition);
+void startBathGame() {
+  resetBathGame();
+  bathGameStart = millis();
+  bathGameRunning = true;
+  drawBathStaticLayout();
+  drawBathSlider(sliderYPosition);
 }
 
-void manageOnsenGame() {
-  if (!onsenGameRunning && onsenOutcomeTime == 0) {
-    startOnsenGame();
+void manageBathGame() {
+  if (!bathGameRunning && bathOutcomeTime == 0) {
+    startBathGame();
     return;
   }
 
   unsigned long now = millis();
 
-  if (onsenOutcomeTime > 0) {
-    if (!onsenResultShown) {
-      onsenResultShown = true;
+  if (bathOutcomeTime > 0) {
+    if (!bathResultShown) {
+      bathResultShown = true;
     }
-    if (now - onsenOutcomeTime >= onsenExitDelay) {
+    if (now - bathOutcomeTime >= bathExitDelay) {
       changeState(0, HOME_LOOP, 0);
     }
     return;
   }
 
-  if (now - onsenGameStart >= onsenGameDuration) {
+  if (now - bathGameStart >= bathGameDuration) {
     int zoneTop = idealZoneY;
     int zoneBottom = idealZoneY + idealZoneHeight;
     int sliderCenter = sliderYPosition + (sliderHeight / 2);
     if (sliderCenter < zoneTop) {
-      finalizeOnsenOutcome("Trop froid !");
+      finalizeBathOutcome("Too cold!");
     } else if (sliderCenter > zoneBottom) {
-      finalizeOnsenOutcome("Trop chaud !");
+      finalizeBathOutcome("Too hot!");
     } else {
-      finalizeOnsenOutcome("Bain parfait !");
+      finalizeBathOutcome("Perfect!");
     }
     return;
   }
@@ -1101,17 +1118,17 @@ void manageOnsenGame() {
     int zoneBottom = idealZoneY + idealZoneHeight;
     int sliderCenter = sliderYPosition + (sliderHeight / 2);
     if (sliderCenter < zoneTop) {
-      finalizeOnsenOutcome("Trop froid !");
+      finalizeBathOutcome("Too cold!");
     } else if (sliderCenter > zoneBottom) {
-      finalizeOnsenOutcome("Trop chaud !");
+      finalizeBathOutcome("Too hot!");
     } else {
-      finalizeOnsenOutcome("Bain parfait !");
+      finalizeBathOutcome("Perfect!");
     }
     return;
   }
 
-  if (!onsenBackgroundDrawn) {
-    drawOnsenStaticLayout();
+  if (!bathBackgroundDrawn) {
+    drawBathStaticLayout();
   }
 
   if (now - lastSliderUpdate >= sliderUpdateInterval) {
@@ -1125,7 +1142,7 @@ void manageOnsenGame() {
       sliderYPosition = thermometerY + thermometerHeight - thermometerInnerPadding - sliderHeight;
       sliderDirection = -1;
     }
-    drawOnsenSlider(sliderYPosition);
+    drawBathSlider(sliderYPosition);
     lastSliderUpdate = now;
   }
 }
