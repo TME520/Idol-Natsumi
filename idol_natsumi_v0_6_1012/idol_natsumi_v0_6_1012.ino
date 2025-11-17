@@ -1015,7 +1015,7 @@ void drawBathStaticLayout() {
   */
 
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("Press ENTER at right temp", 120, 131, true, WHITE, 1);
+  drawText("Press ENTER at right temperature", 120, 131, true, WHITE, 1);
 
   M5Cardputer.Display.drawRect(thermometerX, thermometerY, thermometerWidth, thermometerHeight, frameColor);
   M5Cardputer.Display.fillRect(innerX, thermometerY + thermometerInnerPadding, innerWidth, thermometerHeight - thermometerInnerPadding * 2, fillColor);
@@ -1051,8 +1051,8 @@ void drawBathSlider(int y) {
 void finalizeBathOutcome(String outcomeText) {
   bathOutcomeTime = millis();
   bathGameRunning = false;
-  M5Cardputer.Display.fillRect(0, 118, 240, 17, BLACK);
-  // drawText(outcomeText, 120, 126, true, WHITE, 1);
+  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  drawText("Bath is " + outcomeText, 120, 131, true, WHITE, 1);
   showToast("Bath is " + outcomeText);
 
   if (outcomeText == "Perfect!") {
@@ -1093,9 +1093,9 @@ void manageBathGame() {
     int zoneBottom = idealZoneY + idealZoneHeight;
     int sliderCenter = sliderYPosition + (sliderHeight / 2);
     if (sliderCenter < zoneTop) {
-      finalizeBathOutcome("Too cold!");
-    } else if (sliderCenter > zoneBottom) {
       finalizeBathOutcome("Too hot!");
+    } else if (sliderCenter > zoneBottom) {
+      finalizeBathOutcome("Too cold!");
     } else {
       finalizeBathOutcome("Perfect!");
     }
@@ -1121,9 +1121,9 @@ void manageBathGame() {
     int zoneBottom = idealZoneY + idealZoneHeight;
     int sliderCenter = sliderYPosition + (sliderHeight / 2);
     if (sliderCenter < zoneTop) {
-      finalizeBathOutcome("Too cold!");
-    } else if (sliderCenter > zoneBottom) {
       finalizeBathOutcome("Too hot!");
+    } else if (sliderCenter > zoneBottom) {
+      finalizeBathOutcome("Too cold!");
     } else {
       finalizeBathOutcome("Perfect!");
     }
