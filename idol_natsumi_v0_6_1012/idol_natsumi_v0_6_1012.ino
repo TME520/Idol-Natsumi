@@ -89,6 +89,15 @@ const unsigned long shortWait = 200;
 const unsigned long mediumWait = 3200;
 const unsigned long longWait = 6400;
 
+// Onsen mini-game helpers
+void resetOnsenGame();
+void manageOnsenGame();
+void drawOnsenStaticLayout();
+void clearOnsenSlider(int y);
+void drawOnsenSlider(int y);
+void finalizeOnsenOutcome(String outcomeText);
+void startOnsenGame();
+
 unsigned long changeStateCounter = 0;
 
 const unsigned long hungerInterval = 120000;   // 2 minutes
@@ -149,6 +158,28 @@ unsigned long lastUpdate = 0;
 const int FRAME_DELAY = 50;
 unsigned long lastKeyTime = 0;
 const unsigned long keyCooldown = 200;  // milliseconds between accepted presses
+
+// Onsen mini-game state
+bool onsenGameRunning = false;
+bool onsenBackgroundDrawn = false;
+bool onsenResultShown = false;
+unsigned long onsenGameStart = 0;
+unsigned long onsenOutcomeTime = 0;
+const unsigned long onsenGameDuration = 8000;  // milliseconds
+const unsigned long onsenExitDelay = 1000;      // milliseconds to display the result
+const int thermometerX = 200;
+const int thermometerY = 18;
+const int thermometerWidth = 20;
+const int thermometerHeight = 100;
+const int thermometerInnerPadding = 2;
+const int sliderHeight = 10;
+const int sliderStep = 2;
+const unsigned long sliderUpdateInterval = 35;
+const int idealZoneHeight = 26;
+const int idealZoneY = thermometerY + thermometerInnerPadding + ((thermometerHeight - thermometerInnerPadding * 2 - idealZoneHeight) / 2);
+int sliderYPosition = thermometerY + thermometerHeight - sliderHeight;
+int sliderDirection = -1;  // -1 = moving up, 1 = moving down
+unsigned long lastSliderUpdate = 0;
 
 // === Image preload system ===
 struct ImageBuffer {
@@ -341,6 +372,9 @@ void preloadImages() {
       break;
     case HEALTH_MENU:
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
+      break;
+    case HEALTH_ONSEN:
+      // Mini-game drawn manually
       break;
     case REST_MENU:
       preloadImage("/idolnat/screens/bedroom.png", currentBackground);
@@ -641,6 +675,12 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         case HEALTH_WASH:
           screenConfig = ROOM;
           break;
+        case HEALTH_ONSEN:
+          screenConfig = GAME;
+          overlayActive = false;
+          menuOpened = false;
+          resetOnsenGame();
+          break;
         case REST_MENU:
           screenConfig = ROOM;
           currentMenuType = "rest";
@@ -910,6 +950,9 @@ void manageGame() {
   l5NeedsRedraw = false;
   */
   switch (currentState) {
+    case HEALTH_ONSEN:
+      manageOnsenGame();
+      break;
     case STATS_SCREEN:
       manageStats();
       break;
@@ -925,6 +968,166 @@ void manageGame() {
   // Draw required layers for GAME screens
   drawDebug();
   drawOverlay();
+}
+
+void resetOnsenGame() {
+  onsenGameRunning = false;
+  onsenBackgroundDrawn = false;
+  onsenResultShown = false;
+  sliderYPosition = thermometerY + thermometerHeight - sliderHeight;
+  sliderDirection = -1;
+  lastSliderUpdate = 0;
+  onsenGameStart = 0;
+  onsenOutcomeTime = 0;
+}
+
+void drawOnsenStaticLayout() {
+  const uint16_t frameColor = WHITE;
+  const uint16_t fillColor = M5Cardputer.Display.color565(22, 32, 48);
+  const uint16_t idealColor = M5Cardputer.Display.color565(64, 200, 120);
+  const uint16_t idealOutline = M5Cardputer.Display.color565(140, 235, 200);
+  const int innerX = thermometerX + thermometerInnerPadding;
+  const int innerWidth = thermometerWidth - thermometerInnerPadding * 2;
+
+  M5Cardputer.Display.fillScreen(BLACK);
+  drawText("TEMPÉRATURE", 12, 14, false, WHITE, 2);
+  drawText("parfaite", 12, 32, false, WHITE, 2);
+  drawText("Appuie quand l'aiguille est dans le vert", 12, 54, false, M5Cardputer.Display.color565(180, 200, 220), 1);
+  drawText("Règle la température !", 12, 118, false, YELLOW, 1);
+
+  M5Cardputer.Display.drawRect(thermometerX, thermometerY, thermometerWidth, thermometerHeight, frameColor);
+  M5Cardputer.Display.fillRect(innerX, thermometerY + thermometerInnerPadding, innerWidth, thermometerHeight - thermometerInnerPadding * 2, fillColor);
+  M5Cardputer.Display.fillRect(innerX, idealZoneY, innerWidth, idealZoneHeight, idealColor);
+  M5Cardputer.Display.drawRect(innerX - 1, idealZoneY - 1, innerWidth + 2, idealZoneHeight + 2, idealOutline);
+  onsenBackgroundDrawn = true;
+}
+
+void clearOnsenSlider(int y) {
+  const uint16_t fillColor = M5Cardputer.Display.color565(22, 32, 48);
+  const uint16_t idealColor = M5Cardputer.Display.color565(64, 200, 120);
+  const int innerX = thermometerX + thermometerInnerPadding;
+  const int innerWidth = thermometerWidth - thermometerInnerPadding * 2;
+  const int sliderBottom = y + sliderHeight;
+  const int idealBottom = idealZoneY + idealZoneHeight;
+
+  M5Cardputer.Display.fillRect(innerX, y, innerWidth, sliderHeight, fillColor);
+
+  int overlapTop = max(y, idealZoneY);
+  int overlapBottom = min(sliderBottom, idealBottom);
+  if (overlapBottom > overlapTop) {
+    M5Cardputer.Display.fillRect(innerX, overlapTop, innerWidth, overlapBottom - overlapTop, idealColor);
+  }
+}
+
+void drawOnsenSlider(int y) {
+  const uint16_t sliderColor = M5Cardputer.Display.color565(240, 170, 60);
+  const int innerX = thermometerX + thermometerInnerPadding;
+  const int innerWidth = thermometerWidth - thermometerInnerPadding * 2;
+  M5Cardputer.Display.fillRect(innerX, y, innerWidth, sliderHeight, sliderColor);
+}
+
+void finalizeOnsenOutcome(String outcomeText) {
+  onsenOutcomeTime = millis();
+  onsenGameRunning = false;
+  M5Cardputer.Display.fillRect(0, 118, 240, 17, BLACK);
+  drawText(outcomeText, 120, 126, true, WHITE, 1);
+
+  if (outcomeText == "Bain parfait !") {
+    if (natsumi.hygiene < 4) {
+      natsumi.hygiene += 1;
+    }
+    if (natsumi.spirit < 4) {
+      natsumi.spirit += 1;
+    }
+  }
+}
+
+void startOnsenGame() {
+  resetOnsenGame();
+  onsenGameStart = millis();
+  onsenGameRunning = true;
+  drawOnsenStaticLayout();
+  drawOnsenSlider(sliderYPosition);
+}
+
+void manageOnsenGame() {
+  if (!onsenGameRunning && onsenOutcomeTime == 0) {
+    startOnsenGame();
+    return;
+  }
+
+  unsigned long now = millis();
+
+  if (onsenOutcomeTime > 0) {
+    if (!onsenResultShown) {
+      onsenResultShown = true;
+    }
+    if (now - onsenOutcomeTime >= onsenExitDelay) {
+      changeState(0, HOME_LOOP, 0);
+    }
+    return;
+  }
+
+  if (now - onsenGameStart >= onsenGameDuration) {
+    int zoneTop = idealZoneY;
+    int zoneBottom = idealZoneY + idealZoneHeight;
+    int sliderCenter = sliderYPosition + (sliderHeight / 2);
+    if (sliderCenter < zoneTop) {
+      finalizeOnsenOutcome("Trop froid !");
+    } else if (sliderCenter > zoneBottom) {
+      finalizeOnsenOutcome("Trop chaud !");
+    } else {
+      finalizeOnsenOutcome("Bain parfait !");
+    }
+    return;
+  }
+
+  bool buttonPressed = false;
+  if (M5Cardputer.BtnA.wasPressed()) {
+    buttonPressed = true;
+  }
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      if (key == 13 || key == 40 || key == ' ') {
+        buttonPressed = true;
+      }
+    }
+  }
+
+  if (buttonPressed) {
+    int zoneTop = idealZoneY;
+    int zoneBottom = idealZoneY + idealZoneHeight;
+    int sliderCenter = sliderYPosition + (sliderHeight / 2);
+    if (sliderCenter < zoneTop) {
+      finalizeOnsenOutcome("Trop froid !");
+    } else if (sliderCenter > zoneBottom) {
+      finalizeOnsenOutcome("Trop chaud !");
+    } else {
+      finalizeOnsenOutcome("Bain parfait !");
+    }
+    return;
+  }
+
+  if (!onsenBackgroundDrawn) {
+    drawOnsenStaticLayout();
+  }
+
+  if (now - lastSliderUpdate >= sliderUpdateInterval) {
+    clearOnsenSlider(sliderYPosition);
+    sliderYPosition += sliderStep * sliderDirection;
+    if (sliderYPosition <= thermometerY + thermometerInnerPadding) {
+      sliderYPosition = thermometerY + thermometerInnerPadding;
+      sliderDirection = 1;
+    }
+    if (sliderYPosition + sliderHeight >= thermometerY + thermometerHeight - thermometerInnerPadding) {
+      sliderYPosition = thermometerY + thermometerHeight - thermometerInnerPadding - sliderHeight;
+      sliderDirection = -1;
+    }
+    drawOnsenSlider(sliderYPosition);
+    lastSliderUpdate = now;
+  }
 }
 
 void manageIdle() {
