@@ -93,7 +93,7 @@ const unsigned long longWait = 6400;
 void resetBathGame();
 void manageBathGame();
 void drawBathStaticLayout();
-void clearOnsenSlider(int y);
+void clearBathSlider(int y);
 void drawBathSlider(int y);
 void finalizeBathOutcome(String outcomeText);
 void startBathGame();
@@ -1014,6 +1014,9 @@ void drawBathStaticLayout() {
   drawText("Get the temp right!", 12, 118, false, YELLOW, 1);
   */
 
+  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  drawText("Press ENTER at right temp", 120, 131, true, WHITE, 1);
+
   M5Cardputer.Display.drawRect(thermometerX, thermometerY, thermometerWidth, thermometerHeight, frameColor);
   M5Cardputer.Display.fillRect(innerX, thermometerY + thermometerInnerPadding, innerWidth, thermometerHeight - thermometerInnerPadding * 2, fillColor);
   M5Cardputer.Display.fillRect(innerX, idealZoneY, innerWidth, idealZoneHeight, idealColor);
@@ -1021,7 +1024,7 @@ void drawBathStaticLayout() {
   bathBackgroundDrawn = true;
 }
 
-void clearOnsenSlider(int y) {
+void clearBathSlider(int y) {
   const uint16_t fillColor = M5Cardputer.Display.color565(22, 32, 48);
   const uint16_t idealColor = M5Cardputer.Display.color565(64, 200, 120);
   const int innerX = thermometerX + thermometerInnerPadding;
@@ -1049,7 +1052,7 @@ void finalizeBathOutcome(String outcomeText) {
   bathOutcomeTime = millis();
   bathGameRunning = false;
   M5Cardputer.Display.fillRect(0, 118, 240, 17, BLACK);
-  drawText(outcomeText, 120, 126, true, WHITE, 1);
+  // drawText(outcomeText, 120, 126, true, WHITE, 1);
   showToast("Bath is " + outcomeText);
 
   if (outcomeText == "Perfect!") {
@@ -1132,7 +1135,7 @@ void manageBathGame() {
   }
 
   if (now - lastSliderUpdate >= sliderUpdateInterval) {
-    clearOnsenSlider(sliderYPosition);
+    clearBathSlider(sliderYPosition);
     sliderYPosition += sliderStep * sliderDirection;
     if (sliderYPosition <= thermometerY + thermometerInnerPadding) {
       sliderYPosition = thermometerY + thermometerInnerPadding;
