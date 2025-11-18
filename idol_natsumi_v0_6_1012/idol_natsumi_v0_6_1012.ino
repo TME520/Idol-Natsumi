@@ -173,10 +173,16 @@ const int thermometerY = 18;
 const int thermometerWidth = 20;
 const int thermometerHeight = 100;
 const int thermometerInnerPadding = 2;
+/*
 const int sliderHeight = 10;
 const int sliderStep = 2;
 const unsigned long sliderUpdateInterval = 35;
-const int idealZoneHeight = 26;
+*/
+const int sliderHeight = 6;
+const int sliderStep = 6;
+const unsigned long sliderUpdateInterval = 20;
+// const int idealZoneHeight = 26;
+const int idealZoneHeight = 20;
 const int idealZoneY = thermometerY + thermometerInnerPadding + ((thermometerHeight - thermometerInnerPadding * 2 - idealZoneHeight) / 2);
 int sliderYPosition = thermometerY + thermometerHeight - sliderHeight;
 int sliderDirection = -1;  // -1 = moving up, 1 = moving down
