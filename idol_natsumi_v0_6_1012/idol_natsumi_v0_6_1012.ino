@@ -625,6 +625,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           currentMenuType = "home";
           currentMenuItems = homeMenuItems;
           currentMenuItemsCount = homeMenuItemCount;
+          overlayActive = false;
           break;
         case FOOD_EAT:
           screenConfig = ROOM;
@@ -1469,6 +1470,7 @@ void sleep() {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      overlayActive = false;
       changeState(0, HOME_LOOP, 0);
       return;
     }
