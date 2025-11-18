@@ -20,6 +20,7 @@ enum GameState {
   FOOD_ORDER,
   HEALTH_MENU,
   HEALTH_WASH,
+  HEALTH_WASH2,
   HEALTH_DOCTOR,
   HEALTH_TEMPLE,
   HEALTH_ONSEN,
@@ -89,6 +90,15 @@ const unsigned long shortWait = 200;
 const unsigned long mediumWait = 3200;
 const unsigned long longWait = 6400;
 
+// Onsen mini-game helpers
+void resetBathGame();
+void manageBathGame();
+void drawBathStaticLayout();
+void clearBathSlider(int y);
+void drawBathSlider(int y);
+void finalizeBathOutcome(String outcomeText);
+void startBathGame();
+
 unsigned long changeStateCounter = 0;
 
 const unsigned long hungerInterval = 120000;   // 2 minutes
@@ -149,6 +159,34 @@ unsigned long lastUpdate = 0;
 const int FRAME_DELAY = 50;
 unsigned long lastKeyTime = 0;
 const unsigned long keyCooldown = 200;  // milliseconds between accepted presses
+
+// Onsen mini-game state
+bool bathGameRunning = false;
+bool bathBackgroundDrawn = false;
+bool bathResultShown = false;
+unsigned long bathGameStart = 0;
+unsigned long bathOutcomeTime = 0;
+const unsigned long bathGameDuration = 8000;  // milliseconds
+const unsigned long bathExitDelay = 3000;      // milliseconds to display the result
+const int thermometerX = 200;
+const int thermometerY = 18;
+const int thermometerWidth = 20;
+const int thermometerHeight = 100;
+const int thermometerInnerPadding = 2;
+/*
+const int sliderHeight = 10;
+const int sliderStep = 2;
+const unsigned long sliderUpdateInterval = 35;
+*/
+const int sliderHeight = 6;
+const int sliderStep = 6;
+const unsigned long sliderUpdateInterval = 20;
+// const int idealZoneHeight = 26;
+const int idealZoneHeight = 20;
+const int idealZoneY = thermometerY + thermometerInnerPadding + ((thermometerHeight - thermometerInnerPadding * 2 - idealZoneHeight) / 2);
+int sliderYPosition = thermometerY + thermometerHeight - sliderHeight;
+int sliderDirection = -1;  // -1 = moving up, 1 = moving down
+unsigned long lastSliderUpdate = 0;
 
 // === Image preload system ===
 struct ImageBuffer {
@@ -301,7 +339,7 @@ void preloadImages() {
     case FOOD_ORDER:
       preloadImage("/idolnat/screens/phone_app_food_order.png", currentBackground);
       break;
-    case HEALTH_WASH:
+    case HEALTH_WASH: case HEALTH_WASH2:
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
       break;
     case REST_MEDITATE:
@@ -342,6 +380,9 @@ void preloadImages() {
     case HEALTH_MENU:
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
       break;
+    case HEALTH_ONSEN:
+      preloadImage("/idolnat/screens/onsen_bg.png", currentBackground);
+      break;
     case REST_MENU:
       preloadImage("/idolnat/screens/bedroom.png", currentBackground);
       break;
@@ -352,6 +393,9 @@ void preloadImages() {
       switch(currentState) {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_11yo_meditate-90x135.png", currentCharacter);
+          break;
+        case HEALTH_WASH: case HEALTH_WASH2:
+          preloadImage("/idolnat/sprites/natsumi_11yo_washing-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_11yo_asleep-90x135.png", currentCharacter);
@@ -366,6 +410,9 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_13yo_meditate-90x135.png", currentCharacter);
           break;
+        case HEALTH_WASH: case HEALTH_WASH2:
+          preloadImage("/idolnat/sprites/natsumi_13yo_washing-90x135.png", currentCharacter);
+          break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_13yo_asleep-90x135.png", currentCharacter);
           break; 
@@ -378,6 +425,9 @@ void preloadImages() {
       switch(currentState) {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_15yo_meditate-90x135.png", currentCharacter);
+          break;
+        case HEALTH_WASH: case HEALTH_WASH2:
+          preloadImage("/idolnat/sprites/natsumi_15yo_washing-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_15yo_asleep-90x135.png", currentCharacter);
@@ -392,6 +442,9 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_18yo_meditate-90x135.png", currentCharacter);
           break;
+        case HEALTH_WASH: case HEALTH_WASH2:
+          preloadImage("/idolnat/sprites/natsumi_18yo_washing-90x135.png", currentCharacter);
+          break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_18yo_asleep-90x135.png", currentCharacter);
           break; 
@@ -404,6 +457,9 @@ void preloadImages() {
       switch(currentState) {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_21yo_meditate-90x135.png", currentCharacter);
+          break;
+        case HEALTH_WASH: case HEALTH_WASH2:
+          preloadImage("/idolnat/sprites/natsumi_21yo_washing-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_21yo_asleep-90x135.png", currentCharacter);
@@ -575,6 +631,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           currentMenuType = "home";
           currentMenuItems = homeMenuItems;
           currentMenuItemsCount = homeMenuItemCount;
+          overlayActive = false;
           break;
         case FOOD_EAT:
           screenConfig = ROOM;
@@ -639,6 +696,15 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           currentMenuItemsCount = healthMenuItemCount;
           break;
         case HEALTH_WASH:
+          screenConfig = GAME;
+          overlayActive = false;
+          menuOpened = false;
+          resetBathGame();
+          break;
+        case HEALTH_WASH2:
+          screenConfig = ROOM;
+          break;
+        case HEALTH_ONSEN:
           screenConfig = ROOM;
           break;
         case REST_MENU:
@@ -910,6 +976,9 @@ void manageGame() {
   l5NeedsRedraw = false;
   */
   switch (currentState) {
+    case HEALTH_WASH:
+      manageBathGame();
+      break;
     case STATS_SCREEN:
       manageStats();
       break;
@@ -925,6 +994,173 @@ void manageGame() {
   // Draw required layers for GAME screens
   drawDebug();
   drawOverlay();
+}
+
+void resetBathGame() {
+  bathGameRunning = false;
+  bathBackgroundDrawn = false;
+  bathResultShown = false;
+  sliderYPosition = thermometerY + thermometerHeight - sliderHeight;
+  sliderDirection = -1;
+  lastSliderUpdate = 0;
+  bathGameStart = 0;
+  bathOutcomeTime = 0;
+}
+
+void drawBathStaticLayout() {
+  drawImage(currentBackground);
+  drawImage(currentCharacter);
+  const uint16_t frameColor = WHITE;
+  const uint16_t fillColor = M5Cardputer.Display.color565(22, 32, 48);
+  const uint16_t idealColor = M5Cardputer.Display.color565(64, 200, 120);
+  const uint16_t idealOutline = M5Cardputer.Display.color565(140, 235, 200);
+  const int innerX = thermometerX + thermometerInnerPadding;
+  const int innerWidth = thermometerWidth - thermometerInnerPadding * 2;
+
+  /*
+  M5Cardputer.Display.fillScreen(BLACK);
+  drawText("TEMPERATURE", 12, 14, false, WHITE, 2);
+  drawText("perfect", 12, 32, false, WHITE, 2);
+  drawText("Press any key when\nin the green zone", 12, 54, false, M5Cardputer.Display.color565(180, 200, 220), 1);
+  drawText("Get the temp right!", 12, 118, false, YELLOW, 1);
+  */
+
+  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  drawText("Press ENTER at right temperature", 120, 131, true, WHITE, 1);
+
+  M5Cardputer.Display.drawRect(thermometerX, thermometerY, thermometerWidth, thermometerHeight, frameColor);
+  M5Cardputer.Display.fillRect(innerX, thermometerY + thermometerInnerPadding, innerWidth, thermometerHeight - thermometerInnerPadding * 2, fillColor);
+  M5Cardputer.Display.fillRect(innerX, idealZoneY, innerWidth, idealZoneHeight, idealColor);
+  M5Cardputer.Display.drawRect(innerX - 1, idealZoneY - 1, innerWidth + 2, idealZoneHeight + 2, idealOutline);
+  bathBackgroundDrawn = true;
+}
+
+void clearBathSlider(int y) {
+  const uint16_t fillColor = M5Cardputer.Display.color565(22, 32, 48);
+  const uint16_t idealColor = M5Cardputer.Display.color565(64, 200, 120);
+  const int innerX = thermometerX + thermometerInnerPadding;
+  const int innerWidth = thermometerWidth - thermometerInnerPadding * 2;
+  const int sliderBottom = y + sliderHeight;
+  const int idealBottom = idealZoneY + idealZoneHeight;
+
+  M5Cardputer.Display.fillRect(innerX, y, innerWidth, sliderHeight, fillColor);
+
+  int overlapTop = max(y, idealZoneY);
+  int overlapBottom = min(sliderBottom, idealBottom);
+  if (overlapBottom > overlapTop) {
+    M5Cardputer.Display.fillRect(innerX, overlapTop, innerWidth, overlapBottom - overlapTop, idealColor);
+  }
+}
+
+void drawBathSlider(int y) {
+  const uint16_t sliderColor = M5Cardputer.Display.color565(240, 170, 60);
+  const int innerX = thermometerX + thermometerInnerPadding;
+  const int innerWidth = thermometerWidth - thermometerInnerPadding * 2;
+  M5Cardputer.Display.fillRect(innerX, y, innerWidth, sliderHeight, sliderColor);
+}
+
+void finalizeBathOutcome(String outcomeText) {
+  bathOutcomeTime = millis();
+  bathGameRunning = false;
+  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  drawText("Bath is " + outcomeText, 120, 131, true, WHITE, 1);
+  showToast("Bath is " + outcomeText);
+
+  if (outcomeText == "Perfect!") {
+    if (natsumi.hygiene < 4) {
+      natsumi.hygiene += 1;
+    }
+    changeState(0, HEALTH_WASH2, 0);
+    return;
+  }
+}
+
+void startBathGame() {
+  resetBathGame();
+  bathGameStart = millis();
+  bathGameRunning = true;
+  drawBathStaticLayout();
+  drawBathSlider(sliderYPosition);
+}
+
+void manageBathGame() {
+  if (!bathGameRunning && bathOutcomeTime == 0) {
+    startBathGame();
+    return;
+  }
+
+  unsigned long now = millis();
+
+  if (bathOutcomeTime > 0) {
+    if (!bathResultShown) {
+      bathResultShown = true;
+    }
+    if (now - bathOutcomeTime >= bathExitDelay) {
+      changeState(0, HOME_LOOP, 0);
+    }
+    return;
+  }
+
+  if (now - bathGameStart >= bathGameDuration) {
+    int zoneTop = idealZoneY;
+    int zoneBottom = idealZoneY + idealZoneHeight;
+    int sliderCenter = sliderYPosition + (sliderHeight / 2);
+    if (sliderCenter < zoneTop) {
+      finalizeBathOutcome("Too hot!");
+    } else if (sliderCenter > zoneBottom) {
+      finalizeBathOutcome("Too cold!");
+    } else {
+      finalizeBathOutcome("Perfect!");
+    }
+    return;
+  }
+
+  bool buttonPressed = false;
+  if (M5Cardputer.BtnA.wasPressed()) {
+    buttonPressed = true;
+  }
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      if (key == 13 || key == 40 || key == ' ') {
+        buttonPressed = true;
+      }
+    }
+  }
+
+  if (buttonPressed) {
+    int zoneTop = idealZoneY;
+    int zoneBottom = idealZoneY + idealZoneHeight;
+    int sliderCenter = sliderYPosition + (sliderHeight / 2);
+    if (sliderCenter < zoneTop) {
+      finalizeBathOutcome("Too hot!");
+    } else if (sliderCenter > zoneBottom) {
+      finalizeBathOutcome("Too cold!");
+    } else {
+      finalizeBathOutcome("Perfect!");
+    }
+    return;
+  }
+
+  if (!bathBackgroundDrawn) {
+    drawBathStaticLayout();
+  }
+
+  if (now - lastSliderUpdate >= sliderUpdateInterval) {
+    clearBathSlider(sliderYPosition);
+    sliderYPosition += sliderStep * sliderDirection;
+    if (sliderYPosition <= thermometerY + thermometerInnerPadding) {
+      sliderYPosition = thermometerY + thermometerInnerPadding;
+      sliderDirection = 1;
+    }
+    if (sliderYPosition + sliderHeight >= thermometerY + thermometerHeight - thermometerInnerPadding) {
+      sliderYPosition = thermometerY + thermometerHeight - thermometerInnerPadding - sliderHeight;
+      sliderDirection = -1;
+    }
+    drawBathSlider(sliderYPosition);
+    lastSliderUpdate = now;
+  }
 }
 
 void manageIdle() {
@@ -979,7 +1215,7 @@ void manageRoom() {
     case FOOD_EAT:
       eat();
       break;
-    case HEALTH_WASH:
+    case HEALTH_WASH2:
       wash();
       break;
     case GARDEN_LOOP:
@@ -1110,10 +1346,9 @@ void eat() {
 void wash() {
   if (changeStateCounter==0) {
     if (natsumi.hygiene < 4) {
-      natsumi.hygiene += 1;
       showToast("Washed (+1 Hygiene)");
     } else {
-      showToast("Natsumi is not dirty");
+      showToast("Natsumi is clean");
     }
   }
   changeState(0, HOME_LOOP, shortWait);
@@ -1241,6 +1476,7 @@ void sleep() {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      overlayActive = false;
       changeState(0, HOME_LOOP, 0);
       return;
     }
