@@ -20,6 +20,7 @@ enum GameState {
   FOOD_ORDER,
   HEALTH_MENU,
   HEALTH_WASH,
+  HEALTH_WASH2,
   HEALTH_DOCTOR,
   HEALTH_TEMPLE,
   HEALTH_ONSEN,
@@ -332,7 +333,7 @@ void preloadImages() {
     case FOOD_ORDER:
       preloadImage("/idolnat/screens/phone_app_food_order.png", currentBackground);
       break;
-    case HEALTH_WASH:
+    case HEALTH_WASH: case HEALTH_WASH2:
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
       break;
     case REST_MEDITATE:
@@ -387,7 +388,7 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_11yo_meditate-90x135.png", currentCharacter);
           break;
-        case HEALTH_WASH:
+        case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_11yo_washing-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
@@ -403,7 +404,7 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_13yo_meditate-90x135.png", currentCharacter);
           break;
-        case HEALTH_WASH:
+        case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_13yo_washing-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
@@ -419,7 +420,7 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_15yo_meditate-90x135.png", currentCharacter);
           break;
-        case HEALTH_WASH:
+        case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_15yo_washing-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
@@ -435,7 +436,7 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_18yo_meditate-90x135.png", currentCharacter);
           break;
-        case HEALTH_WASH:
+        case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_18yo_washing-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
@@ -451,7 +452,7 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_21yo_meditate-90x135.png", currentCharacter);
           break;
-        case HEALTH_WASH:
+        case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_21yo_washing-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
@@ -692,6 +693,9 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           overlayActive = false;
           menuOpened = false;
           resetBathGame();
+          break;
+        case HEALTH_WASH2:
+          screenConfig = ROOM;
           break;
         case HEALTH_ONSEN:
           screenConfig = ROOM;
@@ -1059,6 +1063,8 @@ void finalizeBathOutcome(String outcomeText) {
     if (natsumi.hygiene < 4) {
       natsumi.hygiene += 1;
     }
+    changeState(0, HEALTH_WASH2, 0);
+    return;
   }
 }
 
@@ -1202,7 +1208,7 @@ void manageRoom() {
     case FOOD_EAT:
       eat();
       break;
-    case HEALTH_WASH:
+    case HEALTH_WASH2:
       wash();
       break;
     case GARDEN_LOOP:
@@ -1333,10 +1339,9 @@ void eat() {
 void wash() {
   if (changeStateCounter==0) {
     if (natsumi.hygiene < 4) {
-      natsumi.hygiene += 1;
       showToast("Washed (+1 Hygiene)");
     } else {
-      showToast("Natsumi is not dirty");
+      showToast("Natsumi is clean");
     }
   }
   changeState(0, HOME_LOOP, shortWait);
