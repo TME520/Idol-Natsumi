@@ -140,7 +140,7 @@ int trainingMenuSelection = 0;
 int competitionMenuSelection = 0;
 int healthMenuSelection = 0;
 int restMenuSelection = 0;
-int lastNapEnergyDisplayed = -1;
+int lastSleepEnergyDisplayed = -1;
 int lastMeditationDisplayed = 0;
 
 bool l0NeedsRedraw = false; // Background
@@ -725,7 +725,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           break;
         case REST_SLEEP:
           screenConfig = IDLE;
-          lastNapEnergyDisplayed = -1;
+          lastSleepEnergyDisplayed = -1;
           overlayActive = true;
           l5NeedsRedraw = true;
           break;
@@ -1354,7 +1354,7 @@ void wash() {
   changeState(0, HOME_LOOP, shortWait);
 }
 
-void drawNapEnergyOverlay() {
+void drawSleepEnergyOverlay() {
   const int panelX = 20;
   const int panelY = 30;
   const int panelW = 200;
@@ -1467,9 +1467,9 @@ void drawMeditationOverlay() {
 
 void sleep() {
   uint8_t key = 0;
-  if ((l5NeedsRedraw || lastNapEnergyDisplayed != natsumi.energy) && natsumi.energy < 4) {
-    drawNapEnergyOverlay();
-    lastNapEnergyDisplayed = natsumi.energy;
+  if ((l5NeedsRedraw || lastSleepEnergyDisplayed != natsumi.energy) && natsumi.energy < 4) {
+    drawSleepEnergyOverlay();
+    lastSleepEnergyDisplayed = natsumi.energy;
     l5NeedsRedraw = false;
   }
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -2055,7 +2055,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         changeState(0, REST_MEDITATE, 0);
         break;
       case 49:
-        // 1: NAP
+        // 1: SLEEP
         menuOpened = false;
         changeState(0, REST_SLEEP, 0);
         break;
@@ -2306,7 +2306,7 @@ void drawOverlay() {
       case REST_SLEEP:
         Serial.println(">>> drawOverlay: REST_SLEEP");
         if (natsumi.energy < 4) {
-          drawNapEnergyOverlay();
+          drawSleepEnergyOverlay();
         }
         break;
       case REST_MEDITATE:
