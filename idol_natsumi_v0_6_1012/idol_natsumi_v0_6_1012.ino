@@ -714,6 +714,9 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         case HEALTH_WASH2:
           screenConfig = ROOM;
           break;
+        case HEALTH_DOCTOR:
+          screenConfig = ROOM;
+          break;
         case HEALTH_ONSEN:
           screenConfig = ROOM;
           break;
@@ -1227,6 +1230,9 @@ void manageRoom() {
       break;
     case HEALTH_WASH2:
       wash();
+      break;
+    case HEALTH_DOCTOR:
+      doctor();
       break;
     case GARDEN_LOOP:
       manageGarden();
@@ -2488,6 +2494,14 @@ void gotoRestaurant() {
 
 void orderFood() {
   // Order takeaway food
+  if (changeStateCounter==0) {
+    // Select food
+  }
+  changeState(0, HOME_LOOP, shortWait);
+}
+
+void doctor() {
+  // Visit to the doctor
   if (changeStateCounter==0) {
     // Select food
   }
