@@ -108,10 +108,7 @@ const unsigned long meditateInterval = 300000;   // 5 minutes
 const unsigned long fiveSecondInterval = 5000;  // 5 seconds
 unsigned long meditateStart = 0;
 unsigned long lastMeditationRedraw = 0;
-bool meditationActive = false;
-bool meditationRewardApplied = false;
 unsigned long lastFiveSecondTick = 0;
-bool fiveSecondPulse = false;  // Set true by updateFiveSecondPulse() every five seconds
 
 String currentMenuType = "main";
 const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: DEV SCREEN"};
@@ -150,10 +147,20 @@ bool l3NeedsRedraw = false; // Toast
 bool l4NeedsRedraw = false; // Menu
 bool l5NeedsRedraw = false; // Overlay (user-defined)
 
+bool backgroundEnabled = false;
+bool characterEnabled = false;
 bool debugEnabled = false;
+bool toastEnabled = false;
+bool menuEnabled = false;
+bool overlayEnabled = false;
+
 bool menuOpened = false;
 bool toastActive = false;
 bool overlayActive = false;
+
+bool meditationActive = false;
+bool meditationRewardApplied = false;
+bool fiveSecondPulse = false;  // Set true by updateFiveSecondPulse() every five seconds
 
 unsigned long lastUpdate = 0;
 const int FRAME_DELAY = 50;
@@ -341,6 +348,9 @@ void preloadImages() {
       break;
     case HEALTH_WASH: case HEALTH_WASH2:
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
+      break;
+    case HEALTH_DOCTOR:
+      preloadImage("/idolnat/screens/doctors_office_bg.png", currentBackground);
       break;
     case REST_MEDITATE:
       preloadImage("/idolnat/screens/bedroom.png", currentBackground);
