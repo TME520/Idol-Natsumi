@@ -153,6 +153,7 @@ bool debugEnabled = false;
 bool toastEnabled = false;
 bool menuEnabled = false;
 bool overlayEnabled = false;
+bool helperEnabled = false;
 
 bool menuOpened = false;
 bool toastActive = false;
@@ -407,6 +408,9 @@ void preloadImages() {
         case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_11yo_washing-90x135.png", currentCharacter);
           break;
+        case HEALTH_DOCTOR:
+          preloadImage("/idolnat/sprites/doctor01-90x135.png", currentCharacter);
+          break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_11yo_asleep-90x135.png", currentCharacter);
           break; 
@@ -422,6 +426,9 @@ void preloadImages() {
           break;
         case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_13yo_washing-90x135.png", currentCharacter);
+          break;
+        case HEALTH_DOCTOR:
+          preloadImage("/idolnat/sprites/doctor01-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_13yo_asleep-90x135.png", currentCharacter);
@@ -439,6 +446,9 @@ void preloadImages() {
         case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_15yo_washing-90x135.png", currentCharacter);
           break;
+        case HEALTH_DOCTOR:
+          preloadImage("/idolnat/sprites/doctor02-90x135.png", currentCharacter);
+          break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_15yo_asleep-90x135.png", currentCharacter);
           break; 
@@ -455,6 +465,9 @@ void preloadImages() {
         case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_18yo_washing-90x135.png", currentCharacter);
           break;
+        case HEALTH_DOCTOR:
+          preloadImage("/idolnat/sprites/doctor02-90x135.png", currentCharacter);
+          break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_18yo_asleep-90x135.png", currentCharacter);
           break; 
@@ -470,6 +483,9 @@ void preloadImages() {
           break;
         case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_21yo_washing-90x135.png", currentCharacter);
+          break;
+        case HEALTH_DOCTOR:
+          preloadImage("/idolnat/sprites/doctor02-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_21yo_asleep-90x135.png", currentCharacter);
@@ -715,7 +731,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           screenConfig = ROOM;
           break;
         case HEALTH_DOCTOR:
-          screenConfig = ROOM;
+          screenConfig = DIALOG;
           break;
         case HEALTH_ONSEN:
           screenConfig = ROOM;
@@ -908,6 +924,13 @@ void manageCard() {
   l3NeedsRedraw = false;
   l4NeedsRedraw = false;
   l5NeedsRedraw = false;
+  backgroundEnabled = false;
+  characterEnabled = false;
+  debugEnabled = false;
+  toastEnabled = false;
+  menuEnabled = false;
+  overlayEnabled = false;
+  helperEnabled = false;
   */
   switch (currentState) {
     case M5_SCREEN:
@@ -954,8 +977,18 @@ void manageDialog() {
   l3NeedsRedraw = false;
   l4NeedsRedraw = false;
   l5NeedsRedraw = false;
+  backgroundEnabled = false;
+  characterEnabled = false;
+  debugEnabled = false;
+  toastEnabled = false;
+  menuEnabled = false;
+  overlayEnabled = false;
+  helperEnabled = false;
   */
   switch (currentState) {
+    case HEALTH_DOCTOR:
+      doctor();
+      break;
     default:
       break;
   }
@@ -987,6 +1020,13 @@ void manageGame() {
   l3NeedsRedraw = false;
   l4NeedsRedraw = false;
   l5NeedsRedraw = false;
+  backgroundEnabled = false;
+  characterEnabled = false;
+  debugEnabled = false;
+  toastEnabled = false;
+  menuEnabled = false;
+  overlayEnabled = false;
+  helperEnabled = false;
   */
   switch (currentState) {
     case HEALTH_WASH:
@@ -1009,6 +1049,198 @@ void manageGame() {
   drawOverlay();
 }
 
+void manageIdle() {
+  // Manage IDLE screens
+  /*
+      Idle mode, minimal screen activity
+      Background: Yes, Always black
+      Character: Natsumi
+      Debug: Available
+      Toast: Yes
+      Menu: None
+      Interactive (escape)
+  */
+  l4NeedsRedraw = false;
+  /*
+  backgroundEnabled = false;
+  characterEnabled = false;
+  debugEnabled = false;
+  toastEnabled = false;
+  menuEnabled = false;
+  overlayEnabled = false;
+  helperEnabled = false;
+  */
+  switch (currentState) {
+    case REST_MEDITATE:
+      meditate();
+      break;
+    case REST_SLEEP:
+      sleep();
+      break;
+    default:
+      break;
+  }
+
+  // Stats management
+  updateAging();
+  updateStats();
+
+  // Draw required layers for IDLE screens
+  drawBackground(currentBackground); // Always set to black.png
+  drawCharacter();
+  drawDebug();
+  drawToast();
+  drawOverlay();
+}
+
+void manageRoom() {
+  // Manage ROOM screens
+  /*
+  Background: Yes
+  Character: Yes
+  Debug: Available
+  Toast: Yes
+  Menu: Yes
+  Interactive (timer + keypress + escape)
+  */
+  /*
+  backgroundEnabled = false;
+  characterEnabled = false;
+  debugEnabled = false;
+  toastEnabled = false;
+  menuEnabled = false;
+  overlayEnabled = false;
+  helperEnabled = false;
+  */
+  switch (currentState) {
+    case HOME_LOOP:
+      manageHomeScreen();
+      break;
+    case FOOD_EAT:
+      eat();
+      break;
+    case HEALTH_WASH2:
+      wash();
+      break;
+    case GARDEN_LOOP:
+      manageGarden();
+      break;
+    case FOOD_MENU:
+      menuOpened = true;
+      break;
+    case FOOD_COOK:
+      cookFood();
+      break;
+    case FOOD_REST:
+      gotoRestaurant();
+      break;
+    case FOOD_ORDER:
+      orderFood();
+      break;
+    case TRAIN_MENU:
+      menuOpened = true;
+      break;
+    case COMP_MENU:
+      menuOpened = true;
+      break;
+    case HEALTH_MENU:
+      menuOpened = true;
+      break;
+    case REST_MENU:
+      menuOpened = true;
+      break;
+    default:
+      break;
+  }
+
+  // Draw required layers for ROOM screens
+  drawBackground(currentBackground);
+  drawCharacter();
+  drawDebug();
+  drawToast();
+  drawOverlay();
+
+  int *selectionPtr;
+  if (currentMenuType == "home") {
+    selectionPtr = &homeMenuSelection;
+  } else if (currentMenuType == "dev") {
+    selectionPtr = &devMenuSelection;
+  } else {
+    selectionPtr = &mainMenuSelection;
+  }
+  drawMenu(currentMenuType, currentMenuItems, currentMenuItemsCount, *selectionPtr);
+}
+
+void manageText() {
+  // Manage TEXT screens
+  /*
+  Transition text (version)
+  Background: None
+  Character: None
+  Debug: None
+  Toast: None
+  Menu: None
+  Non-interactive (timer)
+  */
+  /*
+  l0NeedsRedraw = false;
+  l1NeedsRedraw = false;
+  l2NeedsRedraw = false;
+  l3NeedsRedraw = false;
+  l4NeedsRedraw = false;
+  l5NeedsRedraw = false;
+  backgroundEnabled = false;
+  characterEnabled = false;
+  debugEnabled = false;
+  toastEnabled = false;
+  menuEnabled = false;
+  overlayEnabled = false;
+  helperEnabled = false;
+  */
+  switch (currentState) {
+    case VERSION_SCREEN:
+      displayVersionScreen();
+      break;
+    default:
+      break;
+  }
+
+  // Draw required layers for TEXT screens
+  // Meh
+}
+
+void displayBlackScreen() {
+  M5Cardputer.Display.fillScreen(BLACK);
+}
+
+void displayVersionScreen() {
+  // Serial.println("> Entering displayVersionScreen()");
+  if (changeStateCounter==0) {
+    displayBlackScreen();
+    drawText("IDOL NATSUMI", 120, 30, true, RED, 3); // centered
+    drawText("for M5 Cardputer", 120, 50, true, BLUE, 2); // centered
+    drawText(copyright, 120, 100, true, WHITE, 1); // centered
+    drawText(versionNumber, 120, 110, true, WHITE, 1); // centered
+  }
+  changeState(0, M5_SCREEN, microWait);
+}
+
+void manageHomeScreen() {
+  // Serial.println("> Entering manageHomeScreen()");
+  // Serial.print("natsumi.age: ");
+  // Serial.println(natsumi.age);
+  // Serial.print("currentAge: ");
+  // Serial.println(currentAge);
+  updateAging();
+  updateStats();
+}
+
+void manageGarden() {
+  // Serial.println("> Entering manageGarden()");
+  updateAging();
+  updateStats();
+}
+
 void resetBathGame() {
   bathGameRunning = false;
   bathBackgroundDrawn = false;
@@ -1029,14 +1261,6 @@ void drawBathStaticLayout() {
   const uint16_t idealOutline = M5Cardputer.Display.color565(140, 235, 200);
   const int innerX = thermometerX + thermometerInnerPadding;
   const int innerWidth = thermometerWidth - thermometerInnerPadding * 2;
-
-  /*
-  M5Cardputer.Display.fillScreen(BLACK);
-  drawText("TEMPERATURE", 12, 14, false, WHITE, 2);
-  drawText("perfect", 12, 32, false, WHITE, 2);
-  drawText("Press any key when\nin the green zone", 12, 54, false, M5Cardputer.Display.color565(180, 200, 220), 1);
-  drawText("Get the temp right!", 12, 118, false, YELLOW, 1);
-  */
 
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
   drawText("Press ENTER at right temperature", 120, 131, true, WHITE, 1);
@@ -1174,176 +1398,6 @@ void manageBathGame() {
     drawBathSlider(sliderYPosition);
     lastSliderUpdate = now;
   }
-}
-
-void manageIdle() {
-  // Manage IDLE screens
-  /*
-      Idle mode, minimal screen activity
-      Background: Yes, Always black
-      Character: Natsumi
-      Debug: Available
-      Toast: Yes
-      Menu: None
-      Interactive (escape)
-  */
-  l4NeedsRedraw = false;
-  switch (currentState) {
-    case REST_MEDITATE:
-      meditate();
-      break;
-    case REST_SLEEP:
-      sleep();
-      break;
-    default:
-      break;
-  }
-
-  // Stats management
-  updateAging();
-  updateStats();
-
-  // Draw required layers for IDLE screens
-  drawBackground(currentBackground); // Always set to black.png
-  drawCharacter();
-  drawDebug();
-  drawToast();
-  drawOverlay();
-}
-
-void manageRoom() {
-  // Manage ROOM screens
-  /*
-      Background: Yes
-      Character: Yes
-      Debug: Available
-      Toast: Yes
-      Menu: Yes
-      Interactive (timer + keypress + escape)
-  */
-  switch (currentState) {
-    case HOME_LOOP:
-      manageHomeScreen();
-      break;
-    case FOOD_EAT:
-      eat();
-      break;
-    case HEALTH_WASH2:
-      wash();
-      break;
-    case HEALTH_DOCTOR:
-      doctor();
-      break;
-    case GARDEN_LOOP:
-      manageGarden();
-      break;
-    case FOOD_MENU:
-      menuOpened = true;
-      break;
-    case FOOD_COOK:
-      cookFood();
-      break;
-    case FOOD_REST:
-      gotoRestaurant();
-      break;
-    case FOOD_ORDER:
-      orderFood();
-      break;
-    case TRAIN_MENU:
-      menuOpened = true;
-      break;
-    case COMP_MENU:
-      menuOpened = true;
-      break;
-    case HEALTH_MENU:
-      menuOpened = true;
-      break;
-    case REST_MENU:
-      menuOpened = true;
-      break;
-    default:
-      break;
-  }
-
-  // Draw required layers for ROOM screens
-  drawBackground(currentBackground);
-  drawCharacter();
-  drawDebug();
-  drawToast();
-  drawOverlay();
-
-  int *selectionPtr;
-  if (currentMenuType == "home") {
-    selectionPtr = &homeMenuSelection;
-  } else if (currentMenuType == "dev") {
-    selectionPtr = &devMenuSelection;
-  } else {
-    selectionPtr = &mainMenuSelection;
-  }
-  drawMenu(currentMenuType, currentMenuItems, currentMenuItemsCount, *selectionPtr);
-}
-
-void manageText() {
-  // Manage TEXT screens
-  /*
-      Transition text (version)
-      Background: None
-      Character: None
-      Debug: None
-      Toast: None
-      Menu: None
-      Non-interactive (timer)
-  */
-  /*
-  l0NeedsRedraw = false;
-  l1NeedsRedraw = false;
-  l2NeedsRedraw = false;
-  l3NeedsRedraw = false;
-  l4NeedsRedraw = false;
-  l5NeedsRedraw = false;
-  */
-  switch (currentState) {
-    case VERSION_SCREEN:
-      displayVersionScreen();
-      break;
-    default:
-      break;
-  }
-
-  // Draw required layers for TEXT screens
-  // Meh
-}
-
-void displayBlackScreen() {
-  M5Cardputer.Display.fillScreen(BLACK);
-}
-
-void displayVersionScreen() {
-  // Serial.println("> Entering displayVersionScreen()");
-  if (changeStateCounter==0) {
-    displayBlackScreen();
-    drawText("IDOL NATSUMI", 120, 30, true, RED, 3); // centered
-    drawText("for M5 Cardputer", 120, 50, true, BLUE, 2); // centered
-    drawText(copyright, 120, 100, true, WHITE, 1); // centered
-    drawText(versionNumber, 120, 110, true, WHITE, 1); // centered
-  }
-  changeState(0, M5_SCREEN, microWait);
-}
-
-void manageHomeScreen() {
-  // Serial.println("> Entering manageHomeScreen()");
-  // Serial.print("natsumi.age: ");
-  // Serial.println(natsumi.age);
-  // Serial.print("currentAge: ");
-  // Serial.println(currentAge);
-  updateAging();
-  updateStats();
-}
-
-void manageGarden() {
-  // Serial.println("> Entering manageGarden()");
-  updateAging();
-  updateStats();
 }
 
 void eat() {
