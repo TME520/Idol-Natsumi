@@ -2671,7 +2671,7 @@ void orderFood() {
 void doctor() {
   // Visit to the doctor
   if (changeStateCounter==0) {
-    // Select food
+    drawDialogBubble("Hello Miss Hasegawa. I will check your health and see if everything is OK.");
   }
   changeState(0, HOME_LOOP, shortWait);
 }
