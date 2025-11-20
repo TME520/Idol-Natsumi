@@ -1400,6 +1400,12 @@ void manageBathGame() {
   }
 }
 
+void drawDialogBubble() {
+  // This function draws the dialog bubbles
+  // Text appears in one go
+  // Press any key to proceed
+}
+
 void eat() {
   // Serial.println("> Entering eat()");
   if (changeStateCounter==0) {
