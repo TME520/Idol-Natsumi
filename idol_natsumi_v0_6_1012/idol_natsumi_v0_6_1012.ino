@@ -1,5 +1,6 @@
 #include <M5Cardputer.h>
 #include <SD.h>
+#include <vector>
 
 // === Game state definitions ===
 enum GameState {
@@ -1400,10 +1401,117 @@ void manageBathGame() {
   }
 }
 
-void drawDialogBubble() {
-  // This function draws the dialog bubbles
-  // Text appears in one go
-  // Press any key to proceed
+void drawDialogBubble(const String& dialogText) {
+  // Draw a dialog bubble on the right, matching the menu style
+  const int x = 80;              // leave space for the character on the left
+  const int w = 150;             // width of the bubble
+  const int padding = 8;         // inner padding
+  const int lineSpacing = 10;    // spacing between lines (matches drawMenu)
+  const int screenHeight = 135;  // display height
+  const int topMargin = 8;
+  const int bottomMargin = 6;
+  const int textInset = padding + 5;  // align text similarly to drawMenu
+
+  M5Cardputer.Display.setTextSize(1);
+  const int maxTextWidth = w - (textInset * 2);
+
+  // Split text into wrapped lines
+  std::vector<String> lines;
+  auto addWrappedLine = [&](const String& line) {
+    String currentLine = "";
+    int start = 0;
+    while (start < line.length()) {
+      int spaceIndex = line.indexOf(' ', start);
+      String word;
+      if (spaceIndex == -1) {
+        word = line.substring(start);
+        start = line.length();
+      } else {
+        word = line.substring(start, spaceIndex);
+        start = spaceIndex + 1;
+      }
+
+      String candidate = currentLine.length() ? currentLine + " " + word : word;
+      if (M5Cardputer.Display.textWidth(candidate) <= maxTextWidth) {
+        currentLine = candidate;
+      } else {
+        if (currentLine.length()) {
+          lines.push_back(currentLine);
+        }
+
+        if (M5Cardputer.Display.textWidth(word) <= maxTextWidth) {
+          currentLine = word;
+        } else {
+          String remainingWord = word;
+          while (remainingWord.length()) {
+            int cut = remainingWord.length();
+            while (cut > 0 && M5Cardputer.Display.textWidth(remainingWord.substring(0, cut)) > maxTextWidth) {
+              cut--;
+            }
+            if (cut == 0) break;
+            lines.push_back(remainingWord.substring(0, cut));
+            remainingWord = remainingWord.substring(cut);
+          }
+          currentLine = "";
+        }
+      }
+    }
+    if (currentLine.length()) {
+      lines.push_back(currentLine);
+    }
+  };
+
+  int lastPos = 0;
+  int newlineIndex = dialogText.indexOf('\n', lastPos);
+  while (newlineIndex != -1) {
+    addWrappedLine(dialogText.substring(lastPos, newlineIndex));
+    lastPos = newlineIndex + 1;
+    newlineIndex = dialogText.indexOf('\n', lastPos);
+  }
+  addWrappedLine(dialogText.substring(lastPos));
+
+  if (lines.empty()) {
+    lines.push_back("");
+  }
+
+  int h = padding * 2 + ((lines.size() - 1) * lineSpacing);
+  int y = (screenHeight - h) / 2;
+
+  if (y < topMargin) {
+    y = topMargin;
+  }
+
+  int maxY = screenHeight - bottomMargin - h;
+  if (y > maxY) {
+    y = maxY;
+  }
+
+  if (y < 0) {
+    y = 0;
+  }
+
+  // Draw the dialog bubble with the same style as drawMenu
+  M5Cardputer.Display.fillRect(x, y, w, h, TFT_NAVY);
+  M5Cardputer.Display.drawRect(x, y, w, h, WHITE);
+
+  for (size_t i = 0; i < lines.size(); i++) {
+    M5Cardputer.Display.setCursor(x + textInset, y + padding + (i * lineSpacing));
+    M5Cardputer.Display.setTextColor(WHITE);
+    M5Cardputer.Display.println(lines[i]);
+  }
+
+  // Helper text at the bottom
+  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  drawText("Press any key to continue", 120, 131, true, WHITE, 1);
+
+  // Wait for any key press before exiting
+  while (true) {
+    M5Cardputer.update();
+    if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+      break;
+    }
+    delay(10);
+  }
 }
 
 void eat() {
