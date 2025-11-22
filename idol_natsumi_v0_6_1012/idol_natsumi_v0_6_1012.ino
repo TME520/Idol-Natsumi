@@ -446,7 +446,7 @@ void preloadImages() {
         case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
           preloadImage("/idolnat/sprites/doctor01-90x135.png", currentCharacter);
           break;
-        case HEALTH_TEMPLE:
+        case HEALTH_TEMPLE: case HEALTH_TEMPLE6:
           preloadImage("/idolnat/sprites/priest01-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
@@ -468,7 +468,7 @@ void preloadImages() {
         case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
           preloadImage("/idolnat/sprites/doctor01-90x135.png", currentCharacter);
           break;
-        case HEALTH_TEMPLE:
+        case HEALTH_TEMPLE: case HEALTH_TEMPLE6:
           preloadImage("/idolnat/sprites/priest02-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
@@ -490,7 +490,7 @@ void preloadImages() {
         case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
           preloadImage("/idolnat/sprites/doctor02-90x135.png", currentCharacter);
           break;
-        case HEALTH_TEMPLE:
+        case HEALTH_TEMPLE: case HEALTH_TEMPLE6:
           preloadImage("/idolnat/sprites/priest01-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
@@ -512,7 +512,7 @@ void preloadImages() {
         case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
           preloadImage("/idolnat/sprites/doctor02-90x135.png", currentCharacter);
           break;
-        case HEALTH_TEMPLE:
+        case HEALTH_TEMPLE: case HEALTH_TEMPLE6:
           preloadImage("/idolnat/sprites/priest01-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
@@ -534,7 +534,7 @@ void preloadImages() {
         case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
           preloadImage("/idolnat/sprites/doctor02-90x135.png", currentCharacter);
           break;
-        case HEALTH_TEMPLE:
+        case HEALTH_TEMPLE: case HEALTH_TEMPLE6:
           preloadImage("/idolnat/sprites/priest02-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
@@ -2597,6 +2597,27 @@ void drawOverlay() {
         } else {
           drawDialogBubble("Congratulations!! You are in shape!");
           doctorState = HOME_LOOP;
+        }
+        break;
+      case HEALTH_TEMPLE:
+        drawDialogBubble("Hello Miss. Thanks for visiting our temple. I will pray for you and see if everything is OK.");
+        break;
+      case HEALTH_TEMPLE6:
+        if (natsumi.hunger < 2) {
+          drawDialogBubble("You need to eat more...");
+          priestState = FOOD_MENU;
+        } else if (natsumi.hygiene < 2) {
+          drawDialogBubble("You need better hygiene...");
+          priestState = HEALTH_MENU;
+        } else if (natsumi.fitness < 2) {
+          drawDialogBubble("You need to exercise more...");
+          priestState = TRAIN_MENU;
+        } else if (natsumi.energy < 2) {
+          drawDialogBubble("You need to sleep more...");
+          priestState = REST_MENU;
+        } else {
+          drawDialogBubble("Congratulations!! You are in shape!");
+          priestState = HOME_LOOP;
         }
         break;
       default:
