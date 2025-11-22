@@ -2603,20 +2603,28 @@ void drawOverlay() {
         drawDialogBubble("Hello Miss. Thanks for visiting our temple. I will pray for you and see if everything is OK.");
         break;
       case HEALTH_TEMPLE6:
-        if (natsumi.hunger < 2) {
-          drawDialogBubble("You need to eat more...");
+        if (natsumi.spirit < 2) {
+          if (natsumi.hunger < 2) {
+            drawDialogBubble("You need to eat more...");
+            priestState = FOOD_MENU;
+          } else if (natsumi.hygiene < 2) {
+            drawDialogBubble("You need better hygiene...");
+            priestState = HEALTH_MENU;
+          } else if (natsumi.energy < 2) {
+            drawDialogBubble("You need to exercise more...");
+            priestState = HEALTH_MENU;
+          } else if (natsumi.performance < 2) {
+            drawDialogBubble("You need to train more...");
+            priestState = TRAIN_MENU;
+          } else if (natsumi.popularity < 2) {
+            drawDialogBubble("You need to compete more...");
+            priestState = COMP_MENU;
+          }
+        } else if (natsumi.charm < 2) {
+          drawDialogBubble("Treat yourself to some nice food, it is good for the soul.");
           priestState = FOOD_MENU;
-        } else if (natsumi.hygiene < 2) {
-          drawDialogBubble("You need better hygiene...");
-          priestState = HEALTH_MENU;
-        } else if (natsumi.fitness < 2) {
-          drawDialogBubble("You need to exercise more...");
-          priestState = TRAIN_MENU;
-        } else if (natsumi.energy < 2) {
-          drawDialogBubble("You need to sleep more...");
-          priestState = REST_MENU;
         } else {
-          drawDialogBubble("Congratulations!! You are in shape!");
+          drawDialogBubble("Congratulations!! You have a strong mind!");
           priestState = HOME_LOOP;
         }
         break;
