@@ -50,6 +50,7 @@ enum GameState {
 };
 
 GameState currentState = VERSION_SCREEN;
+GameState doctorState = HOME_LOOP;
 
 // === Screen configs definitions ===
 enum ScreenState {
@@ -2526,14 +2527,19 @@ void drawOverlay() {
       case HEALTH_DOCTOR6:
         if (natsumi.hunger < 2) {
           drawDialogBubble("You need to eat more...");
+          doctorState = FOOD_MENU;
         } else if (natsumi.hygiene < 2) {
           drawDialogBubble("You need better hygiene...");
+          doctorState = HEALTH_MENU;
         } else if (natsumi.fitness < 2) {
           drawDialogBubble("You need to exercise more...");
+          doctorState = TRAIN_MENU;
         } else if (natsumi.energy < 2) {
           drawDialogBubble("You need to sleep more...");
+          doctorState = REST_MENU;
         } else {
           drawDialogBubble("Congratulations!! You are in shape!");
+          doctorState = HOME_LOOP;
         }
         break;
       default:
@@ -2719,7 +2725,7 @@ void doctor() {
           break;
         case HEALTH_DOCTOR6:
           overlayActive = false;
-          changeState(0, HOME_LOOP, 0);
+          changeState(0, doctorState, 0);
           break;
       }
       return;
