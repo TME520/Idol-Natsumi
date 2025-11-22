@@ -733,6 +733,8 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           break;
         case HEALTH_DOCTOR:
           screenConfig = DIALOG;
+          overlayActive = true;
+          l5NeedsRedraw = true;
           break;
         case HEALTH_ONSEN:
           screenConfig = ROOM;
@@ -1002,6 +1004,7 @@ void manageDialog() {
   drawBackground(currentBackground);
   drawCharacter();
   drawDebug();
+  drawOverlay();
 }
 
 void manageGame() {
@@ -1504,6 +1507,7 @@ void drawDialogBubble(const String& dialogText) {
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
   drawText("Press any key to continue", 120, 131, true, WHITE, 1);
 
+  /*
   // Wait for any key press before exiting
   while (true) {
     M5Cardputer.update();
@@ -1512,6 +1516,7 @@ void drawDialogBubble(const String& dialogText) {
     }
     delay(10);
   }
+  */
 }
 
 void eat() {
@@ -2498,6 +2503,9 @@ void drawOverlay() {
         Serial.println(">>> drawOverlay: lastMeditationDisplayed=" + String(lastMeditationDisplayed));
         drawMeditationOverlay();
         break;
+      case HEALTH_DOCTOR:
+        drawDialogBubble("Hello Miss Hasegawa. I will check your health and see if everything is OK.");
+        break;
       default:
         break;
     }
@@ -2669,9 +2677,15 @@ void orderFood() {
 }
 
 void doctor() {
-  // Visit to the doctor
-  if (changeStateCounter==0) {
-    drawDialogBubble("Hello Miss Hasegawa. I will check your health and see if everything is OK.");
+  Serial.println("> Entering doctor()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      overlayActive = false;
+      changeState(0, HOME_LOOP, 0);
+      return;
+    }
   }
-  changeState(0, HOME_LOOP, shortWait);
 }
