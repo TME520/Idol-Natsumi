@@ -23,6 +23,11 @@ enum GameState {
   HEALTH_WASH,
   HEALTH_WASH2,
   HEALTH_DOCTOR,
+  HEALTH_DOCTOR2,
+  HEALTH_DOCTOR3,
+  HEALTH_DOCTOR4,
+  HEALTH_DOCTOR5,
+  HEALTH_DOCTOR6,
   HEALTH_TEMPLE,
   HEALTH_ONSEN,
   REST_MENU,
@@ -157,6 +162,7 @@ bool overlayEnabled = false;
 bool helperEnabled = false;
 
 bool menuOpened = false;
+bool debugActive = false;
 bool toastActive = false;
 bool overlayActive = false;
 
@@ -351,8 +357,17 @@ void preloadImages() {
     case HEALTH_WASH: case HEALTH_WASH2:
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
       break;
-    case HEALTH_DOCTOR:
+    case HEALTH_DOCTOR: case HEALTH_DOCTOR2: case HEALTH_DOCTOR6:
       preloadImage("/idolnat/screens/doctors_office_bg.png", currentBackground);
+      break;
+    case HEALTH_DOCTOR3:
+      preloadImage("/idolnat/screens/doctor_step1.png", currentBackground);
+      break;
+    case HEALTH_DOCTOR4:
+      preloadImage("/idolnat/screens/doctor_step2.png", currentBackground);
+      break;
+    case HEALTH_DOCTOR5:
+      preloadImage("/idolnat/screens/doctor_step3.png", currentBackground);
       break;
     case REST_MEDITATE:
       preloadImage("/idolnat/screens/bedroom.png", currentBackground);
@@ -409,7 +424,7 @@ void preloadImages() {
         case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_11yo_washing-90x135.png", currentCharacter);
           break;
-        case HEALTH_DOCTOR:
+        case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
           preloadImage("/idolnat/sprites/doctor01-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
@@ -428,7 +443,7 @@ void preloadImages() {
         case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_13yo_washing-90x135.png", currentCharacter);
           break;
-        case HEALTH_DOCTOR:
+        case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
           preloadImage("/idolnat/sprites/doctor01-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
@@ -447,7 +462,7 @@ void preloadImages() {
         case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_15yo_washing-90x135.png", currentCharacter);
           break;
-        case HEALTH_DOCTOR:
+        case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
           preloadImage("/idolnat/sprites/doctor02-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
@@ -466,7 +481,7 @@ void preloadImages() {
         case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_18yo_washing-90x135.png", currentCharacter);
           break;
-        case HEALTH_DOCTOR:
+        case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
           preloadImage("/idolnat/sprites/doctor02-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
@@ -485,7 +500,7 @@ void preloadImages() {
         case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_21yo_washing-90x135.png", currentCharacter);
           break;
-        case HEALTH_DOCTOR:
+        case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
           preloadImage("/idolnat/sprites/doctor02-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
@@ -731,10 +746,14 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         case HEALTH_WASH2:
           screenConfig = ROOM;
           break;
-        case HEALTH_DOCTOR:
+        case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
           screenConfig = DIALOG;
           overlayActive = true;
           l5NeedsRedraw = true;
+          break;
+        case HEALTH_DOCTOR2: case HEALTH_DOCTOR3: case HEALTH_DOCTOR4: case HEALTH_DOCTOR5:
+          screenConfig = CARD;
+          characterEnabled = false;
           break;
         case HEALTH_ONSEN:
           screenConfig = ROOM;
@@ -922,19 +941,13 @@ void manageCard() {
   Menu: None
   Interactive (timer + keypress)
   */
-  /*
-  l1NeedsRedraw = false;
-  l3NeedsRedraw = false;
-  l4NeedsRedraw = false;
-  l5NeedsRedraw = false;
-  backgroundEnabled = false;
+  backgroundEnabled = true;
   characterEnabled = false;
-  debugEnabled = false;
+  debugEnabled = true;
   toastEnabled = false;
-  menuEnabled = false;
+  menuEnabled = true;
   overlayEnabled = false;
   helperEnabled = false;
-  */
   switch (currentState) {
     case M5_SCREEN:
       changeState(0, TITLE_SCREEN, microWait);
@@ -946,6 +959,18 @@ void manageCard() {
       break;
     case CONTINUE_GAME:
       changeState(0, HOME_LOOP, 0);
+      break;
+    case HEALTH_DOCTOR2:
+      changeState(0, HEALTH_DOCTOR3, 30);
+      break;
+    case HEALTH_DOCTOR3:
+      changeState(0, HEALTH_DOCTOR4, 30);
+      break;
+    case HEALTH_DOCTOR4:
+      changeState(0, HEALTH_DOCTOR5, 30);
+      break;
+    case HEALTH_DOCTOR5:
+      changeState(0, HEALTH_DOCTOR6, 30);
       break;
     case DEV_SCREEN:
       break;
@@ -963,6 +988,7 @@ void manageCard() {
     selectionPtr = &mainMenuSelection;
   }
   drawMenu(currentMenuType, currentMenuItems, currentMenuItemsCount, *selectionPtr);
+  return;
 }
 
 void manageDialog() {
@@ -976,20 +1002,15 @@ void manageDialog() {
       Menu: None
       Interactive (timer + keypress + escape)
   */
-  /*
-  l3NeedsRedraw = false;
-  l4NeedsRedraw = false;
-  l5NeedsRedraw = false;
-  backgroundEnabled = false;
-  characterEnabled = false;
-  debugEnabled = false;
+  backgroundEnabled = true;
+  characterEnabled = true;
+  debugEnabled = true;
   toastEnabled = false;
   menuEnabled = false;
-  overlayEnabled = false;
+  overlayEnabled = true;
   helperEnabled = false;
-  */
   switch (currentState) {
-    case HEALTH_DOCTOR:
+    case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
       doctor();
       break;
     default:
@@ -1005,6 +1026,7 @@ void manageDialog() {
   drawCharacter();
   drawDebug();
   drawOverlay();
+  return;
 }
 
 void manageGame() {
@@ -1018,20 +1040,13 @@ void manageGame() {
       Menu: None
       Interactive (timer + keypress + escape)
   */
-  /*
-  l0NeedsRedraw = false;
-  l1NeedsRedraw = false;
-  l3NeedsRedraw = false;
-  l4NeedsRedraw = false;
-  l5NeedsRedraw = false;
   backgroundEnabled = false;
   characterEnabled = false;
-  debugEnabled = false;
+  debugEnabled = true;
   toastEnabled = false;
   menuEnabled = false;
-  overlayEnabled = false;
+  overlayEnabled = true;
   helperEnabled = false;
-  */
   switch (currentState) {
     case HEALTH_WASH:
       manageBathGame();
@@ -1051,6 +1066,7 @@ void manageGame() {
   // Draw required layers for GAME screens
   drawDebug();
   drawOverlay();
+  return;
 }
 
 void manageIdle() {
@@ -1064,16 +1080,13 @@ void manageIdle() {
       Menu: None
       Interactive (escape)
   */
-  l4NeedsRedraw = false;
-  /*
-  backgroundEnabled = false;
-  characterEnabled = false;
-  debugEnabled = false;
-  toastEnabled = false;
+  backgroundEnabled = true;
+  characterEnabled = true;
+  debugEnabled = true;
+  toastEnabled = true;
   menuEnabled = false;
-  overlayEnabled = false;
+  overlayEnabled = true;
   helperEnabled = false;
-  */
   switch (currentState) {
     case REST_MEDITATE:
       meditate();
@@ -1095,6 +1108,7 @@ void manageIdle() {
   drawDebug();
   drawToast();
   drawOverlay();
+  return;
 }
 
 void manageRoom() {
@@ -1107,15 +1121,13 @@ void manageRoom() {
   Menu: Yes
   Interactive (timer + keypress + escape)
   */
-  /*
-  backgroundEnabled = false;
-  characterEnabled = false;
-  debugEnabled = false;
-  toastEnabled = false;
-  menuEnabled = false;
-  overlayEnabled = false;
+  backgroundEnabled = true;
+  characterEnabled = true;
+  debugEnabled = true;
+  toastEnabled = true;
+  menuEnabled = true;
+  overlayEnabled = true;
   helperEnabled = false;
-  */
   switch (currentState) {
     case HOME_LOOP:
       manageHomeScreen();
@@ -1173,6 +1185,7 @@ void manageRoom() {
     selectionPtr = &mainMenuSelection;
   }
   drawMenu(currentMenuType, currentMenuItems, currentMenuItemsCount, *selectionPtr);
+  return;
 }
 
 void manageText() {
@@ -1186,13 +1199,6 @@ void manageText() {
   Menu: None
   Non-interactive (timer)
   */
-  /*
-  l0NeedsRedraw = false;
-  l1NeedsRedraw = false;
-  l2NeedsRedraw = false;
-  l3NeedsRedraw = false;
-  l4NeedsRedraw = false;
-  l5NeedsRedraw = false;
   backgroundEnabled = false;
   characterEnabled = false;
   debugEnabled = false;
@@ -1200,7 +1206,6 @@ void manageText() {
   menuEnabled = false;
   overlayEnabled = false;
   helperEnabled = false;
-  */
   switch (currentState) {
     case VERSION_SCREEN:
       displayVersionScreen();
@@ -1211,10 +1216,12 @@ void manageText() {
 
   // Draw required layers for TEXT screens
   // Meh
+  return;
 }
 
 void displayBlackScreen() {
   M5Cardputer.Display.fillScreen(BLACK);
+  return;
 }
 
 void displayVersionScreen() {
@@ -1227,6 +1234,7 @@ void displayVersionScreen() {
     drawText(versionNumber, 120, 110, true, WHITE, 1); // centered
   }
   changeState(0, M5_SCREEN, microWait);
+  return;
 }
 
 void manageHomeScreen() {
@@ -1237,12 +1245,14 @@ void manageHomeScreen() {
   // Serial.println(currentAge);
   updateAging();
   updateStats();
+  return;
 }
 
 void manageGarden() {
   // Serial.println("> Entering manageGarden()");
   updateAging();
   updateStats();
+  return;
 }
 
 void resetBathGame() {
@@ -1254,6 +1264,7 @@ void resetBathGame() {
   lastSliderUpdate = 0;
   bathGameStart = 0;
   bathOutcomeTime = 0;
+  return;
 }
 
 void drawBathStaticLayout() {
@@ -1274,6 +1285,7 @@ void drawBathStaticLayout() {
   M5Cardputer.Display.fillRect(innerX, idealZoneY, innerWidth, idealZoneHeight, idealColor);
   M5Cardputer.Display.drawRect(innerX - 1, idealZoneY - 1, innerWidth + 2, idealZoneHeight + 2, idealOutline);
   bathBackgroundDrawn = true;
+  return;
 }
 
 void clearBathSlider(int y) {
@@ -1506,17 +1518,6 @@ void drawDialogBubble(const String& dialogText) {
   // Helper text at the bottom
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
   drawText("Press any key to continue", 120, 131, true, WHITE, 1);
-
-  /*
-  // Wait for any key press before exiting
-  while (true) {
-    M5Cardputer.update();
-    if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-      break;
-    }
-    delay(10);
-  }
-  */
 }
 
 void eat() {
@@ -1696,9 +1697,11 @@ void meditate() {
 // === Draw functions ===
 void drawBackground(const ImageBuffer& bg) {
   // Draw the background of the screen (layer 0)
-  // Serial.println("> Entering drawBackground() L0");
+  Serial.println("> Entering drawBackground() L0 with backgroundEnabled set to " + String(backgroundEnabled));
   if (l0NeedsRedraw) {
-    drawImage(bg);
+    if (backgroundEnabled) {
+      drawImage(bg);
+    }
     l0NeedsRedraw = false;
     l1NeedsRedraw = true;
     l2NeedsRedraw = true;
@@ -1710,14 +1713,16 @@ void drawBackground(const ImageBuffer& bg) {
 
 void drawCharacter() {
   // Draw the character(s) on the screen (layer 1)
-  // Serial.println("> Entering drawCharacter() L1");
+  Serial.println("> Entering drawCharacter() L1 with characterEnabled set to " + String(characterEnabled));
   if (l1NeedsRedraw) {
-    drawImage(currentCharacter);
-    if (!menuOpened && !overlayActive) {
-      // Helper text at the bottom
-      Serial.println("[DEBUG] manageHomeScreen() -> l5NeedsRedraw TRUE");
-      M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-      drawText("TAB: Open menu", 120, 131, true, WHITE, 1);
+    if (characterEnabled) {
+      drawImage(currentCharacter);
+      if (!menuOpened && !overlayActive) {
+        // Helper text at the bottom
+        Serial.println("[DEBUG] manageHomeScreen() -> l5NeedsRedraw TRUE");
+        M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+        drawText("TAB: Open menu", 120, 131, true, WHITE, 1);
+      }
     }
     l1NeedsRedraw = false;
     l2NeedsRedraw = true;
@@ -1730,24 +1735,25 @@ void drawCharacter() {
 
 void drawDebug() {
   // Draw debug information (layer 2)
-  // Serial.println("> Entering drawDebug() L2");
-  if (l2NeedsRedraw && debugEnabled) {
-    drawText(String("Memory: ") + ESP.getFreeHeap(), 80, 10, false, WHITE, 1);
-    drawText(String("Time: ") + natsumi.ageMilliseconds, 80, 20, false, WHITE, 1);
-    drawText(String("Age: ") + natsumi.age + " y.o.", 80, 30, false, WHITE, 1);
-    drawText(String("Hunger: ") + natsumi.hunger, 80, 40, false, WHITE, 1);
-    drawText(String("Hygiene: ") + natsumi.hygiene, 80, 50, false, WHITE, 1);
-    drawText(String("Energy: ") + natsumi.energy, 80, 60, false, WHITE, 1);
-    drawText(String("Spirit: ") + natsumi.spirit, 80, 70, false, WHITE, 1);
-    drawText(String("Popularity: ") + natsumi.popularity, 80, 80, false, WHITE, 1);
-    drawText(String("Performance: ") + natsumi.performance, 80, 90, false, WHITE, 1);
-    drawText(String("Fitness: ") + natsumi.fitness, 80, 100, false, WHITE, 1);
-    drawText(String("Culture: ") + natsumi.culture, 80, 110, false, WHITE, 1);
-    drawText(String("Charm: ") + natsumi.charm, 80, 120, false, WHITE, 1);
-    l2NeedsRedraw = true;
-    l3NeedsRedraw = true;
-    l4NeedsRedraw = true;
-    // l5NeedsRedraw = true;
+  Serial.println("> Entering drawDebug() L2 with debugEnabled set to " + String(debugEnabled));
+  if (l2NeedsRedraw && debugActive) {
+    if (debugEnabled) {
+      drawText(String("Memory: ") + ESP.getFreeHeap(), 80, 10, false, WHITE, 1);
+      drawText(String("Time: ") + natsumi.ageMilliseconds, 80, 20, false, WHITE, 1);
+      drawText(String("Age: ") + natsumi.age + " y.o.", 80, 30, false, WHITE, 1);
+      drawText(String("Hunger: ") + natsumi.hunger, 80, 40, false, WHITE, 1);
+      drawText(String("Hygiene: ") + natsumi.hygiene, 80, 50, false, WHITE, 1);
+      drawText(String("Energy: ") + natsumi.energy, 80, 60, false, WHITE, 1);
+      drawText(String("Spirit: ") + natsumi.spirit, 80, 70, false, WHITE, 1);
+      drawText(String("Popularity: ") + natsumi.popularity, 80, 80, false, WHITE, 1);
+      drawText(String("Performance: ") + natsumi.performance, 80, 90, false, WHITE, 1);
+      drawText(String("Fitness: ") + natsumi.fitness, 80, 100, false, WHITE, 1);
+      drawText(String("Culture: ") + natsumi.culture, 80, 110, false, WHITE, 1);
+      drawText(String("Charm: ") + natsumi.charm, 80, 120, false, WHITE, 1);
+      l2NeedsRedraw = true;
+      l3NeedsRedraw = true;
+      l4NeedsRedraw = true;
+    }
   } else {
     l2NeedsRedraw = false;
   }
@@ -1755,7 +1761,7 @@ void drawDebug() {
 
 void drawToast() {
   // Draw toast messages (layer 3)
-  // Serial.println("> Entering drawToast() L3");
+  Serial.println("> Entering drawToast() L3 with toastEnabled set to " + String(toastEnabled));
   if (toastActive) {
     if (millis() > toastUntil) {
       // Toast expired
@@ -1766,16 +1772,18 @@ void drawToast() {
     }
   }
   if (l3NeedsRedraw && toastActive) {
-    const int tx = 120;  // center X (screen is 240 wide in landscape)
-    const int ty = 117;  // near bottom for 135px height
-    M5Cardputer.Display.fillRect(0, ty - 8, 240, 18, BLACK); // clear strip
-    M5Cardputer.Display.setTextDatum(middle_center);
-    M5Cardputer.Display.setTextSize(1);
-    M5Cardputer.Display.setTextColor(YELLOW, BLACK);
-    M5Cardputer.Display.drawString(toastMsg, tx, ty);
-    l3NeedsRedraw = false;
-    l4NeedsRedraw = true;
-    l5NeedsRedraw = true;
+    if (toastEnabled) {
+      const int tx = 120;  // center X (screen is 240 wide in landscape)
+      const int ty = 117;  // near bottom for 135px height
+      M5Cardputer.Display.fillRect(0, ty - 8, 240, 18, BLACK); // clear strip
+      M5Cardputer.Display.setTextDatum(middle_center);
+      M5Cardputer.Display.setTextSize(1);
+      M5Cardputer.Display.setTextColor(YELLOW, BLACK);
+      M5Cardputer.Display.drawString(toastMsg, tx, ty);
+      l3NeedsRedraw = false;
+      l4NeedsRedraw = true;
+      l5NeedsRedraw = true;
+    }
   } else {
     l3NeedsRedraw = false;
   }
@@ -1783,685 +1791,689 @@ void drawToast() {
 
 void drawMenu(String menuType, const char* items[], int itemCount, int &selection) {
   // Draw menus on the screen (layer 4)
-  // Serial.println("> Entering drawMenu() L4");
-  uint8_t key = 0;
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-    auto keyList = M5Cardputer.Keyboard.keyList();
-    if (keyList.size() > 0) {
-      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+  Serial.println("> Entering drawMenu() L4 with menuEnabled set to " + String(menuEnabled));
+  if (menuEnabled) {
+    uint8_t key = 0;
+    if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+      auto keyList = M5Cardputer.Keyboard.keyList();
+      if (keyList.size() > 0) {
+        key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      }
     }
-  }
-
-  if (menuType == "home") {
-    switch (key) {
-      case 48:
-        // 0: STATS
-        menuOpened = false;
-        changeState(0, STATS_SCREEN, 0);
-        break;
-      case 49:
-        // 1: FOOD
-        menuOpened = true;
-        changeState(0, FOOD_MENU, 0);
-        break;
-      case 50:
-        // 2: TRAINING
-        menuOpened = true;
-        changeState(0, TRAIN_MENU, 0);
-        break;
-      case 51:
-        // 3: COMPETITION
-        menuOpened = true;
-        changeState(0, COMP_MENU, 0);
-        break;
-      case 52:
-        // 4: HEALTH
-        menuOpened = true;
-        changeState(0, HEALTH_MENU, 0);
-        break;
-      case 53:
-        // 5: REST
-        menuOpened = true;
-        changeState(0, REST_MENU, 0);
-        break;
-      case 54:
-        // 6: GARDEN
-        menuOpened = false;
-        changeState(0, GARDEN_LOOP, 0);
-        break;
-      case 55:
-        // 7: DEBUG
-        if (debugEnabled) {
-          debugEnabled = false;
-          l0NeedsRedraw = true;
-          l2NeedsRedraw = false;
-          l5NeedsRedraw = true;
-        } else {
-          debugEnabled = true;
-          l2NeedsRedraw = true;
-        }
-        break;
-      case 43:
-        // TAB
-        if (menuOpened) {
+  
+    if (menuType == "home") {
+      switch (key) {
+        case 48:
+          // 0: STATS
           menuOpened = false;
-          l0NeedsRedraw = true;
-          changeState(0, HOME_LOOP, 0);
-        } else {
-          menuOpened = true;
-          l4NeedsRedraw = true;
-        }
-        break;
-      case 96:
-        // ESC
-        if (menuOpened) {
-          menuOpened = false;
-          l0NeedsRedraw = true;
-          changeState(0, HOME_LOOP, 0);
-        }
-        break;
-      case 181: case 'w': case 'W': case 59:
-        // UP
-        selection = (selection - 1 + homeMenuItemCount) % homeMenuItemCount;
-        l4NeedsRedraw = true;
-        break;
-      case 182: case 's': case 'S': case 46:
-        // DOWN
-        selection = (selection + 1) % homeMenuItemCount;
-        l4NeedsRedraw = true;
-        break;
-      case 13: case 40: case ' ':
-        // VALIDATE
-        if (selection == 0) {
           changeState(0, STATS_SCREEN, 0);
-        } else if (selection == 1) {
+          break;
+        case 49:
+          // 1: FOOD
+          menuOpened = true;
           changeState(0, FOOD_MENU, 0);
-        } else if (selection == 2) {
+          break;
+        case 50:
+          // 2: TRAINING
+          menuOpened = true;
           changeState(0, TRAIN_MENU, 0);
-        } else if (selection == 3) {
+          break;
+        case 51:
+          // 3: COMPETITION
+          menuOpened = true;
           changeState(0, COMP_MENU, 0);
-        } else if (selection == 4) {
+          break;
+        case 52:
+          // 4: HEALTH
+          menuOpened = true;
           changeState(0, HEALTH_MENU, 0);
-        } else if (selection == 5) {
+          break;
+        case 53:
+          // 5: REST
+          menuOpened = true;
           changeState(0, REST_MENU, 0);
-        } else if (selection == 6) {
+          break;
+        case 54:
+          // 6: GARDEN
+          menuOpened = false;
           changeState(0, GARDEN_LOOP, 0);
-        } else if (selection == 7) {
-          if (debugEnabled) {
-            debugEnabled = false;
+          break;
+        case 55:
+          // 7: DEBUG
+          if (debugActive) {
+            debugActive = false;
             l0NeedsRedraw = true;
             l2NeedsRedraw = false;
+            l5NeedsRedraw = true;
           } else {
-            debugEnabled = true;
+            debugActive = true;
             l2NeedsRedraw = true;
           }
-        }
-        l5NeedsRedraw = true;
-        menuOpened = false;
-        break;
-    }
-  } else if (menuType == "food") {
-    switch (key) {
-      case 48:
-        // 0: FRIDGE
-        menuOpened = false;
-        changeState(0, FOOD_COOK, 0);
-        break;
-      case 49:
-        // 1: RESTAURANT
-        menuOpened = false;
-        changeState(0, FOOD_REST, 0);
-        break;
-      case 50:
-        // 2: ORDER
-        menuOpened = false;
-        changeState(0, FOOD_ORDER, 0);
-        break;
-      case 43:
-        // TAB
-        if (menuOpened) {
-          menuOpened = false;
-          l0NeedsRedraw = true;
-          changeState(0, HOME_LOOP, 0);
-        } else {
-          menuOpened = true;
+          break;
+        case 43:
+          // TAB
+          if (menuOpened) {
+            menuOpened = false;
+            l0NeedsRedraw = true;
+            changeState(0, HOME_LOOP, 0);
+          } else {
+            menuOpened = true;
+            l4NeedsRedraw = true;
+          }
+          break;
+        case 96:
+          // ESC
+          if (menuOpened) {
+            menuOpened = false;
+            l0NeedsRedraw = true;
+            changeState(0, HOME_LOOP, 0);
+          }
+          break;
+        case 181: case 'w': case 'W': case 59:
+          // UP
+          selection = (selection - 1 + homeMenuItemCount) % homeMenuItemCount;
           l4NeedsRedraw = true;
-        }
-        break;
-      case 96:
-        // ESC
-        if (menuOpened) {
+          break;
+        case 182: case 's': case 'S': case 46:
+          // DOWN
+          selection = (selection + 1) % homeMenuItemCount;
+          l4NeedsRedraw = true;
+          break;
+        case 13: case 40: case ' ':
+          // VALIDATE
+          if (selection == 0) {
+            changeState(0, STATS_SCREEN, 0);
+          } else if (selection == 1) {
+            changeState(0, FOOD_MENU, 0);
+          } else if (selection == 2) {
+            changeState(0, TRAIN_MENU, 0);
+          } else if (selection == 3) {
+            changeState(0, COMP_MENU, 0);
+          } else if (selection == 4) {
+            changeState(0, HEALTH_MENU, 0);
+          } else if (selection == 5) {
+            changeState(0, REST_MENU, 0);
+          } else if (selection == 6) {
+            changeState(0, GARDEN_LOOP, 0);
+          } else if (selection == 7) {
+            if (debugActive) {
+              debugActive = false;
+              l0NeedsRedraw = true;
+              l2NeedsRedraw = false;
+            } else {
+              debugActive = true;
+              l2NeedsRedraw = true;
+            }
+          }
+          l5NeedsRedraw = true;
           menuOpened = false;
-          l0NeedsRedraw = true;
-        }
-        changeState(0, HOME_LOOP, 0);
-        break;
-      case 181: case 'w': case 'W': case 59:
-        // UP
-        selection = (selection - 1 + foodMenuItemCount) % foodMenuItemCount;
-        l4NeedsRedraw = true;
-        break;
-      case 182: case 's': case 'S': case 46:
-        // DOWN
-        selection = (selection + 1) % foodMenuItemCount;
-        l4NeedsRedraw = true;
-        break;
-      case 13: case 40: case ' ':
-        // VALIDATE
-        if (selection == 0) {
+          break;
+      }
+    } else if (menuType == "food") {
+      switch (key) {
+        case 48:
+          // 0: FRIDGE
+          menuOpened = false;
           changeState(0, FOOD_COOK, 0);
-        } else if (selection == 1) {
+          break;
+        case 49:
+          // 1: RESTAURANT
+          menuOpened = false;
           changeState(0, FOOD_REST, 0);
-        } else if (selection == 2) {
+          break;
+        case 50:
+          // 2: ORDER
+          menuOpened = false;
           changeState(0, FOOD_ORDER, 0);
-        } else if (selection == 3) {
-          if (debugEnabled) {
-            debugEnabled = false;
+          break;
+        case 43:
+          // TAB
+          if (menuOpened) {
+            menuOpened = false;
             l0NeedsRedraw = true;
-            l2NeedsRedraw = false;
+            changeState(0, HOME_LOOP, 0);
           } else {
-            debugEnabled = true;
-            l2NeedsRedraw = true;
+            menuOpened = true;
+            l4NeedsRedraw = true;
           }
-        }
-        menuOpened = false;
-        break;
-    }
-  } else if (menuType == "training") {
-    switch (key) {
-      case 48:
-        // 0: SING
-        menuOpened = false;
-        changeState(0, TRAIN_SING, 0);
-        break;
-      case 49:
-        // 1: DANCE
-        menuOpened = false;
-        changeState(0, TRAIN_DANCE, 0);
-        break;
-      case 50:
-        // 2: SWIM
-        menuOpened = false;
-        changeState(0, TRAIN_SWIM, 0);
-        break;
-      case 51:
-        // 3: GYM
-        menuOpened = false;
-        changeState(0, TRAIN_GYM, 0);
-        break;
-      case 52:
-        // 4: WALK
-        menuOpened = false;
-        changeState(0, TRAIN_WALK, 0);
-        break;
-      case 53:
-        // 5: LIBRARY
-        menuOpened = false;
-        changeState(0, TRAIN_LIBRARY, 0);
-        break;
-      case 55:
-        // 7: DEBUG
-        if (debugEnabled) {
-          debugEnabled = false;
-          l0NeedsRedraw = true;
-          l2NeedsRedraw = false;
-        } else {
-          debugEnabled = true;
-          l2NeedsRedraw = true;
-        }
-        break;
-      case 43:
-        // TAB
-        if (menuOpened) {
-          menuOpened = false;
-          l0NeedsRedraw = true;
+          break;
+        case 96:
+          // ESC
+          if (menuOpened) {
+            menuOpened = false;
+            l0NeedsRedraw = true;
+          }
           changeState(0, HOME_LOOP, 0);
-        } else {
-          menuOpened = true;
+          break;
+        case 181: case 'w': case 'W': case 59:
+          // UP
+          selection = (selection - 1 + foodMenuItemCount) % foodMenuItemCount;
           l4NeedsRedraw = true;
-        }
-        break;
-      case 96:
-        // ESC
-        if (menuOpened) {
+          break;
+        case 182: case 's': case 'S': case 46:
+          // DOWN
+          selection = (selection + 1) % foodMenuItemCount;
+          l4NeedsRedraw = true;
+          break;
+        case 13: case 40: case ' ':
+          // VALIDATE
+          if (selection == 0) {
+            changeState(0, FOOD_COOK, 0);
+          } else if (selection == 1) {
+            changeState(0, FOOD_REST, 0);
+          } else if (selection == 2) {
+            changeState(0, FOOD_ORDER, 0);
+          } else if (selection == 3) {
+            if (debugActive) {
+              debugActive = false;
+              l0NeedsRedraw = true;
+              l2NeedsRedraw = false;
+            } else {
+              debugActive = true;
+              l2NeedsRedraw = true;
+            }
+          }
           menuOpened = false;
-          l0NeedsRedraw = true;
-        }
-        changeState(0, HOME_LOOP, 0);
-        break;
-      case 181: case 'w': case 'W': case 59:
-        // UP
-        selection = (selection - 1 + trainingMenuItemCount) % trainingMenuItemCount;
-        l4NeedsRedraw = true;
-        break;
-      case 182: case 's': case 'S': case 46:
-        // DOWN
-        selection = (selection + 1) % trainingMenuItemCount;
-        l4NeedsRedraw = true;
-        break;
-      case 13: case 40: case ' ':
-        // VALIDATE
-        if (selection == 0) {
+          break;
+      }
+    } else if (menuType == "training") {
+      switch (key) {
+        case 48:
+          // 0: SING
+          menuOpened = false;
           changeState(0, TRAIN_SING, 0);
-        } else if (selection == 1) {
+          break;
+        case 49:
+          // 1: DANCE
+          menuOpened = false;
           changeState(0, TRAIN_DANCE, 0);
-        } else if (selection == 2) {
+          break;
+        case 50:
+          // 2: SWIM
+          menuOpened = false;
           changeState(0, TRAIN_SWIM, 0);
-        } else if (selection == 3) {
+          break;
+        case 51:
+          // 3: GYM
+          menuOpened = false;
           changeState(0, TRAIN_GYM, 0);
-        } else if (selection == 4) {
+          break;
+        case 52:
+          // 4: WALK
+          menuOpened = false;
           changeState(0, TRAIN_WALK, 0);
-        } else if (selection == 5) {
+          break;
+        case 53:
+          // 5: LIBRARY
+          menuOpened = false;
           changeState(0, TRAIN_LIBRARY, 0);
-        } else if (selection == 7) {
-          if (debugEnabled) {
-            debugEnabled = false;
+          break;
+        case 55:
+          // 7: DEBUG
+          if (debugActive) {
+            debugActive = false;
             l0NeedsRedraw = true;
             l2NeedsRedraw = false;
           } else {
-            debugEnabled = true;
+            debugActive = true;
             l2NeedsRedraw = true;
           }
-        }
-        menuOpened = false;
-        break;
-    }
-  } else if (menuType == "competition") {
-    switch (key) {
-      case 48:
-        // 0: LOCAL
-        menuOpened = false;
-        changeState(0, COMP_LOCAL, 0);
-        break;
-      case 49:
-        // 1: DEPARTMENTAL
-        menuOpened = false;
-        changeState(0, COMP_DEPT, 0);
-        break;
-      case 50:
-        // 2: REGIONAL
-        menuOpened = false;
-        changeState(0, COMP_REG, 0);
-        break;
-      case 51:
-        // 3: NATIONAL
-        menuOpened = false;
-        changeState(0, COMP_NAT, 0);
-        break;
-      case 55:
-        // 7: DEBUG
-        if (debugEnabled) {
-          debugEnabled = false;
-          l0NeedsRedraw = true;
-          l2NeedsRedraw = false;
-        } else {
-          debugEnabled = true;
-          l2NeedsRedraw = true;
-        }
-        break;
-      case 43:
-        // TAB
-        if (menuOpened) {
-          menuOpened = false;
-          l0NeedsRedraw = true;
+          break;
+        case 43:
+          // TAB
+          if (menuOpened) {
+            menuOpened = false;
+            l0NeedsRedraw = true;
+            changeState(0, HOME_LOOP, 0);
+          } else {
+            menuOpened = true;
+            l4NeedsRedraw = true;
+          }
+          break;
+        case 96:
+          // ESC
+          if (menuOpened) {
+            menuOpened = false;
+            l0NeedsRedraw = true;
+          }
           changeState(0, HOME_LOOP, 0);
-        } else {
-          menuOpened = true;
+          break;
+        case 181: case 'w': case 'W': case 59:
+          // UP
+          selection = (selection - 1 + trainingMenuItemCount) % trainingMenuItemCount;
           l4NeedsRedraw = true;
-        }
-        break;
-      case 96:
-        // ESC
-        if (menuOpened) {
+          break;
+        case 182: case 's': case 'S': case 46:
+          // DOWN
+          selection = (selection + 1) % trainingMenuItemCount;
+          l4NeedsRedraw = true;
+          break;
+        case 13: case 40: case ' ':
+          // VALIDATE
+          if (selection == 0) {
+            changeState(0, TRAIN_SING, 0);
+          } else if (selection == 1) {
+            changeState(0, TRAIN_DANCE, 0);
+          } else if (selection == 2) {
+            changeState(0, TRAIN_SWIM, 0);
+          } else if (selection == 3) {
+            changeState(0, TRAIN_GYM, 0);
+          } else if (selection == 4) {
+            changeState(0, TRAIN_WALK, 0);
+          } else if (selection == 5) {
+            changeState(0, TRAIN_LIBRARY, 0);
+          } else if (selection == 7) {
+            if (debugActive) {
+              debugActive = false;
+              l0NeedsRedraw = true;
+              l2NeedsRedraw = false;
+            } else {
+              debugActive = true;
+              l2NeedsRedraw = true;
+            }
+          }
           menuOpened = false;
-          l0NeedsRedraw = true;
-        }
-        changeState(0, HOME_LOOP, 0);
-        break;
-      case 181: case 'w': case 'W': case 59:
-        // UP
-        selection = (selection - 1 + competitionMenuItemCount) % competitionMenuItemCount;
-        l4NeedsRedraw = true;
-        break;
-      case 182: case 's': case 'S': case 46:
-        // DOWN
-        selection = (selection + 1) % competitionMenuItemCount;
-        l4NeedsRedraw = true;
-        break;
-      case 13: case 40: case ' ':
-        // VALIDATE
-        if (selection == 0) {
+          break;
+      }
+    } else if (menuType == "competition") {
+      switch (key) {
+        case 48:
+          // 0: LOCAL
+          menuOpened = false;
           changeState(0, COMP_LOCAL, 0);
-        } else if (selection == 1) {
+          break;
+        case 49:
+          // 1: DEPARTMENTAL
+          menuOpened = false;
           changeState(0, COMP_DEPT, 0);
-        } else if (selection == 2) {
+          break;
+        case 50:
+          // 2: REGIONAL
+          menuOpened = false;
           changeState(0, COMP_REG, 0);
-        } else if (selection == 3) {
+          break;
+        case 51:
+          // 3: NATIONAL
+          menuOpened = false;
           changeState(0, COMP_NAT, 0);
-        } else if (selection == 7) {
-          if (debugEnabled) {
-            debugEnabled = false;
+          break;
+        case 55:
+          // 7: DEBUG
+          if (debugActive) {
+            debugActive = false;
             l0NeedsRedraw = true;
             l2NeedsRedraw = false;
           } else {
-            debugEnabled = true;
+            debugActive = true;
             l2NeedsRedraw = true;
           }
-        }
-        menuOpened = false;
-        break;
-    }
-  } else if (menuType == "health") {
-    switch (key) {
-      case 48:
-        // 0: WASH
-        menuOpened = false;
-        changeState(0, HEALTH_WASH, 0);
-        break;
-      case 49:
-        // 1: DOCTOR
-        menuOpened = false;
-        changeState(0, HEALTH_DOCTOR, 0);
-        break;
-      case 50:
-        // 2: TEMPLE
-        menuOpened = false;
-        changeState(0, HEALTH_TEMPLE, 0);
-        break;
-      case 51:
-        // 3: ONSEN
-        menuOpened = false;
-        changeState(0, HEALTH_ONSEN, 0);
-        break;
-      case 55:
-        // 7: DEBUG
-        if (debugEnabled) {
-          debugEnabled = false;
-          l0NeedsRedraw = true;
-          l2NeedsRedraw = false;
-        } else {
-          debugEnabled = true;
-          l2NeedsRedraw = true;
-        }
-        break;
-      case 43:
-        // TAB
-        if (menuOpened) {
-          menuOpened = false;
-          l0NeedsRedraw = true;
+          break;
+        case 43:
+          // TAB
+          if (menuOpened) {
+            menuOpened = false;
+            l0NeedsRedraw = true;
+            changeState(0, HOME_LOOP, 0);
+          } else {
+            menuOpened = true;
+            l4NeedsRedraw = true;
+          }
+          break;
+        case 96:
+          // ESC
+          if (menuOpened) {
+            menuOpened = false;
+            l0NeedsRedraw = true;
+          }
           changeState(0, HOME_LOOP, 0);
-        } else {
-          menuOpened = true;
+          break;
+        case 181: case 'w': case 'W': case 59:
+          // UP
+          selection = (selection - 1 + competitionMenuItemCount) % competitionMenuItemCount;
           l4NeedsRedraw = true;
-        }
-        break;
-      case 96:
-        // ESC
-        if (menuOpened) {
+          break;
+        case 182: case 's': case 'S': case 46:
+          // DOWN
+          selection = (selection + 1) % competitionMenuItemCount;
+          l4NeedsRedraw = true;
+          break;
+        case 13: case 40: case ' ':
+          // VALIDATE
+          if (selection == 0) {
+            changeState(0, COMP_LOCAL, 0);
+          } else if (selection == 1) {
+            changeState(0, COMP_DEPT, 0);
+          } else if (selection == 2) {
+            changeState(0, COMP_REG, 0);
+          } else if (selection == 3) {
+            changeState(0, COMP_NAT, 0);
+          } else if (selection == 7) {
+            if (debugActive) {
+              debugActive = false;
+              l0NeedsRedraw = true;
+              l2NeedsRedraw = false;
+            } else {
+              debugActive = true;
+              l2NeedsRedraw = true;
+            }
+          }
           menuOpened = false;
-          l0NeedsRedraw = true;
-        }
-        changeState(0, HOME_LOOP, 0);
-        break;
-      case 181: case 'w': case 'W': case 59:
-        // UP
-        selection = (selection - 1 + healthMenuItemCount) % healthMenuItemCount;
-        l4NeedsRedraw = true;
-        break;
-      case 182: case 's': case 'S': case 46:
-        // DOWN
-        selection = (selection + 1) % healthMenuItemCount;
-        l4NeedsRedraw = true;
-        break;
-      case 13: case 40: case ' ':
-        // VALIDATE
-        if (selection == 0) {
+          break;
+      }
+    } else if (menuType == "health") {
+      switch (key) {
+        case 48:
+          // 0: WASH
+          menuOpened = false;
           changeState(0, HEALTH_WASH, 0);
-        } else if (selection == 1) {
+          break;
+        case 49:
+          // 1: DOCTOR
+          menuOpened = false;
           changeState(0, HEALTH_DOCTOR, 0);
-        } else if (selection == 2) {
+          break;
+        case 50:
+          // 2: TEMPLE
+          menuOpened = false;
           changeState(0, HEALTH_TEMPLE, 0);
-        } else if (selection == 3) {
+          break;
+        case 51:
+          // 3: ONSEN
+          menuOpened = false;
           changeState(0, HEALTH_ONSEN, 0);
-        } else if (selection == 7) {
-          if (debugEnabled) {
-            debugEnabled = false;
+          break;
+        case 55:
+          // 7: DEBUG
+          if (debugActive) {
+            debugActive = false;
             l0NeedsRedraw = true;
             l2NeedsRedraw = false;
           } else {
-            debugEnabled = true;
+            debugActive = true;
             l2NeedsRedraw = true;
           }
-        }
-        menuOpened = false;
-        break;
-    }
-  } else if (menuType == "rest") {
-    switch (key) {
-      case 48:
-        // 0: MEDITATE
-        menuOpened = false;
-        changeState(0, REST_MEDITATE, 0);
-        break;
-      case 49:
-        // 1: SLEEP
-        menuOpened = false;
-        changeState(0, REST_SLEEP, 0);
-        break;
-      case 55:
-        // 7: DEBUG
-        if (debugEnabled) {
-          debugEnabled = false;
-          l0NeedsRedraw = true;
-          l2NeedsRedraw = false;
-        } else {
-          debugEnabled = true;
-          l2NeedsRedraw = true;
-        }
-        break;
-      case 43:
-        // TAB
-        if (menuOpened) {
-          menuOpened = false;
-          l0NeedsRedraw = true;
+          break;
+        case 43:
+          // TAB
+          if (menuOpened) {
+            menuOpened = false;
+            l0NeedsRedraw = true;
+            changeState(0, HOME_LOOP, 0);
+          } else {
+            menuOpened = true;
+            l4NeedsRedraw = true;
+          }
+          break;
+        case 96:
+          // ESC
+          if (menuOpened) {
+            menuOpened = false;
+            l0NeedsRedraw = true;
+          }
           changeState(0, HOME_LOOP, 0);
-        } else {
-          menuOpened = true;
+          break;
+        case 181: case 'w': case 'W': case 59:
+          // UP
+          selection = (selection - 1 + healthMenuItemCount) % healthMenuItemCount;
           l4NeedsRedraw = true;
-        }
-        break;
-      case 96:
-        // ESC
-        if (menuOpened) {
+          break;
+        case 182: case 's': case 'S': case 46:
+          // DOWN
+          selection = (selection + 1) % healthMenuItemCount;
+          l4NeedsRedraw = true;
+          break;
+        case 13: case 40: case ' ':
+          // VALIDATE
+          if (selection == 0) {
+            changeState(0, HEALTH_WASH, 0);
+          } else if (selection == 1) {
+            changeState(0, HEALTH_DOCTOR, 0);
+          } else if (selection == 2) {
+            changeState(0, HEALTH_TEMPLE, 0);
+          } else if (selection == 3) {
+            changeState(0, HEALTH_ONSEN, 0);
+          } else if (selection == 7) {
+            if (debugActive) {
+              debugActive = false;
+              l0NeedsRedraw = true;
+              l2NeedsRedraw = false;
+            } else {
+              debugActive = true;
+              l2NeedsRedraw = true;
+            }
+          }
           menuOpened = false;
-          l0NeedsRedraw = true;
-        }
-        changeState(0, HOME_LOOP, 0);
-        break;
-      case 181: case 'w': case 'W': case 59:
-        // UP
-        selection = (selection - 1 + restMenuItemCount) % restMenuItemCount;
-        l4NeedsRedraw = true;
-        break;
-      case 182: case 's': case 'S': case 46:
-        // DOWN
-        selection = (selection + 1) % restMenuItemCount;
-        l4NeedsRedraw = true;
-        break;
-      case 13: case 40: case ' ':
-        // VALIDATE
-        if (selection == 0) {
+          break;
+      }
+    } else if (menuType == "rest") {
+      switch (key) {
+        case 48:
+          // 0: MEDITATE
+          menuOpened = false;
           changeState(0, REST_MEDITATE, 0);
-        } else if (selection == 1) {
+          break;
+        case 49:
+          // 1: SLEEP
+          menuOpened = false;
           changeState(0, REST_SLEEP, 0);
-        } else if (selection == 7) {
-          if (debugEnabled) {
-            debugEnabled = false;
+          break;
+        case 55:
+          // 7: DEBUG
+          if (debugActive) {
+            debugActive = false;
             l0NeedsRedraw = true;
             l2NeedsRedraw = false;
           } else {
-            debugEnabled = true;
+            debugActive = true;
             l2NeedsRedraw = true;
           }
-        }
-        menuOpened = false;
-        break;
-    }
-  } else if (menuType == "dev") {
-    switch (key) {
-      case 48:
-        // 0: CALIB1
-        menuOpened = false;
-        changeState(0, CALIBRATION_1, 0);
-        break;
-      case 49:
-        // 1: CALIB2
-        menuOpened = false;
-        changeState(0, CALIBRATION_2, 0);
-        break;
-      case 50:
-        // 2: CALIB3
-        menuOpened = false;
-        changeState(0, CALIBRATION_3, 0);
-        break;
-      case 51:
-        // 3: EXIT
-        menuOpened = true;
-        changeState(0, TITLE_SCREEN, 0);
-        break;
-      case 43:
-        // TAB
-        if (menuOpened) {
-          menuOpened = false;
-          l0NeedsRedraw = true;
-        } else {
-          menuOpened = true;
+          break;
+        case 43:
+          // TAB
+          if (menuOpened) {
+            menuOpened = false;
+            l0NeedsRedraw = true;
+            changeState(0, HOME_LOOP, 0);
+          } else {
+            menuOpened = true;
+            l4NeedsRedraw = true;
+          }
+          break;
+        case 96:
+          // ESC
+          if (menuOpened) {
+            menuOpened = false;
+            l0NeedsRedraw = true;
+          }
+          changeState(0, HOME_LOOP, 0);
+          break;
+        case 181: case 'w': case 'W': case 59:
+          // UP
+          selection = (selection - 1 + restMenuItemCount) % restMenuItemCount;
           l4NeedsRedraw = true;
-        }
-        break;
-      case 96:
-        // ESC
-        if (menuOpened) {
-          menuOpened = true;
-        }
-        changeState(0, TITLE_SCREEN, 0);
-        break;
-      case 181: case 'w': case 'W': case 59:
-        // UP
-        selection = (selection - 1 + devMenuItemCount) % devMenuItemCount;
-        l4NeedsRedraw = true;
-        break;
-      case 182: case 's': case 'S': case 46:
-        // DOWN
-        selection = (selection + 1) % devMenuItemCount;
-        l4NeedsRedraw = true;
-        break;
-      case 13: case 40: case ' ':
-        // VALIDATE
-        if (selection == 0) {
+          break;
+        case 182: case 's': case 'S': case 46:
+          // DOWN
+          selection = (selection + 1) % restMenuItemCount;
+          l4NeedsRedraw = true;
+          break;
+        case 13: case 40: case ' ':
+          // VALIDATE
+          if (selection == 0) {
+            changeState(0, REST_MEDITATE, 0);
+          } else if (selection == 1) {
+            changeState(0, REST_SLEEP, 0);
+          } else if (selection == 7) {
+            if (debugActive) {
+              debugActive = false;
+              l0NeedsRedraw = true;
+              l2NeedsRedraw = false;
+            } else {
+              debugActive = true;
+              l2NeedsRedraw = true;
+            }
+          }
+          menuOpened = false;
+          break;
+      }
+    } else if (menuType == "dev") {
+      switch (key) {
+        case 48:
+          // 0: CALIB1
           menuOpened = false;
           changeState(0, CALIBRATION_1, 0);
-        } else if (selection == 1) {
+          break;
+        case 49:
+          // 1: CALIB2
           menuOpened = false;
           changeState(0, CALIBRATION_2, 0);
-        } else if (selection == 2) {
+          break;
+        case 50:
+          // 2: CALIB3
           menuOpened = false;
-          changeState(4, CALIBRATION_3, 0);
-        } else if (selection == 3) {
+          changeState(0, CALIBRATION_3, 0);
+          break;
+        case 51:
+          // 3: EXIT
           menuOpened = true;
           changeState(0, TITLE_SCREEN, 0);
-        }
-        break;
-    }
-  } else if (menuType == "main") {
-    switch (key) {
-      case 48:
-        // 0: NEW GAME
-        menuOpened = false;
-        changeState(0, NEW_GAME, 0);
-        break;
-      case 49:
-        // 1: CONTINUE
-        menuOpened = false;
-        changeState(0, CONTINUE_GAME, 0);
-        break;
-      case 50:
-        // 2: DEV SCREEN
-        menuOpened = true;
-        changeState(4, DEV_SCREEN, 0);
-        return;
-      case 181: case 'w': case 'W': case 59:
-        // UP
-        selection = (selection - 1 + mainMenuItemCount) % mainMenuItemCount;
-        l4NeedsRedraw = true;
-        break;
-      case 182: case 's': case 'S': case 46:
-        // DOWN
-        selection = (selection + 1) % mainMenuItemCount;
-        l4NeedsRedraw = true;
-        break;
-      case 13: case 40: case ' ':
-        // VALIDATE
-        if (selection == 0) {
+          break;
+        case 43:
+          // TAB
+          if (menuOpened) {
+            menuOpened = false;
+            l0NeedsRedraw = true;
+          } else {
+            menuOpened = true;
+            l4NeedsRedraw = true;
+          }
+          break;
+        case 96:
+          // ESC
+          if (menuOpened) {
+            menuOpened = true;
+          }
+          changeState(0, TITLE_SCREEN, 0);
+          break;
+        case 181: case 'w': case 'W': case 59:
+          // UP
+          selection = (selection - 1 + devMenuItemCount) % devMenuItemCount;
+          l4NeedsRedraw = true;
+          break;
+        case 182: case 's': case 'S': case 46:
+          // DOWN
+          selection = (selection + 1) % devMenuItemCount;
+          l4NeedsRedraw = true;
+          break;
+        case 13: case 40: case ' ':
+          // VALIDATE
+          if (selection == 0) {
+            menuOpened = false;
+            changeState(0, CALIBRATION_1, 0);
+          } else if (selection == 1) {
+            menuOpened = false;
+            changeState(0, CALIBRATION_2, 0);
+          } else if (selection == 2) {
+            menuOpened = false;
+            changeState(4, CALIBRATION_3, 0);
+          } else if (selection == 3) {
+            menuOpened = true;
+            changeState(0, TITLE_SCREEN, 0);
+          }
+          break;
+      }
+    } else if (menuType == "main") {
+      switch (key) {
+        case 48:
+          // 0: NEW GAME
           menuOpened = false;
           changeState(0, NEW_GAME, 0);
-        } else if (selection == 1) {
+          break;
+        case 49:
+          // 1: CONTINUE
           menuOpened = false;
           changeState(0, CONTINUE_GAME, 0);
-        } else {
+          break;
+        case 50:
+          // 2: DEV SCREEN
           menuOpened = true;
           changeState(4, DEV_SCREEN, 0);
           return;
-        }
-
-    }
-  }
-  if (!menuOpened) {
-    l4NeedsRedraw = false;
-    return;
-  } else if (l4NeedsRedraw && menuOpened) {
-    const int x = 60;
-    const int w = 120;
-    const int padding = 8;
-    const int lineSpacing = 10;
-    const int h = padding * 2 + ((itemCount - 1) * lineSpacing);
-    const int screenHeight = 135;
-    const int topMargin = 8;
-    const int bottomMargin = 6;
-    int y = (screenHeight - h) / 2;
-
-    if (y < topMargin) {
-      y = topMargin;
-    }
-
-    int maxY = screenHeight - bottomMargin - h;
-    if (y > maxY) {
-      y = maxY;
-    }
-
-    if (y < 0) {
-      y = 0;
-    }
-
-    M5Cardputer.Display.fillRect(x, y, w, h, TFT_NAVY);
-    M5Cardputer.Display.drawRect(x, y, w, h, WHITE);
-
-    M5Cardputer.Display.setTextSize(1);
-    for (int i = 0; i < itemCount; i++) {
-      M5Cardputer.Display.setCursor(x + padding + 5, y + padding + (i * lineSpacing));
-      if (i == selection) {
-        M5Cardputer.Display.setTextColor(YELLOW);
-        M5Cardputer.Display.print("> ");
-      } else {
-        M5Cardputer.Display.setTextColor(WHITE);
-        M5Cardputer.Display.print("  ");
+        case 181: case 'w': case 'W': case 59:
+          // UP
+          selection = (selection - 1 + mainMenuItemCount) % mainMenuItemCount;
+          l4NeedsRedraw = true;
+          break;
+        case 182: case 's': case 'S': case 46:
+          // DOWN
+          selection = (selection + 1) % mainMenuItemCount;
+          l4NeedsRedraw = true;
+          break;
+        case 13: case 40: case ' ':
+          // VALIDATE
+          if (selection == 0) {
+            menuOpened = false;
+            changeState(0, NEW_GAME, 0);
+          } else if (selection == 1) {
+            menuOpened = false;
+            changeState(0, CONTINUE_GAME, 0);
+          } else {
+            menuOpened = true;
+            changeState(4, DEV_SCREEN, 0);
+            return;
+          }
+  
       }
-      M5Cardputer.Display.println(items[i]);
     }
-
-    // Helper text at the bottom
-    M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-    drawText("UP/DOWN: Navigate, ENTER: Validate", 120, 131, true, WHITE, 1);
+    if (!menuOpened) {
+      l4NeedsRedraw = false;
+      return;
+    } else if (l4NeedsRedraw && menuOpened) {
+      const int x = 60;
+      const int w = 120;
+      const int padding = 8;
+      const int lineSpacing = 10;
+      const int h = padding * 2 + ((itemCount - 1) * lineSpacing);
+      const int screenHeight = 135;
+      const int topMargin = 8;
+      const int bottomMargin = 6;
+      int y = (screenHeight - h) / 2;
+  
+      if (y < topMargin) {
+        y = topMargin;
+      }
+  
+      int maxY = screenHeight - bottomMargin - h;
+      if (y > maxY) {
+        y = maxY;
+      }
+  
+      if (y < 0) {
+        y = 0;
+      }
+  
+      M5Cardputer.Display.fillRect(x, y, w, h, TFT_NAVY);
+      M5Cardputer.Display.drawRect(x, y, w, h, WHITE);
+  
+      M5Cardputer.Display.setTextSize(1);
+      for (int i = 0; i < itemCount; i++) {
+        M5Cardputer.Display.setCursor(x + padding + 5, y + padding + (i * lineSpacing));
+        if (i == selection) {
+          M5Cardputer.Display.setTextColor(YELLOW);
+          M5Cardputer.Display.print("> ");
+        } else {
+          M5Cardputer.Display.setTextColor(WHITE);
+          M5Cardputer.Display.print("  ");
+        }
+        M5Cardputer.Display.println(items[i]);
+      }
+  
+      // Helper text at the bottom
+      M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+      drawText("UP/DOWN: Navigate, ENTER: Validate", 120, 131, true, WHITE, 1);
+      l4NeedsRedraw = false;
+    }
+  } else {
     l4NeedsRedraw = false;
   }
 }
@@ -2469,7 +2481,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
 void drawOverlay() {
   // Draw the overlay (L5)
   Serial.println("> Entering drawOverlay() L5 with l5NeedsRedraw set to " + String(l5NeedsRedraw) + " and overlayActive set to " + String(overlayActive));
-  if (overlayActive) {
+  if (overlayActive && overlayEnabled) {
     Serial.println(">> drawOverlay: l5NeedsRedraw is TRUE");
     uint8_t key = 0;
     if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -2483,7 +2495,7 @@ void drawOverlay() {
       }
     }
   }
-  if (l5NeedsRedraw && overlayActive) {
+  if (l5NeedsRedraw && overlayActive && overlayEnabled) {
     switch (currentState) {
       case HOME_LOOP:
         Serial.println(">>> drawOverlay: HOME_LOOP");
@@ -2506,11 +2518,14 @@ void drawOverlay() {
       case HEALTH_DOCTOR:
         drawDialogBubble("Hello Miss Hasegawa. I will check your health and see if everything is OK.");
         break;
+      case HEALTH_DOCTOR6:
+        drawDialogBubble("");
+        break;
       default:
         break;
     }
-    l5NeedsRedraw = false;
   }
+  l5NeedsRedraw = false;
 }
 
 void playGame() {
@@ -2683,8 +2698,15 @@ void doctor() {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      overlayActive = false;
-      changeState(0, HOME_LOOP, 0);
+      switch (currentState) {
+        case HEALTH_DOCTOR:
+          changeState(0, HEALTH_DOCTOR2, 0);
+          break;
+        case HEALTH_DOCTOR6:
+          overlayActive = false;
+          changeState(0, HOME_LOOP, 0);
+          break;
+      }
       return;
     }
   }
