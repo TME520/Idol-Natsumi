@@ -581,215 +581,217 @@ void changeState(int baseLayer, GameState targetState, int delay) {
   // Manage state transitions
   Serial.println("> Entering changeState() with baseLayer set to " + String(baseLayer) + " and targetState set to " + String(targetState) + " with delay set to " + String(delay));
   if (changeStateCounter == delay) {
-    // Proceed with transition
     Serial.println("Proceed with transition");
     changeStateCounter = 0;
-      switch (baseLayer) {
-        case 0:
-          l0NeedsRedraw = true;
-          break;
-        case 1:
-          l1NeedsRedraw = true;
-          break;
-        case 2:
-          l2NeedsRedraw = true;
-          break;
-        case 3:
-          l3NeedsRedraw = true;
-          break;
-        case 4:
-          l4NeedsRedraw = true;
-          break;
-        case 5:
-          l5NeedsRedraw = true;
-          break;
-        default:
-          l0NeedsRedraw = true;
-          break;
-      }
-      switch (targetState) {
-        case M5_SCREEN:
-          screenConfig = CARD;
-          break;
-        case VERSION_SCREEN:
-          screenConfig = TEXT;
-          break;
-        case TITLE_SCREEN:
-          screenConfig = CARD;
-          currentMenuType = "main";
-          currentMenuItems = mainMenuItems;
-          currentMenuItemsCount = mainMenuItemCount;
-          menuOpened = true;
-          break;
-        case NEW_GAME:
-          screenConfig = CARD;
-          natsumi.age = 11;
-          natsumi.ageMilliseconds = 0;
-          natsumi.hunger = 4;
-          natsumi.hygiene = 4;
-          natsumi.energy = 4;
-          natsumi.spirit = 4;
-          natsumi.popularity = 0;
-          natsumi.performance = 0;
-          natsumi.fitness = 0;
-          natsumi.culture = 0;
-          natsumi.charm = 0;
-          natsumi.lastHungerUpdate = 0;
-          natsumi.lastHygieneUpdate = 0;
-          natsumi.lastEnergyUpdate = 0;
-          playtimeTotalMs = 0;
-          sessionStart = millis();
-          lastAgeTick = 0;
-          break;
-        case CONTINUE_GAME:
-          natsumi.age = 11;
-          natsumi.ageMilliseconds = 0;
-          natsumi.hunger = 4;
-          natsumi.hygiene = 4;
-          natsumi.energy = 4;
-          natsumi.spirit = 4;
-          natsumi.popularity = 0;
-          natsumi.performance = 0;
-          natsumi.fitness = 0;
-          natsumi.culture = 0;
-          natsumi.charm = 0;
-          natsumi.lastHungerUpdate = 0;
-          natsumi.lastHygieneUpdate = 0;
-          natsumi.lastEnergyUpdate = 0;
-          playtimeTotalMs = 0;
-          sessionStart = millis();
-          lastAgeTick = 0;
-          break;
-        case DEV_SCREEN:
-          screenConfig = CARD;
-          currentMenuType = "dev";
-          currentMenuItems = devMenuItems;
-          currentMenuItemsCount = devMenuItemCount;
-          break;
-        case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
-          break;
-        case HOME_LOOP:
-          screenConfig = ROOM;
-          currentMenuType = "home";
-          currentMenuItems = homeMenuItems;
-          currentMenuItemsCount = homeMenuItemCount;
-          overlayActive = false;
-          break;
-        case FOOD_EAT:
-          screenConfig = ROOM;
-          currentMenuType = "food";
-          currentMenuItems = foodMenuItems;
-          currentMenuItemsCount = foodMenuItemCount;
-          break;
-        case STATS_SCREEN:
-          screenConfig = GAME;
-          overlayActive = true;
-          l5NeedsRedraw = true;
-          break;
-        case FOOD_MENU:
-          screenConfig = ROOM;
-          currentMenuType = "food";
-          currentMenuItems = foodMenuItems;
-          currentMenuItemsCount = foodMenuItemCount;
-          break;
-        case FOOD_COOK:
-          screenConfig = ROOM;
-          break;
-        case FOOD_REST:
-          screenConfig = ROOM;
-          break;
-        case FOOD_ORDER:
-          screenConfig = ROOM;
-          break;
-        case TRAIN_MENU:
-          screenConfig = ROOM;
-          currentMenuType = "training";
-          currentMenuItems = trainingMenuItems;
-          currentMenuItemsCount = trainingMenuItemCount;
-          break;
-        case TRAIN_SING:
-          screenConfig = ROOM;
-          break;
-        case TRAIN_DANCE:
-          screenConfig = ROOM;
-          break;
-        case TRAIN_SWIM:
-          screenConfig = ROOM;
-          break;
-        case TRAIN_GYM:
-          screenConfig = ROOM;
-          break;
-        case TRAIN_WALK:
-          screenConfig = ROOM;
-          break;
-        case TRAIN_LIBRARY:
-          screenConfig = ROOM;
-          break;
-        case COMP_MENU:
-          screenConfig = ROOM;
-          currentMenuType = "competition";
-          currentMenuItems = competitionMenuItems;
-          currentMenuItemsCount = competitionMenuItemCount;
-          break;
-        case HEALTH_MENU:
-          screenConfig = ROOM;
-          currentMenuType = "health";
-          currentMenuItems = healthMenuItems;
-          currentMenuItemsCount = healthMenuItemCount;
-          break;
-        case HEALTH_WASH:
-          screenConfig = GAME;
-          overlayActive = false;
-          menuOpened = false;
-          resetBathGame();
-          break;
-        case HEALTH_WASH2:
-          screenConfig = ROOM;
-          break;
-        case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
-          screenConfig = DIALOG;
-          overlayActive = true;
-          l5NeedsRedraw = true;
-          break;
-        case HEALTH_DOCTOR2: case HEALTH_DOCTOR3: case HEALTH_DOCTOR4: case HEALTH_DOCTOR5:
-          screenConfig = CARD;
-          characterEnabled = false;
-          break;
-        case HEALTH_ONSEN:
-          screenConfig = ROOM;
-          break;
-        case REST_MENU:
-          screenConfig = ROOM;
-          currentMenuType = "rest";
-          currentMenuItems = restMenuItems;
-          currentMenuItemsCount = restMenuItemCount;
-          break;
-        case REST_MEDITATE:
-          screenConfig = IDLE;
-          meditateStart = millis();
-          lastMeditationRedraw = 0;
-          meditationActive = true;
-          meditationRewardApplied = false;
-          overlayActive = true;
-          l5NeedsRedraw = true;
-          lastMeditationDisplayed = 0;
-          break;
-        case REST_SLEEP:
-          screenConfig = IDLE;
-          lastSleepEnergyDisplayed = -1;
-          overlayActive = true;
-          l5NeedsRedraw = true;
-          break;
-        case GARDEN_LOOP:
-          screenConfig = ROOM;
-          break;
-        default:
-          break;
-      }
-      currentState = targetState;
-      preloadImages();
+    currentState = targetState;
+    preloadImages();
+    switch (baseLayer) {
+      case 0:
+        l0NeedsRedraw = true;
+        break;
+      case 1:
+        l1NeedsRedraw = true;
+        break;
+      case 2:
+        l2NeedsRedraw = true;
+        break;
+      case 3:
+        l3NeedsRedraw = true;
+        break;
+      case 4:
+        l4NeedsRedraw = true;
+        break;
+      case 5:
+        l5NeedsRedraw = true;
+        break;
+      default:
+        l0NeedsRedraw = true;
+        break;
+    }
+    switch (targetState) {
+      case M5_SCREEN:
+        screenConfig = CARD;
+        break;
+      case VERSION_SCREEN:
+        screenConfig = TEXT;
+        break;
+      case TITLE_SCREEN:
+        screenConfig = CARD;
+        currentMenuType = "main";
+        currentMenuItems = mainMenuItems;
+        currentMenuItemsCount = mainMenuItemCount;
+        menuOpened = true;
+        break;
+      case NEW_GAME:
+        screenConfig = CARD;
+        natsumi.age = 11;
+        natsumi.ageMilliseconds = 0;
+        natsumi.hunger = 4;
+        natsumi.hygiene = 4;
+        natsumi.energy = 4;
+        natsumi.spirit = 4;
+        natsumi.popularity = 0;
+        natsumi.performance = 0;
+        natsumi.fitness = 0;
+        natsumi.culture = 0;
+        natsumi.charm = 0;
+        natsumi.lastHungerUpdate = 0;
+        natsumi.lastHygieneUpdate = 0;
+        natsumi.lastEnergyUpdate = 0;
+        playtimeTotalMs = 0;
+        sessionStart = millis();
+        lastAgeTick = 0;
+        break;
+      case CONTINUE_GAME:
+        natsumi.age = 11;
+        natsumi.ageMilliseconds = 0;
+        natsumi.hunger = 4;
+        natsumi.hygiene = 4;
+        natsumi.energy = 4;
+        natsumi.spirit = 4;
+        natsumi.popularity = 0;
+        natsumi.performance = 0;
+        natsumi.fitness = 0;
+        natsumi.culture = 0;
+        natsumi.charm = 0;
+        natsumi.lastHungerUpdate = 0;
+        natsumi.lastHygieneUpdate = 0;
+        natsumi.lastEnergyUpdate = 0;
+        playtimeTotalMs = 0;
+        sessionStart = millis();
+        lastAgeTick = 0;
+        break;
+      case DEV_SCREEN:
+        screenConfig = CARD;
+        currentMenuType = "dev";
+        currentMenuItems = devMenuItems;
+        currentMenuItemsCount = devMenuItemCount;
+        break;
+      case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
+        break;
+      case HOME_LOOP:
+        screenConfig = ROOM;
+        currentMenuType = "home";
+        currentMenuItems = homeMenuItems;
+        currentMenuItemsCount = homeMenuItemCount;
+        overlayActive = false;
+        break;
+      case FOOD_EAT:
+        screenConfig = ROOM;
+        currentMenuType = "food";
+        currentMenuItems = foodMenuItems;
+        currentMenuItemsCount = foodMenuItemCount;
+        break;
+      case STATS_SCREEN:
+        screenConfig = GAME;
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        toastEnabled = false;
+        break;
+      case FOOD_MENU:
+        screenConfig = ROOM;
+        currentMenuType = "food";
+        currentMenuItems = foodMenuItems;
+        currentMenuItemsCount = foodMenuItemCount;
+        break;
+      case FOOD_COOK:
+        screenConfig = ROOM;
+        break;
+      case FOOD_REST:
+        screenConfig = ROOM;
+        break;
+      case FOOD_ORDER:
+        screenConfig = ROOM;
+        break;
+      case TRAIN_MENU:
+        screenConfig = ROOM;
+        currentMenuType = "training";
+        currentMenuItems = trainingMenuItems;
+        currentMenuItemsCount = trainingMenuItemCount;
+        break;
+      case TRAIN_SING:
+        screenConfig = ROOM;
+        break;
+      case TRAIN_DANCE:
+        screenConfig = ROOM;
+        break;
+      case TRAIN_SWIM:
+        screenConfig = ROOM;
+        break;
+      case TRAIN_GYM:
+        screenConfig = ROOM;
+        break;
+      case TRAIN_WALK:
+        screenConfig = ROOM;
+        break;
+      case TRAIN_LIBRARY:
+        screenConfig = ROOM;
+        break;
+      case COMP_MENU:
+        screenConfig = ROOM;
+        currentMenuType = "competition";
+        currentMenuItems = competitionMenuItems;
+        currentMenuItemsCount = competitionMenuItemCount;
+        break;
+      case HEALTH_MENU:
+        screenConfig = ROOM;
+        currentMenuType = "health";
+        currentMenuItems = healthMenuItems;
+        currentMenuItemsCount = healthMenuItemCount;
+        break;
+      case HEALTH_WASH:
+        screenConfig = GAME;
+        overlayActive = false;
+        menuOpened = false;
+        resetBathGame();
+        break;
+      case HEALTH_WASH2:
+        screenConfig = ROOM;
+        break;
+      case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
+        screenConfig = DIALOG;
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        break;
+      case HEALTH_DOCTOR2: case HEALTH_DOCTOR3: case HEALTH_DOCTOR4: case HEALTH_DOCTOR5:
+        screenConfig = CARD;
+        characterEnabled = false;
+        break;
+      case HEALTH_ONSEN:
+        screenConfig = ROOM;
+        break;
+      case REST_MENU:
+        screenConfig = ROOM;
+        currentMenuType = "rest";
+        currentMenuItems = restMenuItems;
+        currentMenuItemsCount = restMenuItemCount;
+        break;
+      case REST_MEDITATE:
+        screenConfig = IDLE;
+        meditateStart = millis();
+        lastMeditationRedraw = 0;
+        meditationActive = true;
+        meditationRewardApplied = false;
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        lastMeditationDisplayed = 0;
+        toastEnabled = false;
+        break;
+      case REST_SLEEP:
+        screenConfig = IDLE;
+        lastSleepEnergyDisplayed = -1;
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        toastEnabled = false;
+        break;
+      case GARDEN_LOOP:
+        screenConfig = ROOM;
+        break;
+      default:
+        break;
+    }
   } else {
-    // Serial.println("Delay transition");
+    Serial.println("Delay transition");
     changeStateCounter += 1;
   }
 }
@@ -961,16 +963,16 @@ void manageCard() {
       changeState(0, HOME_LOOP, 0);
       break;
     case HEALTH_DOCTOR2:
-      changeState(0, HEALTH_DOCTOR3, 30);
+      changeState(0, HEALTH_DOCTOR3, 20);
       break;
     case HEALTH_DOCTOR3:
-      changeState(0, HEALTH_DOCTOR4, 30);
+      changeState(0, HEALTH_DOCTOR4, 20);
       break;
     case HEALTH_DOCTOR4:
-      changeState(0, HEALTH_DOCTOR5, 30);
+      changeState(0, HEALTH_DOCTOR5, 20);
       break;
     case HEALTH_DOCTOR5:
-      changeState(0, HEALTH_DOCTOR6, 30);
+      changeState(0, HEALTH_DOCTOR6, 20);
       break;
     case DEV_SCREEN:
       break;
@@ -1303,6 +1305,7 @@ void clearBathSlider(int y) {
   if (overlapBottom > overlapTop) {
     M5Cardputer.Display.fillRect(innerX, overlapTop, innerWidth, overlapBottom - overlapTop, idealColor);
   }
+  return;
 }
 
 void drawBathSlider(int y) {
@@ -1310,6 +1313,7 @@ void drawBathSlider(int y) {
   const int innerX = thermometerX + thermometerInnerPadding;
   const int innerWidth = thermometerWidth - thermometerInnerPadding * 2;
   M5Cardputer.Display.fillRect(innerX, y, innerWidth, sliderHeight, sliderColor);
+  return;
 }
 
 void finalizeBathOutcome(String outcomeText) {
@@ -1324,8 +1328,8 @@ void finalizeBathOutcome(String outcomeText) {
       natsumi.hygiene += 1;
     }
     changeState(0, HEALTH_WASH2, 0);
-    return;
   }
+  return;
 }
 
 void startBathGame() {
@@ -1334,6 +1338,7 @@ void startBathGame() {
   bathGameRunning = true;
   drawBathStaticLayout();
   drawBathSlider(sliderYPosition);
+  return;
 }
 
 void manageBathGame() {
@@ -2516,10 +2521,20 @@ void drawOverlay() {
         drawMeditationOverlay();
         break;
       case HEALTH_DOCTOR:
-        drawDialogBubble("Hello Miss Hasegawa. I will check your health and see if everything is OK.");
+        drawDialogBubble("Hello Miss Hasegawa. Thanks for coming to our medical center. I will check your health and see if everything is OK.");
         break;
       case HEALTH_DOCTOR6:
-        drawDialogBubble("");
+        if (natsumi.hunger < 2) {
+          drawDialogBubble("You need to eat more...");
+        } else if (natsumi.hygiene < 2) {
+          drawDialogBubble("You need better hygiene...");
+        } else if (natsumi.fitness < 2) {
+          drawDialogBubble("You need to exercise more...");
+        } else if (natsumi.energy < 2) {
+          drawDialogBubble("You need to sleep more...");
+        } else {
+          drawDialogBubble("Congratulations!! You are in shape!");
+        }
         break;
       default:
         break;
