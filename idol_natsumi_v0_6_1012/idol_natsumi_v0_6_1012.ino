@@ -29,6 +29,11 @@ enum GameState {
   HEALTH_DOCTOR5,
   HEALTH_DOCTOR6,
   HEALTH_TEMPLE,
+  HEALTH_TEMPLE2,
+  HEALTH_TEMPLE3,
+  HEALTH_TEMPLE4,
+  HEALTH_TEMPLE5,
+  HEALTH_TEMPLE6,
   HEALTH_ONSEN,
   REST_MENU,
   REST_MEDITATE,
@@ -51,6 +56,7 @@ enum GameState {
 
 GameState currentState = VERSION_SCREEN;
 GameState doctorState = HOME_LOOP;
+GameState priestState = HOME_LOOP;
 
 // === Screen configs definitions ===
 enum ScreenState {
@@ -370,6 +376,18 @@ void preloadImages() {
     case HEALTH_DOCTOR5:
       preloadImage("/idolnat/screens/doctor_step3.png", currentBackground);
       break;
+    case HEALTH_TEMPLE: case HEALTH_TEMPLE2: case HEALTH_TEMPLE6:
+      preloadImage("/idolnat/screens/temple_bg.png", currentBackground);
+      break;
+    case HEALTH_TEMPLE3:
+      preloadImage("/idolnat/screens/priest_step1.png", currentBackground);
+      break;
+    case HEALTH_TEMPLE4:
+      preloadImage("/idolnat/screens/priest_step2.png", currentBackground);
+      break;
+    case HEALTH_TEMPLE5:
+      preloadImage("/idolnat/screens/priest_step3.png", currentBackground);
+      break;
     case REST_MEDITATE:
       preloadImage("/idolnat/screens/bedroom.png", currentBackground);
       break;
@@ -428,6 +446,9 @@ void preloadImages() {
         case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
           preloadImage("/idolnat/sprites/doctor01-90x135.png", currentCharacter);
           break;
+        case HEALTH_TEMPLE:
+          preloadImage("/idolnat/sprites/priest01-90x135.png", currentCharacter);
+          break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_11yo_asleep-90x135.png", currentCharacter);
           break; 
@@ -446,6 +467,9 @@ void preloadImages() {
           break;
         case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
           preloadImage("/idolnat/sprites/doctor01-90x135.png", currentCharacter);
+          break;
+        case HEALTH_TEMPLE:
+          preloadImage("/idolnat/sprites/priest02-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_13yo_asleep-90x135.png", currentCharacter);
@@ -466,6 +490,9 @@ void preloadImages() {
         case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
           preloadImage("/idolnat/sprites/doctor02-90x135.png", currentCharacter);
           break;
+        case HEALTH_TEMPLE:
+          preloadImage("/idolnat/sprites/priest01-90x135.png", currentCharacter);
+          break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_15yo_asleep-90x135.png", currentCharacter);
           break; 
@@ -485,6 +512,9 @@ void preloadImages() {
         case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
           preloadImage("/idolnat/sprites/doctor02-90x135.png", currentCharacter);
           break;
+        case HEALTH_TEMPLE:
+          preloadImage("/idolnat/sprites/priest01-90x135.png", currentCharacter);
+          break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_18yo_asleep-90x135.png", currentCharacter);
           break; 
@@ -503,6 +533,9 @@ void preloadImages() {
           break;
         case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
           preloadImage("/idolnat/sprites/doctor02-90x135.png", currentCharacter);
+          break;
+        case HEALTH_TEMPLE:
+          preloadImage("/idolnat/sprites/priest02-90x135.png", currentCharacter);
           break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_21yo_asleep-90x135.png", currentCharacter);
@@ -758,6 +791,15 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         screenConfig = CARD;
         characterEnabled = false;
         break;
+      case HEALTH_TEMPLE: case HEALTH_TEMPLE6:
+        screenConfig = DIALOG;
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        break;
+      case HEALTH_TEMPLE2: case HEALTH_TEMPLE3: case HEALTH_TEMPLE4: case HEALTH_TEMPLE5:
+        screenConfig = CARD;
+        characterEnabled = false;
+        break;
       case HEALTH_ONSEN:
         screenConfig = ROOM;
         break;
@@ -975,6 +1017,18 @@ void manageCard() {
     case HEALTH_DOCTOR5:
       changeState(0, HEALTH_DOCTOR6, 20);
       break;
+    case HEALTH_TEMPLE2:
+      changeState(0, HEALTH_TEMPLE3, 20);
+      break;
+    case HEALTH_TEMPLE3:
+      changeState(0, HEALTH_TEMPLE4, 20);
+      break;
+    case HEALTH_TEMPLE4:
+      changeState(0, HEALTH_TEMPLE5, 20);
+      break;
+    case HEALTH_TEMPLE5:
+      changeState(0, HEALTH_TEMPLE6, 20);
+      break;
     case DEV_SCREEN:
       break;
     default:
@@ -1015,6 +1069,9 @@ void manageDialog() {
   switch (currentState) {
     case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
       doctor();
+      break;
+    case HEALTH_TEMPLE: case HEALTH_TEMPLE6:
+      priest();
       break;
     default:
       break;
@@ -2732,3 +2789,25 @@ void doctor() {
     }
   }
 }
+
+void priest() {
+  Serial.println("> Entering priest()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (currentState) {
+        case HEALTH_TEMPLE:
+          changeState(0, HEALTH_TEMPLE2, 0);
+          break;
+        case HEALTH_TEMPLE6:
+          overlayActive = false;
+          changeState(0, priestState, 0);
+          break;
+      }
+      return;
+    }
+  }
+}
+;
