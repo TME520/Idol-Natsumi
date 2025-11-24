@@ -111,6 +111,14 @@ void clearBathSlider(int y);
 void drawBathSlider(int y);
 void finalizeBathOutcome(String outcomeText);
 void startBathGame();
+void manageOnsen();
+void drawOnsenOverlay();
+void updateOnsenEnergy();
+void updateOnsenSpirit();
+void checkOnsenAutoEnd();
+void finishOnsenSession(bool autoEnded);
+
+int onsenMinutesElapsed();
 
 unsigned long changeStateCounter = 0;
 
@@ -119,6 +127,10 @@ const unsigned long hygieneInterval = 240000;  // 4 minutes
 const unsigned long energyInterval = 240000;   // 4 minutes
 const unsigned long meditateInterval = 300000;   // 5 minutes
 const unsigned long fiveSecondInterval = 5000;  // 5 seconds
+const int STAT_MAX = 4;
+const int onsenEnergyPulseInterval = 60;   // 60 x 5-second pulses = 5 minutes
+const int onsenSpiritPulseInterval = 120;  // 120 x 5-second pulses = 10 minutes
+const int onsenAutoEndMinutes = 80;        // minutes before forcing the exit
 unsigned long meditateStart = 0;
 unsigned long lastMeditationRedraw = 0;
 unsigned long lastFiveSecondTick = 0;
@@ -176,6 +188,14 @@ bool overlayActive = false;
 bool meditationActive = false;
 bool meditationRewardApplied = false;
 bool fiveSecondPulse = false;  // Set true by updateFiveSecondPulse() every five seconds
+bool onsenActive = false;
+
+// Onsen state
+unsigned long onsenTicks = 0;  // Number of 5-second pulses spent in the onsen
+int onsenStartEnergy = 0;
+int onsenStartSpirit = 0;
+int lastOnsenEnergyDisplayed = -1;
+int lastOnsenSpiritDisplayed = -1;
 
 unsigned long lastUpdate = 0;
 const int FRAME_DELAY = 50;
@@ -215,6 +235,7 @@ struct ImageBuffer {
   uint8_t* data = nullptr;
   size_t length = 0;
 };
+void drawBackground(const ImageBuffer& bg);
 
 String copyright = "(c) 2025 - Pantzumatic";
 String versionNumber = "0.6.1012";
@@ -814,7 +835,14 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         characterEnabled = false;
         break;
       case HEALTH_ONSEN:
-        screenConfig = ROOM;
+        screenConfig = CARD;
+        characterEnabled = false;
+        onsenActive = true;
+        onsenTicks = 0;
+        onsenStartEnergy = natsumi.energy;
+        onsenStartSpirit = natsumi.spirit;
+        lastOnsenEnergyDisplayed = -1;
+        lastOnsenSpiritDisplayed = -1;
         break;
       case REST_MENU:
         screenConfig = ROOM;
@@ -926,17 +954,29 @@ void updateStats() {
 
   // Hygiene decreases every 4 minutes
   if (currentMillis - natsumi.lastHygieneUpdate >= hygieneInterval) {
-    if (natsumi.hygiene > 0) natsumi.hygiene--;
-    natsumi.lastHygieneUpdate = currentMillis;
-    Serial.print("Hygiene decreased: ");
-    Serial.println(natsumi.hygiene);
-    l5NeedsRedraw=true;
+    switch (currentState) {
+      case HEALTH_ONSEN:
+        if (natsumi.hygiene < 4) {
+          natsumi.hygiene = 4;
+        }
+        break;
+      default:
+        if (natsumi.hygiene > 0) natsumi.hygiene--;
+        natsumi.lastHygieneUpdate = currentMillis;
+        Serial.print("Hygiene decreased: ");
+        Serial.println(natsumi.hygiene);
+        l5NeedsRedraw=true;
+        break;
+    }
   }
 
   // Energy decreases every 4 minutes
   if (currentMillis - natsumi.lastEnergyUpdate >= energyInterval) {
     switch (currentState) {
       case REST_SLEEP:
+        if (natsumi.energy < 4) natsumi.energy++;
+        break;
+      case HEALTH_ONSEN:
         if (natsumi.energy < 4) natsumi.energy++;
         break;
       default:
@@ -1041,6 +1081,9 @@ void manageCard() {
       break;
     case HEALTH_TEMPLE5:
       changeState(0, HEALTH_TEMPLE6, 20);
+      break;
+    case HEALTH_ONSEN:
+      manageOnsen();
       break;
     case DEV_SCREEN:
       break;
@@ -1242,6 +1285,9 @@ void manageRoom() {
       break;
   }
 
+  updateAging();
+  updateStats();
+
   // Draw required layers for ROOM screens
   drawBackground(currentBackground);
   drawCharacter();
@@ -1326,6 +1372,88 @@ void manageGarden() {
   updateAging();
   updateStats();
   return;
+}
+
+int onsenMinutesElapsed() {
+  return (onsenTicks * 5) / 60;
+}
+
+void finishOnsenSession(bool autoEnded) {
+  int minutes = onsenMinutesElapsed();
+  int energyDelta = natsumi.energy - onsenStartEnergy;
+  int spiritDelta = natsumi.spirit - onsenStartSpirit;
+
+  String summary = "Onsen " + String(minutes) + "m";
+  if (energyDelta != 0) {
+    summary += " E" + String(energyDelta > 0 ? "+" : "") + String(energyDelta);
+  }
+  if (spiritDelta != 0) {
+    summary += " S" + String(spiritDelta > 0 ? "+" : "") + String(spiritDelta);
+  }
+  if (autoEnded) {
+    summary += " (auto)";
+  }
+  showToast(summary);
+
+  overlayActive = false;
+  onsenActive = false;
+  changeState(0, HOME_LOOP, 0);
+}
+
+void drawOnsenOverlay() {
+  const int barWidth = 50;
+  const int barHeight = 5;
+  const int barSpacing = 8;
+  const int startX = 6;
+  const int startY = 6;
+
+  auto drawBar = [&](const char* label, int value, int y, uint16_t color) {
+    int clamped = value;
+    if (clamped < 0) clamped = 0;
+    if (clamped > STAT_MAX) clamped = STAT_MAX;
+
+    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.setTextColor(WHITE, BLACK);
+    M5Cardputer.Display.setCursor(startX, y - 2);
+    M5Cardputer.Display.print(label);
+
+    int filled = (barWidth * clamped) / STAT_MAX;
+    M5Cardputer.Display.fillRect(startX + 14, y - 1, barWidth, barHeight, M5Cardputer.Display.color565(18, 26, 38));
+    M5Cardputer.Display.drawRect(startX + 14, y - 1, barWidth, barHeight, color);
+    if (filled > 0) {
+      M5Cardputer.Display.fillRect(startX + 14, y - 1, filled, barHeight, color);
+    }
+  };
+
+  M5Cardputer.Display.fillRect(0, 0, 90, startY + barSpacing * 2 + barHeight, BLACK);
+  drawBar("E:", natsumi.energy, startY, M5Cardputer.Display.color565(255, 214, 102));
+  drawBar("S:", natsumi.spirit, startY + barSpacing, M5Cardputer.Display.color565(180, 140, 255));
+
+  lastOnsenEnergyDisplayed = natsumi.energy;
+  lastOnsenSpiritDisplayed = natsumi.spirit;
+}
+
+void manageOnsen() {
+  Serial.println("> Entering manageOnsen()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+        finishOnsenSession(false);
+        return;
+      }
+    }
+  }
+
+  if (fiveSecondPulse) {
+    onsenTicks++;
+    checkOnsenAutoEnd();
+  }
+
+  if (lastOnsenEnergyDisplayed != natsumi.energy || lastOnsenSpiritDisplayed != natsumi.spirit || natsumi.energy == 4 && natsumi.hygiene == 4) {
+    drawOnsenOverlay();
+  }
 }
 
 void resetBathGame() {
