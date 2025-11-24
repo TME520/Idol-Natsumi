@@ -824,6 +824,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case HEALTH_ONSEN:
         screenConfig = CARD;
         characterEnabled = false;
+        natsumi.hygiene = 4;
         /*
         onsenActive = true;
         onsenTicks = 0;
@@ -953,7 +954,7 @@ void updateStats() {
   // Energy decreases every 4 minutes
   if (currentMillis - natsumi.lastEnergyUpdate >= energyInterval) {
     switch (currentState) {
-      case REST_SLEEP:
+      case REST_SLEEP: case HEALTH_ONSEN:
         if (natsumi.energy < 4) natsumi.energy++;
         break;
       default:
@@ -2795,7 +2796,8 @@ void drawStatBar(const String &label, int value, int maxValue, int x, int y, int
 
 void drawOnsenOverlay() {
   const int barWidth = 50;
-  const int barHeight = 5;
+  // const int barHeight = 5;
+  const int barHeight = 4;
   const int barSpacing = 8;
   const int startX = 6;
   const int startY = 6;
@@ -2811,16 +2813,16 @@ void drawOnsenOverlay() {
     M5Cardputer.Display.print(label);
 
     int filled = (barWidth * clamped) / STAT_MAX;
-    M5Cardputer.Display.fillRect(startX + 14, y - 1, barWidth, barHeight, M5Cardputer.Display.color565(18, 26, 38));
-    M5Cardputer.Display.drawRect(startX + 14, y - 1, barWidth, barHeight, color);
+    // M5Cardputer.Display.fillRect(startX + 32, y - 1, barWidth, barHeight, M5Cardputer.Display.color565(18, 26, 38));
+    M5Cardputer.Display.drawRect(startX + 40, y - 1, barWidth, barHeight, color);
     if (filled > 0) {
-      M5Cardputer.Display.fillRect(startX + 14, y - 1, filled, barHeight, color);
+      M5Cardputer.Display.fillRect(startX + 40, y - 1, filled, barHeight, color);
     }
   };
 
-  M5Cardputer.Display.fillRect(0, 0, 90, startY + barSpacing * 2 + barHeight, BLACK);
-  drawBar("E:", natsumi.energy, startY, M5Cardputer.Display.color565(255, 214, 102));
-  drawBar("S:", natsumi.spirit, startY + barSpacing, M5Cardputer.Display.color565(180, 140, 255));
+  // M5Cardputer.Display.fillRect(0, 0, 90, startY + barSpacing * 2 + barHeight, BLACK);
+  drawBar("Energy ", natsumi.energy, startY, M5Cardputer.Display.color565(255, 214, 102));
+  drawBar("Spirit ", natsumi.spirit, startY + barSpacing, M5Cardputer.Display.color565(180, 140, 255));
 
   lastOnsenEnergyDisplayed = natsumi.energy;
   lastOnsenSpiritDisplayed = natsumi.spirit;
@@ -2919,12 +2921,19 @@ void manageOnsen() {
     }
   }
   if (changeStateCounter==0) {
-    // Select food
+    // meh
   }
-  if (lastOnsenEnergyDisplayed != natsumi.energy || lastOnsenSpiritDisplayed != natsumi.spirit || natsumi.energy == 4 && natsumi.hygiene == 4) {
+  if (fiveSecondPulse) {
     drawOnsenOverlay();
   }
-  changeState(0, HOME_LOOP, shortWait);
+  if (lastOnsenEnergyDisplayed != natsumi.energy || lastOnsenSpiritDisplayed != natsumi.spirit) {
+    drawOnsenOverlay();
+  }
+  /*
+  if (natsumi.energy == 4 && natsumi.hygiene == 4) {
+    changeState(0, HOME_LOOP, 0);
+  }
+  */
   return;
 }
 ;
