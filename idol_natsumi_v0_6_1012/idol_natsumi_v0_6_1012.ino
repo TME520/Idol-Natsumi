@@ -119,6 +119,7 @@ const unsigned long hygieneInterval = 240000;  // 4 minutes
 const unsigned long energyInterval = 240000;   // 4 minutes
 const unsigned long meditateInterval = 300000;   // 5 minutes
 const unsigned long fiveSecondInterval = 5000;  // 5 seconds
+const int STAT_MAX = 4;
 unsigned long meditateStart = 0;
 unsigned long lastMeditationRedraw = 0;
 unsigned long lastFiveSecondTick = 0;
@@ -176,6 +177,13 @@ bool overlayActive = false;
 bool meditationActive = false;
 bool meditationRewardApplied = false;
 bool fiveSecondPulse = false;  // Set true by updateFiveSecondPulse() every five seconds
+
+// Onsen state
+unsigned long onsenTicks = 0;  // Number of 5-second pulses spent in the onsen
+int onsenStartEnergy = 0;
+int onsenStartSpirit = 0;
+int lastOnsenEnergyDisplayed = -1;
+int lastOnsenSpiritDisplayed = -1;
 
 unsigned long lastUpdate = 0;
 const int FRAME_DELAY = 50;
@@ -814,7 +822,16 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         characterEnabled = false;
         break;
       case HEALTH_ONSEN:
-        screenConfig = ROOM;
+        screenConfig = CARD;
+        characterEnabled = false;
+        /*
+        onsenActive = true;
+        onsenTicks = 0;
+        onsenStartEnergy = natsumi.energy;
+        onsenStartSpirit = natsumi.spirit;
+        lastOnsenEnergyDisplayed = -1;
+        lastOnsenSpiritDisplayed = -1;
+        */
         break;
       case REST_MENU:
         screenConfig = ROOM;
@@ -1041,6 +1058,9 @@ void manageCard() {
       break;
     case HEALTH_TEMPLE5:
       changeState(0, HEALTH_TEMPLE6, 20);
+      break;
+    case HEALTH_ONSEN:
+      manageOnsen();
       break;
     case DEV_SCREEN:
       break;
@@ -2773,6 +2793,39 @@ void drawStatBar(const String &label, int value, int maxValue, int x, int y, int
   }
 }
 
+void drawOnsenOverlay() {
+  const int barWidth = 50;
+  const int barHeight = 5;
+  const int barSpacing = 8;
+  const int startX = 6;
+  const int startY = 6;
+
+  auto drawBar = [&](const char* label, int value, int y, uint16_t color) {
+    int clamped = value;
+    if (clamped < 0) clamped = 0;
+    if (clamped > STAT_MAX) clamped = STAT_MAX;
+
+    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.setTextColor(WHITE, BLACK);
+    M5Cardputer.Display.setCursor(startX, y - 2);
+    M5Cardputer.Display.print(label);
+
+    int filled = (barWidth * clamped) / STAT_MAX;
+    M5Cardputer.Display.fillRect(startX + 14, y - 1, barWidth, barHeight, M5Cardputer.Display.color565(18, 26, 38));
+    M5Cardputer.Display.drawRect(startX + 14, y - 1, barWidth, barHeight, color);
+    if (filled > 0) {
+      M5Cardputer.Display.fillRect(startX + 14, y - 1, filled, barHeight, color);
+    }
+  };
+
+  M5Cardputer.Display.fillRect(0, 0, 90, startY + barSpacing * 2 + barHeight, BLACK);
+  drawBar("E:", natsumi.energy, startY, M5Cardputer.Display.color565(255, 214, 102));
+  drawBar("S:", natsumi.spirit, startY + barSpacing, M5Cardputer.Display.color565(180, 140, 255));
+
+  lastOnsenEnergyDisplayed = natsumi.energy;
+  lastOnsenSpiritDisplayed = natsumi.spirit;
+}
+
 void manageStats() {
   Serial.println("> Entering manageStats()");
   uint8_t key = 0;
@@ -2851,5 +2904,27 @@ void priest() {
       return;
     }
   }
+}
+
+void manageOnsen() {
+  Serial.println("> Entering manageOnsen()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      overlayActive = false;
+      changeState(0, HOME_LOOP, 0);
+      return;
+    }
+  }
+  if (changeStateCounter==0) {
+    // Select food
+  }
+  if (lastOnsenEnergyDisplayed != natsumi.energy || lastOnsenSpiritDisplayed != natsumi.spirit || natsumi.energy == 4 && natsumi.hygiene == 4) {
+    drawOnsenOverlay();
+  }
+  changeState(0, HOME_LOOP, shortWait);
+  return;
 }
 ;
