@@ -2835,7 +2835,8 @@ void drawOnsenOverlay() {
 
     String valueText = String(clamped) + "/" + String(STAT_MAX);
     M5Cardputer.Display.setTextColor(accentColor, panelBg);
-    M5Cardputer.Display.setCursor(panelX + panelWidth - 24, rowY - 2);
+    // M5Cardputer.Display.setCursor(panelX + panelWidth - 24, rowY - 2);
+    M5Cardputer.Display.setCursor(panelX + panelWidth - 24, rowY + 7);
     M5Cardputer.Display.print(valueText);
 
     uint16_t barBg = M5Cardputer.Display.color565(24, 32, 46);
