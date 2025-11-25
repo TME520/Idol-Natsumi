@@ -1401,33 +1401,74 @@ void finishOnsenSession(bool autoEnded) {
 }
 
 void drawOnsenOverlay() {
-  const int barWidth = 50;
-  const int barHeight = 5;
-  const int barSpacing = 8;
-  const int startX = 6;
-  const int startY = 6;
+  const int panelX = 4;
+  const int panelY = 4;
+  const int panelWidth = 118;
+  const int panelHeight = 38;
+  const int barWidth = 54;
+  const int barHeight = 7;
+  const int rowHeight = 13;
 
-  auto drawBar = [&](const char* label, int value, int y, uint16_t color) {
+  uint16_t panelBg = M5Cardputer.Display.color565(12, 16, 24);
+  uint16_t panelFrame = M5Cardputer.Display.color565(90, 140, 210);
+  uint16_t shadow = M5Cardputer.Display.color565(5, 7, 12);
+
+  M5Cardputer.Display.fillRoundRect(panelX + 1, panelY + 1, panelWidth, panelHeight, 5, shadow);
+  M5Cardputer.Display.fillRoundRect(panelX, panelY, panelWidth, panelHeight, 5, panelBg);
+  M5Cardputer.Display.drawRoundRect(panelX, panelY, panelWidth, panelHeight, 5, panelFrame);
+
+  M5Cardputer.Display.setTextSize(1);
+  M5Cardputer.Display.setTextColor(panelFrame, panelBg);
+  M5Cardputer.Display.setCursor(panelX + 6, panelY + 2);
+  M5Cardputer.Display.print("Onsen Status");
+
+  auto drawRow = [&](const char* label, int value, int rowIndex, uint16_t mainColor, uint16_t accentColor) {
     int clamped = value;
     if (clamped < 0) clamped = 0;
     if (clamped > STAT_MAX) clamped = STAT_MAX;
 
-    M5Cardputer.Display.setTextSize(1);
-    M5Cardputer.Display.setTextColor(WHITE, BLACK);
-    M5Cardputer.Display.setCursor(startX, y - 2);
+    int rowY = panelY + 10 + rowHeight * rowIndex;
+    int iconX = panelX + 8;
+    int barX = panelX + 28;
+    int barY = rowY + 4;
+
+    M5Cardputer.Display.fillCircle(iconX, rowY + 3, 4, mainColor);
+    M5Cardputer.Display.fillCircle(iconX, rowY + 3, 2, accentColor);
+
+    M5Cardputer.Display.setTextColor(WHITE, panelBg);
+    M5Cardputer.Display.setCursor(iconX + 7, rowY - 2);
     M5Cardputer.Display.print(label);
 
-    int filled = (barWidth * clamped) / STAT_MAX;
-    M5Cardputer.Display.fillRect(startX + 14, y - 1, barWidth, barHeight, M5Cardputer.Display.color565(18, 26, 38));
-    M5Cardputer.Display.drawRect(startX + 14, y - 1, barWidth, barHeight, color);
-    if (filled > 0) {
-      M5Cardputer.Display.fillRect(startX + 14, y - 1, filled, barHeight, color);
+    String valueText = String(clamped) + "/" + String(STAT_MAX);
+    M5Cardputer.Display.setTextColor(accentColor, panelBg);
+    M5Cardputer.Display.setCursor(panelX + panelWidth - 24, rowY - 2);
+    M5Cardputer.Display.print(valueText);
+
+    uint16_t barBg = M5Cardputer.Display.color565(24, 32, 46);
+    M5Cardputer.Display.fillRoundRect(barX, barY, barWidth, barHeight, 3, barBg);
+    M5Cardputer.Display.drawRoundRect(barX, barY, barWidth, barHeight, 3, accentColor);
+
+    int filled = (barWidth - 2) * clamped / STAT_MAX;
+    int fillWidth = filled;
+    if (fillWidth < 0) {
+      fillWidth = 0;
+    }
+    if (fillWidth > barWidth - 2) {
+      fillWidth = barWidth - 2;
+    }
+
+    if (fillWidth > 0) {
+      M5Cardputer.Display.fillRoundRect(barX + 1, barY + 1, fillWidth, barHeight - 2, 2, mainColor);
+      uint16_t highlight = M5Cardputer.Display.color565(230, 230, 255);
+      int highlightWidth = fillWidth - 1;
+      if (highlightWidth > 0) {
+        M5Cardputer.Display.drawFastHLine(barX + 2, barY + 1, highlightWidth, highlight);
+      }
     }
   };
 
-  M5Cardputer.Display.fillRect(0, 0, 90, startY + barSpacing * 2 + barHeight, BLACK);
-  drawBar("E:", natsumi.energy, startY, M5Cardputer.Display.color565(255, 214, 102));
-  drawBar("S:", natsumi.spirit, startY + barSpacing, M5Cardputer.Display.color565(180, 140, 255));
+  drawRow("Energy", natsumi.energy, 0, M5Cardputer.Display.color565(255, 214, 102), M5Cardputer.Display.color565(255, 240, 180));
+  drawRow("Spirit", natsumi.spirit, 1, M5Cardputer.Display.color565(180, 140, 255), M5Cardputer.Display.color565(215, 195, 255));
 
   lastOnsenEnergyDisplayed = natsumi.energy;
   lastOnsenSpiritDisplayed = natsumi.spirit;
