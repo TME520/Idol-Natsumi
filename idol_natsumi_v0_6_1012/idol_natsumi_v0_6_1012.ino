@@ -2797,7 +2797,8 @@ void drawStatBar(const String &label, int value, int maxValue, int x, int y, int
 void drawOnsenOverlay() {
   const int panelX = 4;
   const int panelY = 4;
-  const int panelWidth = 118;
+  // const int panelWidth = 118;
+  const int panelWidth = 148;
   const int panelHeight = 38;
   const int barWidth = 54;
   const int barHeight = 7;
@@ -2823,14 +2824,16 @@ void drawOnsenOverlay() {
 
     int rowY = panelY + 10 + rowHeight * rowIndex;
     int iconX = panelX + 8;
-    int barX = panelX + 28;
+    // int barX = panelX + 28;
+    int barX = panelX + 58;
     int barY = rowY + 4;
 
-    M5Cardputer.Display.fillCircle(iconX, rowY + 3, 4, mainColor);
-    M5Cardputer.Display.fillCircle(iconX, rowY + 3, 2, accentColor);
+    // M5Cardputer.Display.fillCircle(iconX, rowY + 3, 4, mainColor);
+    // M5Cardputer.Display.fillCircle(iconX, rowY + 3, 2, accentColor);
 
     M5Cardputer.Display.setTextColor(WHITE, panelBg);
-    M5Cardputer.Display.setCursor(iconX + 7, rowY - 2);
+    // M5Cardputer.Display.setCursor(iconX + 7, rowY - 2);
+    M5Cardputer.Display.setCursor(iconX + 4, rowY + 7);
     M5Cardputer.Display.print(label);
 
     String valueText = String(clamped) + "/" + String(STAT_MAX);
@@ -2961,6 +2964,9 @@ void manageOnsen() {
       return;
     }
   }
+  // Stats management
+  updateAging();
+  updateStats();
   if (changeStateCounter==0) {
     // meh
   }
