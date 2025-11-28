@@ -60,31 +60,31 @@ Stat caps: 0 is the lowest while 4 is the highest.
 | FOOD            | ICON      |
 |-----------------|-----------|
 | Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
-| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Green apple       | ![Green apple](./sprites/food_002.png) |
+| Avocado       | ![Avocado](./sprites/food_003.png) |
+| Bread       | ![Bread](./sprites/food_005.png) |
+| Banana       | ![Banana](./sprites/food_008.png) |
+| Broccoli       | ![Broccoli](./sprites/food_015.png) |
+| Sweets       | ![Sweets](./sprites/food_021.png) |
+| Carrot       | ![Carrot](./sprites/food_028.png) |
+| Meat       | ![Meat](./sprites/food_033.png) |
+| Coconut       | ![Coconut](./sprites/food_038.png) |
+| Coconut juice       | ![Coconut juice](./sprites/food_039.png) |
+| Coffee       | ![Coffee](./sprites/food_041.png) |
+| Biscuits       | ![Biscuits](./sprites/food_044.png) |
+| Corn       | ![Corn](./sprites/food_045.png) |
+| Croissant       | ![Croissant](./sprites/food_046.png) |
+| Fried egg       | ![Fried egg](./sprites/food_053.png) |
+| Grapes       | ![Grapes](./sprites/food_061.png) |
+| Kiwi       | ![Kiwi](./sprites/food_081.png) |
+| Milk       | ![Milk](./sprites/food_092.png) |
+| Orange       | ![Orange](./sprites/food_109.png) |
+| Peach       | ![Peach](./sprites/food_111.png) |
+| Pear       | ![Pear](./sprites/food_113.png) |
+| Strawberries       | ![Strawberries](./sprites/food_149.png) |
+| Maki       | ![Maki](./sprites/food_150.png) |
+| Sushi       | ![Sushi](./sprites/food_154.png) |
+| Watermelon       | ![Watermelon](./sprites/food_168.png) |
 
 #### Go to the restaurant
 #### Order takeaway food

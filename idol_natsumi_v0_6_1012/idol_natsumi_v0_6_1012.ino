@@ -350,7 +350,7 @@ void preloadImages() {
       preloadImage("/idolnat/screens/m5_logo.png", currentBackground);
       break;
     case TITLE_SCREEN:
-      preloadImage("/idolnat/screens/title01.png", currentBackground);
+      preloadImage("/idolnat/screens/title02.png", currentBackground);
       break;
     case DEV_SCREEN:
       preloadImage("/idolnat/screens/title01.png", currentBackground);
