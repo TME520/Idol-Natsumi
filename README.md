@@ -53,3 +53,38 @@ Stat caps: 0 is the lowest while 4 is the highest.
 | **Culture**    | Active     | 0–4    | TRAINING → LIBRARY                                                      | —                                                                |
 | **Charm**      | Active     | 0–4    | FOOD → COOK, RESTAURANT, ORDER                                           | —                                                                |
 
+### Keep Natsumi fed
+
+#### Eat at home
+
+| FOOD            | ICON      |
+|-----------------|-----------|
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+| Red apple       | ![Red apple](./sprites/food_001.png) |
+
+#### Go to the restaurant
+#### Order takeaway food
