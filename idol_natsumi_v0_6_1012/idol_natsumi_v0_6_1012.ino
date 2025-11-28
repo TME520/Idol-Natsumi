@@ -119,6 +119,7 @@ const unsigned long hygieneInterval = 240000;  // 4 minutes
 const unsigned long energyInterval = 240000;   // 4 minutes
 const unsigned long meditateInterval = 300000;   // 5 minutes
 const unsigned long fiveSecondInterval = 5000;  // 5 seconds
+const int STAT_MAX = 4;
 unsigned long meditateStart = 0;
 unsigned long lastMeditationRedraw = 0;
 unsigned long lastFiveSecondTick = 0;
@@ -176,6 +177,13 @@ bool overlayActive = false;
 bool meditationActive = false;
 bool meditationRewardApplied = false;
 bool fiveSecondPulse = false;  // Set true by updateFiveSecondPulse() every five seconds
+
+// Onsen state
+unsigned long onsenTicks = 0;  // Number of 5-second pulses spent in the onsen
+int onsenStartEnergy = 0;
+int onsenStartSpirit = 0;
+int lastOnsenEnergyDisplayed = -1;
+int lastOnsenSpiritDisplayed = -1;
 
 unsigned long lastUpdate = 0;
 const int FRAME_DELAY = 50;
@@ -320,6 +328,19 @@ void unloadAllImages() {
   Serial.println(heapAfter);
 }
 
+const char* onsenBackgroundForAge(int age) {
+  if (age <= 12) {
+    return "/idolnat/screens/onsen_11yo.png";
+  } else if (age <= 14) {
+    return "/idolnat/screens/onsen_13yo.png";
+  } else if (age <= 17) {
+    return "/idolnat/screens/onsen_15yo.png";
+  } else if (age <= 20) {
+    return "/idolnat/screens/onsen_18yo.png";
+  }
+  return "/idolnat/screens/onsen_21yo.png";
+}
+
 void preloadImages() {
   Serial.println("> Entering preloadImages() with currentState set to " + String(currentState));
   unloadAllImages();
@@ -427,7 +448,7 @@ void preloadImages() {
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
       break;
     case HEALTH_ONSEN:
-      preloadImage("/idolnat/screens/onsen_bg.png", currentBackground);
+      preloadImage(onsenBackgroundForAge(natsumi.age), currentBackground);
       break;
     case REST_MENU:
       preloadImage("/idolnat/screens/bedroom.png", currentBackground);
@@ -801,7 +822,17 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         characterEnabled = false;
         break;
       case HEALTH_ONSEN:
-        screenConfig = ROOM;
+        screenConfig = CARD;
+        characterEnabled = false;
+        natsumi.hygiene = 4;
+        /*
+        onsenActive = true;
+        onsenTicks = 0;
+        onsenStartEnergy = natsumi.energy;
+        onsenStartSpirit = natsumi.spirit;
+        lastOnsenEnergyDisplayed = -1;
+        lastOnsenSpiritDisplayed = -1;
+        */
         break;
       case REST_MENU:
         screenConfig = ROOM;
@@ -923,7 +954,7 @@ void updateStats() {
   // Energy decreases every 4 minutes
   if (currentMillis - natsumi.lastEnergyUpdate >= energyInterval) {
     switch (currentState) {
-      case REST_SLEEP:
+      case REST_SLEEP: case HEALTH_ONSEN:
         if (natsumi.energy < 4) natsumi.energy++;
         break;
       default:
@@ -1028,6 +1059,9 @@ void manageCard() {
       break;
     case HEALTH_TEMPLE5:
       changeState(0, HEALTH_TEMPLE6, 20);
+      break;
+    case HEALTH_ONSEN:
+      manageOnsen();
       break;
     case DEV_SCREEN:
       break;
@@ -2760,6 +2794,84 @@ void drawStatBar(const String &label, int value, int maxValue, int x, int y, int
   }
 }
 
+void drawOnsenOverlay() {
+  const int panelX = 4;
+  const int panelY = 4;
+  // const int panelWidth = 118;
+  const int panelWidth = 148;
+  const int panelHeight = 38;
+  const int barWidth = 54;
+  const int barHeight = 7;
+  const int rowHeight = 13;
+
+  uint16_t panelBg = M5Cardputer.Display.color565(12, 16, 24);
+  uint16_t panelFrame = M5Cardputer.Display.color565(90, 140, 210);
+  uint16_t shadow = M5Cardputer.Display.color565(5, 7, 12);
+
+  M5Cardputer.Display.fillRoundRect(panelX + 1, panelY + 1, panelWidth, panelHeight, 5, shadow);
+  M5Cardputer.Display.fillRoundRect(panelX, panelY, panelWidth, panelHeight, 5, panelBg);
+  M5Cardputer.Display.drawRoundRect(panelX, panelY, panelWidth, panelHeight, 5, panelFrame);
+
+  M5Cardputer.Display.setTextSize(1);
+  M5Cardputer.Display.setTextColor(panelFrame, panelBg);
+  M5Cardputer.Display.setCursor(panelX + 6, panelY + 2);
+  M5Cardputer.Display.print("Onsen Status");
+
+  auto drawRow = [&](const char* label, int value, int rowIndex, uint16_t mainColor, uint16_t accentColor) {
+    int clamped = value;
+    if (clamped < 0) clamped = 0;
+    if (clamped > STAT_MAX) clamped = STAT_MAX;
+
+    int rowY = panelY + 10 + rowHeight * rowIndex;
+    int iconX = panelX + 8;
+    // int barX = panelX + 28;
+    int barX = panelX + 58;
+    int barY = rowY + 4;
+
+    // M5Cardputer.Display.fillCircle(iconX, rowY + 3, 4, mainColor);
+    // M5Cardputer.Display.fillCircle(iconX, rowY + 3, 2, accentColor);
+
+    M5Cardputer.Display.setTextColor(WHITE, panelBg);
+    // M5Cardputer.Display.setCursor(iconX + 7, rowY - 2);
+    M5Cardputer.Display.setCursor(iconX + 4, rowY + 7);
+    M5Cardputer.Display.print(label);
+
+    String valueText = String(clamped) + "/" + String(STAT_MAX);
+    M5Cardputer.Display.setTextColor(accentColor, panelBg);
+    // M5Cardputer.Display.setCursor(panelX + panelWidth - 24, rowY - 2);
+    M5Cardputer.Display.setCursor(panelX + panelWidth - 24, rowY + 7);
+    M5Cardputer.Display.print(valueText);
+
+    uint16_t barBg = M5Cardputer.Display.color565(24, 32, 46);
+    M5Cardputer.Display.fillRoundRect(barX, barY, barWidth, barHeight, 3, barBg);
+    M5Cardputer.Display.drawRoundRect(barX, barY, barWidth, barHeight, 3, accentColor);
+
+    int filled = (barWidth - 2) * clamped / STAT_MAX;
+    int fillWidth = filled;
+    if (fillWidth < 0) {
+      fillWidth = 0;
+    }
+    if (fillWidth > barWidth - 2) {
+      fillWidth = barWidth - 2;
+    }
+
+    if (fillWidth > 0) {
+      M5Cardputer.Display.fillRoundRect(barX + 1, barY + 1, fillWidth, barHeight - 2, 2, mainColor);
+      uint16_t highlight = M5Cardputer.Display.color565(230, 230, 255);
+      int highlightWidth = fillWidth - 1;
+      if (highlightWidth > 0) {
+        M5Cardputer.Display.drawFastHLine(barX + 2, barY + 1, highlightWidth, highlight);
+      }
+    }
+  };
+
+  drawRow("Energy", natsumi.energy, 0, M5Cardputer.Display.color565(255, 214, 102), M5Cardputer.Display.color565(255, 240, 180));
+  drawRow("Spirit", natsumi.spirit, 1, M5Cardputer.Display.color565(180, 140, 255), M5Cardputer.Display.color565(215, 195, 255));
+
+  lastOnsenEnergyDisplayed = natsumi.energy;
+  lastOnsenSpiritDisplayed = natsumi.spirit;
+}
+
 void manageStats() {
   Serial.println("> Entering manageStats()");
   uint8_t key = 0;
@@ -2838,5 +2950,37 @@ void priest() {
       return;
     }
   }
+}
+
+void manageOnsen() {
+  Serial.println("> Entering manageOnsen()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      overlayActive = false;
+      changeState(0, HOME_LOOP, 0);
+      return;
+    }
+  }
+  // Stats management
+  updateAging();
+  updateStats();
+  if (changeStateCounter==0) {
+    // meh
+  }
+  if (fiveSecondPulse) {
+    drawOnsenOverlay();
+  }
+  if (lastOnsenEnergyDisplayed != natsumi.energy || lastOnsenSpiritDisplayed != natsumi.spirit) {
+    drawOnsenOverlay();
+  }
+  /*
+  if (natsumi.energy == 4 && natsumi.hygiene == 4) {
+    changeState(0, HOME_LOOP, 0);
+  }
+  */
+  return;
 }
 ;
