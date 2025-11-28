@@ -90,6 +90,37 @@ struct NatsumiStats {
 
 NatsumiStats natsumi;
 
+struct FridgeStock {
+  int redApple;
+  int greenApple;
+  int avocado;
+  int bread;
+  int banana;
+  int broccoli;
+  int sweets;
+  int carrot;
+  int meat;
+  int coconut;
+  int coconutJuice;
+  int coffee;
+  int biscuits;
+  int corn;
+  int croissant;
+  int friedEgg;
+  int grapes;
+  int kiwi;
+  int milk;
+  int orange;
+  int peach;
+  int pear;
+  int strawberries;
+  int maki;
+  int sushi;
+  int watermelon;
+};
+
+FridgeStock fridge;
+
 // === Game Time Tracking ===
 // 60000 milliseconds in a minute
 // 86,400,000 milliseconds in a day
@@ -693,6 +724,32 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         natsumi.lastHungerUpdate = 0;
         natsumi.lastHygieneUpdate = 0;
         natsumi.lastEnergyUpdate = 0;
+        fridge.redApple = 3;
+        fridge.greenApple = 0;
+        fridge.avocado = 0;
+        fridge.bread = 10;
+        fridge.banana = 6;
+        fridge.broccoli = 0;
+        fridge.sweets = 1;
+        fridge.carrot = 0;
+        fridge.meat = 1;
+        fridge.coconut = 1;
+        fridge.coconutJuice = 0;
+        fridge.coffee = 0;
+        fridge.biscuits = 0;
+        fridge.corn = 0;
+        fridge.croissant = 0;
+        fridge.friedEgg = 0;
+        fridge.grapes = 0;
+        fridge.kiwi = 0;
+        fridge.milk = 0;
+        fridge.orange = 2;
+        fridge.peach = 0;
+        fridge.pear = 0;
+        fridge.strawberries = 0;
+        fridge.maki = 0;
+        fridge.sushi = 0;
+        fridge.watermelon = 0;
         playtimeTotalMs = 0;
         sessionStart = millis();
         lastAgeTick = 0;
@@ -712,6 +769,32 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         natsumi.lastHungerUpdate = 0;
         natsumi.lastHygieneUpdate = 0;
         natsumi.lastEnergyUpdate = 0;
+        fridge.redApple = 3;
+        fridge.greenApple = 0;
+        fridge.avocado = 0;
+        fridge.bread = 10;
+        fridge.banana = 6;
+        fridge.broccoli = 0;
+        fridge.sweets = 1;
+        fridge.carrot = 0;
+        fridge.meat = 1;
+        fridge.coconut = 1;
+        fridge.coconutJuice = 0;
+        fridge.coffee = 0;
+        fridge.biscuits = 0;
+        fridge.corn = 0;
+        fridge.croissant = 0;
+        fridge.friedEgg = 0;
+        fridge.grapes = 0;
+        fridge.kiwi = 0;
+        fridge.milk = 0;
+        fridge.orange = 2;
+        fridge.peach = 0;
+        fridge.pear = 0;
+        fridge.strawberries = 0;
+        fridge.maki = 0;
+        fridge.sushi = 0;
+        fridge.watermelon = 0;
         playtimeTotalMs = 0;
         sessionStart = millis();
         lastAgeTick = 0;
@@ -2964,16 +3047,12 @@ void manageOnsen() {
       return;
     }
   }
+  
   // Stats management
   updateAging();
   updateStats();
-  if (changeStateCounter==0) {
-    // meh
-  }
-  if (fiveSecondPulse) {
-    drawOnsenOverlay();
-  }
-  if (lastOnsenEnergyDisplayed != natsumi.energy || lastOnsenSpiritDisplayed != natsumi.spirit) {
+
+  if (fiveSecondPulse || lastOnsenEnergyDisplayed != natsumi.energy || lastOnsenSpiritDisplayed != natsumi.spirit) {
     drawOnsenOverlay();
   }
   /*
