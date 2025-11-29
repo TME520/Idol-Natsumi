@@ -2769,7 +2769,7 @@ void drawFoodGrid(const std::vector<FoodDisplayItem> &items, int selectedIndex) 
   }
 
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("Arrows: Move  ENTER: Eat  ESC: Close fridge", 120, 131, true, WHITE, 1);
+  drawText("Arrows: Move  ENTER: Eat  ESC: Close", 120, 131, true, WHITE, 1);
 }
 
 void drawOverlay() {
@@ -2854,7 +2854,7 @@ void drawOverlay() {
             priestState = COMP_MENU;
           }
         } else if (natsumi.charm < 2) {
-          drawDialogBubble("Treat yourself to some nice food, it is good for the soul.");
+          drawDialogBubble("Treat yourself to some nice food, it\'s good for the soul.");
           priestState = FOOD_MENU;
         } else {
           drawDialogBubble("Congratulations!! You have a strong mind!");
@@ -3089,83 +3089,87 @@ void manageStats() {
 }
 
 void cookFood() {
-  if (!foodGridInitialized) {
-    prepareFoodGrid();
-  }
+  if (natsumi.hunger < 4) {
+    if (!foodGridInitialized) {
+      prepareFoodGrid();
+    }
 
-  uint8_t key = 0;
-  bool selectionChanged = false;
+    uint8_t key = 0;
+    bool selectionChanged = false;
 
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-    auto keyList = M5Cardputer.Keyboard.keyList();
-    if (keyList.size() > 0) {
-      key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      Serial.println(">> [KEY] = " + String(key));
-      int currentCol = foodSelectionIndex % 4;
-      int currentRow = foodSelectionIndex / 4;
+    if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+      auto keyList = M5Cardputer.Keyboard.keyList();
+      if (keyList.size() > 0) {
+        key = M5Cardputer.Keyboard.getKey(keyList[0]);
+        Serial.println(">> [KEY] = " + String(key));
+        int currentCol = foodSelectionIndex % 4;
+        int currentRow = foodSelectionIndex / 4;
 
-      switch (key) {
-        // UP
-        case 59: case 'w': case 'W':
-          if (currentRow > 0) {
-            foodSelectionIndex -= 4;
-            selectionChanged = true;
-          }
-          break;
-        // DOWN
-        case 46: case 's': case 'S':
-          if (currentRow < 1 && foodSelectionIndex + 4 < static_cast<int>(foodGridItems.size())) {
-            foodSelectionIndex += 4;
-            selectionChanged = true;
-          }
-          break;
-        // LEFT
-        case 44: case 'a': case 'A':
-          if (currentCol > 0) {
-            foodSelectionIndex -= 1;
-            selectionChanged = true;
-          }
-          break;
-        // RIGHT
-        case 47: case 'd': case 'D':
-          if (currentCol < 3 && foodSelectionIndex + 1 < static_cast<int>(foodGridItems.size())) {
-            foodSelectionIndex += 1;
-            selectionChanged = true;
-          }
-          break;
-        // ESC
-        case 96: case 43:
-          clearFoodGrid();
-          overlayActive = false;
-          changeState(0, HOME_LOOP, 0);
-          return;
-          break;
-        // ENTER
-        case 13: case 40: case ' ':
-          if (!foodGridItems.empty()) {
-            FoodDisplayItem &choice = foodGridItems[foodSelectionIndex];
-            if (*(choice.quantityPtr) > 0) {
-              *(choice.quantityPtr) -= 1;
-              choice.quantity = *(choice.quantityPtr);
-              if (natsumi.hunger < 4) {
-                natsumi.hunger += 1;
-              }
-              showToast("Eating " + String(choice.label));
-              clearFoodGrid();
-              overlayActive = false;
-              changeState(0, HOME_LOOP, 0);
-            } else {
-              showToast(String(choice.label) + " is out of stock");
+        switch (key) {
+          // UP
+          case 59: case 'w': case 'W':
+            if (currentRow > 0) {
+              foodSelectionIndex -= 4;
+              selectionChanged = true;
             }
-          }
-          return;
-          break;
+            break;
+          // DOWN
+          case 46: case 's': case 'S':
+            if (currentRow < 1 && foodSelectionIndex + 4 < static_cast<int>(foodGridItems.size())) {
+              foodSelectionIndex += 4;
+              selectionChanged = true;
+            }
+            break;
+          // LEFT
+          case 44: case 'a': case 'A':
+            if (currentCol > 0) {
+              foodSelectionIndex -= 1;
+              selectionChanged = true;
+            }
+            break;
+          // RIGHT
+          case 47: case 'd': case 'D':
+            if (currentCol < 3 && foodSelectionIndex + 1 < static_cast<int>(foodGridItems.size())) {
+              foodSelectionIndex += 1;
+              selectionChanged = true;
+            }
+            break;
+          // ESC
+          case 96: case 43:
+            clearFoodGrid();
+            overlayActive = false;
+            changeState(0, HOME_LOOP, 0);
+            return;
+            break;
+          // ENTER
+          case 13: case 40: case ' ':
+            if (!foodGridItems.empty()) {
+              FoodDisplayItem &choice = foodGridItems[foodSelectionIndex];
+              if (*(choice.quantityPtr) > 0) {
+                *(choice.quantityPtr) -= 1;
+                choice.quantity = *(choice.quantityPtr);
+                if (natsumi.hunger < 4) {
+                  natsumi.hunger += 1;
+                }
+                showToast("Eating " + String(choice.label));
+                clearFoodGrid();
+                overlayActive = false;
+                changeState(0, HOME_LOOP, 0);
+              }
+            }
+            return;
+            break;
+        }
       }
     }
-  }
 
-  if (selectionChanged) {
-    l5NeedsRedraw = true;
+    if (selectionChanged) {
+      l5NeedsRedraw = true;
+    }
+  } else {
+    showToast("Natsumi is not hungry");
+    overlayActive = false;
+    changeState(0, HOME_LOOP, 0);
   }
 }
 
