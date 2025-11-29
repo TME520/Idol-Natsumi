@@ -19,8 +19,6 @@ enum GameState {
   FOOD_MENU,
   FOOD_COOK,
   FOOD_COOK2,
-  FOOD_COOK3,
-  FOOD_COOK4,
   FOOD_REST,
   FOOD_ORDER,
   HEALTH_MENU,
@@ -138,6 +136,8 @@ struct FoodDisplayItem {
   int quantity;
   ImageBuffer icon;
 };
+
+String selectedFood = "None";
 
 std::vector<FoodDisplayItem> foodGridItems;
 int foodSelectionIndex = 0;
@@ -271,6 +271,7 @@ String versionNumber = "0.6.1012";
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
 ImageBuffer currentCharacter;
+ImageBuffer currentIcon;
 
 // Toast messages
 String toastMsg = "";
@@ -413,6 +414,62 @@ void preloadImages() {
       break;
     case FOOD_COOK:
       preloadImage("/idolnat/screens/fridge_open.png", currentBackground);
+      break;
+    case FOOD_COOK2:
+      preloadImage("/idolnat/screens/food_selected_bg.png", currentBackground);
+      if (selectedFood == "Red apple") {
+        preloadImage("/idolnat/sprites/food_001.png" ,currentIcon);
+      } else if (selectedFood == "Green apple") {
+          preloadImage("/idolnat/sprites/food_002.png" ,currentIcon);
+      } else if (selectedFood == "Avocado") {
+          preloadImage("/idolnat/sprites/food_003.png" ,currentIcon);
+      } else if (selectedFood == "Bread") {
+          preloadImage("/idolnat/sprites/food_005.png" ,currentIcon);
+      } else if (selectedFood == "Banana") {
+          preloadImage("/idolnat/sprites/food_008.png" ,currentIcon);
+      } else if (selectedFood == "Broccoli") {
+          preloadImage("/idolnat/sprites/food_015.png" ,currentIcon);
+      } else if (selectedFood == "Sweets") {
+          preloadImage("/idolnat/sprites/food_021.png" ,currentIcon);
+      } else if (selectedFood == "Carrot") {
+          preloadImage("/idolnat/sprites/food_028.png" ,currentIcon);
+      } else if (selectedFood == "Meat") {
+          preloadImage("/idolnat/sprites/food_033.png" ,currentIcon);
+      } else if (selectedFood == "Coconut") {
+          preloadImage("/idolnat/sprites/food_038.png" ,currentIcon);
+      } else if (selectedFood == "Coconut juice") {
+          preloadImage("/idolnat/sprites/food_039.png" ,currentIcon);
+      } else if (selectedFood == "Coffee") {
+          preloadImage("/idolnat/sprites/food_041.png" ,currentIcon);
+      } else if (selectedFood == "Biscuit") {
+          preloadImage("/idolnat/sprites/food_044.png" ,currentIcon);
+      } else if (selectedFood == "Corn") {
+          preloadImage("/idolnat/sprites/food_045.png" ,currentIcon);
+      } else if (selectedFood == "Croissant") {
+          preloadImage("/idolnat/sprites/food_046.png" ,currentIcon);
+      } else if (selectedFood == "Fried egg") {
+          preloadImage("/idolnat/sprites/food_053.png" ,currentIcon);
+      } else if (selectedFood == "Grape") {
+          preloadImage("/idolnat/sprites/food_061.png" ,currentIcon);
+      } else if (selectedFood == "Kiwi") {
+          preloadImage("/idolnat/sprites/food_081.png" ,currentIcon);
+      } else if (selectedFood == "Milk") {
+          preloadImage("/idolnat/sprites/food_092.png" ,currentIcon);
+      } else if (selectedFood == "Orange") {
+          preloadImage("/idolnat/sprites/food_109.png" ,currentIcon);
+      } else if (selectedFood == "Peach") {
+          preloadImage("/idolnat/sprites/food_111.png" ,currentIcon);
+      } else if (selectedFood == "Pear") {
+          preloadImage("/idolnat/sprites/food_113.png" ,currentIcon);
+      } else if (selectedFood == "Strawberries") {
+          preloadImage("/idolnat/sprites/food_149.png" ,currentIcon);
+      } else if (selectedFood == "Maki") {
+          preloadImage("/idolnat/sprites/food_150.png" ,currentIcon);
+      } else if (selectedFood == "Sushi") {
+          preloadImage("/idolnat/sprites/food_154.png" ,currentIcon);
+      } else if (selectedFood == "Watermelon") {
+          preloadImage("/idolnat/sprites/food_168.png" ,currentIcon);
+      }
       break;
     case FOOD_REST:
       preloadImage("/idolnat/screens/restaurant_bg.png", currentBackground);
@@ -833,7 +890,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItems = foodMenuItems;
         currentMenuItemsCount = foodMenuItemCount;
         break;
-      case FOOD_COOK:
+      case FOOD_COOK: case FOOD_COOK2:
         screenConfig = ROOM;
         break;
       case FOOD_REST:
@@ -1321,6 +1378,8 @@ void manageRoom() {
       break;
     case FOOD_COOK:
       cookFood();
+      break;
+    case FOOD_COOK2:
       break;
     case FOOD_REST:
       gotoRestaurant();
@@ -2864,6 +2923,9 @@ void drawOverlay() {
       case FOOD_COOK:
         drawFoodGrid(foodGridItems, foodSelectionIndex);
         break;
+      case FOOD_COOK2:
+        M5Cardputer.Display.drawPng(currentIcon.data, currentIcon.length, 111, 58);
+        break;
       default:
         break;
     }
@@ -3154,7 +3216,8 @@ void cookFood() {
                 showToast("Eating " + String(choice.label));
                 clearFoodGrid();
                 overlayActive = false;
-                changeState(0, HOME_LOOP, 0);
+                selectedFood = String(choice.label);
+                changeState(0, FOOD_COOK2, 0);
               }
             }
             return;
@@ -3258,4 +3321,3 @@ void manageOnsen() {
   */
   return;
 }
-;
