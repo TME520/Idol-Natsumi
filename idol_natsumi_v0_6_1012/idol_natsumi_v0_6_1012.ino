@@ -20,6 +20,9 @@ enum GameState {
   FOOD_COOK,
   FOOD_COOK2,
   FOOD_REST,
+  FOOD_REST2,
+  FOOD_REST3,
+  FOOD_REST4,
   FOOD_ORDER,
   HEALTH_MENU,
   HEALTH_WASH,
@@ -557,6 +560,9 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_11yo_meditate-90x135.png", currentCharacter);
           break;
+        case FOOD_REST:
+          preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
+          break;
         case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_11yo_washing-90x135.png", currentCharacter);
           break;
@@ -578,6 +584,9 @@ void preloadImages() {
       switch(currentState) {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_13yo_meditate-90x135.png", currentCharacter);
+          break;
+        case FOOD_REST:
+          preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
           break;
         case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_13yo_washing-90x135.png", currentCharacter);
@@ -601,6 +610,9 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_15yo_meditate-90x135.png", currentCharacter);
           break;
+        case FOOD_REST:
+          preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
+          break;
         case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_15yo_washing-90x135.png", currentCharacter);
           break;
@@ -623,6 +635,9 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_18yo_meditate-90x135.png", currentCharacter);
           break;
+        case FOOD_REST:
+          preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
+          break;
         case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_18yo_washing-90x135.png", currentCharacter);
           break;
@@ -644,6 +659,9 @@ void preloadImages() {
       switch(currentState) {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_21yo_meditate-90x135.png", currentCharacter);
+          break;
+        case FOOD_REST:
+          preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
           break;
         case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_21yo_washing-90x135.png", currentCharacter);
@@ -901,7 +919,9 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         l5NeedsRedraw = true;
         break;
       case FOOD_REST:
-        screenConfig = ROOM;
+        screenConfig = DIALOG;
+        overlayActive = true;
+        l5NeedsRedraw = true;
         break;
       case FOOD_ORDER:
         screenConfig = ROOM;
@@ -2866,6 +2886,9 @@ void drawOverlay() {
       case STATS_SCREEN:
         Serial.println(">>> drawOverlay: STATS_SCREEN");
         drawStats();
+        break;
+      case FOOD_REST:
+        drawDialogBubble("Irasshaimase! Please come in and enjoy your meal!");
         break;
       case REST_SLEEP:
         Serial.println(">>> drawOverlay: REST_SLEEP");
