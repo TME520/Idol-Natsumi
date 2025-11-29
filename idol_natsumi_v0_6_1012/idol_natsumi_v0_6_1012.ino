@@ -890,8 +890,12 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItems = foodMenuItems;
         currentMenuItemsCount = foodMenuItemCount;
         break;
-      case FOOD_COOK: case FOOD_COOK2:
+      case FOOD_COOK:
         screenConfig = ROOM;
+        break;
+      case FOOD_COOK2:
+        overlayActive = true;
+        l5NeedsRedraw = true;
         break;
       case FOOD_REST:
         screenConfig = ROOM;
@@ -1380,6 +1384,7 @@ void manageRoom() {
       cookFood();
       break;
     case FOOD_COOK2:
+      showFood();
       break;
     case FOOD_REST:
       gotoRestaurant();
@@ -3320,4 +3325,9 @@ void manageOnsen() {
   }
   */
   return;
+}
+
+void showFood() {
+  //
+  changeState(0, HOME_LOOP, microWait);
 }
