@@ -85,6 +85,7 @@ struct NatsumiStats {
   int fitness;
   int culture;
   int charm;
+  int money;
   unsigned long lastHungerUpdate = 0;
   unsigned long lastHygieneUpdate = 0;
   unsigned long lastEnergyUpdate = 0;
@@ -785,6 +786,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         natsumi.fitness = 0;
         natsumi.culture = 0;
         natsumi.charm = 0;
+        natsumi.money = 0;
         natsumi.lastHungerUpdate = 0;
         natsumi.lastHygieneUpdate = 0;
         natsumi.lastEnergyUpdate = 0;
@@ -830,6 +832,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         natsumi.fitness = 0;
         natsumi.culture = 0;
         natsumi.charm = 0;
+        natsumi.money = 0;
         natsumi.lastHungerUpdate = 0;
         natsumi.lastHygieneUpdate = 0;
         natsumi.lastEnergyUpdate = 0;
