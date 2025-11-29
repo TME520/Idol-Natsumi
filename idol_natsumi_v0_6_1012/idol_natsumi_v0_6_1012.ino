@@ -125,6 +125,12 @@ struct FridgeStock {
 
 FridgeStock fridge;
 
+// === Image preload system ===
+struct ImageBuffer {
+  uint8_t* data = nullptr;
+  size_t length = 0;
+};
+
 struct FoodDisplayItem {
   const char* label;
   const char* iconPath;
@@ -264,12 +270,6 @@ const int idealZoneY = thermometerY + thermometerInnerPadding + ((thermometerHei
 int sliderYPosition = thermometerY + thermometerHeight - sliderHeight;
 int sliderDirection = -1;  // -1 = moving up, 1 = moving down
 unsigned long lastSliderUpdate = 0;
-
-// === Image preload system ===
-struct ImageBuffer {
-  uint8_t* data = nullptr;
-  size_t length = 0;
-};
 
 String copyright = "(c) 2025 - Pantzumatic";
 String versionNumber = "0.6.1012";
