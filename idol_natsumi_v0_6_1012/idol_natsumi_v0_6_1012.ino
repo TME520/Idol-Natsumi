@@ -1269,6 +1269,9 @@ void manageDialog() {
   overlayEnabled = true;
   helperEnabled = false;
   switch (currentState) {
+    case FOOD_REST:
+      gotoRestaurant();
+      break;
     case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
       doctor();
       break;
@@ -1408,9 +1411,6 @@ void manageRoom() {
       break;
     case FOOD_COOK2:
       showFood();
-      break;
-    case FOOD_REST:
-      gotoRestaurant();
       break;
     case FOOD_ORDER:
       orderFood();
@@ -3269,10 +3269,19 @@ void cookFood() {
 
 void gotoRestaurant() {
   // Eat at the restaurant
-  if (changeStateCounter==0) {
-    // Select food
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (currentState) {
+        case FOOD_REST:
+          changeState(0, FOOD_REST2, 0);
+          break;
+      }
+      return;
+    }
   }
-  changeState(0, HOME_LOOP, shortWait);
 }
 
 void orderFood() {
