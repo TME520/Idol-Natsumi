@@ -15,8 +15,10 @@ enum GameState {
   DEV_SCREEN,
   HOME_LOOP,
   FOOD_MENU,
-  FOOD_EAT,
   FOOD_COOK,
+  FOOD_COOK2,
+  FOOD_COOK3,
+  FOOD_COOK4,
   FOOD_REST,
   FOOD_ORDER,
   HEALTH_MENU,
@@ -399,9 +401,6 @@ void preloadImages() {
       preloadImage("/idolnat/screens/lounge.png", currentBackground);
       break;
     case FOOD_MENU:
-      preloadImage("/idolnat/screens/kitchen.png", currentBackground);
-      break;
-    case FOOD_EAT:
       preloadImage("/idolnat/screens/kitchen.png", currentBackground);
       break;
     case FOOD_COOK:
@@ -813,12 +812,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItems = homeMenuItems;
         currentMenuItemsCount = homeMenuItemCount;
         overlayActive = false;
-        break;
-      case FOOD_EAT:
-        screenConfig = ROOM;
-        currentMenuType = "food";
-        currentMenuItems = foodMenuItems;
-        currentMenuItemsCount = foodMenuItemCount;
         break;
       case STATS_SCREEN:
         screenConfig = GAME;
@@ -1309,9 +1302,6 @@ void manageRoom() {
     case HOME_LOOP:
       manageHomeScreen();
       break;
-    case FOOD_EAT:
-      eat();
-      break;
     case HEALTH_WASH2:
       wash();
       break;
@@ -1698,19 +1688,6 @@ void drawDialogBubble(const String& dialogText) {
   // Helper text at the bottom
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
   drawText("Press any key to continue", 120, 131, true, WHITE, 1);
-}
-
-void eat() {
-  // Serial.println("> Entering eat()");
-  if (changeStateCounter==0) {
-    if (natsumi.hunger < 4) {
-      natsumi.hunger += 1;
-      showToast("Ate (+1 Hunger)");
-    } else {
-      showToast("Natsumi is not hungry");
-    }
-  }
-  changeState(0, HOME_LOOP, shortWait);
 }
 
 void wash() {
