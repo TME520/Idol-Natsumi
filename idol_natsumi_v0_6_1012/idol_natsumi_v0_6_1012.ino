@@ -1,5 +1,7 @@
 #include <M5Cardputer.h>
 #include <SD.h>
+#include <algorithm>
+#include <cstring>
 #include <vector>
 
 // === Game state definitions ===
@@ -122,6 +124,24 @@ struct FridgeStock {
 };
 
 FridgeStock fridge;
+
+// === Image preload system ===
+struct ImageBuffer {
+  uint8_t* data = nullptr;
+  size_t length = 0;
+};
+
+struct FoodDisplayItem {
+  const char* label;
+  const char* iconPath;
+  int* quantityPtr;
+  int quantity;
+  ImageBuffer icon;
+};
+
+std::vector<FoodDisplayItem> foodGridItems;
+int foodSelectionIndex = 0;
+bool foodGridInitialized = false;
 
 // === Game Time Tracking ===
 // 60000 milliseconds in a minute
@@ -250,12 +270,6 @@ const int idealZoneY = thermometerY + thermometerInnerPadding + ((thermometerHei
 int sliderYPosition = thermometerY + thermometerHeight - sliderHeight;
 int sliderDirection = -1;  // -1 = moving up, 1 = moving down
 unsigned long lastSliderUpdate = 0;
-
-// === Image preload system ===
-struct ImageBuffer {
-  uint8_t* data = nullptr;
-  size_t length = 0;
-};
 
 String copyright = "(c) 2025 - Pantzumatic";
 String versionNumber = "0.6.1012";
@@ -2635,6 +2649,135 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
   }
 }
 
+bool preloadFoodIcon(FoodDisplayItem &item) {
+  if (item.icon.data) {
+    unloadImage(item.icon);
+  }
+
+  if (preloadImage(item.iconPath, item.icon)) {
+    return true;
+  }
+
+  String altPath = String("/idolnat/sprites/food/") + String(strrchr(item.iconPath, '/') ? strrchr(item.iconPath, '/') + 1 : item.iconPath);
+  return preloadImage(altPath.c_str(), item.icon);
+}
+
+void clearFoodGrid() {
+  for (auto &item : foodGridItems) {
+    unloadImage(item.icon);
+  }
+  foodGridItems.clear();
+  foodGridInitialized = false;
+}
+
+void prepareFoodGrid() {
+  clearFoodGrid();
+
+  std::vector<FoodDisplayItem> options = {
+    {"Red apple", "/idolnat/sprites/food_001.png", &fridge.redApple},
+    {"Green apple", "/idolnat/sprites/food_002.png", &fridge.greenApple},
+    {"Avocado", "/idolnat/sprites/food_003.png", &fridge.avocado},
+    {"Bread", "/idolnat/sprites/food_005.png", &fridge.bread},
+    {"Banana", "/idolnat/sprites/food_008.png", &fridge.banana},
+    {"Broccoli", "/idolnat/sprites/food_015.png", &fridge.broccoli},
+    {"Sweets", "/idolnat/sprites/food_021.png", &fridge.sweets},
+    {"Carrot", "/idolnat/sprites/food_028.png", &fridge.carrot},
+    {"Meat", "/idolnat/sprites/food_033.png", &fridge.meat},
+    {"Coconut", "/idolnat/sprites/food_038.png", &fridge.coconut},
+    {"Coconut juice", "/idolnat/sprites/food_039.png", &fridge.coconutJuice},
+    {"Coffee", "/idolnat/sprites/food_041.png", &fridge.coffee},
+    {"Biscuit", "/idolnat/sprites/food_044.png", &fridge.biscuits},
+    {"Corn", "/idolnat/sprites/food_045.png", &fridge.corn},
+    {"Croissant", "/idolnat/sprites/food_046.png", &fridge.croissant},
+    {"Fried egg", "/idolnat/sprites/food_053.png", &fridge.friedEgg},
+    {"Grape", "/idolnat/sprites/food_061.png", &fridge.grapes},
+    {"Kiwi", "/idolnat/sprites/food_081.png", &fridge.kiwi},
+    {"Milk", "/idolnat/sprites/food_092.png", &fridge.milk},
+    {"Orange", "/idolnat/sprites/food_109.png", &fridge.orange},
+    {"Peach", "/idolnat/sprites/food_111.png", &fridge.peach},
+    {"Pear", "/idolnat/sprites/food_113.png", &fridge.pear},
+    {"Strawberries", "/idolnat/sprites/food_149.png", &fridge.strawberries},
+    {"Maki", "/idolnat/sprites/food_150.png", &fridge.maki},
+    {"Sushi", "/idolnat/sprites/food_154.png", &fridge.sushi},
+    {"Watermelon", "/idolnat/sprites/food_168.png", &fridge.watermelon}
+  };
+
+  for (auto &option : options) {
+    option.quantity = *(option.quantityPtr);
+  }
+
+  std::sort(options.begin(), options.end(), [](const FoodDisplayItem &a, const FoodDisplayItem &b) {
+    return a.quantity > b.quantity;
+  });
+
+  size_t limit = std::min<size_t>(8, options.size());
+  for (size_t i = 0; i < limit; i++) {
+    foodGridItems.push_back(options[i]);
+    preloadFoodIcon(foodGridItems.back());
+  }
+
+  foodSelectionIndex = 0;
+  overlayActive = true;
+  l5NeedsRedraw = true;
+  foodGridInitialized = true;
+}
+
+void drawFoodGrid(const std::vector<FoodDisplayItem> &items, int selectedIndex) {
+  const int panelX = 6;
+  const int panelY = 6;
+  const int panelW = 228;
+  const int panelH = 123;
+  const int headerHeight = 18;
+  const uint16_t shadowColor = M5Cardputer.Display.color565(10, 14, 32);
+  const uint16_t panelColor = M5Cardputer.Display.color565(16, 24, 44);
+  const uint16_t accentColor = M5Cardputer.Display.color565(120, 200, 255);
+  const uint16_t cellColor = M5Cardputer.Display.color565(28, 40, 64);
+  const uint16_t highlightColor = M5Cardputer.Display.color565(60, 90, 140);
+
+  M5Cardputer.Display.fillRoundRect(panelX + 2, panelY + 2, panelW, panelH, 10, shadowColor);
+  M5Cardputer.Display.fillRoundRect(panelX, panelY, panelW, panelH, 10, panelColor);
+  M5Cardputer.Display.drawRoundRect(panelX, panelY, panelW, panelH, 10, accentColor);
+
+  M5Cardputer.Display.setTextDatum(middle_center);
+  M5Cardputer.Display.setTextSize(1);
+  M5Cardputer.Display.setTextColor(WHITE, panelColor);
+  M5Cardputer.Display.drawString("Cook from Fridge", panelX + panelW / 2, panelY + headerHeight / 2 + 1);
+
+  const int cols = 4;
+  const int rows = 2;
+  const int padding = 8;
+  const int cellW = (panelW - padding * (cols + 1)) / cols;
+  const int cellH = (panelH - headerHeight - padding * (rows + 1)) / rows;
+
+  for (size_t i = 0; i < items.size(); i++) {
+    int col = i % cols;
+    int row = i / cols;
+    int cellX = panelX + padding + col * (cellW + padding);
+    int cellY = panelY + headerHeight + padding + row * (cellH + padding);
+    bool selected = (static_cast<int>(i) == selectedIndex);
+    uint16_t fill = selected ? highlightColor : cellColor;
+
+    M5Cardputer.Display.fillRoundRect(cellX, cellY, cellW, cellH, 6, fill);
+    M5Cardputer.Display.drawRoundRect(cellX, cellY, cellW, cellH, 6, accentColor);
+
+    int iconOffset = (cellW - 32) / 2;
+    if (items[i].icon.data && items[i].icon.length > 0) {
+      M5Cardputer.Display.drawPng(items[i].icon.data, items[i].icon.length, cellX + iconOffset, cellY + 4);
+    } else {
+      M5Cardputer.Display.fillCircle(cellX + cellW / 2, cellY + 14, 10, accentColor);
+    }
+
+    M5Cardputer.Display.setTextDatum(middle_center);
+    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.setTextColor(WHITE, fill);
+    M5Cardputer.Display.drawString(items[i].label, cellX + cellW / 2, cellY + cellH - 16);
+    M5Cardputer.Display.drawString(String("x") + String(items[i].quantity), cellX + cellW / 2, cellY + cellH - 4);
+  }
+
+  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  drawText("Arrows: Move  ENTER: Cook  ESC: Back", 120, 131, true, WHITE, 1);
+}
+
 void drawOverlay() {
   // Draw the overlay (L5)
   Serial.println("> Entering drawOverlay() L5 with l5NeedsRedraw set to " + String(l5NeedsRedraw) + " and overlayActive set to " + String(overlayActive));
@@ -2646,9 +2789,11 @@ void drawOverlay() {
       Serial.println(">>> drawOverlay: Testing for key pressed");
       if (keyList.size() > 0) {
         key = M5Cardputer.Keyboard.getKey(keyList[0]);
-        overlayActive = false;
-        changeState(0, HOME_LOOP, 0);
-        return;
+        if (currentState != FOOD_COOK) {
+          overlayActive = false;
+          changeState(0, HOME_LOOP, 0);
+          return;
+        }
       }
     }
   }
@@ -2721,6 +2866,9 @@ void drawOverlay() {
           drawDialogBubble("Congratulations!! You have a strong mind!");
           priestState = HOME_LOOP;
         }
+        break;
+      case FOOD_COOK:
+        drawFoodGrid(foodGridItems, foodSelectionIndex);
         break;
       default:
         break;
@@ -2947,11 +3095,75 @@ void manageStats() {
 }
 
 void cookFood() {
-  // Cook food from the fridge
-  if (changeStateCounter==0) {
-    // Select food
+  if (!foodGridInitialized) {
+    prepareFoodGrid();
   }
-  changeState(0, HOME_LOOP, shortWait);
+
+  uint8_t key = 0;
+  bool selectionChanged = false;
+
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      int currentCol = foodSelectionIndex % 4;
+      int currentRow = foodSelectionIndex / 4;
+
+      switch (key) {
+        case 181:
+          if (currentRow > 0) {
+            foodSelectionIndex -= 4;
+            selectionChanged = true;
+          }
+          break;
+        case 182:
+          if (currentRow < 1 && foodSelectionIndex + 4 < static_cast<int>(foodGridItems.size())) {
+            foodSelectionIndex += 4;
+            selectionChanged = true;
+          }
+          break;
+        case 180: case 'a': case 'A':
+          if (currentCol > 0) {
+            foodSelectionIndex -= 1;
+            selectionChanged = true;
+          }
+          break;
+        case 183: case 'd': case 'D':
+          if (currentCol < 3 && foodSelectionIndex + 1 < static_cast<int>(foodGridItems.size())) {
+            foodSelectionIndex += 1;
+            selectionChanged = true;
+          }
+          break;
+        case 96: case 43:
+          clearFoodGrid();
+          overlayActive = false;
+          changeState(0, HOME_LOOP, shortWait);
+          return;
+        case 13: case 40: case ' ':
+          if (!foodGridItems.empty()) {
+            FoodDisplayItem &choice = foodGridItems[foodSelectionIndex];
+            if (*(choice.quantityPtr) > 0) {
+              *(choice.quantityPtr) -= 1;
+              choice.quantity = *(choice.quantityPtr);
+              if (natsumi.hunger < 4) {
+                natsumi.hunger += 1;
+              }
+              showToast("Cooked " + String(choice.label));
+            } else {
+              showToast(String(choice.label) + " is out of stock");
+            }
+          }
+          clearFoodGrid();
+          overlayActive = false;
+          changeState(0, HOME_LOOP, shortWait);
+          return;
+      }
+    }
+  }
+
+  if (selectionChanged) {
+    l5NeedsRedraw = true;
+  }
 }
 
 void gotoRestaurant() {
