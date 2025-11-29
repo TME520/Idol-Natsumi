@@ -256,15 +256,9 @@ const int thermometerY = 18;
 const int thermometerWidth = 20;
 const int thermometerHeight = 100;
 const int thermometerInnerPadding = 2;
-/*
-const int sliderHeight = 10;
-const int sliderStep = 2;
-const unsigned long sliderUpdateInterval = 35;
-*/
 const int sliderHeight = 6;
 const int sliderStep = 6;
 const unsigned long sliderUpdateInterval = 20;
-// const int idealZoneHeight = 26;
 const int idealZoneHeight = 20;
 const int idealZoneY = thermometerY + thermometerInnerPadding + ((thermometerHeight - thermometerInnerPadding * 2 - idealZoneHeight) / 2);
 int sliderYPosition = thermometerY + thermometerHeight - sliderHeight;
@@ -389,7 +383,7 @@ const char* onsenBackgroundForAge(int age) {
 }
 
 void preloadImages() {
-  Serial.println("> Entering preloadImages() with currentState set to " + String(currentState));
+  // Serial.println("> Entering preloadImages() with currentState set to " + String(currentState));
   unloadAllImages();
   // Load backgrounds
   switch (currentState) {
@@ -678,7 +672,7 @@ void loop() {
 // === Menu and state logic ===
 void changeState(int baseLayer, GameState targetState, int delay) {
   // Manage state transitions
-  Serial.println("> Entering changeState() with baseLayer set to " + String(baseLayer) + " and targetState set to " + String(targetState) + " with delay set to " + String(delay));
+  // Serial.println("> Entering changeState() with baseLayer set to " + String(baseLayer) + " and targetState set to " + String(targetState) + " with delay set to " + String(delay));
   if (changeStateCounter == delay) {
     Serial.println("Proceed with transition");
     changeStateCounter = 0;
@@ -1059,7 +1053,7 @@ void updateStats() {
 }
 
 void updateSpirit() {
-  Serial.println("> Entering updateSpirit()");
+  // Serial.println("> Entering updateSpirit()");
   if (!meditationActive) {
     spiritScore = natsumi.hygiene + natsumi.energy + natsumi.hunger + natsumi.performance + natsumi.popularity;
     if ( spiritScore >= 0 && spiritScore < 5 ) {
@@ -1813,12 +1807,12 @@ void drawMeditationOverlay() {
     M5Cardputer.Display.drawRoundRect(barX - 1, barY - 1, barW + 2, barH + 2, 7, borderColor);
   }
   if (remaining == 0) {
-    Serial.println(">> drawMeditationOverlay: End of meditation session");
+    // Serial.println(">> drawMeditationOverlay: End of meditation session");
     meditationActive = false;
     if (!meditationRewardApplied) {
       if (natsumi.spirit < 4 ) {
         natsumi.spirit += 1;
-        Serial.println(">> drawMeditationOverlay: natsumi.spirit=" + String(natsumi.spirit));
+        // Serial.println(">> drawMeditationOverlay: natsumi.spirit=" + String(natsumi.spirit));
       }
       meditationRewardApplied = true;
     }
@@ -1868,7 +1862,7 @@ void meditate() {
 // === Draw functions ===
 void drawBackground(const ImageBuffer& bg) {
   // Draw the background of the screen (layer 0)
-  Serial.println("> Entering drawBackground() L0 with backgroundEnabled set to " + String(backgroundEnabled));
+  // Serial.println("> Entering drawBackground() L0 with backgroundEnabled set to " + String(backgroundEnabled));
   if (l0NeedsRedraw) {
     if (backgroundEnabled) {
       drawImage(bg);
@@ -1884,13 +1878,13 @@ void drawBackground(const ImageBuffer& bg) {
 
 void drawCharacter() {
   // Draw the character(s) on the screen (layer 1)
-  Serial.println("> Entering drawCharacter() L1 with characterEnabled set to " + String(characterEnabled));
+  // Serial.println("> Entering drawCharacter() L1 with characterEnabled set to " + String(characterEnabled));
   if (l1NeedsRedraw) {
     if (characterEnabled) {
       drawImage(currentCharacter);
       if (!menuOpened && !overlayActive) {
         // Helper text at the bottom
-        Serial.println("[DEBUG] manageHomeScreen() -> l5NeedsRedraw TRUE");
+        // Serial.println("[DEBUG] manageHomeScreen() -> l5NeedsRedraw TRUE");
         M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
         drawText("TAB: Open menu", 120, 131, true, WHITE, 1);
       }
@@ -1906,7 +1900,7 @@ void drawCharacter() {
 
 void drawDebug() {
   // Draw debug information (layer 2)
-  Serial.println("> Entering drawDebug() L2 with debugEnabled set to " + String(debugEnabled));
+  // Serial.println("> Entering drawDebug() L2 with debugEnabled set to " + String(debugEnabled));
   if (l2NeedsRedraw && debugActive) {
     if (debugEnabled) {
       drawText(String("Memory: ") + ESP.getFreeHeap(), 80, 10, false, WHITE, 1);
@@ -1932,7 +1926,7 @@ void drawDebug() {
 
 void drawToast() {
   // Draw toast messages (layer 3)
-  Serial.println("> Entering drawToast() L3 with toastEnabled set to " + String(toastEnabled));
+  // Serial.println("> Entering drawToast() L3 with toastEnabled set to " + String(toastEnabled));
   if (toastActive) {
     if (millis() > toastUntil) {
       // Toast expired
@@ -1962,7 +1956,7 @@ void drawToast() {
 
 void drawMenu(String menuType, const char* items[], int itemCount, int &selection) {
   // Draw menus on the screen (layer 4)
-  Serial.println("> Entering drawMenu() L4 with menuEnabled set to " + String(menuEnabled));
+  // Serial.println("> Entering drawMenu() L4 with menuEnabled set to " + String(menuEnabled));
   if (menuEnabled) {
     uint8_t key = 0;
     if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -2741,7 +2735,7 @@ void drawFoodGrid(const std::vector<FoodDisplayItem> &items, int selectedIndex) 
   M5Cardputer.Display.setTextDatum(middle_center);
   M5Cardputer.Display.setTextSize(1);
   M5Cardputer.Display.setTextColor(WHITE, panelColor);
-  M5Cardputer.Display.drawString("Cook from Fridge", panelX + panelW / 2, panelY + headerHeight / 2 + 1);
+  M5Cardputer.Display.drawString("What\'s in the fridge?", panelX + panelW / 2, panelY + headerHeight / 2 + 1);
 
   const int cols = 4;
   const int rows = 2;
@@ -2775,18 +2769,18 @@ void drawFoodGrid(const std::vector<FoodDisplayItem> &items, int selectedIndex) 
   }
 
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("Arrows: Move  ENTER: Cook  ESC: Back", 120, 131, true, WHITE, 1);
+  drawText("Arrows: Move  ENTER: Eat  ESC: Close fridge", 120, 131, true, WHITE, 1);
 }
 
 void drawOverlay() {
   // Draw the overlay (L5)
-  Serial.println("> Entering drawOverlay() L5 with l5NeedsRedraw set to " + String(l5NeedsRedraw) + " and overlayActive set to " + String(overlayActive));
+  // Serial.println("> Entering drawOverlay() L5 with l5NeedsRedraw set to " + String(l5NeedsRedraw) + " and overlayActive set to " + String(overlayActive));
   if (overlayActive && overlayEnabled) {
-    Serial.println(">> drawOverlay: l5NeedsRedraw is TRUE");
+    // Serial.println(">> drawOverlay: l5NeedsRedraw is TRUE");
     uint8_t key = 0;
     if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
       auto keyList = M5Cardputer.Keyboard.keyList();
-      Serial.println(">>> drawOverlay: Testing for key pressed");
+      // Serial.println(">>> drawOverlay: Testing for key pressed");
       if (keyList.size() > 0) {
         key = M5Cardputer.Keyboard.getKey(keyList[0]);
         if (currentState != FOOD_COOK) {
@@ -2885,7 +2879,7 @@ void playGame() {
 
 void drawStats() {
   // Draw the Status Board / Statistics screen
-  Serial.println("> Entering drawStats()");
+  // Serial.println("> Entering drawStats()");
   static unsigned long lastDraw = 0;
   unsigned long now = millis();
   if (now - lastDraw < 120 && (l0NeedsRedraw || l1NeedsRedraw || l3NeedsRedraw)) {
@@ -2950,11 +2944,11 @@ void drawStats() {
 
   M5Cardputer.Display.setTextDatum(top_left);
   M5Cardputer.Display.setTextSize(1);
-  Serial.println("> Exiting drawStats()");
+  // Serial.println("> Exiting drawStats()");
 }
 
 void drawStatBar(const String &label, int value, int maxValue, int x, int y, int width, int barHeight, uint16_t barColor, uint16_t bgColor, uint16_t frameColor) {
-  Serial.println("> Entering drawStatBar()");
+  // Serial.println("> Entering drawStatBar()");
   if (maxValue <= 0) {
     maxValue = 1;
   }
@@ -3081,7 +3075,7 @@ void drawOnsenOverlay() {
 }
 
 void manageStats() {
-  Serial.println("> Entering manageStats()");
+  // Serial.println("> Entering manageStats()");
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
@@ -3106,39 +3100,47 @@ void cookFood() {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      Serial.println(">> [KEY] = " + String(key));
       int currentCol = foodSelectionIndex % 4;
       int currentRow = foodSelectionIndex / 4;
 
       switch (key) {
-        case 181:
+        // UP
+        case 59: case 'w': case 'W':
           if (currentRow > 0) {
             foodSelectionIndex -= 4;
             selectionChanged = true;
           }
           break;
-        case 182:
+        // DOWN
+        case 46: case 's': case 'S':
           if (currentRow < 1 && foodSelectionIndex + 4 < static_cast<int>(foodGridItems.size())) {
             foodSelectionIndex += 4;
             selectionChanged = true;
           }
           break;
-        case 180: case 'a': case 'A':
+        // LEFT
+        case 44: case 'a': case 'A':
           if (currentCol > 0) {
             foodSelectionIndex -= 1;
             selectionChanged = true;
           }
           break;
-        case 183: case 'd': case 'D':
+        // RIGHT
+        case 47: case 'd': case 'D':
           if (currentCol < 3 && foodSelectionIndex + 1 < static_cast<int>(foodGridItems.size())) {
             foodSelectionIndex += 1;
             selectionChanged = true;
           }
           break;
+        // ESC
         case 96: case 43:
           clearFoodGrid();
           overlayActive = false;
-          changeState(0, HOME_LOOP, shortWait);
+          changeState(0, HOME_LOOP, 0);
           return;
+          break;
+        // ENTER
         case 13: case 40: case ' ':
           if (!foodGridItems.empty()) {
             FoodDisplayItem &choice = foodGridItems[foodSelectionIndex];
@@ -3148,15 +3150,16 @@ void cookFood() {
               if (natsumi.hunger < 4) {
                 natsumi.hunger += 1;
               }
-              showToast("Cooked " + String(choice.label));
+              showToast("Eating " + String(choice.label));
+              clearFoodGrid();
+              overlayActive = false;
+              changeState(0, HOME_LOOP, 0);
             } else {
               showToast(String(choice.label) + " is out of stock");
             }
           }
-          clearFoodGrid();
-          overlayActive = false;
-          changeState(0, HOME_LOOP, shortWait);
           return;
+          break;
       }
     }
   }
@@ -3183,7 +3186,7 @@ void orderFood() {
 }
 
 void doctor() {
-  Serial.println("> Entering doctor()");
+  // Serial.println("> Entering doctor()");
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
@@ -3204,7 +3207,7 @@ void doctor() {
 }
 
 void priest() {
-  Serial.println("> Entering priest()");
+  // Serial.println("> Entering priest()");
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
@@ -3225,7 +3228,7 @@ void priest() {
 }
 
 void manageOnsen() {
-  Serial.println("> Entering manageOnsen()");
+  // Serial.println("> Entering manageOnsen()");
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
