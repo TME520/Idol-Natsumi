@@ -23,6 +23,8 @@ enum GameState {
   FOOD_REST2,
   FOOD_REST3,
   FOOD_REST4,
+  FOOD_REST5,
+  FOOD_REST6,
   FOOD_ORDER,
   HEALTH_MENU,
   HEALTH_WASH,
@@ -208,8 +210,10 @@ int trainingMenuSelection = 0;
 int competitionMenuSelection = 0;
 int healthMenuSelection = 0;
 int restMenuSelection = 0;
+
 int lastSleepEnergyDisplayed = -1;
 int lastMeditationDisplayed = 0;
+int restaurantSelection = 0;
 
 bool l0NeedsRedraw = false; // Background
 bool l1NeedsRedraw = false; // Character
@@ -476,6 +480,21 @@ void preloadImages() {
       }
       break;
     case FOOD_REST:
+      preloadImage("/idolnat/screens/restaurant_bg.png", currentBackground);
+      break;
+    case FOOD_REST2:
+      preloadImage("/idolnat/screens/tofu_vegetable_teishoku.png", currentBackground);
+      break;
+    case FOOD_REST3:
+      preloadImage("/idolnat/screens/grilled_salmon_teishoku.png", currentBackground);
+      break;
+    case FOOD_REST4:
+      preloadImage("/idolnat/screens/fried_chicken_teishoku.png", currentBackground);
+      break;
+    case FOOD_REST5:
+      preloadImage("/idolnat/screens/restaurant_bg.png", currentBackground);
+      break;
+    case FOOD_REST6:
       preloadImage("/idolnat/screens/restaurant_bg.png", currentBackground);
       break;
     case FOOD_ORDER:
@@ -748,7 +767,7 @@ void loop() {
 // === Menu and state logic ===
 void changeState(int baseLayer, GameState targetState, int delay) {
   // Manage state transitions
-  // Serial.println("> Entering changeState() with baseLayer set to " + String(baseLayer) + " and targetState set to " + String(targetState) + " with delay set to " + String(delay));
+  Serial.println("> Entering changeState() with baseLayer set to " + String(baseLayer) + " and targetState set to " + String(targetState) + " with delay set to " + String(delay));
   if (changeStateCounter == delay) {
     Serial.println("Proceed with transition");
     changeStateCounter = 0;
@@ -923,6 +942,11 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
+      case FOOD_REST2: case FOOD_REST3: case FOOD_REST4:
+        Serial.println(">> Transition to FOOD_REST2, 3 or 4");
+        screenConfig = CARD;
+        characterEnabled = false;
+        break;
       case FOOD_ORDER:
         screenConfig = ROOM;
         break;
@@ -970,6 +994,8 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case HEALTH_WASH2:
         screenConfig = ROOM;
+        menuEnabled = false;
+        l4NeedsRedraw = false;
         break;
       case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
         screenConfig = DIALOG;
@@ -993,14 +1019,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         screenConfig = CARD;
         characterEnabled = false;
         natsumi.hygiene = 4;
-        /*
-        onsenActive = true;
-        onsenTicks = 0;
-        onsenStartEnergy = natsumi.energy;
-        onsenStartSpirit = natsumi.spirit;
-        lastOnsenEnergyDisplayed = -1;
-        lastOnsenSpiritDisplayed = -1;
-        */
         break;
       case REST_MENU:
         screenConfig = ROOM;
@@ -1203,6 +1221,10 @@ void manageCard() {
       break;
     case CONTINUE_GAME:
       changeState(0, HOME_LOOP, 0);
+      break;
+    case FOOD_REST2: case FOOD_REST3: case FOOD_REST4:
+      Serial.println(">> About to jump to restaurantFoodSelection");
+      restaurantFoodSelection();
       break;
     case HEALTH_DOCTOR2:
       changeState(0, HEALTH_DOCTOR3, 20);
@@ -3269,6 +3291,7 @@ void cookFood() {
 
 void gotoRestaurant() {
   // Eat at the restaurant
+  Serial.println("> Entering gotoRestaurant()");
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
@@ -3279,9 +3302,9 @@ void gotoRestaurant() {
           changeState(0, FOOD_REST2, 0);
           break;
       }
-      return;
     }
   }
+  return;
 }
 
 void orderFood() {
@@ -3365,4 +3388,78 @@ void manageOnsen() {
 void showFood() {
   //
   changeState(0, HOME_LOOP, microWait);
+  return;
+}
+
+void restaurantFoodSelection() {
+  Serial.println("> Entering restaurantFoodSelection()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      Serial.println(">> restaurantFoodSelection() Key pressed");
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (currentState) {
+        case FOOD_REST2:
+          switch (key) {
+            // LEFT
+            case 44: case 'a': case 'A':
+              changeState(0, FOOD_REST4, 0);
+              break;
+            // RIGHT
+            case 47: case 'd': case 'D':
+              changeState(0, FOOD_REST3, 0);
+              break;
+            // ENTER
+            case 13: case 40: case ' ':
+              restaurantSelection = 0;
+              changeState(0, FOOD_REST5, 0);
+              break;
+          }
+          break;
+        case FOOD_REST3:
+          switch (key) {
+            // LEFT
+            case 44: case 'a': case 'A':
+              changeState(0, FOOD_REST2, 0);
+              break;
+            // RIGHT
+            case 47: case 'd': case 'D':
+              changeState(0, FOOD_REST4, 0);
+              break;
+            // ENTER
+            case 13: case 40: case ' ':
+              restaurantSelection = 1;
+              changeState(0, FOOD_REST5, 0);
+              break;
+          }
+          break;
+        case FOOD_REST4:
+          switch (key) {
+            // LEFT
+            case 44: case 'a': case 'A':
+              changeState(0, FOOD_REST3, 0);
+              break;
+            // RIGHT
+            case 47: case 'd': case 'D':
+              changeState(0, FOOD_REST2, 0);
+              break;
+            // ENTER
+            case 13: case 40: case ' ':
+              restaurantSelection = 2;
+              changeState(0, FOOD_REST5, 0);
+              break;
+          }
+          break;
+        default:
+          changeState(0, HOME_LOOP, 0);
+          break;
+      }
+    }
+  }
+  
+  // Stats management
+  updateAging();
+  updateStats();
+  return;
 }
