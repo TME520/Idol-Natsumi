@@ -25,6 +25,8 @@ enum GameState {
   FOOD_REST4,
   FOOD_REST5,
   FOOD_REST6,
+  FOOD_REST7,
+  FOOD_REST8,
   FOOD_ORDER,
   HEALTH_MENU,
   HEALTH_WASH,
@@ -479,7 +481,7 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/food_168.png" ,currentIcon);
       }
       break;
-    case FOOD_REST:
+    case FOOD_REST: case FOOD_REST5:
       preloadImage("/idolnat/screens/restaurant_bg.png", currentBackground);
       break;
     case FOOD_REST2:
@@ -491,11 +493,14 @@ void preloadImages() {
     case FOOD_REST4:
       preloadImage("/idolnat/screens/fried_chicken_teishoku.png", currentBackground);
       break;
-    case FOOD_REST5:
-      preloadImage("/idolnat/screens/restaurant_bg.png", currentBackground);
-      break;
     case FOOD_REST6:
-      preloadImage("/idolnat/screens/restaurant_bg.png", currentBackground);
+      preloadImage("/idolnat/screens/food_rest_step1.png", currentBackground);
+      break;
+    case FOOD_REST7:
+      preloadImage("/idolnat/screens/food_rest_step2.png", currentBackground);
+      break;
+    case FOOD_REST8:
+      preloadImage("/idolnat/screens/food_rest_step3.png", currentBackground);
       break;
     case FOOD_ORDER:
       preloadImage("/idolnat/screens/phone_app_food_order.png", currentBackground);
@@ -579,7 +584,7 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_11yo_meditate-90x135.png", currentCharacter);
           break;
-        case FOOD_REST:
+        case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
           break;
         case HEALTH_WASH: case HEALTH_WASH2:
@@ -604,7 +609,7 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_13yo_meditate-90x135.png", currentCharacter);
           break;
-        case FOOD_REST:
+        case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
           break;
         case HEALTH_WASH: case HEALTH_WASH2:
@@ -629,7 +634,7 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_15yo_meditate-90x135.png", currentCharacter);
           break;
-        case FOOD_REST:
+        case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
           break;
         case HEALTH_WASH: case HEALTH_WASH2:
@@ -654,7 +659,7 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_18yo_meditate-90x135.png", currentCharacter);
           break;
-        case FOOD_REST:
+        case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
           break;
         case HEALTH_WASH: case HEALTH_WASH2:
@@ -679,7 +684,7 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_21yo_meditate-90x135.png", currentCharacter);
           break;
-        case FOOD_REST:
+        case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
           break;
         case HEALTH_WASH: case HEALTH_WASH2:
@@ -937,13 +942,12 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
-      case FOOD_REST:
+      case FOOD_REST: case FOOD_REST5:
         screenConfig = DIALOG;
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
-      case FOOD_REST2: case FOOD_REST3: case FOOD_REST4:
-        Serial.println(">> Transition to FOOD_REST2, 3 or 4");
+      case FOOD_REST2: case FOOD_REST3: case FOOD_REST4: case FOOD_REST6: case FOOD_REST7: case FOOD_REST8:
         screenConfig = CARD;
         characterEnabled = false;
         break;
@@ -1223,8 +1227,16 @@ void manageCard() {
       changeState(0, HOME_LOOP, 0);
       break;
     case FOOD_REST2: case FOOD_REST3: case FOOD_REST4:
-      Serial.println(">> About to jump to restaurantFoodSelection");
       restaurantFoodSelection();
+      break;
+    case FOOD_REST6:
+      changeState(0, FOOD_REST7, 20);
+      break;
+    case FOOD_REST7:
+      changeState(0, FOOD_REST8, 20);
+      break;
+    case FOOD_REST8:
+      changeState(0, HOME_LOOP, 20);
       break;
     case HEALTH_DOCTOR2:
       changeState(0, HEALTH_DOCTOR3, 20);
@@ -1291,7 +1303,7 @@ void manageDialog() {
   overlayEnabled = true;
   helperEnabled = false;
   switch (currentState) {
-    case FOOD_REST:
+    case FOOD_REST: case FOOD_REST5:
       gotoRestaurant();
       break;
     case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
@@ -2912,6 +2924,9 @@ void drawOverlay() {
       case FOOD_REST:
         drawDialogBubble("Irasshaimase! Please come in and enjoy your meal!");
         break;
+      case FOOD_REST5:
+        drawDialogBubble("Your food is on the way!!");
+        break;
       case REST_SLEEP:
         Serial.println(">>> drawOverlay: REST_SLEEP");
         if (natsumi.energy < 4) {
@@ -3300,6 +3315,9 @@ void gotoRestaurant() {
       switch (currentState) {
         case FOOD_REST:
           changeState(0, FOOD_REST2, 0);
+          break;
+        case FOOD_REST5:
+          changeState(0, FOOD_REST6, 0);
           break;
       }
     }
