@@ -17,6 +17,7 @@ enum GameState {
   DEV_SCREEN,
   HOME_LOOP,
   FOOD_MENU,
+  FOOD_CONBINI,
   FOOD_COOK,
   FOOD_COOK2,
   FOOD_REST,
@@ -828,7 +829,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         natsumi.fitness = 0;
         natsumi.culture = 0;
         natsumi.charm = 0;
-        natsumi.money = 0;
+        natsumi.money = 1800;
         natsumi.lastHungerUpdate = 0;
         natsumi.lastHygieneUpdate = 0;
         natsumi.lastEnergyUpdate = 0;
@@ -874,7 +875,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         natsumi.fitness = 0;
         natsumi.culture = 0;
         natsumi.charm = 0;
-        natsumi.money = 0;
+        natsumi.money = 1800;
         natsumi.lastHungerUpdate = 0;
         natsumi.lastHygieneUpdate = 0;
         natsumi.lastEnergyUpdate = 0;
@@ -947,7 +948,11 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
-      case FOOD_REST2: case FOOD_REST3: case FOOD_REST4: case FOOD_REST6: case FOOD_REST7: case FOOD_REST8:
+      case FOOD_REST2: case FOOD_REST3: case FOOD_REST4:
+        screenConfig = IDLE;
+        characterEnabled = false;
+        break;
+      case FOOD_REST6: case FOOD_REST7: case FOOD_REST8:
         screenConfig = CARD;
         characterEnabled = false;
         break;
@@ -1076,21 +1081,27 @@ void updateAging() {
   } else if ((natsumi.ageMilliseconds >= agingInterval) && (natsumi.ageMilliseconds < (agingInterval * 2))) {
     // 12yo
     natsumi.age = 12;
+    natsumi.money += 70000;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 2)) && (natsumi.ageMilliseconds < (agingInterval * 3))) {
     // 13yo
     natsumi.age = 13;
+    natsumi.money += 75000;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 3)) && (natsumi.ageMilliseconds < (agingInterval * 4))) {
     // 14yo
     natsumi.age = 14;
+    natsumi.money += 80000;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 4)) && (natsumi.ageMilliseconds < (agingInterval * 5))) {
     // 15yo
     natsumi.age = 15;
+    natsumi.money += 85000;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 5)) && (natsumi.ageMilliseconds < (agingInterval * 6))) {
     // 16yo
     natsumi.age = 16;
+    natsumi.money += 90000;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 6)) && (natsumi.ageMilliseconds < (agingInterval * 7))) {
     // 17yo
     natsumi.age = 17;
+    natsumi.money += 95000;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 7)) && (natsumi.ageMilliseconds < (agingInterval * 8))) {
     // 18yo
     natsumi.age = 18;
@@ -1225,9 +1236,6 @@ void manageCard() {
       break;
     case CONTINUE_GAME:
       changeState(0, HOME_LOOP, 0);
-      break;
-    case FOOD_REST2: case FOOD_REST3: case FOOD_REST4:
-      restaurantFoodSelection();
       break;
     case FOOD_REST6:
       changeState(0, FOOD_REST7, 20);
@@ -1387,6 +1395,9 @@ void manageIdle() {
   overlayEnabled = true;
   helperEnabled = false;
   switch (currentState) {
+    case FOOD_REST2: case FOOD_REST3: case FOOD_REST4:
+      restaurantFoodSelection();
+      break;
     case REST_MEDITATE:
       meditate();
       break;
@@ -2924,6 +2935,18 @@ void drawOverlay() {
       case FOOD_REST:
         drawDialogBubble("Irasshaimase! Please come in and enjoy your meal!");
         break;
+      case FOOD_REST2:
+        M5Cardputer.Display.fillRect(0, 0, 60, 10, BLACK);
+        drawText("$700", 3, 10, true, WHITE, 1);
+        break;
+      case FOOD_REST3:
+        M5Cardputer.Display.fillRect(0, 0, 60, 10, BLACK);
+        drawText("$800", 3, 10, true, WHITE, 1);
+        break;
+      case FOOD_REST4:
+        M5Cardputer.Display.fillRect(0, 0, 60, 10, BLACK);
+        drawText("$900", 3, 10, true, WHITE, 1);
+        break;
       case FOOD_REST5:
         drawDialogBubble("Your food is on the way!!");
         break;
@@ -3431,6 +3454,12 @@ void restaurantFoodSelection() {
             // ENTER
             case 13: case 40: case ' ':
               restaurantSelection = 0;
+              if (natsumi.money >= 700) {
+                natsumi.money -= 700;
+                natsumi.hunger = 4;
+              } else {
+                showToast("Not enough money :(");
+              }
               changeState(0, FOOD_REST5, 0);
               break;
           }
@@ -3448,6 +3477,12 @@ void restaurantFoodSelection() {
             // ENTER
             case 13: case 40: case ' ':
               restaurantSelection = 1;
+              if (natsumi.money >= 800) {
+                natsumi.money -= 800;
+                natsumi.hunger = 4;
+              } else {
+                showToast("Not enough money :(");
+              }
               changeState(0, FOOD_REST5, 0);
               break;
           }
@@ -3465,6 +3500,12 @@ void restaurantFoodSelection() {
             // ENTER
             case 13: case 40: case ' ':
               restaurantSelection = 2;
+              if (natsumi.money >= 900) {
+                natsumi.money -= 900;
+                natsumi.hunger = 4;
+              } else {
+                showToast("Not enough money :(");
+              }
               changeState(0, FOOD_REST5, 0);
               break;
           }
