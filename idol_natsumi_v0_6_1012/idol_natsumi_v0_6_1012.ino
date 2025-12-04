@@ -2936,16 +2936,16 @@ void drawOverlay() {
         drawDialogBubble("Irasshaimase! Please come in and enjoy your meal!");
         break;
       case FOOD_REST2:
-        M5Cardputer.Display.fillRect(0, 0, 60, 10, BLACK);
-        drawText("$700", 3, 10, true, WHITE, 1);
+        M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
+        drawText("Price: $700", 5, 2, false, WHITE, 1);
         break;
       case FOOD_REST3:
-        M5Cardputer.Display.fillRect(0, 0, 60, 10, BLACK);
-        drawText("$800", 3, 10, true, WHITE, 1);
+        M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
+        drawText("Price: $800", 5, 2, false, WHITE, 1);
         break;
       case FOOD_REST4:
-        M5Cardputer.Display.fillRect(0, 0, 60, 10, BLACK);
-        drawText("$900", 3, 10, true, WHITE, 1);
+        M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
+        drawText("Price: $900", 5, 2, false, WHITE, 1);
         break;
       case FOOD_REST5:
         drawDialogBubble("Your food is on the way!!");
