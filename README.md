@@ -114,18 +114,21 @@ Stat caps: 0 is the lowest while 4 is the highest.
 
 ### Compete
 
-#### 1st, locally
+#### Start locally
 
-Compete against local artists at the Shiodome Ward Community Hall in front of around 30 people and a jury including the owner of the best karaoke in town! 
+Face off against neighborhood talents at the Shiodome Ward Community Hall, singing in front of roughly 30 people and a jury featuring… the owner of the town’s best karaoke bar!
+Everybody starts somewhere.
 
-#### Then, departmentally
+#### Move on to the departmental stage
 
-Climb the ladder and go to the Hanamori City Hall Auditorium to compete on a real stage, with semi-professional lighting and a jury composed of a few retired ex-Idols!
+Level up and head to the Hanamori City Hall Auditorium, where you finally step onto a real stage with semi-professional lighting.
+This time, the jury includes a few retired ex-Idols with sharp ears and even sharper eyebrows.
 
-#### Go regional
+#### Reach the regional competition
 
-Things are getting pretty serious now, find your way to the Osaka Minami Art Center - Stage B and sing like a pro!
+Now it’s getting serious. Enter Osaka Minami Art Center - Stage B and perform like a seasoned pro.
+The audience is bigger, the lights brighter, and every note counts.
 
-#### and finally, national!
+#### Claim the national spotlight
 
-Become the Idol you always wanted to be at the Tokyo Grand Dome Hall; compete against the most talented singers from Japan and sing along with Minami Toshida herself!
+Step into the Tokyo Grand Dome Hall, compete against Japan’s top young singers and, if you’re good enough sing alongside Minami Toshida herself.
