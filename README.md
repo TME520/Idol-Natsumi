@@ -87,4 +87,45 @@ Stat caps: 0 is the lowest while 4 is the highest.
 | Watermelon       | ![Watermelon](./sprites/food_168.png) |
 
 #### Go to the restaurant
+
+| FOOD                    | PRICE |
+|-------------------------|-------|
+| Tofu vegetable Teishoku | $700  |
+| Grilled salmon Teishoku | $800  |
+| Fried chicken Teishoku  | $900  |
+
 #### Order takeaway food
+
+| FOOD                    | PRICE |
+|-------------------------|-------|
+| Cheap bento             | $600  |
+| Healthy salad           | $750  |
+| Deluxe Teishoku         | $1200 |
+
+#### Shop at the local conbini ("ConbiMart")
+
+| FOOD                    | PRICE |
+|-------------------------|-------|
+| Salmon & mayo Onigiri   | $150  |
+| Instant ramen           | $180  |
+| Egg sandwich            | $240  |
+| Lucky Custard Cup       | $220  |
+| Green tea soda          | $130  |
+
+### Compete
+
+#### 1st, locally
+
+Compete against local artists at the Shiodome Ward Community Hall in front of around 30 people and a jury including the owner of the best karaoke in town! 
+
+#### Then, departmentally
+
+Climb the ladder and go to the Hanamori City Hall Auditorium to compete on a real stage, with semi-professional lighting and a jury composed of a few retired ex-Idols!
+
+#### Go regional
+
+Things are getting pretty serious now, find your way to the Osaka Minami Art Center - Stage B and sing like a pro!
+
+#### and finally, national!
+
+Become the Idol you always wanted to be at the Tokyo Grand Dome Hall; compete against the most talented singers from Japan and sing along with Minami Toshida herself!
