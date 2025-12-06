@@ -2937,18 +2937,30 @@ void drawOverlay() {
         break;
       case FOOD_REST2:
         M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
-        drawText("Price: $700", 5, 2, false, WHITE, 1);
+        if (natsumi.money >= 700) {
+          drawText("Price: $700", 5, 2, false, GREEN, 1);
+        } else {
+          drawText("Price: $700", 5, 2, false, RED, 1);
+        }
         break;
       case FOOD_REST3:
         M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
-        drawText("Price: $800", 5, 2, false, WHITE, 1);
+        if (natsumi.money >= 800) {
+          drawText("Price: $800", 5, 2, false, GREEN, 1);
+        } else {
+          drawText("Price: $800", 5, 2, false, RED, 1);
+        }
         break;
       case FOOD_REST4:
         M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
-        drawText("Price: $900", 5, 2, false, WHITE, 1);
+        if (natsumi.money >= 900) {
+          drawText("Price: $900", 5, 2, false, GREEN, 1);
+        } else {
+          drawText("Price: $900", 5, 2, false, RED, 1);
+        }
         break;
       case FOOD_REST5:
-        drawDialogBubble("Your food is on the way!!");
+        drawDialogBubble("Your food is on the way!! Call me if you need anything else.");
         break;
       case REST_SLEEP:
         Serial.println(">>> drawOverlay: REST_SLEEP");
@@ -3516,9 +3528,11 @@ void restaurantFoodSelection() {
       }
     }
   }
-  
+
+  /*
   // Stats management
   updateAging();
   updateStats();
+  */
   return;
 }
