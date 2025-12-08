@@ -1,5 +1,5 @@
 # Idol-Natsumi
-Manage the daily life and artistic career of Natsumi Hasegawa, a Japanese idol from the Shōwa era.
+Manage the daily life and artistic career of Natsumi Hasegawa, an aspiring Japanese idol from a small town.
 
 ## Presentation
 
