@@ -35,6 +35,7 @@ enum GameState {
   FOOD_ORDER5,
   FOOD_ORDER6,
   FOOD_ORDER7,
+  FOOD_ORDER8,
   HEALTH_MENU,
   HEALTH_WASH,
   HEALTH_WASH2,
@@ -224,6 +225,8 @@ int lastSleepEnergyDisplayed = -1;
 int lastMeditationDisplayed = 0;
 int restaurantSelection = 0;
 int orderibiSelection = 0;
+
+int foodDeliveryCounter = 0;
 
 bool l0NeedsRedraw = false; // Background
 bool l1NeedsRedraw = false; // Character
@@ -526,7 +529,7 @@ void preloadImages() {
     case FOOD_ORDER5:
       preloadImage("/idolnat/screens/orderibi_order_confirmed.png", currentBackground);
       break;
-    case FOOD_ORDER7:
+    case FOOD_ORDER7: case FOOD_ORDER8:
       preloadImage("/idolnat/screens/orderibi_food_delivered.png", currentBackground);
       break;
     case HEALTH_WASH: case HEALTH_WASH2:
@@ -611,7 +614,7 @@ void preloadImages() {
         case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
           break;
-        case FOOD_ORDER7:
+        case FOOD_ORDER8:
           preloadImage("/idolnat/sprites/delivery_girl-90x135.png", currentCharacter);
           break;
         case HEALTH_WASH: case HEALTH_WASH2:
@@ -639,7 +642,7 @@ void preloadImages() {
         case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
           break;
-        case FOOD_ORDER7:
+        case FOOD_ORDER8:
           preloadImage("/idolnat/sprites/delivery_girl-90x135.png", currentCharacter);
           break;
         case HEALTH_WASH: case HEALTH_WASH2:
@@ -667,7 +670,7 @@ void preloadImages() {
         case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
           break;
-        case FOOD_ORDER7:
+        case FOOD_ORDER8:
           preloadImage("/idolnat/sprites/delivery_girl-90x135.png", currentCharacter);
           break;
         case HEALTH_WASH: case HEALTH_WASH2:
@@ -695,7 +698,7 @@ void preloadImages() {
         case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
           break;
-        case FOOD_ORDER7:
+        case FOOD_ORDER8:
           preloadImage("/idolnat/sprites/delivery_girl-90x135.png", currentCharacter);
           break;
         case HEALTH_WASH: case HEALTH_WASH2:
@@ -723,7 +726,7 @@ void preloadImages() {
         case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
           break;
-        case FOOD_ORDER7:
+        case FOOD_ORDER8:
           preloadImage("/idolnat/sprites/delivery_girl-90x135.png", currentCharacter);
           break;
         case HEALTH_WASH: case HEALTH_WASH2:
@@ -1002,14 +1005,20 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case FOOD_ORDER5:
         screenConfig = IDLE;
+        overlayActive = false;
+        l5NeedsRedraw = false;
+        characterEnabled = true;
         break;
       case FOOD_ORDER6:
         screenConfig = ROOM;
         break;
       case FOOD_ORDER7:
+        screenConfig = ROOM;
+      case FOOD_ORDER8:
         screenConfig = DIALOG;
         overlayActive = true;
         l5NeedsRedraw = true;
+        break;
       case TRAIN_MENU:
         screenConfig = ROOM;
         currentMenuType = "training";
@@ -1253,6 +1262,17 @@ void updateFiveSecondPulse() {
     lastFiveSecondTick = now;
     Serial.println(">>> 5 sec tick");
     fiveSecondPulse = true;
+    if (waitingForFoodDelivery) {
+      Serial.println(">>> Pending food delivery");
+      foodDeliveryCounter += 1;
+      if (foodDeliveryCounter >= 10) {
+        Serial.println(">>> Food delivered");
+        foodDeliveryCounter = 0;
+        waitingForFoodDelivery = false;
+        showToast("The coursier is at your door!");
+        changeState(0, FOOD_ORDER7, microWait);
+      }
+    }
   } else {
     fiveSecondPulse = false;
   }
@@ -1362,7 +1382,7 @@ void manageDialog() {
   overlayEnabled = true;
   helperEnabled = false;
   switch (currentState) {
-    case FOOD_ORDER7:
+    case FOOD_ORDER8:
       foodDelivery();
       break;
     case FOOD_REST: case FOOD_REST5:
@@ -1523,6 +1543,9 @@ void manageRoom() {
     case FOOD_ORDER6:
       waitingForFoodDelivery = true;
       changeState(0, HOME_LOOP, 0);
+      break;
+    case FOOD_ORDER7:
+      changeState(0, FOOD_ORDER8, microWait);
       break;
     case TRAIN_MENU:
       menuOpened = true;
@@ -3020,7 +3043,7 @@ void drawOverlay() {
           drawText("Price: $1200", 5, 2, false, RED, 1);
         }
         break;
-      case FOOD_ORDER7:
+      case FOOD_ORDER8:
         drawDialogBubble("Hello, here is the food you ordered.");
         break;
       case FOOD_REST:
@@ -3501,7 +3524,7 @@ void foodDelivery() {
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       switch (currentState) {
-        case FOOD_ORDER7:
+        case FOOD_ORDER8:
           changeState(0, HOME_LOOP, 0);
           break;
       }
@@ -3722,4 +3745,3 @@ void orderibiFoodSelection() {
   }
   return;
 }
-
