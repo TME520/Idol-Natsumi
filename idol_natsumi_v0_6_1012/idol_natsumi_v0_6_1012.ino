@@ -1009,11 +1009,10 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         l5NeedsRedraw = false;
         characterEnabled = true;
         break;
-      case FOOD_ORDER6:
+      case FOOD_ORDER6: case FOOD_ORDER7:
         screenConfig = ROOM;
+        Serial.println("Transition to FOOD_ORDER 6 or 7");
         break;
-      case FOOD_ORDER7:
-        screenConfig = ROOM;
       case FOOD_ORDER8:
         screenConfig = DIALOG;
         overlayActive = true;
@@ -1263,14 +1262,14 @@ void updateFiveSecondPulse() {
     Serial.println(">>> 5 sec tick");
     fiveSecondPulse = true;
     if (waitingForFoodDelivery) {
-      Serial.println(">>> Pending food delivery");
+      Serial.println(">>> Pending food delivery (" + String(foodDeliveryCounter) + ")");
       foodDeliveryCounter += 1;
-      if (foodDeliveryCounter >= 10) {
+      if (foodDeliveryCounter == 10) {
         Serial.println(">>> Food delivered");
         foodDeliveryCounter = 0;
         waitingForFoodDelivery = false;
-        showToast("The coursier is at your door!");
-        changeState(0, FOOD_ORDER7, microWait);
+        Serial.println(">>> Switching to FOOD_ORDER7");
+        changeState(0, FOOD_ORDER7, 0);
       }
     }
   } else {
@@ -1383,6 +1382,7 @@ void manageDialog() {
   helperEnabled = false;
   switch (currentState) {
     case FOOD_ORDER8:
+      Serial.println(">>> FOOD_ORDER8 - DIALOG");
       foodDelivery();
       break;
     case FOOD_REST: case FOOD_REST5:
@@ -1545,6 +1545,7 @@ void manageRoom() {
       changeState(0, HOME_LOOP, 0);
       break;
     case FOOD_ORDER7:
+      Serial.println(">>> In FOOD_ORDER7 waiting loop");
       changeState(0, FOOD_ORDER8, microWait);
       break;
     case TRAIN_MENU:
@@ -3044,6 +3045,7 @@ void drawOverlay() {
         }
         break;
       case FOOD_ORDER8:
+        natsumi.hunger = 4;
         drawDialogBubble("Hello, here is the food you ordered.");
         break;
       case FOOD_REST:
@@ -3683,7 +3685,6 @@ void orderibiFoodSelection() {
               orderibiSelection = 0;
               if (natsumi.money >= 600) {
                 natsumi.money -= 600;
-                natsumi.hunger = 4;
               } else {
                 showToast("Not enough money :(");
               }
@@ -3706,7 +3707,6 @@ void orderibiFoodSelection() {
               orderibiSelection = 1;
               if (natsumi.money >= 750) {
                 natsumi.money -= 750;
-                natsumi.hunger = 4;
               } else {
                 showToast("Not enough money :(");
               }
@@ -3729,7 +3729,6 @@ void orderibiFoodSelection() {
               orderibiSelection = 2;
               if (natsumi.money >= 1200) {
                 natsumi.money -= 1200;
-                natsumi.hunger = 4;
               } else {
                 showToast("Not enough money :(");
               }
