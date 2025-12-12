@@ -17,6 +17,7 @@ enum GameState {
   DEV_SCREEN,
   HOME_LOOP,
   FOOD_MENU,
+  FOOD_CONBINI,
   FOOD_COOK,
   FOOD_COOK2,
   FOOD_REST,
@@ -28,6 +29,13 @@ enum GameState {
   FOOD_REST7,
   FOOD_REST8,
   FOOD_ORDER,
+  FOOD_ORDER2,
+  FOOD_ORDER3,
+  FOOD_ORDER4,
+  FOOD_ORDER5,
+  FOOD_ORDER6,
+  FOOD_ORDER7,
+  FOOD_ORDER8,
   HEALTH_MENU,
   HEALTH_WASH,
   HEALTH_WASH2,
@@ -216,6 +224,9 @@ int restMenuSelection = 0;
 int lastSleepEnergyDisplayed = -1;
 int lastMeditationDisplayed = 0;
 int restaurantSelection = 0;
+int orderibiSelection = 0;
+
+int foodDeliveryCounter = 0;
 
 bool l0NeedsRedraw = false; // Background
 bool l1NeedsRedraw = false; // Character
@@ -236,6 +247,7 @@ bool menuOpened = false;
 bool debugActive = false;
 bool toastActive = false;
 bool overlayActive = false;
+bool waitingForFoodDelivery = false;
 
 bool meditationActive = false;
 bool meditationRewardApplied = false;
@@ -503,7 +515,22 @@ void preloadImages() {
       preloadImage("/idolnat/screens/food_rest_step3.png", currentBackground);
       break;
     case FOOD_ORDER:
-      preloadImage("/idolnat/screens/phone_app_food_order.png", currentBackground);
+      preloadImage("/idolnat/screens/orderibi_boot_screen.png", currentBackground);
+      break;
+    case FOOD_ORDER2:
+      preloadImage("/idolnat/screens/orderibi_cheap_bento.png", currentBackground);
+      break;
+    case FOOD_ORDER3:
+      preloadImage("/idolnat/screens/orderibi_healthy_salad.png", currentBackground);
+      break;
+    case FOOD_ORDER4:
+      preloadImage("/idolnat/screens/orderibi_deluxe_teishoku.png", currentBackground);
+      break;
+    case FOOD_ORDER5:
+      preloadImage("/idolnat/screens/orderibi_order_confirmed.png", currentBackground);
+      break;
+    case FOOD_ORDER7: case FOOD_ORDER8:
+      preloadImage("/idolnat/screens/orderibi_food_delivered.png", currentBackground);
       break;
     case HEALTH_WASH: case HEALTH_WASH2:
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
@@ -587,6 +614,9 @@ void preloadImages() {
         case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
           break;
+        case FOOD_ORDER8:
+          preloadImage("/idolnat/sprites/delivery_girl-90x135.png", currentCharacter);
+          break;
         case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_11yo_washing-90x135.png", currentCharacter);
           break;
@@ -611,6 +641,9 @@ void preloadImages() {
           break;
         case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
+          break;
+        case FOOD_ORDER8:
+          preloadImage("/idolnat/sprites/delivery_girl-90x135.png", currentCharacter);
           break;
         case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_13yo_washing-90x135.png", currentCharacter);
@@ -637,6 +670,9 @@ void preloadImages() {
         case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
           break;
+        case FOOD_ORDER8:
+          preloadImage("/idolnat/sprites/delivery_girl-90x135.png", currentCharacter);
+          break;
         case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_15yo_washing-90x135.png", currentCharacter);
           break;
@@ -662,6 +698,9 @@ void preloadImages() {
         case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
           break;
+        case FOOD_ORDER8:
+          preloadImage("/idolnat/sprites/delivery_girl-90x135.png", currentCharacter);
+          break;
         case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_18yo_washing-90x135.png", currentCharacter);
           break;
@@ -686,6 +725,9 @@ void preloadImages() {
           break;
         case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
+          break;
+        case FOOD_ORDER8:
+          preloadImage("/idolnat/sprites/delivery_girl-90x135.png", currentCharacter);
           break;
         case HEALTH_WASH: case HEALTH_WASH2:
           preloadImage("/idolnat/sprites/natsumi_21yo_washing-90x135.png", currentCharacter);
@@ -828,7 +870,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         natsumi.fitness = 0;
         natsumi.culture = 0;
         natsumi.charm = 0;
-        natsumi.money = 0;
+        natsumi.money = 1800;
         natsumi.lastHungerUpdate = 0;
         natsumi.lastHygieneUpdate = 0;
         natsumi.lastEnergyUpdate = 0;
@@ -874,7 +916,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         natsumi.fitness = 0;
         natsumi.culture = 0;
         natsumi.charm = 0;
-        natsumi.money = 0;
+        natsumi.money = 1800;
         natsumi.lastHungerUpdate = 0;
         natsumi.lastHygieneUpdate = 0;
         natsumi.lastEnergyUpdate = 0;
@@ -947,12 +989,34 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
-      case FOOD_REST2: case FOOD_REST3: case FOOD_REST4: case FOOD_REST6: case FOOD_REST7: case FOOD_REST8:
+      case FOOD_REST2: case FOOD_REST3: case FOOD_REST4:
+        screenConfig = IDLE;
+        characterEnabled = false;
+        break;
+      case FOOD_REST6: case FOOD_REST7: case FOOD_REST8:
         screenConfig = CARD;
         characterEnabled = false;
         break;
-      case FOOD_ORDER:
+      case FOOD_ORDER: case FOOD_ORDER2: case FOOD_ORDER3: case FOOD_ORDER4:
+        screenConfig = IDLE;
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        characterEnabled = false;
+        break;
+      case FOOD_ORDER5:
+        screenConfig = IDLE;
+        overlayActive = false;
+        l5NeedsRedraw = false;
+        characterEnabled = true;
+        break;
+      case FOOD_ORDER6: case FOOD_ORDER7:
         screenConfig = ROOM;
+        Serial.println("Transition to FOOD_ORDER 6 or 7");
+        break;
+      case FOOD_ORDER8:
+        screenConfig = DIALOG;
+        overlayActive = true;
+        l5NeedsRedraw = true;
         break;
       case TRAIN_MENU:
         screenConfig = ROOM;
@@ -1076,21 +1140,27 @@ void updateAging() {
   } else if ((natsumi.ageMilliseconds >= agingInterval) && (natsumi.ageMilliseconds < (agingInterval * 2))) {
     // 12yo
     natsumi.age = 12;
+    natsumi.money += 70000;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 2)) && (natsumi.ageMilliseconds < (agingInterval * 3))) {
     // 13yo
     natsumi.age = 13;
+    natsumi.money += 75000;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 3)) && (natsumi.ageMilliseconds < (agingInterval * 4))) {
     // 14yo
     natsumi.age = 14;
+    natsumi.money += 80000;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 4)) && (natsumi.ageMilliseconds < (agingInterval * 5))) {
     // 15yo
     natsumi.age = 15;
+    natsumi.money += 85000;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 5)) && (natsumi.ageMilliseconds < (agingInterval * 6))) {
     // 16yo
     natsumi.age = 16;
+    natsumi.money += 90000;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 6)) && (natsumi.ageMilliseconds < (agingInterval * 7))) {
     // 17yo
     natsumi.age = 17;
+    natsumi.money += 95000;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 7)) && (natsumi.ageMilliseconds < (agingInterval * 8))) {
     // 18yo
     natsumi.age = 18;
@@ -1191,6 +1261,17 @@ void updateFiveSecondPulse() {
     lastFiveSecondTick = now;
     Serial.println(">>> 5 sec tick");
     fiveSecondPulse = true;
+    if (waitingForFoodDelivery) {
+      Serial.println(">>> Pending food delivery (" + String(foodDeliveryCounter) + ")");
+      foodDeliveryCounter += 1;
+      if (foodDeliveryCounter == 10) {
+        Serial.println(">>> Food delivered");
+        foodDeliveryCounter = 0;
+        waitingForFoodDelivery = false;
+        Serial.println(">>> Switching to FOOD_ORDER7");
+        changeState(0, FOOD_ORDER7, 0);
+      }
+    }
   } else {
     fiveSecondPulse = false;
   }
@@ -1225,9 +1306,6 @@ void manageCard() {
       break;
     case CONTINUE_GAME:
       changeState(0, HOME_LOOP, 0);
-      break;
-    case FOOD_REST2: case FOOD_REST3: case FOOD_REST4:
-      restaurantFoodSelection();
       break;
     case FOOD_REST6:
       changeState(0, FOOD_REST7, 20);
@@ -1303,6 +1381,10 @@ void manageDialog() {
   overlayEnabled = true;
   helperEnabled = false;
   switch (currentState) {
+    case FOOD_ORDER8:
+      Serial.println(">>> FOOD_ORDER8 - DIALOG");
+      foodDelivery();
+      break;
     case FOOD_REST: case FOOD_REST5:
       gotoRestaurant();
       break;
@@ -1387,6 +1469,18 @@ void manageIdle() {
   overlayEnabled = true;
   helperEnabled = false;
   switch (currentState) {
+    case FOOD_ORDER:
+      changeState(0, FOOD_ORDER2, microWait);
+      break;
+    case FOOD_ORDER2: case FOOD_ORDER3: case FOOD_ORDER4:
+      orderibiFoodSelection();
+      break;
+    case FOOD_ORDER5:
+      changeState(0, FOOD_ORDER6, microWait);
+      break;
+    case FOOD_REST2: case FOOD_REST3: case FOOD_REST4:
+      restaurantFoodSelection();
+      break;
     case REST_MEDITATE:
       meditate();
       break;
@@ -1446,8 +1540,13 @@ void manageRoom() {
     case FOOD_COOK2:
       showFood();
       break;
-    case FOOD_ORDER:
-      orderFood();
+    case FOOD_ORDER6:
+      waitingForFoodDelivery = true;
+      changeState(0, HOME_LOOP, 0);
+      break;
+    case FOOD_ORDER7:
+      Serial.println(">>> In FOOD_ORDER7 waiting loop");
+      changeState(0, FOOD_ORDER8, microWait);
       break;
     case TRAIN_MENU:
       menuOpened = true;
@@ -2003,7 +2102,7 @@ void drawCharacter() {
   if (l1NeedsRedraw) {
     if (characterEnabled) {
       drawImage(currentCharacter);
-      if (!menuOpened && !overlayActive) {
+      if (!menuOpened && !overlayActive && menuEnabled) {
         // Helper text at the bottom
         // Serial.println("[DEBUG] manageHomeScreen() -> l5NeedsRedraw TRUE");
         M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
@@ -2921,11 +3020,63 @@ void drawOverlay() {
         Serial.println(">>> drawOverlay: STATS_SCREEN");
         drawStats();
         break;
+      case FOOD_ORDER2:
+        M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
+        if (natsumi.money >= 600) {
+          drawText("Price: $600", 5, 2, false, GREEN, 1);
+        } else {
+          drawText("Price: $600", 5, 2, false, RED, 1);
+        }
+        break;
+      case FOOD_ORDER3:
+        M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
+        if (natsumi.money >= 750) {
+          drawText("Price: $750", 5, 2, false, GREEN, 1);
+        } else {
+          drawText("Price: $750", 5, 2, false, RED, 1);
+        }
+        break;
+      case FOOD_ORDER4:
+        M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
+        if (natsumi.money >= 1200) {
+          drawText("Price: $1200", 5, 2, false, GREEN, 1);
+        } else {
+          drawText("Price: $1200", 5, 2, false, RED, 1);
+        }
+        break;
+      case FOOD_ORDER8:
+        natsumi.hunger = 4;
+        drawDialogBubble("Hello, here is the food you ordered.");
+        break;
       case FOOD_REST:
         drawDialogBubble("Irasshaimase! Please come in and enjoy your meal!");
         break;
+      case FOOD_REST2:
+        M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
+        if (natsumi.money >= 700) {
+          drawText("Price: $700", 5, 2, false, GREEN, 1);
+        } else {
+          drawText("Price: $700", 5, 2, false, RED, 1);
+        }
+        break;
+      case FOOD_REST3:
+        M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
+        if (natsumi.money >= 800) {
+          drawText("Price: $800", 5, 2, false, GREEN, 1);
+        } else {
+          drawText("Price: $800", 5, 2, false, RED, 1);
+        }
+        break;
+      case FOOD_REST4:
+        M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
+        if (natsumi.money >= 900) {
+          drawText("Price: $900", 5, 2, false, GREEN, 1);
+        } else {
+          drawText("Price: $900", 5, 2, false, RED, 1);
+        }
+        break;
       case FOOD_REST5:
-        drawDialogBubble("Your food is on the way!!");
+        drawDialogBubble("Your food is on the way!! Call me if you need anything else.");
         break;
       case REST_SLEEP:
         Serial.println(">>> drawOverlay: REST_SLEEP");
@@ -3325,14 +3476,6 @@ void gotoRestaurant() {
   return;
 }
 
-void orderFood() {
-  // Order takeaway food
-  if (changeStateCounter==0) {
-    // Select food
-  }
-  changeState(0, HOME_LOOP, shortWait);
-}
-
 void doctor() {
   // Serial.println("> Entering doctor()");
   uint8_t key = 0;
@@ -3368,6 +3511,23 @@ void priest() {
         case HEALTH_TEMPLE6:
           overlayActive = false;
           changeState(0, priestState, 0);
+          break;
+      }
+      return;
+    }
+  }
+}
+
+void foodDelivery() {
+  // Serial.println("> Entering foodDelivery()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (currentState) {
+        case FOOD_ORDER8:
+          changeState(0, HOME_LOOP, 0);
           break;
       }
       return;
@@ -3431,6 +3591,12 @@ void restaurantFoodSelection() {
             // ENTER
             case 13: case 40: case ' ':
               restaurantSelection = 0;
+              if (natsumi.money >= 700) {
+                natsumi.money -= 700;
+                natsumi.hunger = 4;
+              } else {
+                showToast("Not enough money :(");
+              }
               changeState(0, FOOD_REST5, 0);
               break;
           }
@@ -3448,6 +3614,12 @@ void restaurantFoodSelection() {
             // ENTER
             case 13: case 40: case ' ':
               restaurantSelection = 1;
+              if (natsumi.money >= 800) {
+                natsumi.money -= 800;
+                natsumi.hunger = 4;
+              } else {
+                showToast("Not enough money :(");
+              }
               changeState(0, FOOD_REST5, 0);
               break;
           }
@@ -3465,6 +3637,12 @@ void restaurantFoodSelection() {
             // ENTER
             case 13: case 40: case ' ':
               restaurantSelection = 2;
+              if (natsumi.money >= 900) {
+                natsumi.money -= 900;
+                natsumi.hunger = 4;
+              } else {
+                showToast("Not enough money :(");
+              }
               changeState(0, FOOD_REST5, 0);
               break;
           }
@@ -3475,9 +3653,94 @@ void restaurantFoodSelection() {
       }
     }
   }
-  
+
+  /*
   // Stats management
   updateAging();
   updateStats();
+  */
+  return;
+}
+
+void orderibiFoodSelection() {
+  Serial.println("> Entering orderibiFoodSelection()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (currentState) {
+        case FOOD_ORDER2:
+          switch (key) {
+            // LEFT
+            case 44: case 'a': case 'A':
+              changeState(0, FOOD_ORDER4, 0);
+              break;
+            // RIGHT
+            case 47: case 'd': case 'D':
+              changeState(0, FOOD_ORDER3, 0);
+              break;
+            // ENTER
+            case 13: case 40: case ' ':
+              orderibiSelection = 0;
+              if (natsumi.money >= 600) {
+                natsumi.money -= 600;
+              } else {
+                showToast("Not enough money :(");
+              }
+              changeState(0, FOOD_ORDER5, 0);
+              break;
+          }
+          break;
+        case FOOD_ORDER3:
+          switch (key) {
+            // LEFT
+            case 44: case 'a': case 'A':
+              changeState(0, FOOD_ORDER2, 0);
+              break;
+            // RIGHT
+            case 47: case 'd': case 'D':
+              changeState(0, FOOD_ORDER4, 0);
+              break;
+            // ENTER
+            case 13: case 40: case ' ':
+              orderibiSelection = 1;
+              if (natsumi.money >= 750) {
+                natsumi.money -= 750;
+              } else {
+                showToast("Not enough money :(");
+              }
+              changeState(0, FOOD_ORDER5, 0);
+              break;
+          }
+          break;
+        case FOOD_ORDER4:
+          switch (key) {
+            // LEFT
+            case 44: case 'a': case 'A':
+              changeState(0, FOOD_ORDER3, 0);
+              break;
+            // RIGHT
+            case 47: case 'd': case 'D':
+              changeState(0, FOOD_ORDER2, 0);
+              break;
+            // ENTER
+            case 13: case 40: case ' ':
+              orderibiSelection = 2;
+              if (natsumi.money >= 1200) {
+                natsumi.money -= 1200;
+              } else {
+                showToast("Not enough money :(");
+              }
+              changeState(0, FOOD_ORDER5, 0);
+              break;
+          }
+          break;
+        default:
+          changeState(0, HOME_LOOP, 0);
+          break;
+      }
+    }
+  }
   return;
 }
