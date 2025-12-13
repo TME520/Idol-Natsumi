@@ -3743,6 +3743,7 @@ void gotoConbimart() {
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       int itemCount = static_cast<int>(conbimartItems.size());
+      Serial.println(">> gotoConbimart - Key: " + String(key));
       switch (key) {
         // UP
         case 59: case 'w': case 'W':
@@ -3759,14 +3760,14 @@ void gotoConbimart() {
           }
           break;
         // ADD ONE ITEM
-        case '+': case 43: case '=':
+        case 47: case 61:
           if (itemCount > 0) {
             conbimartItems[conbimartSelectionIndex].quantity += 1;
             needsRedraw = true;
           }
           break;
         // REMOVE ONE ITEM
-        case '-': case 45: case '_': case 95:
+        case 44: case 45:
           if (itemCount > 0 && conbimartItems[conbimartSelectionIndex].quantity > 0) {
             conbimartItems[conbimartSelectionIndex].quantity -= 1;
             needsRedraw = true;
