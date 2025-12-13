@@ -18,6 +18,8 @@ enum GameState {
   HOME_LOOP,
   FOOD_MENU,
   FOOD_CONBINI,
+  FOOD_CONBINI2,
+  FOOD_CONBINI3,
   FOOD_COOK,
   FOOD_COOK2,
   FOOD_REST,
@@ -197,7 +199,7 @@ String currentMenuType = "main";
 const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: DEV SCREEN"};
 const char* homeMenuItems[] = {"0: STATS", "1: FOOD", "2: TRAINING", "3: COMPETITION", "4: HEALTH", "5: REST", "6: GARDEN", "7: DEBUG"};
 const char* devMenuItems[] = {"0: CALIB1", "1: CALIB2", "2: CALIB3", "3: EXIT"};
-const char* foodMenuItems[] = {"0: FRIDGE", "1: RESTAURANT", "2: ORDER"};
+const char* foodMenuItems[] = {"0: FRIDGE", "1: RESTAURANT", "2: ORDER", "3: CONBINI"};
 const char* trainingMenuItems[] = {"0: SING", "1: DANCE", "2: SWIM", "3: GYM", "4: WALK", "5: LIBRARY"};
 const char* competitionMenuItems[] = {"0: LOCAL", "1: DEPARTMENTAL", "2: REGIONAL", "3: NATIONAL"};
 const char* healthMenuItems[] = {"0: WASH", "1: DOCTOR", "2: TEMPLE", "3: ONSEN"};
@@ -206,7 +208,7 @@ const char** currentMenuItems = nullptr;
 const int mainMenuItemCount = 3;
 const int homeMenuItemCount = 8;
 const int devMenuItemCount = 4;
-const int foodMenuItemCount = 3;
+const int foodMenuItemCount = 4;
 const int trainingMenuItemCount = 6;
 const int competitionMenuItemCount = 4;
 const int healthMenuItemCount = 4;
@@ -434,6 +436,12 @@ void preloadImages() {
     case FOOD_MENU:
       preloadImage("/idolnat/screens/kitchen.png", currentBackground);
       break;
+    case FOOD_CONBINI:
+      preloadImage("/idolnat/screens/conbimart_front.png", currentBackground);
+      break;
+    case FOOD_CONBINI2: case FOOD_CONBINI3:
+      preloadImage("/idolnat/screens/conbimart_inside.png", currentBackground);
+      break;
     case FOOD_COOK:
       preloadImage("/idolnat/screens/fridge_open.png", currentBackground);
       break;
@@ -611,6 +619,9 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_11yo_meditate-90x135.png", currentCharacter);
           break;
+        case FOOD_CONBINI3:
+          preloadImage("/idolnat/sprites/cashier01-90x135.png", currentCharacter);
+          break;
         case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
           break;
@@ -638,6 +649,9 @@ void preloadImages() {
       switch(currentState) {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_13yo_meditate-90x135.png", currentCharacter);
+          break;
+        case FOOD_CONBINI3:
+          preloadImage("/idolnat/sprites/cashier01-90x135.png", currentCharacter);
           break;
         case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
@@ -667,6 +681,9 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_15yo_meditate-90x135.png", currentCharacter);
           break;
+        case FOOD_CONBINI3:
+          preloadImage("/idolnat/sprites/cashier01-90x135.png", currentCharacter);
+          break;
         case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
           break;
@@ -695,6 +712,9 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_18yo_meditate-90x135.png", currentCharacter);
           break;
+        case FOOD_CONBINI3:
+          preloadImage("/idolnat/sprites/cashier01-90x135.png", currentCharacter);
+          break;
         case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
           break;
@@ -722,6 +742,9 @@ void preloadImages() {
       switch(currentState) {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_21yo_meditate-90x135.png", currentCharacter);
+          break;
+        case FOOD_CONBINI3:
+          preloadImage("/idolnat/sprites/cashier01-90x135.png", currentCharacter);
           break;
         case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
@@ -977,6 +1000,19 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItems = foodMenuItems;
         currentMenuItemsCount = foodMenuItemCount;
         break;
+      case FOOD_CONBINI:
+        screenConfig = IDLE;
+        characterEnabled = false;
+        break;
+      case FOOD_CONBINI2:
+        screenConfig = ROOM;
+        characterEnabled = false;
+        break;
+      case FOOD_CONBINI3:
+        screenConfig = DIALOG;
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        break;
       case FOOD_COOK:
         screenConfig = ROOM;
         break;
@@ -1011,7 +1047,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case FOOD_ORDER6: case FOOD_ORDER7:
         screenConfig = ROOM;
-        Serial.println("Transition to FOOD_ORDER 6 or 7");
         break;
       case FOOD_ORDER8:
         screenConfig = DIALOG;
@@ -1381,8 +1416,10 @@ void manageDialog() {
   overlayEnabled = true;
   helperEnabled = false;
   switch (currentState) {
+    case FOOD_CONBINI3:
+      gotoConbimart();
+      break;
     case FOOD_ORDER8:
-      Serial.println(">>> FOOD_ORDER8 - DIALOG");
       foodDelivery();
       break;
     case FOOD_REST: case FOOD_REST5:
@@ -1469,6 +1506,10 @@ void manageIdle() {
   overlayEnabled = true;
   helperEnabled = false;
   switch (currentState) {
+    case FOOD_CONBINI:
+      characterEnabled = false;
+      changeState(0, FOOD_CONBINI2, microWait);
+      break;
     case FOOD_ORDER:
       changeState(0, FOOD_ORDER2, microWait);
       break;
@@ -1533,6 +1574,9 @@ void manageRoom() {
       break;
     case FOOD_MENU:
       menuOpened = true;
+      break;
+    case FOOD_CONBINI2:
+      buyFood();
       break;
     case FOOD_COOK:
       cookFood();
@@ -2311,6 +2355,11 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           menuOpened = false;
           changeState(0, FOOD_ORDER, 0);
           break;
+        case 51:
+          // 3: CONBINI
+          menuOpened = false;
+          changeState(0, FOOD_CONBINI, 0);
+          break;
         case 43:
           // TAB
           if (menuOpened) {
@@ -2349,6 +2398,8 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           } else if (selection == 2) {
             changeState(0, FOOD_ORDER, 0);
           } else if (selection == 3) {
+            changeState(0, FOOD_CONBINI, 0);
+          } else if (selection == 4) {
             if (debugActive) {
               debugActive = false;
               l0NeedsRedraw = true;
@@ -3020,6 +3071,9 @@ void drawOverlay() {
         Serial.println(">>> drawOverlay: STATS_SCREEN");
         drawStats();
         break;
+      case FOOD_CONBINI3:
+        drawDialogBubble("Thanks for shopping with us, come again!");
+        break;
       case FOOD_ORDER2:
         M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
         if (natsumi.money >= 600) {
@@ -3535,6 +3589,24 @@ void foodDelivery() {
   }
 }
 
+void gotoConbimart() {
+  // Serial.println("> Entering gotoConbimart()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (currentState) {
+        case FOOD_CONBINI3:
+          overlayActive = false;
+          changeState(0, HOME_LOOP, 0);
+          break;
+      }
+      return;
+    }
+  }
+}
+
 void manageOnsen() {
   // Serial.println("> Entering manageOnsen()");
   uint8_t key = 0;
@@ -3663,7 +3735,7 @@ void restaurantFoodSelection() {
 }
 
 void orderibiFoodSelection() {
-  Serial.println("> Entering orderibiFoodSelection()");
+  // Serial.println("> Entering orderibiFoodSelection()");
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
@@ -3743,4 +3815,11 @@ void orderibiFoodSelection() {
     }
   }
   return;
+}
+
+void buyFood() {
+  // Serial.println("> Entering buyFood()");
+  overlayActive = false;
+  menuEnabled = true;
+  changeState(0, FOOD_CONBINI3, microWait);
 }
