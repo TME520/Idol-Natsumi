@@ -1186,27 +1186,21 @@ void updateAging() {
   } else if ((natsumi.ageMilliseconds >= agingInterval) && (natsumi.ageMilliseconds < (agingInterval * 2))) {
     // 12yo
     natsumi.age = 12;
-    natsumi.money += 70000;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 2)) && (natsumi.ageMilliseconds < (agingInterval * 3))) {
     // 13yo
     natsumi.age = 13;
-    natsumi.money += 75000;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 3)) && (natsumi.ageMilliseconds < (agingInterval * 4))) {
     // 14yo
     natsumi.age = 14;
-    natsumi.money += 80000;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 4)) && (natsumi.ageMilliseconds < (agingInterval * 5))) {
     // 15yo
     natsumi.age = 15;
-    natsumi.money += 85000;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 5)) && (natsumi.ageMilliseconds < (agingInterval * 6))) {
     // 16yo
     natsumi.age = 16;
-    natsumi.money += 90000;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 6)) && (natsumi.ageMilliseconds < (agingInterval * 7))) {
     // 17yo
     natsumi.age = 17;
-    natsumi.money += 95000;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 7)) && (natsumi.ageMilliseconds < (agingInterval * 8))) {
     // 18yo
     natsumi.age = 18;
@@ -1230,6 +1224,7 @@ void updateAging() {
     preloadImages();
     updateSpirit();
     showToast(String("Natsumi turned ") + natsumi.age + " years old!");
+    natsumi.money += 70000;
     l5NeedsRedraw=true;
   }
 }
@@ -1428,7 +1423,7 @@ void manageDialog() {
   helperEnabled = false;
   switch (currentState) {
     case FOOD_CONBINI3:
-      gotoConbimart();
+      cashier();
       break;
     case FOOD_ORDER8:
       foodDelivery();
@@ -1587,7 +1582,7 @@ void manageRoom() {
       menuOpened = true;
       break;
     case FOOD_CONBINI2:
-      buyFood();
+      gotoConbimart();
       break;
     case FOOD_COOK:
       cookFood();
@@ -3079,7 +3074,7 @@ void drawConbimartOverlay() {
   M5Cardputer.Display.setTextDatum(middle_center);
   M5Cardputer.Display.setTextSize(1);
   M5Cardputer.Display.setTextColor(WHITE, panelColor);
-  M5Cardputer.Display.drawString("ConbiMart Specials", panelX + panelW / 2, panelY + 8);
+  M5Cardputer.Display.drawString("-= ConbiMart Specials =-", panelX + panelW / 2, panelY + 8);
 
   const int startY = panelY + 20;
   const int lineHeight = 12;
@@ -3098,7 +3093,7 @@ void drawConbimartOverlay() {
 
     M5Cardputer.Display.setTextColor(M5Cardputer.Display.color565(180, 220, 255), rowBg);
     M5Cardputer.Display.setCursor(panelX + 136, rowY);
-    M5Cardputer.Display.print("\xC2\xA5");
+    // M5Cardputer.Display.print("\xC2\xA5");
     M5Cardputer.Display.print(item.price);
 
     M5Cardputer.Display.setTextColor(WHITE, rowBg);
@@ -3112,14 +3107,16 @@ void drawConbimartOverlay() {
   M5Cardputer.Display.drawRoundRect(panelX + 6, panelY + panelH - 30, panelW - 12, 20, 4, accentColor);
   M5Cardputer.Display.setTextColor(WHITE, panelColor);
   M5Cardputer.Display.setCursor(panelX + 12, panelY + panelH - 26);
-  M5Cardputer.Display.print("Cart: \xC2\xA5");
-  M5Cardputer.Display.print(total);
+  M5Cardputer.Display.print("Cart: " + String(total));
+  // M5Cardputer.Display.print(total);
   M5Cardputer.Display.setCursor(panelX + 120, panelY + panelH - 26);
-  M5Cardputer.Display.print("Cash: \xC2\xA5");
-  M5Cardputer.Display.print(natsumi.money);
+  M5Cardputer.Display.print("Cash: " + String(natsumi.money));
+  // M5Cardputer.Display.print();
 
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("Arrows: Move  +/-: Qty  ENTER: Buy  ESC: Cancel", 120, 131, true, WHITE, 1);
+  drawText("+/-: Qty  ENTER: Buy  ESC: Cancel", 120, 131, true, WHITE, 1);
+  Serial.println(">> drawConbimartOverlay -  Cart: " + String(total));
+  Serial.println(">> drawConbimartOverlay -  Cash: " + String(natsumi.money));
 }
 
 void prepareConbimartItems() {
@@ -3174,8 +3171,8 @@ void prepareConbimartItems() {
 
   conbimartItems.clear();
   addRandomItems(savoury, 3);
-  addRandomItems(sugary, 3);
-  addRandomItems(drinks, 2);
+  addRandomItems(sugary, 2);
+  addRandomItems(drinks, 1);
 
   conbimartSelectionIndex = 0;
   conbimartInitialized = true;
@@ -3211,8 +3208,11 @@ void drawOverlay() {
         Serial.println(">>> drawOverlay: STATS_SCREEN");
         drawStats();
         break;
-      case FOOD_CONBINI3:
+      case FOOD_CONBINI2:
         drawConbimartOverlay();
+        break;
+      case FOOD_CONBINI3:
+        drawDialogBubble("Thanks for shopping with us, come again!!");
         break;
       case FOOD_ORDER2:
         M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
@@ -3712,6 +3712,20 @@ void priest() {
   }
 }
 
+void cashier() {
+  // Serial.println("> Entering cashier()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      overlayActive = false;
+      changeState(0, HOME_LOOP, 0);
+      return;
+    }
+  }
+}
+
 void foodDelivery() {
   // Serial.println("> Entering foodDelivery()");
   uint8_t key = 0;
@@ -3730,7 +3744,7 @@ void foodDelivery() {
 }
 
 void gotoConbimart() {
-  // Serial.println("> Entering gotoConbimart()");
+  Serial.println("> Entering gotoConbimart()");
   if (!conbimartInitialized) {
     prepareConbimartItems();
     return;
@@ -3786,11 +3800,12 @@ void gotoConbimart() {
               for (auto &item : conbimartItems) {
                 *(item.stockPtr) += item.quantity;
               }
-              showToast("Thanks for shopping with us!");
+              // showToast("Thanks for shopping with us!");
               conbimartItems.clear();
               conbimartInitialized = false;
               overlayActive = false;
-              changeState(0, HOME_LOOP, 0);
+              menuEnabled = true;
+              changeState(0, FOOD_CONBINI3, 0);
               return;
             } else {
               showToast("Not enough money :(");
@@ -4021,11 +4036,4 @@ void orderibiFoodSelection() {
     }
   }
   return;
-}
-
-void buyFood() {
-  // Serial.println("> Entering buyFood()");
-  overlayActive = false;
-  menuEnabled = true;
-  changeState(0, FOOD_CONBINI3, microWait);
 }
