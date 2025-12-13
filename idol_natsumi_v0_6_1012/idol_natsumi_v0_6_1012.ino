@@ -161,6 +161,17 @@ std::vector<FoodDisplayItem> foodGridItems;
 int foodSelectionIndex = 0;
 bool foodGridInitialized = false;
 
+struct ConbimartItem {
+  const char* label;
+  int price;
+  int* stockPtr;
+  int quantity;
+};
+
+std::vector<ConbimartItem> conbimartItems;
+int conbimartSelectionIndex = 0;
+bool conbimartInitialized = false;
+
 // === Game Time Tracking ===
 // 60000 milliseconds in a minute
 // 86,400,000 milliseconds in a day
@@ -3043,6 +3054,135 @@ void drawFoodGrid(const std::vector<FoodDisplayItem> &items, int selectedIndex) 
   drawText("Arrows: Move  ENTER: Eat  ESC: Close", 120, 131, true, WHITE, 1);
 }
 
+int getConbimartTotal() {
+  int total = 0;
+  for (const auto &item : conbimartItems) {
+    total += item.price * item.quantity;
+  }
+  return total;
+}
+
+void drawConbimartOverlay() {
+  const int panelX = 6;
+  const int panelY = 6;
+  const int panelW = 228;
+  const int panelH = 123;
+  const uint16_t shadowColor = M5Cardputer.Display.color565(10, 14, 32);
+  const uint16_t panelColor = M5Cardputer.Display.color565(16, 24, 44);
+  const uint16_t accentColor = M5Cardputer.Display.color565(120, 200, 255);
+  const uint16_t highlightColor = M5Cardputer.Display.color565(60, 90, 140);
+
+  M5Cardputer.Display.fillRoundRect(panelX + 2, panelY + 2, panelW, panelH, 10, shadowColor);
+  M5Cardputer.Display.fillRoundRect(panelX, panelY, panelW, panelH, 10, panelColor);
+  M5Cardputer.Display.drawRoundRect(panelX, panelY, panelW, panelH, 10, accentColor);
+
+  M5Cardputer.Display.setTextDatum(middle_center);
+  M5Cardputer.Display.setTextSize(1);
+  M5Cardputer.Display.setTextColor(WHITE, panelColor);
+  M5Cardputer.Display.drawString("ConbiMart Specials", panelX + panelW / 2, panelY + 8);
+
+  const int startY = panelY + 20;
+  const int lineHeight = 12;
+
+  M5Cardputer.Display.setTextDatum(top_left);
+  for (size_t i = 0; i < conbimartItems.size(); i++) {
+    const auto &item = conbimartItems[i];
+    int rowY = startY + (i * lineHeight);
+    bool selected = (static_cast<int>(i) == conbimartSelectionIndex);
+    uint16_t rowBg = selected ? highlightColor : panelColor;
+
+    M5Cardputer.Display.fillRect(panelX + 4, rowY - 1, panelW - 8, lineHeight, rowBg);
+    M5Cardputer.Display.setTextColor(selected ? YELLOW : WHITE, rowBg);
+    M5Cardputer.Display.setCursor(panelX + 8, rowY);
+    M5Cardputer.Display.print(item.label);
+
+    M5Cardputer.Display.setTextColor(M5Cardputer.Display.color565(180, 220, 255), rowBg);
+    M5Cardputer.Display.setCursor(panelX + 136, rowY);
+    M5Cardputer.Display.print("\xC2\xA5");
+    M5Cardputer.Display.print(item.price);
+
+    M5Cardputer.Display.setTextColor(WHITE, rowBg);
+    M5Cardputer.Display.setCursor(panelX + 190, rowY);
+    M5Cardputer.Display.print("x");
+    M5Cardputer.Display.print(item.quantity);
+  }
+
+  int total = getConbimartTotal();
+  M5Cardputer.Display.fillRect(panelX + 6, panelY + panelH - 30, panelW - 12, 20, panelColor);
+  M5Cardputer.Display.drawRoundRect(panelX + 6, panelY + panelH - 30, panelW - 12, 20, 4, accentColor);
+  M5Cardputer.Display.setTextColor(WHITE, panelColor);
+  M5Cardputer.Display.setCursor(panelX + 12, panelY + panelH - 26);
+  M5Cardputer.Display.print("Cart: \xC2\xA5");
+  M5Cardputer.Display.print(total);
+  M5Cardputer.Display.setCursor(panelX + 120, panelY + panelH - 26);
+  M5Cardputer.Display.print("Cash: \xC2\xA5");
+  M5Cardputer.Display.print(natsumi.money);
+
+  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  drawText("Arrows: Move  +/-: Qty  ENTER: Buy  ESC: Cancel", 120, 131, true, WHITE, 1);
+}
+
+void prepareConbimartItems() {
+  struct ConbimartCatalogEntry {
+    const char* label;
+    int price;
+    int* stockPtr;
+  };
+
+  std::vector<ConbimartCatalogEntry> savoury = {
+    {"Avocado", 220, &fridge.avocado},
+    {"Bread", 180, &fridge.bread},
+    {"Broccoli", 160, &fridge.broccoli},
+    {"Carrot", 140, &fridge.carrot},
+    {"Meat", 420, &fridge.meat},
+    {"Corn", 150, &fridge.corn},
+    {"Fried egg", 200, &fridge.friedEgg},
+    {"Maki", 380, &fridge.maki},
+    {"Sushi", 520, &fridge.sushi}
+  };
+
+  std::vector<ConbimartCatalogEntry> sugary = {
+    {"Green apple", 160, &fridge.greenApple},
+    {"Banana", 150, &fridge.banana},
+    {"Sweets", 200, &fridge.sweets},
+    {"Coconut", 260, &fridge.coconut},
+    {"Biscuit", 180, &fridge.biscuits},
+    {"Croissant", 240, &fridge.croissant},
+    {"Grape", 210, &fridge.grapes},
+    {"Kiwi", 190, &fridge.kiwi},
+    {"Orange", 170, &fridge.orange},
+    {"Peach", 200, &fridge.peach},
+    {"Pear", 200, &fridge.pear},
+    {"Strawberries", 260, &fridge.strawberries},
+    {"Watermelon", 320, &fridge.watermelon}
+  };
+
+  std::vector<ConbimartCatalogEntry> drinks = {
+    {"Coconut juice", 230, &fridge.coconutJuice},
+    {"Coffee", 180, &fridge.coffee},
+    {"Milk", 160, &fridge.milk}
+  };
+
+  auto addRandomItems = [&](std::vector<ConbimartCatalogEntry> &source, int count) {
+    for (int i = 0; i < count && !source.empty(); i++) {
+      int index = random(0, source.size());
+      auto entry = source[index];
+      conbimartItems.push_back({entry.label, entry.price, entry.stockPtr, 0});
+      source.erase(source.begin() + index);
+    }
+  };
+
+  conbimartItems.clear();
+  addRandomItems(savoury, 3);
+  addRandomItems(sugary, 3);
+  addRandomItems(drinks, 2);
+
+  conbimartSelectionIndex = 0;
+  conbimartInitialized = true;
+  overlayActive = true;
+  l5NeedsRedraw = true;
+}
+
 void drawOverlay() {
   // Draw the overlay (L5)
   // Serial.println("> Entering drawOverlay() L5 with l5NeedsRedraw set to " + String(l5NeedsRedraw) + " and overlayActive set to " + String(overlayActive));
@@ -3054,7 +3194,7 @@ void drawOverlay() {
       // Serial.println(">>> drawOverlay: Testing for key pressed");
       if (keyList.size() > 0) {
         key = M5Cardputer.Keyboard.getKey(keyList[0]);
-        if (currentState != FOOD_COOK) {
+        if (currentState != FOOD_COOK && currentState != FOOD_CONBINI3) {
           overlayActive = false;
           changeState(0, HOME_LOOP, 0);
           return;
@@ -3072,7 +3212,7 @@ void drawOverlay() {
         drawStats();
         break;
       case FOOD_CONBINI3:
-        drawDialogBubble("Thanks for shopping with us, come again!");
+        drawConbimartOverlay();
         break;
       case FOOD_ORDER2:
         M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
@@ -3591,19 +3731,84 @@ void foodDelivery() {
 
 void gotoConbimart() {
   // Serial.println("> Entering gotoConbimart()");
+  if (!conbimartInitialized) {
+    prepareConbimartItems();
+    return;
+  }
+
   uint8_t key = 0;
+  bool needsRedraw = false;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      switch (currentState) {
-        case FOOD_CONBINI3:
+      int itemCount = static_cast<int>(conbimartItems.size());
+      switch (key) {
+        // UP
+        case 59: case 'w': case 'W':
+          if (itemCount > 0) {
+            conbimartSelectionIndex = (conbimartSelectionIndex - 1 + itemCount) % itemCount;
+            needsRedraw = true;
+          }
+          break;
+        // DOWN
+        case 46: case 's': case 'S':
+          if (itemCount > 0) {
+            conbimartSelectionIndex = (conbimartSelectionIndex + 1) % itemCount;
+            needsRedraw = true;
+          }
+          break;
+        // ADD ONE ITEM
+        case '+': case 43: case '=':
+          if (itemCount > 0) {
+            conbimartItems[conbimartSelectionIndex].quantity += 1;
+            needsRedraw = true;
+          }
+          break;
+        // REMOVE ONE ITEM
+        case '-': case 45: case '_': case 95:
+          if (itemCount > 0 && conbimartItems[conbimartSelectionIndex].quantity > 0) {
+            conbimartItems[conbimartSelectionIndex].quantity -= 1;
+            needsRedraw = true;
+          }
+          break;
+        // CONFIRM PURCHASE
+        case 13: case 40: case ' ':
+          {
+            int total = getConbimartTotal();
+            if (total == 0) {
+              showToast("Your basket is empty.");
+              break;
+            }
+            if (natsumi.money >= total) {
+              natsumi.money -= total;
+              for (auto &item : conbimartItems) {
+                *(item.stockPtr) += item.quantity;
+              }
+              showToast("Thanks for shopping with us!");
+              conbimartItems.clear();
+              conbimartInitialized = false;
+              overlayActive = false;
+              changeState(0, HOME_LOOP, 0);
+              return;
+            } else {
+              showToast("Not enough money :(");
+            }
+          }
+          break;
+        // CANCEL
+        case 96:
+          conbimartItems.clear();
+          conbimartInitialized = false;
           overlayActive = false;
           changeState(0, HOME_LOOP, 0);
-          break;
+          return;
       }
-      return;
     }
+  }
+
+  if (needsRedraw) {
+    l5NeedsRedraw = true;
   }
 }
 
