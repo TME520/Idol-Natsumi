@@ -3337,7 +3337,28 @@ void drawOverlay() {
         drawFoodGrid(foodGridItems, foodSelectionIndex);
         break;
       case FOOD_COOK2:
-        M5Cardputer.Display.drawPng(currentIcon.data, currentIcon.length, 111, 58);
+        {
+          const float zoom = 2.0f;
+          const int iconWidth = 18;
+          const int iconHeight = 18;
+          const int centerX = M5Cardputer.Display.width() / 2;
+          const int centerY = M5Cardputer.Display.height() / 2;
+          const int drawX = centerX - static_cast<int>((iconWidth * zoom) / 2);
+          const int drawY = centerY - static_cast<int>((iconHeight * zoom) / 2);
+
+          M5Cardputer.Display.drawPng(
+            currentIcon.data,
+            currentIcon.length,
+            drawX,
+            drawY,
+            M5Cardputer.Display.width(),
+            M5Cardputer.Display.height(),
+            0,
+            0,
+            zoom,
+            zoom
+          );
+        }
         break;
       default:
         break;
