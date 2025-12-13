@@ -18,6 +18,8 @@ enum GameState {
   HOME_LOOP,
   FOOD_MENU,
   FOOD_CONBINI,
+  FOOD_CONBINI2,
+  FOOD_CONBINI3,
   FOOD_COOK,
   FOOD_COOK2,
   FOOD_REST,
@@ -159,6 +161,17 @@ std::vector<FoodDisplayItem> foodGridItems;
 int foodSelectionIndex = 0;
 bool foodGridInitialized = false;
 
+struct ConbimartItem {
+  const char* label;
+  int price;
+  int* stockPtr;
+  int quantity;
+};
+
+std::vector<ConbimartItem> conbimartItems;
+int conbimartSelectionIndex = 0;
+bool conbimartInitialized = false;
+
 // === Game Time Tracking ===
 // 60000 milliseconds in a minute
 // 86,400,000 milliseconds in a day
@@ -197,7 +210,7 @@ String currentMenuType = "main";
 const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: DEV SCREEN"};
 const char* homeMenuItems[] = {"0: STATS", "1: FOOD", "2: TRAINING", "3: COMPETITION", "4: HEALTH", "5: REST", "6: GARDEN", "7: DEBUG"};
 const char* devMenuItems[] = {"0: CALIB1", "1: CALIB2", "2: CALIB3", "3: EXIT"};
-const char* foodMenuItems[] = {"0: FRIDGE", "1: RESTAURANT", "2: ORDER"};
+const char* foodMenuItems[] = {"0: FRIDGE", "1: RESTAURANT", "2: ORDER", "3: CONBINI"};
 const char* trainingMenuItems[] = {"0: SING", "1: DANCE", "2: SWIM", "3: GYM", "4: WALK", "5: LIBRARY"};
 const char* competitionMenuItems[] = {"0: LOCAL", "1: DEPARTMENTAL", "2: REGIONAL", "3: NATIONAL"};
 const char* healthMenuItems[] = {"0: WASH", "1: DOCTOR", "2: TEMPLE", "3: ONSEN"};
@@ -206,7 +219,7 @@ const char** currentMenuItems = nullptr;
 const int mainMenuItemCount = 3;
 const int homeMenuItemCount = 8;
 const int devMenuItemCount = 4;
-const int foodMenuItemCount = 3;
+const int foodMenuItemCount = 4;
 const int trainingMenuItemCount = 6;
 const int competitionMenuItemCount = 4;
 const int healthMenuItemCount = 4;
@@ -434,6 +447,12 @@ void preloadImages() {
     case FOOD_MENU:
       preloadImage("/idolnat/screens/kitchen.png", currentBackground);
       break;
+    case FOOD_CONBINI:
+      preloadImage("/idolnat/screens/conbimart_front.png", currentBackground);
+      break;
+    case FOOD_CONBINI2: case FOOD_CONBINI3:
+      preloadImage("/idolnat/screens/conbimart_inside.png", currentBackground);
+      break;
     case FOOD_COOK:
       preloadImage("/idolnat/screens/fridge_open.png", currentBackground);
       break;
@@ -611,6 +630,9 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_11yo_meditate-90x135.png", currentCharacter);
           break;
+        case FOOD_CONBINI3:
+          preloadImage("/idolnat/sprites/cashier01-90x135.png", currentCharacter);
+          break;
         case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
           break;
@@ -638,6 +660,9 @@ void preloadImages() {
       switch(currentState) {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_13yo_meditate-90x135.png", currentCharacter);
+          break;
+        case FOOD_CONBINI3:
+          preloadImage("/idolnat/sprites/cashier01-90x135.png", currentCharacter);
           break;
         case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
@@ -667,6 +692,9 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_15yo_meditate-90x135.png", currentCharacter);
           break;
+        case FOOD_CONBINI3:
+          preloadImage("/idolnat/sprites/cashier01-90x135.png", currentCharacter);
+          break;
         case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
           break;
@@ -695,6 +723,9 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_18yo_meditate-90x135.png", currentCharacter);
           break;
+        case FOOD_CONBINI3:
+          preloadImage("/idolnat/sprites/cashier01-90x135.png", currentCharacter);
+          break;
         case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
           break;
@@ -722,6 +753,9 @@ void preloadImages() {
       switch(currentState) {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_21yo_meditate-90x135.png", currentCharacter);
+          break;
+        case FOOD_CONBINI3:
+          preloadImage("/idolnat/sprites/cashier01-90x135.png", currentCharacter);
           break;
         case FOOD_REST: case FOOD_REST5:
           preloadImage("/idolnat/sprites/waitress01-90x135.png", currentCharacter);
@@ -977,6 +1011,19 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItems = foodMenuItems;
         currentMenuItemsCount = foodMenuItemCount;
         break;
+      case FOOD_CONBINI:
+        screenConfig = IDLE;
+        characterEnabled = false;
+        break;
+      case FOOD_CONBINI2:
+        screenConfig = ROOM;
+        characterEnabled = false;
+        break;
+      case FOOD_CONBINI3:
+        screenConfig = DIALOG;
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        break;
       case FOOD_COOK:
         screenConfig = ROOM;
         break;
@@ -1011,7 +1058,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case FOOD_ORDER6: case FOOD_ORDER7:
         screenConfig = ROOM;
-        Serial.println("Transition to FOOD_ORDER 6 or 7");
         break;
       case FOOD_ORDER8:
         screenConfig = DIALOG;
@@ -1140,27 +1186,21 @@ void updateAging() {
   } else if ((natsumi.ageMilliseconds >= agingInterval) && (natsumi.ageMilliseconds < (agingInterval * 2))) {
     // 12yo
     natsumi.age = 12;
-    natsumi.money += 70000;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 2)) && (natsumi.ageMilliseconds < (agingInterval * 3))) {
     // 13yo
     natsumi.age = 13;
-    natsumi.money += 75000;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 3)) && (natsumi.ageMilliseconds < (agingInterval * 4))) {
     // 14yo
     natsumi.age = 14;
-    natsumi.money += 80000;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 4)) && (natsumi.ageMilliseconds < (agingInterval * 5))) {
     // 15yo
     natsumi.age = 15;
-    natsumi.money += 85000;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 5)) && (natsumi.ageMilliseconds < (agingInterval * 6))) {
     // 16yo
     natsumi.age = 16;
-    natsumi.money += 90000;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 6)) && (natsumi.ageMilliseconds < (agingInterval * 7))) {
     // 17yo
     natsumi.age = 17;
-    natsumi.money += 95000;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 7)) && (natsumi.ageMilliseconds < (agingInterval * 8))) {
     // 18yo
     natsumi.age = 18;
@@ -1184,6 +1224,7 @@ void updateAging() {
     preloadImages();
     updateSpirit();
     showToast(String("Natsumi turned ") + natsumi.age + " years old!");
+    natsumi.money += 70000;
     l5NeedsRedraw=true;
   }
 }
@@ -1381,8 +1422,10 @@ void manageDialog() {
   overlayEnabled = true;
   helperEnabled = false;
   switch (currentState) {
+    case FOOD_CONBINI3:
+      cashier();
+      break;
     case FOOD_ORDER8:
-      Serial.println(">>> FOOD_ORDER8 - DIALOG");
       foodDelivery();
       break;
     case FOOD_REST: case FOOD_REST5:
@@ -1469,6 +1512,10 @@ void manageIdle() {
   overlayEnabled = true;
   helperEnabled = false;
   switch (currentState) {
+    case FOOD_CONBINI:
+      characterEnabled = false;
+      changeState(0, FOOD_CONBINI2, microWait);
+      break;
     case FOOD_ORDER:
       changeState(0, FOOD_ORDER2, microWait);
       break;
@@ -1533,6 +1580,9 @@ void manageRoom() {
       break;
     case FOOD_MENU:
       menuOpened = true;
+      break;
+    case FOOD_CONBINI2:
+      gotoConbimart();
       break;
     case FOOD_COOK:
       cookFood();
@@ -2311,6 +2361,11 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           menuOpened = false;
           changeState(0, FOOD_ORDER, 0);
           break;
+        case 51:
+          // 3: CONBINI
+          menuOpened = false;
+          changeState(0, FOOD_CONBINI, 0);
+          break;
         case 43:
           // TAB
           if (menuOpened) {
@@ -2349,6 +2404,8 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           } else if (selection == 2) {
             changeState(0, FOOD_ORDER, 0);
           } else if (selection == 3) {
+            changeState(0, FOOD_CONBINI, 0);
+          } else if (selection == 4) {
             if (debugActive) {
               debugActive = false;
               l0NeedsRedraw = true;
@@ -2992,6 +3049,137 @@ void drawFoodGrid(const std::vector<FoodDisplayItem> &items, int selectedIndex) 
   drawText("Arrows: Move  ENTER: Eat  ESC: Close", 120, 131, true, WHITE, 1);
 }
 
+int getConbimartTotal() {
+  int total = 0;
+  for (const auto &item : conbimartItems) {
+    total += item.price * item.quantity;
+  }
+  return total;
+}
+
+void drawConbimartOverlay() {
+  const int panelX = 6;
+  const int panelY = 6;
+  const int panelW = 228;
+  const int panelH = 123;
+  const uint16_t shadowColor = M5Cardputer.Display.color565(10, 14, 32);
+  const uint16_t panelColor = M5Cardputer.Display.color565(16, 24, 44);
+  const uint16_t accentColor = M5Cardputer.Display.color565(120, 200, 255);
+  const uint16_t highlightColor = M5Cardputer.Display.color565(60, 90, 140);
+
+  M5Cardputer.Display.fillRoundRect(panelX + 2, panelY + 2, panelW, panelH, 10, shadowColor);
+  M5Cardputer.Display.fillRoundRect(panelX, panelY, panelW, panelH, 10, panelColor);
+  M5Cardputer.Display.drawRoundRect(panelX, panelY, panelW, panelH, 10, accentColor);
+
+  M5Cardputer.Display.setTextDatum(middle_center);
+  M5Cardputer.Display.setTextSize(1);
+  M5Cardputer.Display.setTextColor(WHITE, panelColor);
+  M5Cardputer.Display.drawString("-= ConbiMart Specials =-", panelX + panelW / 2, panelY + 8);
+
+  const int startY = panelY + 20;
+  const int lineHeight = 12;
+
+  M5Cardputer.Display.setTextDatum(top_left);
+  for (size_t i = 0; i < conbimartItems.size(); i++) {
+    const auto &item = conbimartItems[i];
+    int rowY = startY + (i * lineHeight);
+    bool selected = (static_cast<int>(i) == conbimartSelectionIndex);
+    uint16_t rowBg = selected ? highlightColor : panelColor;
+
+    M5Cardputer.Display.fillRect(panelX + 4, rowY - 1, panelW - 8, lineHeight, rowBg);
+    M5Cardputer.Display.setTextColor(selected ? YELLOW : WHITE, rowBg);
+    M5Cardputer.Display.setCursor(panelX + 8, rowY);
+    M5Cardputer.Display.print(item.label);
+
+    M5Cardputer.Display.setTextColor(M5Cardputer.Display.color565(180, 220, 255), rowBg);
+    M5Cardputer.Display.setCursor(panelX + 136, rowY);
+    // M5Cardputer.Display.print("\xC2\xA5");
+    M5Cardputer.Display.print(item.price);
+
+    M5Cardputer.Display.setTextColor(WHITE, rowBg);
+    M5Cardputer.Display.setCursor(panelX + 190, rowY);
+    M5Cardputer.Display.print("x");
+    M5Cardputer.Display.print(item.quantity);
+  }
+
+  int total = getConbimartTotal();
+  M5Cardputer.Display.fillRect(panelX + 6, panelY + panelH - 30, panelW - 12, 20, panelColor);
+  M5Cardputer.Display.drawRoundRect(panelX + 6, panelY + panelH - 30, panelW - 12, 20, 4, accentColor);
+  M5Cardputer.Display.setTextColor(WHITE, panelColor);
+  M5Cardputer.Display.setCursor(panelX + 12, panelY + panelH - 26);
+  M5Cardputer.Display.print("Cart: " + String(total));
+  // M5Cardputer.Display.print(total);
+  M5Cardputer.Display.setCursor(panelX + 120, panelY + panelH - 26);
+  M5Cardputer.Display.print("Cash: " + String(natsumi.money));
+  // M5Cardputer.Display.print();
+
+  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  drawText("+/-: Qty  ENTER: Buy  ESC: Cancel", 120, 131, true, WHITE, 1);
+  Serial.println(">> drawConbimartOverlay -  Cart: " + String(total));
+  Serial.println(">> drawConbimartOverlay -  Cash: " + String(natsumi.money));
+}
+
+void prepareConbimartItems() {
+  struct ConbimartCatalogEntry {
+    const char* label;
+    int price;
+    int* stockPtr;
+  };
+
+  std::vector<ConbimartCatalogEntry> savoury = {
+    {"Avocado", 220, &fridge.avocado},
+    {"Bread", 180, &fridge.bread},
+    {"Broccoli", 160, &fridge.broccoli},
+    {"Carrot", 140, &fridge.carrot},
+    {"Meat", 420, &fridge.meat},
+    {"Corn", 150, &fridge.corn},
+    {"Fried egg", 200, &fridge.friedEgg},
+    {"Maki", 380, &fridge.maki},
+    {"Sushi", 520, &fridge.sushi}
+  };
+
+  std::vector<ConbimartCatalogEntry> sugary = {
+    {"Green apple", 160, &fridge.greenApple},
+    {"Banana", 150, &fridge.banana},
+    {"Sweets", 200, &fridge.sweets},
+    {"Coconut", 260, &fridge.coconut},
+    {"Biscuit", 180, &fridge.biscuits},
+    {"Croissant", 240, &fridge.croissant},
+    {"Grape", 210, &fridge.grapes},
+    {"Kiwi", 190, &fridge.kiwi},
+    {"Orange", 170, &fridge.orange},
+    {"Peach", 200, &fridge.peach},
+    {"Pear", 200, &fridge.pear},
+    {"Strawberries", 260, &fridge.strawberries},
+    {"Watermelon", 320, &fridge.watermelon}
+  };
+
+  std::vector<ConbimartCatalogEntry> drinks = {
+    {"Coconut juice", 230, &fridge.coconutJuice},
+    {"Coffee", 180, &fridge.coffee},
+    {"Milk", 160, &fridge.milk}
+  };
+
+  auto addRandomItems = [&](std::vector<ConbimartCatalogEntry> &source, int count) {
+    for (int i = 0; i < count && !source.empty(); i++) {
+      int index = random(0, source.size());
+      auto entry = source[index];
+      conbimartItems.push_back({entry.label, entry.price, entry.stockPtr, 0});
+      source.erase(source.begin() + index);
+    }
+  };
+
+  conbimartItems.clear();
+  addRandomItems(savoury, 3);
+  addRandomItems(sugary, 2);
+  addRandomItems(drinks, 1);
+
+  conbimartSelectionIndex = 0;
+  conbimartInitialized = true;
+  overlayActive = true;
+  l5NeedsRedraw = true;
+}
+
 void drawOverlay() {
   // Draw the overlay (L5)
   // Serial.println("> Entering drawOverlay() L5 with l5NeedsRedraw set to " + String(l5NeedsRedraw) + " and overlayActive set to " + String(overlayActive));
@@ -3003,7 +3191,7 @@ void drawOverlay() {
       // Serial.println(">>> drawOverlay: Testing for key pressed");
       if (keyList.size() > 0) {
         key = M5Cardputer.Keyboard.getKey(keyList[0]);
-        if (currentState != FOOD_COOK) {
+        if (currentState != FOOD_COOK && currentState != FOOD_CONBINI3) {
           overlayActive = false;
           changeState(0, HOME_LOOP, 0);
           return;
@@ -3019,6 +3207,12 @@ void drawOverlay() {
       case STATS_SCREEN:
         Serial.println(">>> drawOverlay: STATS_SCREEN");
         drawStats();
+        break;
+      case FOOD_CONBINI2:
+        drawConbimartOverlay();
+        break;
+      case FOOD_CONBINI3:
+        drawDialogBubble("Thanks for shopping with us, come again!!");
         break;
       case FOOD_ORDER2:
         M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
@@ -3518,6 +3712,20 @@ void priest() {
   }
 }
 
+void cashier() {
+  // Serial.println("> Entering cashier()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      overlayActive = false;
+      changeState(0, HOME_LOOP, 0);
+      return;
+    }
+  }
+}
+
 void foodDelivery() {
   // Serial.println("> Entering foodDelivery()");
   uint8_t key = 0;
@@ -3532,6 +3740,91 @@ void foodDelivery() {
       }
       return;
     }
+  }
+}
+
+void gotoConbimart() {
+  Serial.println("> Entering gotoConbimart()");
+  if (!conbimartInitialized) {
+    prepareConbimartItems();
+    return;
+  }
+
+  uint8_t key = 0;
+  bool needsRedraw = false;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      int itemCount = static_cast<int>(conbimartItems.size());
+      Serial.println(">> gotoConbimart - Key: " + String(key));
+      switch (key) {
+        // UP
+        case 59: case 'w': case 'W':
+          if (itemCount > 0) {
+            conbimartSelectionIndex = (conbimartSelectionIndex - 1 + itemCount) % itemCount;
+            needsRedraw = true;
+          }
+          break;
+        // DOWN
+        case 46: case 's': case 'S':
+          if (itemCount > 0) {
+            conbimartSelectionIndex = (conbimartSelectionIndex + 1) % itemCount;
+            needsRedraw = true;
+          }
+          break;
+        // ADD ONE ITEM
+        case 47: case 61:
+          if (itemCount > 0) {
+            conbimartItems[conbimartSelectionIndex].quantity += 1;
+            needsRedraw = true;
+          }
+          break;
+        // REMOVE ONE ITEM
+        case 44: case 45:
+          if (itemCount > 0 && conbimartItems[conbimartSelectionIndex].quantity > 0) {
+            conbimartItems[conbimartSelectionIndex].quantity -= 1;
+            needsRedraw = true;
+          }
+          break;
+        // CONFIRM PURCHASE
+        case 13: case 40: case ' ':
+          {
+            int total = getConbimartTotal();
+            if (total == 0) {
+              showToast("Your basket is empty.");
+              break;
+            }
+            if (natsumi.money >= total) {
+              natsumi.money -= total;
+              for (auto &item : conbimartItems) {
+                *(item.stockPtr) += item.quantity;
+              }
+              // showToast("Thanks for shopping with us!");
+              conbimartItems.clear();
+              conbimartInitialized = false;
+              overlayActive = false;
+              menuEnabled = true;
+              changeState(0, FOOD_CONBINI3, 0);
+              return;
+            } else {
+              showToast("Not enough money :(");
+            }
+          }
+          break;
+        // CANCEL
+        case 96:
+          conbimartItems.clear();
+          conbimartInitialized = false;
+          overlayActive = false;
+          changeState(0, HOME_LOOP, 0);
+          return;
+      }
+    }
+  }
+
+  if (needsRedraw) {
+    l5NeedsRedraw = true;
   }
 }
 
@@ -3663,7 +3956,7 @@ void restaurantFoodSelection() {
 }
 
 void orderibiFoodSelection() {
-  Serial.println("> Entering orderibiFoodSelection()");
+  // Serial.println("> Entering orderibiFoodSelection()");
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
