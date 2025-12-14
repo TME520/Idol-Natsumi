@@ -3240,6 +3240,9 @@ void drawOverlay() {
         break;
       case FOOD_ORDER8:
         natsumi.hunger = 4;
+        if (natsumi.charm < 4) {
+          natsumi.charm += 1;
+        }
         drawDialogBubble("Hello, here is the food you ordered.");
         break;
       case FOOD_REST:
@@ -3647,6 +3650,9 @@ void cookFood() {
                 if (natsumi.hunger < 4) {
                   natsumi.hunger += 1;
                 }
+                if (natsumi.charm < 4) {
+                  natsumi.charm += 1;
+                }
                 showToast("Eating " + String(choice.label));
                 clearFoodGrid();
                 overlayActive = false;
@@ -3908,6 +3914,9 @@ void restaurantFoodSelection() {
               if (natsumi.money >= 700) {
                 natsumi.money -= 700;
                 natsumi.hunger = 4;
+                if (natsumi.charm < 4) {
+                  natsumi.charm += 1;
+                }
               } else {
                 showToast("Not enough money :(");
               }
@@ -3931,6 +3940,9 @@ void restaurantFoodSelection() {
               if (natsumi.money >= 800) {
                 natsumi.money -= 800;
                 natsumi.hunger = 4;
+                if (natsumi.charm < 4) {
+                  natsumi.charm += 1;
+                }
               } else {
                 showToast("Not enough money :(");
               }
@@ -3954,6 +3966,9 @@ void restaurantFoodSelection() {
               if (natsumi.money >= 900) {
                 natsumi.money -= 900;
                 natsumi.hunger = 4;
+                if (natsumi.charm < 4) {
+                  natsumi.charm += 1;
+                }
               } else {
                 showToast("Not enough money :(");
               }
