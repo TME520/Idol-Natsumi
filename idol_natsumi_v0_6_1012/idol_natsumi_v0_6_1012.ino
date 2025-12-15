@@ -1076,9 +1076,11 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case TRAIN_SING:
         screenConfig = ROOM;
+        overlayActive = true;
+        l5NeedsRedraw = true;
         break;
       case TRAIN_SING2:
-        screenConfig = ROOM;
+        screenConfig = GAME;
         break;
       case TRAIN_DANCE:
         screenConfig = ROOM;
@@ -1485,6 +1487,9 @@ void manageGame() {
     case STATS_SCREEN:
       manageStats();
       break;
+    case TRAIN_SING2:
+      changeState(0, HOME_LOOP, microWait);
+      break;
     default:
       playGame();
       break;
@@ -1606,9 +1611,6 @@ void manageRoom() {
       changeState(0, FOOD_ORDER8, microWait);
       break;
     case TRAIN_SING:
-      menuEnabled = false;
-      menuOpened = false;
-      overlayActive = false;
       characterEnabled = false;
       manageTrainSingCountdown();
       break;
@@ -1634,11 +1636,6 @@ void manageRoom() {
   drawDebug();
   drawToast();
   drawOverlay();
-
-  if (currentState == TRAIN_SING && l5NeedsRedraw) {
-    drawTrainSingCountdown();
-    l5NeedsRedraw = false;
-  }
 
   int *selectionPtr;
   if (currentMenuType == "home") {
@@ -1739,7 +1736,7 @@ void manageTrainSingCountdown() {
     trainSingCountdownActive = true;
     trainSingCountdownStart = millis();
     trainSingCountdownValue = 3;
-    l0NeedsRedraw = true;
+    // l0NeedsRedraw = true;
     l5NeedsRedraw = true;
   }
 
@@ -3263,6 +3260,9 @@ void drawOverlay() {
       case STATS_SCREEN:
         Serial.println(">>> drawOverlay: STATS_SCREEN");
         drawStats();
+        break;
+      case TRAIN_SING:
+        drawTrainSingCountdown();
         break;
       case FOOD_CONBINI2:
         drawConbimartOverlay();
