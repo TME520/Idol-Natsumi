@@ -61,6 +61,7 @@ enum GameState {
   GARDEN_LOOP,
   TRAIN_MENU,
   TRAIN_SING,
+  TRAIN_SING2,
   TRAIN_DANCE,
   TRAIN_SWIM,
   TRAIN_GYM,
@@ -593,6 +594,9 @@ void preloadImages() {
       preloadImage("/idolnat/screens/map_training.png", currentBackground);
       break;
     case TRAIN_SING:
+      preloadImage("/idolnat/screens/singing_school_bg_BW.png", currentBackground);
+      break;
+    case TRAIN_SING2:
       preloadImage("/idolnat/screens/singing_school_bg.png", currentBackground);
       break;
     case TRAIN_DANCE:
@@ -1071,6 +1075,9 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItemsCount = trainingMenuItemCount;
         break;
       case TRAIN_SING:
+        screenConfig = ROOM;
+        break;
+      case TRAIN_SING2:
         screenConfig = ROOM;
         break;
       case TRAIN_DANCE:
@@ -1598,6 +1605,13 @@ void manageRoom() {
       Serial.println(">>> In FOOD_ORDER7 waiting loop");
       changeState(0, FOOD_ORDER8, microWait);
       break;
+    case TRAIN_SING:
+      menuEnabled = false;
+      menuOpened = false;
+      overlayActive = false;
+      characterEnabled = false;
+      manageTrainSingCountdown();
+      break;
     case TRAIN_MENU:
       menuOpened = true;
       break;
@@ -1620,6 +1634,11 @@ void manageRoom() {
   drawDebug();
   drawToast();
   drawOverlay();
+
+  if (currentState == TRAIN_SING && l5NeedsRedraw) {
+    drawTrainSingCountdown();
+    l5NeedsRedraw = false;
+  }
 
   int *selectionPtr;
   if (currentMenuType == "home") {
@@ -1698,6 +1717,43 @@ void manageGarden() {
   updateAging();
   updateStats();
   return;
+}
+
+// === Training logic ===
+bool trainSingCountdownActive = false;
+unsigned long trainSingCountdownStart = 0;
+int trainSingCountdownValue = 3;
+
+void resetTrainSingCountdown() {
+  trainSingCountdownActive = false;
+  trainSingCountdownStart = 0;
+  trainSingCountdownValue = 3;
+}
+
+void drawTrainSingCountdown() {
+  drawText(String(trainSingCountdownValue), 120, 67, true, RED, 7, BLACK);
+}
+
+void manageTrainSingCountdown() {
+  if (!trainSingCountdownActive) {
+    trainSingCountdownActive = true;
+    trainSingCountdownStart = millis();
+    trainSingCountdownValue = 3;
+    l0NeedsRedraw = true;
+    l5NeedsRedraw = true;
+  }
+
+  unsigned long now = millis();
+  if (now - trainSingCountdownStart >= 1000) {
+    trainSingCountdownValue--;
+    trainSingCountdownStart = now;
+    l5NeedsRedraw = true;
+    if (trainSingCountdownValue == 0) {
+      resetTrainSingCountdown();
+      changeState(0, TRAIN_SING2, 0);
+      return;
+    }
+  }
 }
 
 void resetBathGame() {
