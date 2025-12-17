@@ -1870,11 +1870,15 @@ void manageTrainSingGame() {
         case 44: case 'a': case 'A':  // LEFT
           if (singPlayerColumn > 0) {
             singPlayerColumn--;
+          } else {
+            singPlayerColumn = singColumnCount - 1;
           }
           break;
         case 47: case 'd': case 'D':  // RIGHT
           if (singPlayerColumn < singColumnCount - 1) {
             singPlayerColumn++;
+          } else {
+            singPlayerColumn = 0;
           }
           break;
         default:
