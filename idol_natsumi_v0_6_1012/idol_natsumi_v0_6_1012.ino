@@ -195,6 +195,12 @@ void drawBathSlider(int y);
 void finalizeBathOutcome(String outcomeText);
 void startBathGame();
 
+// Training SING mini-game helpers
+void resetTrainSingGame();
+void manageTrainSingGame();
+void drawTrainSingPlayfield(bool showCompletion);
+void startTrainSingGame();
+
 unsigned long changeStateCounter = 0;
 
 const unsigned long hungerInterval = 120000;   // 2 minutes
@@ -300,6 +306,30 @@ const int idealZoneY = thermometerY + thermometerInnerPadding + ((thermometerHei
 int sliderYPosition = thermometerY + thermometerHeight - sliderHeight;
 int sliderDirection = -1;  // -1 = moving up, 1 = moving down
 unsigned long lastSliderUpdate = 0;
+
+// Training SING mini-game state
+struct FallingNote {
+  int column;
+  int y;
+  bool active;
+};
+
+const int singColumnCount = 5;
+const int singTargetNotes = 10;
+const int singNoteRadius = 5;
+const int singPlayerWidth = 22;
+const int singPlayerHeight = 10;
+const unsigned long singNoteSpawnInterval = 700;
+const int singNoteFallSpeed = 3;
+int singColumnWidth = 48;
+int singPlayerY = 118;
+int singPlayerColumn = singColumnCount / 2;
+int singNotesCollected = 0;
+unsigned long singLastSpawnTime = 0;
+unsigned long singCompletionTime = 0;
+bool singGameRunning = false;
+bool singGameCompleted = false;
+std::vector<FallingNote> singNotes;
 
 String copyright = "(c) 2025 - Pantzumatic";
 String versionNumber = "0.6.1012";
@@ -1488,7 +1518,7 @@ void manageGame() {
       manageStats();
       break;
     case TRAIN_SING2:
-      changeState(0, HOME_LOOP, microWait);
+      manageTrainSingGame();
       break;
     default:
       playGame();
@@ -1736,6 +1766,7 @@ void manageTrainSingCountdown() {
     trainSingCountdownActive = true;
     trainSingCountdownStart = millis();
     trainSingCountdownValue = 3;
+    resetTrainSingGame();
     // l0NeedsRedraw = true;
     l5NeedsRedraw = true;
   }
@@ -1751,6 +1782,143 @@ void manageTrainSingCountdown() {
       return;
     }
   }
+}
+
+// === TRAIN_SING2 Mini-game ===
+void resetTrainSingGame() {
+  singNotes.clear();
+  singNotesCollected = 0;
+  singPlayerColumn = singColumnCount / 2;
+  singLastSpawnTime = 0;
+  singCompletionTime = 0;
+  singGameRunning = false;
+  singGameCompleted = false;
+}
+
+void startTrainSingGame() {
+  resetTrainSingGame();
+  singColumnWidth = M5Cardputer.Display.width() / singColumnCount;
+  singPlayerY = M5Cardputer.Display.height() - 12;
+  overlayActive = false;
+  singGameRunning = true;
+  M5Cardputer.Display.fillScreen(BLACK);
+}
+
+void drawTrainSingPlayfield(bool showCompletion) {
+  const int screenWidth = M5Cardputer.Display.width();
+  const int screenHeight = M5Cardputer.Display.height();
+  const uint16_t laneColor = M5Cardputer.Display.color565(40, 40, 60);
+  const uint16_t noteColor = M5Cardputer.Display.color565(255, 215, 0);
+  const uint16_t playerColor = M5Cardputer.Display.color565(120, 200, 255);
+
+  M5Cardputer.Display.fillScreen(BLACK);
+
+  for (int i = 1; i < singColumnCount; i++) {
+    int x = i * singColumnWidth;
+    M5Cardputer.Display.drawFastVLine(x, 0, screenHeight, laneColor);
+  }
+
+  int groundY = singPlayerY + (singPlayerHeight / 2);
+  M5Cardputer.Display.drawFastHLine(0, groundY, screenWidth, laneColor);
+
+  for (const auto &note : singNotes) {
+    if (!note.active) continue;
+    int x = note.column * singColumnWidth + (singColumnWidth / 2);
+    M5Cardputer.Display.fillCircle(x, note.y, singNoteRadius, noteColor);
+  }
+
+  int playerCenterX = singPlayerColumn * singColumnWidth + (singColumnWidth / 2);
+  M5Cardputer.Display.fillTriangle(
+    playerCenterX - (singPlayerWidth / 2), groundY,
+    playerCenterX + (singPlayerWidth / 2), groundY,
+    playerCenterX, groundY - singPlayerHeight,
+    playerColor
+  );
+
+  M5Cardputer.Display.setTextDatum(top_left);
+  M5Cardputer.Display.setTextColor(WHITE, BLACK);
+  M5Cardputer.Display.setTextSize(1);
+  M5Cardputer.Display.drawString(String("Notes: ") + singNotesCollected + String("/") + singTargetNotes, 6, 4);
+
+  if (showCompletion) {
+    M5Cardputer.Display.setTextDatum(middle_center);
+    M5Cardputer.Display.setTextSize(2);
+    M5Cardputer.Display.drawString("Training complete!", screenWidth / 2, screenHeight / 2);
+  }
+}
+
+void manageTrainSingGame() {
+  if (!singGameRunning && !singGameCompleted) {
+    startTrainSingGame();
+  }
+
+  unsigned long now = millis();
+
+  if (singGameCompleted) {
+    drawTrainSingPlayfield(true);
+    if (now - singCompletionTime >= 1200) {
+      changeState(0, HOME_LOOP, 0);
+    }
+    return;
+  }
+
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (!keyList.empty()) {
+      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (key) {
+        case 44: case 'a': case 'A':  // LEFT
+          if (singPlayerColumn > 0) {
+            singPlayerColumn--;
+          }
+          break;
+        case 47: case 'd': case 'D':  // RIGHT
+          if (singPlayerColumn < singColumnCount - 1) {
+            singPlayerColumn++;
+          }
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  if (now - singLastSpawnTime >= singNoteSpawnInterval) {
+    if (singNotes.size() < 12) {
+      FallingNote newNote = {static_cast<int>(random(0, singColumnCount)), 0, true};
+      singNotes.push_back(newNote);
+    }
+    singLastSpawnTime = now;
+  }
+
+  for (auto &note : singNotes) {
+    if (!note.active) continue;
+    note.y += singNoteFallSpeed;
+    if (note.y >= singPlayerY - singNoteRadius) {
+      if (note.column == singPlayerColumn) {
+        singNotesCollected++;
+        note.active = false;
+      } else if (note.y > M5Cardputer.Display.height()) {
+        note.active = false;
+      }
+    }
+  }
+
+  singNotes.erase(std::remove_if(singNotes.begin(), singNotes.end(), [](const FallingNote &note) {
+    return !note.active || note.y > M5Cardputer.Display.height();
+  }), singNotes.end());
+
+  if (singNotesCollected >= singTargetNotes) {
+    singGameCompleted = true;
+    singCompletionTime = now;
+    if (natsumi.performance < 4) {
+      natsumi.performance += 1;
+    }
+    drawTrainSingPlayfield(true);
+    return;
+  }
+
+  drawTrainSingPlayfield(false);
 }
 
 void resetBathGame() {
