@@ -315,7 +315,7 @@ struct FallingNote {
 };
 
 const int singColumnCount = 5;
-const int singTargetNotes = 10;
+const int singTargetNotes = 30;
 const int singNoteRadius = 5;
 const int singPlayerWidth = 22;
 const int singPlayerHeight = 10;
@@ -325,6 +325,7 @@ int singColumnWidth = 48;
 int singPlayerY = 118;
 int singPlayerColumn = singColumnCount / 2;
 int singNotesCollected = 0;
+int singNotesSpawned = 0;
 unsigned long singLastSpawnTime = 0;
 unsigned long singCompletionTime = 0;
 bool singGameRunning = false;
@@ -338,6 +339,7 @@ ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
 ImageBuffer currentCharacter;
 ImageBuffer currentIcon;
+ImageBuffer natsumiSprite;
 
 // Toast messages
 String toastMsg = "";
@@ -628,6 +630,7 @@ void preloadImages() {
       break;
     case TRAIN_SING2:
       preloadImage("/idolnat/screens/singing_school_bg.png", currentBackground);
+      preloadImage("/idolnat/sprites/natsumi_head_sprite-22x20.png", natsumiSprite);
       break;
     case TRAIN_DANCE:
       preloadImage("/idolnat/screens/ballet_school_bg.png", currentBackground);
@@ -1788,6 +1791,7 @@ void manageTrainSingCountdown() {
 void resetTrainSingGame() {
   singNotes.clear();
   singNotesCollected = 0;
+  singNotesSpawned = 0;
   singPlayerColumn = singColumnCount / 2;
   singLastSpawnTime = 0;
   singCompletionTime = 0;
@@ -1828,12 +1832,15 @@ void drawTrainSingPlayfield(bool showCompletion) {
   }
 
   int playerCenterX = singPlayerColumn * singColumnWidth + (singColumnWidth / 2);
+  M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, playerCenterX - (singPlayerWidth / 2), groundY - singPlayerHeight);
+  /*
   M5Cardputer.Display.fillTriangle(
     playerCenterX - (singPlayerWidth / 2), groundY,
     playerCenterX + (singPlayerWidth / 2), groundY,
     playerCenterX, groundY - singPlayerHeight,
     playerColor
   );
+  */
 
   M5Cardputer.Display.setTextDatum(top_left);
   M5Cardputer.Display.setTextColor(WHITE, BLACK);
@@ -1891,6 +1898,7 @@ void manageTrainSingGame() {
     if (singNotes.size() < 12) {
       FallingNote newNote = {static_cast<int>(random(0, singColumnCount)), 0, true};
       singNotes.push_back(newNote);
+      singNotesSpawned++;
     }
     singLastSpawnTime = now;
   }
