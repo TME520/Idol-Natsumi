@@ -1942,7 +1942,7 @@ void drawTrainDancePlayfield() {
 
   M5Cardputer.Display.fillScreen(BLACK);
   M5Cardputer.Display.setTextColor(WHITE, BLACK);
-  M5Cardputer.Display.setTextSize(1);
+  M5Cardputer.Display.setTextSize(2);
   M5Cardputer.Display.setTextDatum(top_left);
   M5Cardputer.Display.drawString(String("Score: ") + danceScore + String("/") + danceTargetScore, 6, 6);
 
@@ -2137,10 +2137,10 @@ void manageTrainDanceGame() {
       uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
       int inputDirection = -1;
       switch (key) {
-        case 181: case 'w': case 'W':  // UP
+        case 59: case 'w': case 'W':  // UP
           inputDirection = 0;
           break;
-        case 182: case 's': case 'S':  // DOWN
+        case 46: case 's': case 'S':  // DOWN
           inputDirection = 1;
           break;
         case 44: case 'a': case 'A':   // LEFT
@@ -3688,7 +3688,26 @@ void drawOverlay() {
         drawMiniGameCountdown();
         break;
       case TRAIN_DANCE3: {
-        drawDialogBubble("You matched " + String(danceScore) + " / " + String(danceCuesShown) + " dance cues. Great reflexes!");
+        int missedDanceCues = danceCuesShown - danceScore;
+        String danceTeacherFeedback = "";
+        switch(missedDanceCues) {
+          case 0:
+            danceTeacherFeedback = "excellent!!";
+            break;
+          case 1: case 2: case 3:
+            danceTeacherFeedback = "very good!!";
+            break;
+          case 4: case 5:
+            danceTeacherFeedback = "good enough.";
+            break;
+          case 6: case 7: case 8:
+            danceTeacherFeedback = "quite poor...";
+            break;
+          default:
+            danceTeacherFeedback = "very bad...";
+            break;
+        }
+        drawDialogBubble("You matched " + String(danceScore) + " / " + String(danceCuesShown) + " dance cues (missed " + String(missedDanceCues) + "). Your performance was " + danceTeacherFeedback);
         break;
       }
       case TRAIN_SING3: {
