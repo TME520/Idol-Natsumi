@@ -335,6 +335,21 @@ bool singGameRunning = false;
 bool singGameCompleted = false;
 std::vector<FallingNote> singNotes;
 
+// Training DANCE mini-game state
+const unsigned long danceCueDuration = 700;      // How long a cue stays on screen (ms)
+const unsigned long danceCueGap = 220;           // Gap before next cue appears (ms)
+const int danceTargetScore = 30;
+int danceScore = 0;
+int danceCuesShown = 0;
+int danceCurrentDirection = -1;                  // 0=UP,1=DOWN,2=LEFT,3=RIGHT
+bool danceCueActive = false;
+unsigned long danceCueStart = 0;
+unsigned long danceNextCueTime = 0;
+unsigned long danceCompletionTime = 0;
+bool danceGameRunning = false;
+bool danceGameCompleted = false;
+bool danceNeedsRedraw = false;
+
 String copyright = "(c) 2025 - Pantzumatic";
 String versionNumber = "0.6.1012";
 
@@ -1867,6 +1882,89 @@ void manageMiniGameCountdown() {
   }
 }
 
+// === TRAIN_DANCE2 Mini-game ===
+void resetTrainDanceGame() {
+  danceScore = 0;
+  danceCuesShown = 0;
+  danceCurrentDirection = -1;
+  danceCueActive = false;
+  danceCueStart = 0;
+  danceNextCueTime = 0;
+  danceCompletionTime = 0;
+  danceGameRunning = false;
+  danceGameCompleted = false;
+  danceNeedsRedraw = true;
+}
+
+void spawnDanceCue() {
+  danceCurrentDirection = static_cast<int>(random(0, 4));
+  danceCueStart = millis();
+  danceCueActive = true;
+  danceCuesShown++;
+  danceNeedsRedraw = true;
+}
+
+void startTrainDanceGame() {
+  resetTrainDanceGame();
+  overlayActive = false;
+  danceGameRunning = true;
+  M5Cardputer.Display.fillScreen(BLACK);
+  spawnDanceCue();
+}
+
+void drawDanceArrow(int direction) {
+  const int cx = M5Cardputer.Display.width() / 2;
+  const int cy = M5Cardputer.Display.height() / 2;
+  const int size = 32;
+  const uint16_t arrowColor = M5Cardputer.Display.color565(255, 120, 180);
+
+  switch (direction) {
+    case 0:  // UP
+      M5Cardputer.Display.fillTriangle(cx, cy - size, cx - size, cy + size, cx + size, cy + size, arrowColor);
+      break;
+    case 1:  // DOWN
+      M5Cardputer.Display.fillTriangle(cx - size, cy - size, cx + size, cy - size, cx, cy + size, arrowColor);
+      break;
+    case 2:  // LEFT
+      M5Cardputer.Display.fillTriangle(cx + size, cy - size, cx + size, cy + size, cx - size, cy, arrowColor);
+      break;
+    case 3:  // RIGHT
+      M5Cardputer.Display.fillTriangle(cx - size, cy - size, cx - size, cy + size, cx + size, cy, arrowColor);
+      break;
+    default:
+      break;
+  }
+}
+
+void drawTrainDancePlayfield() {
+  const int screenWidth = M5Cardputer.Display.width();
+  const int screenHeight = M5Cardputer.Display.height();
+
+  M5Cardputer.Display.fillScreen(BLACK);
+  M5Cardputer.Display.setTextColor(WHITE, BLACK);
+  M5Cardputer.Display.setTextSize(2);
+  M5Cardputer.Display.setTextDatum(top_left);
+  M5Cardputer.Display.drawString(String("Score: ") + danceScore + String("/") + danceTargetScore, 6, 6);
+
+  if (danceGameCompleted) {
+    M5Cardputer.Display.setTextDatum(middle_center);
+    M5Cardputer.Display.setTextSize(2);
+    M5Cardputer.Display.drawString("Training complete!", screenWidth / 2, screenHeight / 2);
+    return;
+  }
+
+  if (danceCueActive && danceCurrentDirection >= 0) {
+    drawDanceArrow(danceCurrentDirection);
+    M5Cardputer.Display.setTextDatum(middle_center);
+    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.drawString("Hit the matching arrow!", screenWidth / 2, screenHeight - 12);
+  } else {
+    M5Cardputer.Display.setTextDatum(middle_center);
+    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.drawString("Get ready...", screenWidth / 2, screenHeight / 2);
+  }
+}
+
 // === TRAIN_SING2 Mini-game ===
 void resetTrainSingGame() {
   singNotes.clear();
@@ -2006,7 +2104,76 @@ void manageTrainSingGame() {
 }
 
 void manageTrainDanceGame() {
-  // MEH
+  if (!danceGameRunning && !danceGameCompleted) {
+    startTrainDanceGame();
+  }
+
+  unsigned long now = millis();
+
+  if (danceGameCompleted) {
+    if (danceNeedsRedraw) {
+      drawTrainDancePlayfield();
+      danceNeedsRedraw = false;
+    }
+    if (now - danceCompletionTime >= 1200) {
+      changeState(0, TRAIN_DANCE3, 0);
+    }
+    return;
+  }
+
+  if (danceCueActive && now - danceCueStart >= danceCueDuration) {
+    danceCueActive = false;
+    danceNextCueTime = now + danceCueGap;
+    danceNeedsRedraw = true;
+  }
+
+  if (!danceCueActive && now >= danceNextCueTime && danceGameRunning) {
+    spawnDanceCue();
+  }
+
+  if (danceCueActive && M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (!keyList.empty()) {
+      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      int inputDirection = -1;
+      switch (key) {
+        case 59: case 'w': case 'W':  // UP
+          inputDirection = 0;
+          break;
+        case 46: case 's': case 'S':  // DOWN
+          inputDirection = 1;
+          break;
+        case 44: case 'a': case 'A':   // LEFT
+          inputDirection = 2;
+          break;
+        case 47: case 'd': case 'D':   // RIGHT
+          inputDirection = 3;
+          break;
+        default:
+          break;
+      }
+      if (inputDirection == danceCurrentDirection) {
+        danceScore++;
+        danceCueActive = false;
+        danceNextCueTime = now + danceCueGap;
+        danceNeedsRedraw = true;
+      }
+    }
+  }
+
+  if (danceScore >= danceTargetScore && !danceGameCompleted) {
+    danceGameCompleted = true;
+    danceCompletionTime = now;
+    if (natsumi.performance < 4) {
+      natsumi.performance += 1;
+    }
+    danceNeedsRedraw = true;
+  }
+
+  if (danceNeedsRedraw) {
+    drawTrainDancePlayfield();
+    danceNeedsRedraw = false;
+  }
 }
 
 void resetBathGame() {
@@ -3520,6 +3687,29 @@ void drawOverlay() {
       case TRAIN_DANCE: case TRAIN_SING:
         drawMiniGameCountdown();
         break;
+      case TRAIN_DANCE3: {
+        int missedDanceCues = danceCuesShown - danceScore;
+        String danceTeacherFeedback = "";
+        switch(missedDanceCues) {
+          case 0:
+            danceTeacherFeedback = "excellent!!";
+            break;
+          case 1: case 2: case 3:
+            danceTeacherFeedback = "very good!!";
+            break;
+          case 4: case 5:
+            danceTeacherFeedback = "good enough.";
+            break;
+          case 6: case 7: case 8:
+            danceTeacherFeedback = "quite poor...";
+            break;
+          default:
+            danceTeacherFeedback = "very bad...";
+            break;
+        }
+        drawDialogBubble("You matched " + String(danceScore) + " / " + String(danceCuesShown) + " dance cues (missed " + String(missedDanceCues) + "). Your performance was " + danceTeacherFeedback);
+        break;
+      }
       case TRAIN_SING3: {
         int missedMusicCoins = singNotesSpawned - singNotesCollected;
         String musicTeacherFeedback = "";
@@ -4114,6 +4304,9 @@ void miniGameDebrief() {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       switch (currentState) {
         case TRAIN_SING3:
+          changeState(0, HOME_LOOP, 0);
+          break;
+        case TRAIN_DANCE3:
           changeState(0, HOME_LOOP, 0);
           break;
       }
