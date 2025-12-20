@@ -3463,7 +3463,7 @@ void drawOverlay() {
       case TRAIN_SING:
         drawTrainSingCountdown();
         break;
-      case TRAIN_SING3:
+      case TRAIN_SING3: {
         int missedMusicCoins = singNotesSpawned - singNotesCollected;
         String musicTeacherFeedback = "";
         switch(missedMusicCoins) {
@@ -3485,6 +3485,7 @@ void drawOverlay() {
         }
         drawDialogBubble("You collected " + String(singNotesCollected) + " / " + String(singNotesSpawned) +" music coins (missed " + String(missedMusicCoins) +"). Your performance was " + musicTeacherFeedback);
         break;
+      }
       case FOOD_CONBINI2:
         drawConbimartOverlay();
         break;
