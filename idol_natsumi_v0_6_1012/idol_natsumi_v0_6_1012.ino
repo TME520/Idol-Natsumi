@@ -62,6 +62,7 @@ enum GameState {
   TRAIN_MENU,
   TRAIN_SING,
   TRAIN_SING2,
+  TRAIN_SING3,
   TRAIN_DANCE,
   TRAIN_SWIM,
   TRAIN_GYM,
@@ -632,6 +633,9 @@ void preloadImages() {
       preloadImage("/idolnat/screens/singing_school_bg.png", currentBackground);
       preloadImage("/idolnat/sprites/natsumi_head_sprite-22x20.png", natsumiSprite);
       break;
+    case TRAIN_SING3:
+      preloadImage("/idolnat/screens/singing_school_bg.png", currentBackground);
+      break;
     case TRAIN_DANCE:
       preloadImage("/idolnat/screens/ballet_school_bg.png", currentBackground);
       break;
@@ -687,6 +691,9 @@ void preloadImages() {
           break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_11yo_asleep-90x135.png", currentCharacter);
+          break;
+        case TRAIN_SING3:
+          preloadImage("/idolnat/sprites/music_teacher-90x135.png", currentCharacter);
           break; 
         default:
           preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentCharacter);
@@ -718,7 +725,10 @@ void preloadImages() {
           break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_13yo_asleep-90x135.png", currentCharacter);
-          break; 
+          break;
+        case TRAIN_SING3:
+          preloadImage("/idolnat/sprites/music_teacher-90x135.png", currentCharacter);
+          break;
         default:
           preloadImage("/idolnat/sprites/natsumi_13yo-90x135.png", currentCharacter);
           break;
@@ -749,7 +759,10 @@ void preloadImages() {
           break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_15yo_asleep-90x135.png", currentCharacter);
-          break; 
+          break;
+        case TRAIN_SING3:
+          preloadImage("/idolnat/sprites/music_teacher-90x135.png", currentCharacter);
+          break;
         default:
           preloadImage("/idolnat/sprites/natsumi_15yo-90x135.png", currentCharacter);
           break;
@@ -780,7 +793,10 @@ void preloadImages() {
           break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_18yo_asleep-90x135.png", currentCharacter);
-          break; 
+          break;
+        case TRAIN_SING3:
+          preloadImage("/idolnat/sprites/music_teacher-90x135.png", currentCharacter);
+          break;
         default:
           preloadImage("/idolnat/sprites/natsumi_18yo-90x135.png", currentCharacter);
           break;
@@ -811,7 +827,10 @@ void preloadImages() {
           break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_21yo_asleep-90x135.png", currentCharacter);
-          break; 
+          break;
+        case TRAIN_SING3:
+          preloadImage("/idolnat/sprites/music_teacher-90x135.png", currentCharacter);
+          break;
         default:
           preloadImage("/idolnat/sprites/natsumi_21yo-90x135.png", currentCharacter);
           break;
@@ -1114,6 +1133,11 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case TRAIN_SING2:
         screenConfig = GAME;
+        break;
+      case TRAIN_SING3:
+        screenConfig = DIALOG;
+        overlayActive = true;
+        l5NeedsRedraw = true;
         break;
       case TRAIN_DANCE:
         screenConfig = ROOM;
@@ -1479,6 +1503,9 @@ void manageDialog() {
     case HEALTH_TEMPLE: case HEALTH_TEMPLE6:
       priest();
       break;
+    case TRAIN_SING3:
+      miniGameDebrief();
+      break;
     default:
       break;
   }
@@ -1833,14 +1860,6 @@ void drawTrainSingPlayfield(bool showCompletion) {
 
   int playerCenterX = singPlayerColumn * singColumnWidth + (singColumnWidth / 2);
   M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, playerCenterX - (singPlayerWidth / 2), groundY - singPlayerHeight);
-  /*
-  M5Cardputer.Display.fillTriangle(
-    playerCenterX - (singPlayerWidth / 2), groundY,
-    playerCenterX + (singPlayerWidth / 2), groundY,
-    playerCenterX, groundY - singPlayerHeight,
-    playerColor
-  );
-  */
 
   M5Cardputer.Display.setTextDatum(top_left);
   M5Cardputer.Display.setTextColor(WHITE, BLACK);
@@ -1864,7 +1883,7 @@ void manageTrainSingGame() {
   if (singGameCompleted) {
     drawTrainSingPlayfield(true);
     if (now - singCompletionTime >= 1200) {
-      changeState(0, HOME_LOOP, 0);
+      changeState(0, TRAIN_SING3, 0);
     }
     return;
   }
@@ -3444,6 +3463,28 @@ void drawOverlay() {
       case TRAIN_SING:
         drawTrainSingCountdown();
         break;
+      case TRAIN_SING3:
+        int missedMusicCoins = singNotesSpawned - singNotesCollected;
+        String musicTeacherFeedback = "";
+        switch(missedMusicCoins) {
+          case 0:
+            musicTeacherFeedback = "excellent!!";
+            break;
+          case 1: case 2: case 3:
+            musicTeacherFeedback = "very good!!";
+            break;
+          case 4: case 5:
+            musicTeacherFeedback = "good enough.";
+            break;
+          case 6: case 7: case 8:
+            musicTeacherFeedback = "quite poor...";
+            break;
+          default:
+            musicTeacherFeedback = "very bad...";
+            break;
+        }
+        drawDialogBubble("You collected " + String(singNotesCollected) + " / " + String(singNotesSpawned) +" music coins (missed " + String(missedMusicCoins) +"). Your performance was " + musicTeacherFeedback);
+        break;
       case FOOD_CONBINI2:
         drawConbimartOverlay();
         break;
@@ -3998,6 +4039,23 @@ void foodDelivery() {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       switch (currentState) {
         case FOOD_ORDER8:
+          changeState(0, HOME_LOOP, 0);
+          break;
+      }
+      return;
+    }
+  }
+}
+
+void miniGameDebrief() {
+  // Serial.println("> Entering miniGameDebrief()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (currentState) {
+        case TRAIN_SING3:
           changeState(0, HOME_LOOP, 0);
           break;
       }
