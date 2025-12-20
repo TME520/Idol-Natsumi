@@ -64,9 +64,11 @@ enum GameState {
   TRAIN_SING2,
   TRAIN_SING3,
   TRAIN_DANCE,
+  TRAIN_DANCE2,
+  TRAIN_DANCE3,
   TRAIN_SWIM,
   TRAIN_GYM,
-  TRAIN_WALK,
+  TRAIN_RUN,
   TRAIN_LIBRARY,
   COMP_MENU,
   COMP_LOCAL,
@@ -626,6 +628,8 @@ void preloadImages() {
     case TRAIN_MENU:
       preloadImage("/idolnat/screens/map_training.png", currentBackground);
       break;
+    case TRAIN_DANCE:
+      break;
     case TRAIN_SING:
       preloadImage("/idolnat/screens/singing_school_bg_BW.png", currentBackground);
       break;
@@ -645,7 +649,7 @@ void preloadImages() {
     case TRAIN_GYM:
       preloadImage("/idolnat/screens/gym_bg.png", currentBackground);
       break;
-    case TRAIN_WALK:
+    case TRAIN_RUN:
       preloadImage("/idolnat/screens/forest_bg.png", currentBackground);
       break;
     case TRAIN_LIBRARY:
@@ -1148,7 +1152,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case TRAIN_GYM:
         screenConfig = ROOM;
         break;
-      case TRAIN_WALK:
+      case TRAIN_RUN:
         screenConfig = ROOM;
         break;
       case TRAIN_LIBRARY:
@@ -2695,7 +2699,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         case 52:
           // 4: WALK
           menuOpened = false;
-          changeState(0, TRAIN_WALK, 0);
+          changeState(0, TRAIN_RUN, 0);
           break;
         case 53:
           // 5: LIBRARY
@@ -2753,7 +2757,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           } else if (selection == 3) {
             changeState(0, TRAIN_GYM, 0);
           } else if (selection == 4) {
-            changeState(0, TRAIN_WALK, 0);
+            changeState(0, TRAIN_RUN, 0);
           } else if (selection == 5) {
             changeState(0, TRAIN_LIBRARY, 0);
           } else if (selection == 7) {
