@@ -61,6 +61,8 @@ enum GameState {
   GARDEN_LOOP,
   TRAIN_MENU,
   TRAIN_SING,
+  TRAIN_SING2,
+  TRAIN_SING3,
   TRAIN_DANCE,
   TRAIN_SWIM,
   TRAIN_GYM,
@@ -194,6 +196,12 @@ void drawBathSlider(int y);
 void finalizeBathOutcome(String outcomeText);
 void startBathGame();
 
+// Training SING mini-game helpers
+void resetTrainSingGame();
+void manageTrainSingGame();
+void drawTrainSingPlayfield(bool showCompletion);
+void startTrainSingGame();
+
 unsigned long changeStateCounter = 0;
 
 const unsigned long hungerInterval = 120000;   // 2 minutes
@@ -300,6 +308,31 @@ int sliderYPosition = thermometerY + thermometerHeight - sliderHeight;
 int sliderDirection = -1;  // -1 = moving up, 1 = moving down
 unsigned long lastSliderUpdate = 0;
 
+// Training SING mini-game state
+struct FallingNote {
+  int column;
+  int y;
+  bool active;
+};
+
+const int singColumnCount = 5;
+const int singTargetNotes = 30;
+const int singNoteRadius = 5;
+const int singPlayerWidth = 22;
+const int singPlayerHeight = 10;
+const unsigned long singNoteSpawnInterval = 700;
+const int singNoteFallSpeed = 3;
+int singColumnWidth = 48;
+int singPlayerY = 118;
+int singPlayerColumn = singColumnCount / 2;
+int singNotesCollected = 0;
+int singNotesSpawned = 0;
+unsigned long singLastSpawnTime = 0;
+unsigned long singCompletionTime = 0;
+bool singGameRunning = false;
+bool singGameCompleted = false;
+std::vector<FallingNote> singNotes;
+
 String copyright = "(c) 2025 - Pantzumatic";
 String versionNumber = "0.6.1012";
 
@@ -307,6 +340,7 @@ ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
 ImageBuffer currentCharacter;
 ImageBuffer currentIcon;
+ImageBuffer natsumiSprite;
 
 // Toast messages
 String toastMsg = "";
@@ -593,6 +627,13 @@ void preloadImages() {
       preloadImage("/idolnat/screens/map_training.png", currentBackground);
       break;
     case TRAIN_SING:
+      preloadImage("/idolnat/screens/singing_school_bg_BW.png", currentBackground);
+      break;
+    case TRAIN_SING2:
+      preloadImage("/idolnat/screens/singing_school_bg.png", currentBackground);
+      preloadImage("/idolnat/sprites/natsumi_head_sprite-22x20.png", natsumiSprite);
+      break;
+    case TRAIN_SING3:
       preloadImage("/idolnat/screens/singing_school_bg.png", currentBackground);
       break;
     case TRAIN_DANCE:
@@ -650,6 +691,9 @@ void preloadImages() {
           break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_11yo_asleep-90x135.png", currentCharacter);
+          break;
+        case TRAIN_SING3:
+          preloadImage("/idolnat/sprites/music_teacher-90x135.png", currentCharacter);
           break; 
         default:
           preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentCharacter);
@@ -681,7 +725,10 @@ void preloadImages() {
           break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_13yo_asleep-90x135.png", currentCharacter);
-          break; 
+          break;
+        case TRAIN_SING3:
+          preloadImage("/idolnat/sprites/music_teacher-90x135.png", currentCharacter);
+          break;
         default:
           preloadImage("/idolnat/sprites/natsumi_13yo-90x135.png", currentCharacter);
           break;
@@ -712,7 +759,10 @@ void preloadImages() {
           break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_15yo_asleep-90x135.png", currentCharacter);
-          break; 
+          break;
+        case TRAIN_SING3:
+          preloadImage("/idolnat/sprites/music_teacher-90x135.png", currentCharacter);
+          break;
         default:
           preloadImage("/idolnat/sprites/natsumi_15yo-90x135.png", currentCharacter);
           break;
@@ -743,7 +793,10 @@ void preloadImages() {
           break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_18yo_asleep-90x135.png", currentCharacter);
-          break; 
+          break;
+        case TRAIN_SING3:
+          preloadImage("/idolnat/sprites/music_teacher-90x135.png", currentCharacter);
+          break;
         default:
           preloadImage("/idolnat/sprites/natsumi_18yo-90x135.png", currentCharacter);
           break;
@@ -774,7 +827,10 @@ void preloadImages() {
           break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_21yo_asleep-90x135.png", currentCharacter);
-          break; 
+          break;
+        case TRAIN_SING3:
+          preloadImage("/idolnat/sprites/music_teacher-90x135.png", currentCharacter);
+          break;
         default:
           preloadImage("/idolnat/sprites/natsumi_21yo-90x135.png", currentCharacter);
           break;
@@ -1072,6 +1128,16 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case TRAIN_SING:
         screenConfig = ROOM;
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        break;
+      case TRAIN_SING2:
+        screenConfig = GAME;
+        break;
+      case TRAIN_SING3:
+        screenConfig = DIALOG;
+        overlayActive = true;
+        l5NeedsRedraw = true;
         break;
       case TRAIN_DANCE:
         screenConfig = ROOM;
@@ -1437,6 +1503,9 @@ void manageDialog() {
     case HEALTH_TEMPLE: case HEALTH_TEMPLE6:
       priest();
       break;
+    case TRAIN_SING3:
+      miniGameDebrief();
+      break;
     default:
       break;
   }
@@ -1477,6 +1546,9 @@ void manageGame() {
       break;
     case STATS_SCREEN:
       manageStats();
+      break;
+    case TRAIN_SING2:
+      manageTrainSingGame();
       break;
     default:
       playGame();
@@ -1598,6 +1670,10 @@ void manageRoom() {
       Serial.println(">>> In FOOD_ORDER7 waiting loop");
       changeState(0, FOOD_ORDER8, microWait);
       break;
+    case TRAIN_SING:
+      characterEnabled = false;
+      manageTrainSingCountdown();
+      break;
     case TRAIN_MENU:
       menuOpened = true;
       break;
@@ -1698,6 +1774,182 @@ void manageGarden() {
   updateAging();
   updateStats();
   return;
+}
+
+// === Training logic ===
+bool trainSingCountdownActive = false;
+unsigned long trainSingCountdownStart = 0;
+int trainSingCountdownValue = 3;
+
+void resetTrainSingCountdown() {
+  trainSingCountdownActive = false;
+  trainSingCountdownStart = 0;
+  trainSingCountdownValue = 3;
+}
+
+void drawTrainSingCountdown() {
+  drawText(String(trainSingCountdownValue), 120, 67, true, RED, 7, BLACK);
+}
+
+void manageTrainSingCountdown() {
+  if (!trainSingCountdownActive) {
+    trainSingCountdownActive = true;
+    trainSingCountdownStart = millis();
+    trainSingCountdownValue = 3;
+    resetTrainSingGame();
+    // l0NeedsRedraw = true;
+    l5NeedsRedraw = true;
+  }
+
+  unsigned long now = millis();
+  if (now - trainSingCountdownStart >= 1000) {
+    trainSingCountdownValue--;
+    trainSingCountdownStart = now;
+    l5NeedsRedraw = true;
+    if (trainSingCountdownValue == 0) {
+      resetTrainSingCountdown();
+      changeState(0, TRAIN_SING2, 0);
+      return;
+    }
+  }
+}
+
+// === TRAIN_SING2 Mini-game ===
+void resetTrainSingGame() {
+  singNotes.clear();
+  singNotesCollected = 0;
+  singNotesSpawned = 0;
+  singPlayerColumn = singColumnCount / 2;
+  singLastSpawnTime = 0;
+  singCompletionTime = 0;
+  singGameRunning = false;
+  singGameCompleted = false;
+}
+
+void startTrainSingGame() {
+  resetTrainSingGame();
+  singColumnWidth = M5Cardputer.Display.width() / singColumnCount;
+  singPlayerY = M5Cardputer.Display.height() - 12;
+  overlayActive = false;
+  singGameRunning = true;
+  M5Cardputer.Display.fillScreen(BLACK);
+}
+
+void drawTrainSingPlayfield(bool showCompletion) {
+  const int screenWidth = M5Cardputer.Display.width();
+  const int screenHeight = M5Cardputer.Display.height();
+  const uint16_t laneColor = M5Cardputer.Display.color565(40, 40, 60);
+  const uint16_t noteColor = M5Cardputer.Display.color565(255, 215, 0);
+  const uint16_t playerColor = M5Cardputer.Display.color565(120, 200, 255);
+
+  M5Cardputer.Display.fillScreen(BLACK);
+
+  for (int i = 1; i < singColumnCount; i++) {
+    int x = i * singColumnWidth;
+    M5Cardputer.Display.drawFastVLine(x, 0, screenHeight, laneColor);
+  }
+
+  int groundY = singPlayerY + (singPlayerHeight / 2);
+  M5Cardputer.Display.drawFastHLine(0, groundY, screenWidth, laneColor);
+
+  for (const auto &note : singNotes) {
+    if (!note.active) continue;
+    int x = note.column * singColumnWidth + (singColumnWidth / 2);
+    M5Cardputer.Display.fillCircle(x, note.y, singNoteRadius, noteColor);
+  }
+
+  int playerCenterX = singPlayerColumn * singColumnWidth + (singColumnWidth / 2);
+  M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, playerCenterX - (singPlayerWidth / 2), groundY - singPlayerHeight);
+
+  M5Cardputer.Display.setTextDatum(top_left);
+  M5Cardputer.Display.setTextColor(WHITE, BLACK);
+  M5Cardputer.Display.setTextSize(1);
+  M5Cardputer.Display.drawString(String("Notes: ") + singNotesCollected + String("/") + singTargetNotes, 6, 4);
+
+  if (showCompletion) {
+    M5Cardputer.Display.setTextDatum(middle_center);
+    M5Cardputer.Display.setTextSize(2);
+    M5Cardputer.Display.drawString("Training complete!", screenWidth / 2, screenHeight / 2);
+  }
+}
+
+void manageTrainSingGame() {
+  if (!singGameRunning && !singGameCompleted) {
+    startTrainSingGame();
+  }
+
+  unsigned long now = millis();
+
+  if (singGameCompleted) {
+    drawTrainSingPlayfield(true);
+    if (now - singCompletionTime >= 1200) {
+      changeState(0, TRAIN_SING3, 0);
+    }
+    return;
+  }
+
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (!keyList.empty()) {
+      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (key) {
+        case 44: case 'a': case 'A':  // LEFT
+          if (singPlayerColumn > 0) {
+            singPlayerColumn--;
+          } else {
+            singPlayerColumn = singColumnCount - 1;
+          }
+          break;
+        case 47: case 'd': case 'D':  // RIGHT
+          if (singPlayerColumn < singColumnCount - 1) {
+            singPlayerColumn++;
+          } else {
+            singPlayerColumn = 0;
+          }
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  if (now - singLastSpawnTime >= singNoteSpawnInterval) {
+    if (singNotes.size() < 12) {
+      FallingNote newNote = {static_cast<int>(random(0, singColumnCount)), 0, true};
+      singNotes.push_back(newNote);
+      singNotesSpawned++;
+    }
+    singLastSpawnTime = now;
+  }
+
+  for (auto &note : singNotes) {
+    if (!note.active) continue;
+    note.y += singNoteFallSpeed;
+    if (note.y >= singPlayerY - singNoteRadius) {
+      if (note.column == singPlayerColumn) {
+        singNotesCollected++;
+        note.active = false;
+      } else if (note.y > M5Cardputer.Display.height()) {
+        note.active = false;
+      }
+    }
+  }
+
+  singNotes.erase(std::remove_if(singNotes.begin(), singNotes.end(), [](const FallingNote &note) {
+    return !note.active || note.y > M5Cardputer.Display.height();
+  }), singNotes.end());
+
+  if (singNotesCollected >= singTargetNotes) {
+    singGameCompleted = true;
+    singCompletionTime = now;
+    if (natsumi.performance < 4) {
+      natsumi.performance += 1;
+    }
+    drawTrainSingPlayfield(true);
+    return;
+  }
+
+  drawTrainSingPlayfield(false);
 }
 
 void resetBathGame() {
@@ -3208,6 +3460,32 @@ void drawOverlay() {
         Serial.println(">>> drawOverlay: STATS_SCREEN");
         drawStats();
         break;
+      case TRAIN_SING:
+        drawTrainSingCountdown();
+        break;
+      case TRAIN_SING3: {
+        int missedMusicCoins = singNotesSpawned - singNotesCollected;
+        String musicTeacherFeedback = "";
+        switch(missedMusicCoins) {
+          case 0:
+            musicTeacherFeedback = "excellent!!";
+            break;
+          case 1: case 2: case 3:
+            musicTeacherFeedback = "very good!!";
+            break;
+          case 4: case 5:
+            musicTeacherFeedback = "good enough.";
+            break;
+          case 6: case 7: case 8:
+            musicTeacherFeedback = "quite poor...";
+            break;
+          default:
+            musicTeacherFeedback = "very bad...";
+            break;
+        }
+        drawDialogBubble("You collected " + String(singNotesCollected) + " / " + String(singNotesSpawned) +" music coins (missed " + String(missedMusicCoins) +"). Your performance was " + musicTeacherFeedback);
+        break;
+      }
       case FOOD_CONBINI2:
         drawConbimartOverlay();
         break;
@@ -3240,6 +3518,9 @@ void drawOverlay() {
         break;
       case FOOD_ORDER8:
         natsumi.hunger = 4;
+        if (natsumi.charm < 4) {
+          natsumi.charm += 1;
+        }
         drawDialogBubble("Hello, here is the food you ordered.");
         break;
       case FOOD_REST:
@@ -3647,6 +3928,9 @@ void cookFood() {
                 if (natsumi.hunger < 4) {
                   natsumi.hunger += 1;
                 }
+                if (natsumi.charm < 4) {
+                  natsumi.charm += 1;
+                }
                 showToast("Eating " + String(choice.label));
                 clearFoodGrid();
                 overlayActive = false;
@@ -3756,6 +4040,23 @@ void foodDelivery() {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       switch (currentState) {
         case FOOD_ORDER8:
+          changeState(0, HOME_LOOP, 0);
+          break;
+      }
+      return;
+    }
+  }
+}
+
+void miniGameDebrief() {
+  // Serial.println("> Entering miniGameDebrief()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (currentState) {
+        case TRAIN_SING3:
           changeState(0, HOME_LOOP, 0);
           break;
       }
@@ -3908,6 +4209,9 @@ void restaurantFoodSelection() {
               if (natsumi.money >= 700) {
                 natsumi.money -= 700;
                 natsumi.hunger = 4;
+                if (natsumi.charm < 4) {
+                  natsumi.charm += 1;
+                }
               } else {
                 showToast("Not enough money :(");
               }
@@ -3931,6 +4235,9 @@ void restaurantFoodSelection() {
               if (natsumi.money >= 800) {
                 natsumi.money -= 800;
                 natsumi.hunger = 4;
+                if (natsumi.charm < 4) {
+                  natsumi.charm += 1;
+                }
               } else {
                 showToast("Not enough money :(");
               }
@@ -3954,6 +4261,9 @@ void restaurantFoodSelection() {
               if (natsumi.money >= 900) {
                 natsumi.money -= 900;
                 natsumi.hunger = 4;
+                if (natsumi.charm < 4) {
+                  natsumi.charm += 1;
+                }
               } else {
                 showToast("Not enough money :(");
               }
