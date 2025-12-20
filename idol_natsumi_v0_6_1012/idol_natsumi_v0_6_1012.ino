@@ -221,7 +221,7 @@ const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: DEV SCREEN"};
 const char* homeMenuItems[] = {"0: STATS", "1: FOOD", "2: TRAINING", "3: COMPETITION", "4: HEALTH", "5: REST", "6: GARDEN", "7: DEBUG"};
 const char* devMenuItems[] = {"0: CALIB1", "1: CALIB2", "2: CALIB3", "3: EXIT"};
 const char* foodMenuItems[] = {"0: FRIDGE", "1: RESTAURANT", "2: ORDER", "3: CONBINI"};
-const char* trainingMenuItems[] = {"0: SING", "1: DANCE", "2: SWIM", "3: GYM", "4: WALK", "5: LIBRARY"};
+const char* trainingMenuItems[] = {"0: SING", "1: DANCE", "2: SWIM", "3: GYM", "4: RUN", "5: LIBRARY"};
 const char* competitionMenuItems[] = {"0: LOCAL", "1: DEPARTMENTAL", "2: REGIONAL", "3: NATIONAL"};
 const char* healthMenuItems[] = {"0: WASH", "1: DOCTOR", "2: TEMPLE", "3: ONSEN"};
 const char* restMenuItems[] = {"0: MEDITATE", "1: SLEEP"};
@@ -628,19 +628,20 @@ void preloadImages() {
     case TRAIN_MENU:
       preloadImage("/idolnat/screens/map_training.png", currentBackground);
       break;
-    case TRAIN_DANCE:
-      break;
     case TRAIN_SING:
       preloadImage("/idolnat/screens/singing_school_bg_BW.png", currentBackground);
       break;
     case TRAIN_SING2:
-      preloadImage("/idolnat/screens/singing_school_bg.png", currentBackground);
+      // preloadImage("/idolnat/screens/singing_school_bg.png", currentBackground);
       preloadImage("/idolnat/sprites/natsumi_head_sprite-22x20.png", natsumiSprite);
       break;
     case TRAIN_SING3:
       preloadImage("/idolnat/screens/singing_school_bg.png", currentBackground);
       break;
     case TRAIN_DANCE:
+      preloadImage("/idolnat/screens/ballet_school_bg_BW.png", currentBackground);
+      break;
+    case TRAIN_DANCE3:
       preloadImage("/idolnat/screens/ballet_school_bg.png", currentBackground);
       break;
     case TRAIN_SWIM:
@@ -696,6 +697,9 @@ void preloadImages() {
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_11yo_asleep-90x135.png", currentCharacter);
           break;
+        case TRAIN_DANCE3:
+          preloadImage("/idolnat/sprites/dance_teacher-90x135.png", currentCharacter);
+          break;
         case TRAIN_SING3:
           preloadImage("/idolnat/sprites/music_teacher-90x135.png", currentCharacter);
           break; 
@@ -729,6 +733,9 @@ void preloadImages() {
           break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_13yo_asleep-90x135.png", currentCharacter);
+          break;
+        case TRAIN_DANCE3:
+          preloadImage("/idolnat/sprites/dance_teacher-90x135.png", currentCharacter);
           break;
         case TRAIN_SING3:
           preloadImage("/idolnat/sprites/music_teacher-90x135.png", currentCharacter);
@@ -764,6 +771,9 @@ void preloadImages() {
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_15yo_asleep-90x135.png", currentCharacter);
           break;
+        case TRAIN_DANCE3:
+          preloadImage("/idolnat/sprites/dance_teacher-90x135.png", currentCharacter);
+          break;
         case TRAIN_SING3:
           preloadImage("/idolnat/sprites/music_teacher-90x135.png", currentCharacter);
           break;
@@ -798,6 +808,9 @@ void preloadImages() {
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_18yo_asleep-90x135.png", currentCharacter);
           break;
+        case TRAIN_DANCE3:
+          preloadImage("/idolnat/sprites/dance_teacher-90x135.png", currentCharacter);
+          break;
         case TRAIN_SING3:
           preloadImage("/idolnat/sprites/music_teacher-90x135.png", currentCharacter);
           break;
@@ -831,6 +844,9 @@ void preloadImages() {
           break;
         case REST_SLEEP:
           preloadImage("/idolnat/sprites/natsumi_21yo_asleep-90x135.png", currentCharacter);
+          break;
+        case TRAIN_DANCE3:
+          preloadImage("/idolnat/sprites/dance_teacher-90x135.png", currentCharacter);
           break;
         case TRAIN_SING3:
           preloadImage("/idolnat/sprites/music_teacher-90x135.png", currentCharacter);
@@ -1130,6 +1146,19 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItems = trainingMenuItems;
         currentMenuItemsCount = trainingMenuItemCount;
         break;
+      case TRAIN_DANCE:
+        screenConfig = ROOM;
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        break;
+      case TRAIN_DANCE2:
+        screenConfig = GAME;
+        break;
+      case TRAIN_DANCE3:
+        screenConfig = DIALOG;
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        break;
       case TRAIN_SING:
         screenConfig = ROOM;
         overlayActive = true;
@@ -1142,9 +1171,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         screenConfig = DIALOG;
         overlayActive = true;
         l5NeedsRedraw = true;
-        break;
-      case TRAIN_DANCE:
-        screenConfig = ROOM;
         break;
       case TRAIN_SWIM:
         screenConfig = ROOM;
@@ -1507,6 +1533,9 @@ void manageDialog() {
     case HEALTH_TEMPLE: case HEALTH_TEMPLE6:
       priest();
       break;
+    case TRAIN_DANCE3:
+      miniGameDebrief();
+      break;
     case TRAIN_SING3:
       miniGameDebrief();
       break;
@@ -1550,6 +1579,9 @@ void manageGame() {
       break;
     case STATS_SCREEN:
       manageStats();
+      break;
+    case TRAIN_DANCE2:
+      manageTrainDanceGame();
       break;
     case TRAIN_SING2:
       manageTrainSingGame();
@@ -1674,9 +1706,13 @@ void manageRoom() {
       Serial.println(">>> In FOOD_ORDER7 waiting loop");
       changeState(0, FOOD_ORDER8, microWait);
       break;
+    case TRAIN_DANCE:
+      characterEnabled = false;
+      manageMiniGameCountdown();
+      break;
     case TRAIN_SING:
       characterEnabled = false;
-      manageTrainSingCountdown();
+      manageMiniGameCountdown();
       break;
     case TRAIN_MENU:
       menuOpened = true;
@@ -1780,39 +1816,52 @@ void manageGarden() {
   return;
 }
 
-// === Training logic ===
-bool trainSingCountdownActive = false;
-unsigned long trainSingCountdownStart = 0;
-int trainSingCountdownValue = 3;
+bool miniGameCountdownActive = false;
+unsigned long miniGameCountdownStart = 0;
+int miniGameCountdownValue = 3;
 
-void resetTrainSingCountdown() {
-  trainSingCountdownActive = false;
-  trainSingCountdownStart = 0;
-  trainSingCountdownValue = 3;
+void resetMiniGameCountdown() {
+  miniGameCountdownActive = false;
+  miniGameCountdownStart = 0;
+  miniGameCountdownValue = 3;
 }
 
-void drawTrainSingCountdown() {
-  drawText(String(trainSingCountdownValue), 120, 67, true, RED, 7, BLACK);
+void drawMiniGameCountdown() {
+  drawText(String(miniGameCountdownValue), 120, 67, true, RED, 7, BLACK);
 }
 
-void manageTrainSingCountdown() {
-  if (!trainSingCountdownActive) {
-    trainSingCountdownActive = true;
-    trainSingCountdownStart = millis();
-    trainSingCountdownValue = 3;
-    resetTrainSingGame();
-    // l0NeedsRedraw = true;
+void manageMiniGameCountdown() {
+  if (!miniGameCountdownActive) {
+    miniGameCountdownActive = true;
+    miniGameCountdownStart = millis();
+    miniGameCountdownValue = 3;
+    switch(currentState) {
+      case TRAIN_SING2:
+        resetTrainSingGame();
+        break;
+      default:
+        break;
+    }
     l5NeedsRedraw = true;
   }
 
   unsigned long now = millis();
-  if (now - trainSingCountdownStart >= 1000) {
-    trainSingCountdownValue--;
-    trainSingCountdownStart = now;
+  if (now - miniGameCountdownStart >= 1000) {
+    miniGameCountdownValue--;
+    miniGameCountdownStart = now;
     l5NeedsRedraw = true;
-    if (trainSingCountdownValue == 0) {
-      resetTrainSingCountdown();
-      changeState(0, TRAIN_SING2, 0);
+    if (miniGameCountdownValue == 0) {
+      resetMiniGameCountdown();
+      switch(currentState) {
+        case TRAIN_DANCE:
+          changeState(0, TRAIN_DANCE2, 0);
+          break;
+        case TRAIN_SING:
+          changeState(0, TRAIN_SING2, 0);
+          break;
+        default:
+          break;
+      }
       return;
     }
   }
@@ -1954,6 +2003,10 @@ void manageTrainSingGame() {
   }
 
   drawTrainSingPlayfield(false);
+}
+
+void manageTrainDanceGame() {
+  // MEH
 }
 
 void resetBathGame() {
@@ -2697,7 +2750,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           changeState(0, TRAIN_GYM, 0);
           break;
         case 52:
-          // 4: WALK
+          // 4: RUN
           menuOpened = false;
           changeState(0, TRAIN_RUN, 0);
           break;
@@ -3464,8 +3517,8 @@ void drawOverlay() {
         Serial.println(">>> drawOverlay: STATS_SCREEN");
         drawStats();
         break;
-      case TRAIN_SING:
-        drawTrainSingCountdown();
+      case TRAIN_DANCE: case TRAIN_SING:
+        drawMiniGameCountdown();
         break;
       case TRAIN_SING3: {
         int missedMusicCoins = singNotesSpawned - singNotesCollected;
