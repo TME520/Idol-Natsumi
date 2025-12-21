@@ -132,3 +132,14 @@ The audience is bigger, the lights brighter, and every note counts.
 #### Claim the national spotlight
 
 Step into the Tokyo Grand Dome Hall, compete against Japan’s top young singers and, if you’re good enough sing alongside Minami Toshida herself.
+
+### Train
+
+#### Singing
+
+In this mini game, catch music coins falling from the sky before they hit the ground. Use the LEFT and RIGHT arrow keys to move horizontally and make sure you drop as few music coins as possible.
+
+#### Dancing
+
+Help Natsumi get ready to become a good dancer with this mini game in which you must press the LEFT, RIGHT, UP or DOWN arrow keys according to what's displayed on teh screen.
+
