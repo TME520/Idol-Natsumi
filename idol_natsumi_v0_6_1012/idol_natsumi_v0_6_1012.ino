@@ -2330,7 +2330,7 @@ void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect) {
     M5Cardputer.Display.fillTriangle(sharkX, sharkY - (swimSharkHeight / 2), sharkX, sharkY + (swimSharkHeight / 2), sharkX + swimSharkLength, sharkY, sharkColor);
     M5Cardputer.Display.fillRect(sharkX + 2, sharkY - 2, swimSharkLength / 2, 4, sharkBelly);
     */
-    M5Cardputer.Display.fillRect(sharkX - swimSharkLength, sharkY - swimSharkHeight, (sharkX - swimSharkLength) + 26, (sharkY - swimSharkHeight) + 14, poolColor);
+    M5Cardputer.Display.fillRect((sharkX - shark.speed), sharkY, (sharkX + swimSharkLength), (sharkY + swimSharkHeight), poolColor);
     M5Cardputer.Display.drawPng(enemySprite.data, enemySprite.length, sharkX, sharkY);
   }
 
