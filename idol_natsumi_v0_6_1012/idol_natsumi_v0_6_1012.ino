@@ -2373,6 +2373,9 @@ void manageTrainSwimGame() {
       swimNeedsRedraw = false;
     }
     if (now - swimCompletionTime >= swimCompletionDelay) {
+      if (natsumi.fitness < 4) {
+        natsumi.fitness += 1;
+      }
       changeState(0, TRAIN_SWIM3, 0);
     }
     return;
