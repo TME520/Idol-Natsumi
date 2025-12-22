@@ -403,6 +403,7 @@ ImageBuffer calib1, calib2, calib3;
 ImageBuffer currentCharacter;
 ImageBuffer currentIcon;
 ImageBuffer natsumiSprite;
+ImageBuffer enemySprite;
 
 // Toast messages
 String toastMsg = "";
@@ -709,6 +710,7 @@ void preloadImages() {
       break;
     case TRAIN_SWIM2:
       preloadImage("/idolnat/sprites/natsumi_head_sprite-22x20.png", natsumiSprite);
+      preloadImage("/idolnat/sprites/shark_sprite-26x14.png", enemySprite);
       break;
     case TRAIN_SWIM3:
       preloadImage("/idolnat/screens/swimming_pool_bg.png", currentBackground);
@@ -1940,10 +1942,6 @@ void manageMiniGameCountdown() {
       case TRAIN_SING2:
         resetTrainSingGame();
         break;
-      case TRAIN_SWIM:
-      case TRAIN_SWIM2:
-        resetTrainSwimGame();
-        break;
       default:
         break;
     }
@@ -2298,6 +2296,7 @@ void spawnSwimShark() {
   shark.x = -swimSharkLength;
   // shark.speed = getRandomSwimSpeed();
   shark.speed = 10;
+  // shark.speed = swimSharkLength;
   shark.active = true;
   swimSharks.push_back(shark);
 }
@@ -2307,7 +2306,7 @@ void startTrainSwimGame() {
   overlayActive = false;
   swimGameRunning = true;
   swimNeedsRedraw = true;
-  M5Cardputer.Display.fillScreen(M5Cardputer.Display.color565(140, 210, 255));
+  M5Cardputer.Display.fillScreen(M5Cardputer.Display.color565(150, 220, 255));
 }
 
 void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect) {
@@ -2321,14 +2320,18 @@ void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect) {
   const uint16_t playerColor = M5Cardputer.Display.color565(70, 140, 255);
   const uint16_t textColor = BLACK;
 
-  M5Cardputer.Display.fillScreen(poolColor);
+  // M5Cardputer.Display.fillScreen(poolColor);
 
   for (const auto &shark : swimSharks) {
     if (!shark.active) continue;
     int sharkX = static_cast<int>(shark.x);
     int sharkY = getSwimLaneCenter(shark.lane);
+    /*
     M5Cardputer.Display.fillTriangle(sharkX, sharkY - (swimSharkHeight / 2), sharkX, sharkY + (swimSharkHeight / 2), sharkX + swimSharkLength, sharkY, sharkColor);
     M5Cardputer.Display.fillRect(sharkX + 2, sharkY - 2, swimSharkLength / 2, 4, sharkBelly);
+    */
+    M5Cardputer.Display.fillRect(sharkX - swimSharkLength, sharkY - swimSharkHeight, (sharkX - swimSharkLength) + 26, (sharkY - swimSharkHeight) + 14, poolColor);
+    M5Cardputer.Display.drawPng(enemySprite.data, enemySprite.length, sharkX, sharkY);
   }
 
   int playerX = screenWidth - 32;
@@ -2339,7 +2342,7 @@ void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect) {
   M5Cardputer.Display.setTextDatum(top_left);
   M5Cardputer.Display.setTextColor(textColor, poolColor);
   M5Cardputer.Display.setTextSize(2);
-  M5Cardputer.Display.drawString(String("Dodged: ") + swimAvoidedSharks + String("/") + swimTargetSharks, 6, 4);
+  M5Cardputer.Display.drawString(String("Dodged: ") + swimAvoidedSharks + String("/") + swimTargetSharks + " ", 6, 4);
 
   if (showCompletion) {
     M5Cardputer.Display.setTextDatum(middle_center);
@@ -2350,10 +2353,10 @@ void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect) {
 
 void handleSwimCollision() {
   swimCollisions++;
-  swimHitFlash = true;
-  swimHitFlashTime = millis();
+  // swimHitFlash = true;
+  // swimHitFlashTime = millis();
   swimAvoidedSharks = max(0, swimAvoidedSharks - swimHitPenalty);
-  swimNeedsRedraw = true;
+  // swimNeedsRedraw = true;
 }
 
 void manageTrainSwimGame() {
@@ -2409,6 +2412,7 @@ void manageTrainSwimGame() {
   for (auto &shark : swimSharks) {
     if (!shark.active) continue;
     shark.x += shark.speed;
+    // shark.x += (shark.speed + swimSharkLength);
     int sharkLeft = static_cast<int>(shark.x);
     int sharkRight = sharkLeft + swimSharkLength;
 
