@@ -2337,6 +2337,7 @@ void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect) {
   int playerX = screenWidth - 32;
   int playerY = getSwimLaneCenter(swimPlayerLane);
 
+  M5Cardputer.Display.fillRect(playerX, 20, playerX + 22, 130, poolColor);
   M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, playerX, playerY);
 
   M5Cardputer.Display.setTextDatum(top_left);
