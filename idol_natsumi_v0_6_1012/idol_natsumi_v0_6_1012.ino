@@ -67,6 +67,8 @@ enum GameState {
   TRAIN_DANCE2,
   TRAIN_DANCE3,
   TRAIN_SWIM,
+  TRAIN_SWIM2,
+  TRAIN_SWIM3,
   TRAIN_GYM,
   TRAIN_RUN,
   TRAIN_LIBRARY,
@@ -660,6 +662,12 @@ void preloadImages() {
       preloadImage("/idolnat/screens/ballet_school_bg.png", currentBackground);
       break;
     case TRAIN_SWIM:
+      preloadImage("/idolnat/screens/swimming_pool_bg_BW.png", currentBackground);
+      break;
+    case TRAIN_SWIM2:
+      preloadImage("/idolnat/sprites/natsumi_head_sprite-22x20.png", natsumiSprite);
+      break;
+    case TRAIN_SWIM3:
       preloadImage("/idolnat/screens/swimming_pool_bg.png", currentBackground);
       break;
     case TRAIN_GYM:
@@ -717,7 +725,10 @@ void preloadImages() {
           break;
         case TRAIN_SING3:
           preloadImage("/idolnat/sprites/music_teacher-90x135.png", currentCharacter);
-          break; 
+          break;
+        case TRAIN_SWIM3:
+          preloadImage("/idolnat/sprites/swim_teacher-90x135.png", currentCharacter);
+          break;
         default:
           preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentCharacter);
           break;
@@ -754,6 +765,9 @@ void preloadImages() {
           break;
         case TRAIN_SING3:
           preloadImage("/idolnat/sprites/music_teacher-90x135.png", currentCharacter);
+          break;
+        case TRAIN_SWIM3:
+          preloadImage("/idolnat/sprites/swim_teacher-90x135.png", currentCharacter);
           break;
         default:
           preloadImage("/idolnat/sprites/natsumi_13yo-90x135.png", currentCharacter);
@@ -792,6 +806,9 @@ void preloadImages() {
         case TRAIN_SING3:
           preloadImage("/idolnat/sprites/music_teacher-90x135.png", currentCharacter);
           break;
+        case TRAIN_SWIM3:
+          preloadImage("/idolnat/sprites/swim_teacher-90x135.png", currentCharacter);
+          break;
         default:
           preloadImage("/idolnat/sprites/natsumi_15yo-90x135.png", currentCharacter);
           break;
@@ -829,6 +846,9 @@ void preloadImages() {
         case TRAIN_SING3:
           preloadImage("/idolnat/sprites/music_teacher-90x135.png", currentCharacter);
           break;
+        case TRAIN_SWIM3:
+          preloadImage("/idolnat/sprites/swim_teacher-90x135.png", currentCharacter);
+          break;
         default:
           preloadImage("/idolnat/sprites/natsumi_18yo-90x135.png", currentCharacter);
           break;
@@ -865,6 +885,9 @@ void preloadImages() {
           break;
         case TRAIN_SING3:
           preloadImage("/idolnat/sprites/music_teacher-90x135.png", currentCharacter);
+          break;
+        case TRAIN_SWIM3:
+          preloadImage("/idolnat/sprites/swim_teacher-90x135.png", currentCharacter);
           break;
         default:
           preloadImage("/idolnat/sprites/natsumi_21yo-90x135.png", currentCharacter);
@@ -1189,6 +1212,16 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case TRAIN_SWIM:
         screenConfig = ROOM;
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        break;
+      case TRAIN_SWIM2:
+        screenConfig = GAME;
+        break;
+      case TRAIN_SWIM3:
+        screenConfig = DIALOG;
+        overlayActive = true;
+        l5NeedsRedraw = true;
         break;
       case TRAIN_GYM:
         screenConfig = ROOM;
@@ -1554,6 +1587,9 @@ void manageDialog() {
     case TRAIN_SING3:
       miniGameDebrief();
       break;
+    case TRAIN_SWIM3:
+      miniGameDebrief();
+      break;
     default:
       break;
   }
@@ -1600,6 +1636,9 @@ void manageGame() {
       break;
     case TRAIN_SING2:
       manageTrainSingGame();
+      break;
+    case TRAIN_SWIM2:
+      manageTrainSwimGame();
       break;
     default:
       playGame();
@@ -1726,6 +1765,10 @@ void manageRoom() {
       manageMiniGameCountdown();
       break;
     case TRAIN_SING:
+      characterEnabled = false;
+      manageMiniGameCountdown();
+      break;
+    case TRAIN_SWIM:
       characterEnabled = false;
       manageMiniGameCountdown();
       break;
@@ -2174,6 +2217,10 @@ void manageTrainDanceGame() {
     drawTrainDancePlayfield();
     danceNeedsRedraw = false;
   }
+}
+
+void manageTrainSingGame() {
+  // MEH
 }
 
 void resetBathGame() {
