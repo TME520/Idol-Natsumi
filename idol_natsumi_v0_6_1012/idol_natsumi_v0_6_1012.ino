@@ -2323,15 +2323,6 @@ void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect) {
 
   M5Cardputer.Display.fillScreen(poolColor);
 
-  /*
-  for (int lane = 0; lane < swimLaneCount; lane++) {
-    int laneY = swimPoolTop + (lane * swimLaneHeight);
-    M5Cardputer.Display.fillRect(0, laneY, screenWidth, swimLaneHeight - 6, laneColor);
-    M5Cardputer.Display.drawLine(0, laneY, screenWidth, laneY, laneDividerColor);
-  }
-  M5Cardputer.Display.drawLine(0, swimPoolTop + swimLaneCount * swimLaneHeight, screenWidth, swimPoolTop + swimLaneCount * swimLaneHeight, laneDividerColor);
-  */
-
   for (const auto &shark : swimSharks) {
     if (!shark.active) continue;
     int sharkX = static_cast<int>(shark.x);
@@ -2342,31 +2333,16 @@ void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect) {
 
   int playerX = screenWidth - 32;
   int playerY = getSwimLaneCenter(swimPlayerLane);
-  /*
-  M5Cardputer.Display.fillRoundRect(playerX - (swimPlayerWidth / 2), playerY - (swimPlayerHeight / 2), swimPlayerWidth, swimPlayerHeight, 3, playerColor);
-  M5Cardputer.Display.fillTriangle(playerX + (swimPlayerWidth / 2), playerY, playerX + (swimPlayerWidth / 2) + 6, playerY - 4, playerX + (swimPlayerWidth / 2) + 6, playerY + 4, WHITE);
-  if (showHitEffect) {
-    M5Cardputer.Display.drawRoundRect(playerX - (swimPlayerWidth / 2) - 1, playerY - (swimPlayerHeight / 2) - 1, swimPlayerWidth + 2, swimPlayerHeight + 2, 4, RED);
-  }
-  */
+
   M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, playerX, playerY);
 
   M5Cardputer.Display.setTextDatum(top_left);
-  M5Cardputer.Display.setTextSize(1);
   M5Cardputer.Display.setTextColor(textColor, poolColor);
+  M5Cardputer.Display.setTextSize(2);
   M5Cardputer.Display.drawString(String("Dodged: ") + swimAvoidedSharks + String("/") + swimTargetSharks, 6, 4);
-  /*
-  M5Cardputer.Display.drawString(String("Bumps: ") + swimCollisions, 6, 16);
-  M5Cardputer.Display.drawString("Avoid the sharks!", 6, 28);
-
-  M5Cardputer.Display.setTextDatum(bottom_center);
-  M5Cardputer.Display.drawString("Up/Down: change lane", screenWidth / 2, screenHeight - 18);
-  M5Cardputer.Display.drawString("Survive 30 sharks to finish", screenWidth / 2, screenHeight - 6);
-  */
 
   if (showCompletion) {
     M5Cardputer.Display.setTextDatum(middle_center);
-    M5Cardputer.Display.setTextColor(WHITE, playerColor);
     M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.drawString("Training complete!", screenWidth / 2, screenHeight / 2);
   }
