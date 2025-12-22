@@ -137,9 +137,13 @@ Step into the Tokyo Grand Dome Hall, compete against Japan’s top young singers
 
 #### Singing
 
-In this mini game, catch music coins falling from the sky before they hit the ground. Use the LEFT and RIGHT arrow keys to move horizontally and make sure you drop as few music coins as possible.
+In this mini game, improve your Performance level by catching music coins falling from the sky before they hit the ground. Use the LEFT and RIGHT arrow keys to move horizontally and make sure you drop as few music coins as possible.
 
 #### Dancing
 
-Help Natsumi get ready to become a good dancer with this mini game in which you must press the LEFT, RIGHT, UP or DOWN arrow keys according to what's displayed on teh screen.
+Help Natsumi get ready to become a good dancer with this mini game in which you must press the LEFT, RIGHT, UP or DOWN arrow keys according to what's displayed on the screen. Get it right 30 times to increase your Performance level.
+
+#### Swimming
+
+Go to the local swimming pool and avoid 30 sharks to increase your Fitness. Yes, sharks.
 
