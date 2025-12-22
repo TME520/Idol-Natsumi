@@ -206,6 +206,12 @@ void manageTrainSingGame();
 void drawTrainSingPlayfield(bool showCompletion);
 void startTrainSingGame();
 
+// Training SWIM mini-game helpers
+void resetTrainSwimGame();
+void manageTrainSwimGame();
+void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect);
+void startTrainSwimGame();
+
 unsigned long changeStateCounter = 0;
 
 const unsigned long hungerInterval = 120000;   // 2 minutes
@@ -352,6 +358,43 @@ bool danceGameRunning = false;
 bool danceGameCompleted = false;
 bool danceNeedsRedraw = false;
 
+// Training SWIM mini-game state
+struct SwimShark {
+  float x;
+  int lane;
+  float speed;
+  bool active;
+};
+
+const int swimLaneCount = 3;
+const int swimLaneHeight = 36;
+const int swimPoolTop = 16;
+const int swimTargetSharks = 30;
+const int swimMaxSharks = 3;
+const int swimPlayerWidth = 18;
+const int swimPlayerHeight = 12;
+const int swimSharkLength = 26;
+const int swimSharkHeight = 12;
+const int swimHitPenalty = 4;
+const unsigned long swimSpawnIntervalMin = 650;
+const unsigned long swimSpawnIntervalMax = 1150;
+const float swimMinSpeed = 1.4f;
+const float swimMaxSpeed = 2.6f;
+const unsigned long swimHitFlashDuration = 200;
+const unsigned long swimCompletionDelay = 1200;
+int swimPlayerLane = 1;
+int swimAvoidedSharks = 0;
+int swimCollisions = 0;
+bool swimGameRunning = false;
+bool swimGameCompleted = false;
+bool swimNeedsRedraw = false;
+bool swimHitFlash = false;
+unsigned long swimHitFlashTime = 0;
+unsigned long swimCompletionTime = 0;
+unsigned long swimLastSpawnTime = 0;
+unsigned long swimNextSpawnDelay = swimSpawnIntervalMin;
+std::vector<SwimShark> swimSharks;
+
 String copyright = "(c) 2025 - Pantzumatic";
 String versionNumber = "0.6.1012";
 
@@ -360,6 +403,7 @@ ImageBuffer calib1, calib2, calib3;
 ImageBuffer currentCharacter;
 ImageBuffer currentIcon;
 ImageBuffer natsumiSprite;
+ImageBuffer enemySprite;
 
 // Toast messages
 String toastMsg = "";
@@ -666,6 +710,7 @@ void preloadImages() {
       break;
     case TRAIN_SWIM2:
       preloadImage("/idolnat/sprites/natsumi_head_sprite-22x20.png", natsumiSprite);
+      preloadImage("/idolnat/sprites/shark_sprite-26x14.png", enemySprite);
       break;
     case TRAIN_SWIM3:
       preloadImage("/idolnat/screens/swimming_pool_bg.png", currentBackground);
@@ -1917,6 +1962,9 @@ void manageMiniGameCountdown() {
         case TRAIN_SING:
           changeState(0, TRAIN_SING2, 0);
           break;
+        case TRAIN_SWIM:
+          changeState(0, TRAIN_SWIM2, 0);
+          break;
         default:
           break;
       }
@@ -2219,8 +2267,196 @@ void manageTrainDanceGame() {
   }
 }
 
-void manageTrainSingGame() {
-  // MEH
+int getSwimLaneCenter(int lane) {
+  return swimPoolTop + (lane * swimLaneHeight) + (swimLaneHeight / 2);
+}
+
+float getRandomSwimSpeed() {
+  return random(static_cast<long>(swimMinSpeed * 100), static_cast<long>(swimMaxSpeed * 100)) / 100.0f;
+}
+
+void resetTrainSwimGame() {
+  swimSharks.clear();
+  swimPlayerLane = 1;
+  swimAvoidedSharks = 0;
+  swimCollisions = 0;
+  swimGameRunning = false;
+  swimGameCompleted = false;
+  swimNeedsRedraw = true;
+  swimHitFlash = false;
+  swimHitFlashTime = 0;
+  swimCompletionTime = 0;
+  swimLastSpawnTime = 0;
+  swimNextSpawnDelay = swimSpawnIntervalMin;
+}
+
+void spawnSwimShark() {
+  SwimShark shark;
+  shark.lane = static_cast<int>(random(0, swimLaneCount));
+  shark.x = -swimSharkLength;
+  // shark.speed = getRandomSwimSpeed();
+  shark.speed = 10;
+  // shark.speed = swimSharkLength;
+  shark.active = true;
+  swimSharks.push_back(shark);
+}
+
+void startTrainSwimGame() {
+  resetTrainSwimGame();
+  overlayActive = false;
+  swimGameRunning = true;
+  swimNeedsRedraw = true;
+  M5Cardputer.Display.fillScreen(M5Cardputer.Display.color565(150, 220, 255));
+}
+
+void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect) {
+  const int screenWidth = M5Cardputer.Display.width();
+  const int screenHeight = M5Cardputer.Display.height();
+  const uint16_t poolColor = M5Cardputer.Display.color565(150, 220, 255);
+  const uint16_t laneColor = M5Cardputer.Display.color565(180, 235, 255);
+  const uint16_t laneDividerColor = WHITE;
+  const uint16_t sharkColor = M5Cardputer.Display.color565(255, 110, 110);
+  const uint16_t sharkBelly = M5Cardputer.Display.color565(255, 210, 210);
+  const uint16_t playerColor = M5Cardputer.Display.color565(70, 140, 255);
+  const uint16_t textColor = BLACK;
+
+  // M5Cardputer.Display.fillScreen(poolColor);
+
+  for (const auto &shark : swimSharks) {
+    if (!shark.active) continue;
+    int sharkX = static_cast<int>(shark.x);
+    int sharkY = getSwimLaneCenter(shark.lane);
+    /*
+    M5Cardputer.Display.fillTriangle(sharkX, sharkY - (swimSharkHeight / 2), sharkX, sharkY + (swimSharkHeight / 2), sharkX + swimSharkLength, sharkY, sharkColor);
+    M5Cardputer.Display.fillRect(sharkX + 2, sharkY - 2, swimSharkLength / 2, 4, sharkBelly);
+    */
+    M5Cardputer.Display.fillRect((sharkX - shark.speed), sharkY, (sharkX + swimSharkLength), (sharkY + swimSharkHeight), poolColor);
+    M5Cardputer.Display.drawPng(enemySprite.data, enemySprite.length, sharkX, sharkY);
+  }
+
+  int playerX = screenWidth - 32;
+  int playerY = getSwimLaneCenter(swimPlayerLane);
+
+  M5Cardputer.Display.fillRect(playerX, 20, playerX + 22, 130, poolColor);
+  M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, playerX, playerY);
+
+  M5Cardputer.Display.setTextDatum(top_left);
+  M5Cardputer.Display.setTextColor(textColor, poolColor);
+  M5Cardputer.Display.setTextSize(2);
+  M5Cardputer.Display.drawString(String("Dodged: ") + swimAvoidedSharks + String("/") + swimTargetSharks + " ", 6, 4);
+
+  if (showCompletion) {
+    M5Cardputer.Display.setTextDatum(middle_center);
+    M5Cardputer.Display.setTextSize(2);
+    M5Cardputer.Display.drawString("Training complete!", screenWidth / 2, screenHeight / 2);
+  }
+}
+
+void handleSwimCollision() {
+  swimCollisions++;
+  // swimHitFlash = true;
+  // swimHitFlashTime = millis();
+  swimAvoidedSharks = max(0, swimAvoidedSharks - swimHitPenalty);
+  // swimNeedsRedraw = true;
+}
+
+void manageTrainSwimGame() {
+  if (!swimGameRunning && !swimGameCompleted) {
+    startTrainSwimGame();
+  }
+
+  unsigned long now = millis();
+
+  if (swimGameCompleted) {
+    if (swimNeedsRedraw) {
+      drawTrainSwimPlayfield(true, false);
+      swimNeedsRedraw = false;
+    }
+    if (now - swimCompletionTime >= swimCompletionDelay) {
+      if (natsumi.fitness < 4) {
+        natsumi.fitness += 1;
+      }
+      changeState(0, TRAIN_SWIM3, 0);
+    }
+    return;
+  }
+
+  bool showHitEffect = swimHitFlash && (now - swimHitFlashTime < swimHitFlashDuration);
+  if (swimHitFlash && !showHitEffect) {
+    swimHitFlash = false;
+    swimNeedsRedraw = true;
+  }
+
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      if ((key == 59 || key == 'w' || key == 'W') && swimPlayerLane > 0) { // UP
+        swimPlayerLane--;
+        swimNeedsRedraw = true;
+      } else if ((key == 46 || key == 's' || key == 'S') && swimPlayerLane < swimLaneCount - 1) { // DOWN
+        swimPlayerLane++;
+        swimNeedsRedraw = true;
+      }
+    }
+  }
+
+  if (now - swimLastSpawnTime >= swimNextSpawnDelay && swimSharks.size() < static_cast<size_t>(swimMaxSharks)) {
+    spawnSwimShark();
+    swimLastSpawnTime = now;
+    swimNextSpawnDelay = random(swimSpawnIntervalMin, swimSpawnIntervalMax);
+    swimNeedsRedraw = true;
+  }
+
+  bool collision = false;
+  int playerX = M5Cardputer.Display.width() - 32;
+  int playerLeft = playerX - (swimPlayerWidth / 2);
+  int playerRight = playerX + (swimPlayerWidth / 2);
+
+  for (auto &shark : swimSharks) {
+    if (!shark.active) continue;
+    shark.x += shark.speed;
+    // shark.x += (shark.speed + swimSharkLength);
+    int sharkLeft = static_cast<int>(shark.x);
+    int sharkRight = sharkLeft + swimSharkLength;
+
+    if (shark.lane == swimPlayerLane && sharkRight > playerLeft && sharkLeft < playerRight) {
+      collision = true;
+      shark.active = false;
+    } else if (shark.x > M5Cardputer.Display.width() + swimSharkLength) {
+      shark.active = false;
+      swimAvoidedSharks++;
+      swimNeedsRedraw = true;
+    }
+  }
+
+  if (collision) {
+    handleSwimCollision();
+  }
+
+  swimSharks.erase(std::remove_if(swimSharks.begin(), swimSharks.end(), [](const SwimShark &s) {
+    return !s.active;
+  }), swimSharks.end());
+
+  if (swimAvoidedSharks >= swimTargetSharks && !swimGameCompleted) {
+    swimGameCompleted = true;
+    swimCompletionTime = now;
+    swimSharks.clear();
+    swimGameRunning = false;
+    if (natsumi.fitness < 4) {
+      natsumi.fitness += 1;
+    }
+    swimNeedsRedraw = true;
+  }
+
+  if (swimGameRunning) {
+    swimNeedsRedraw = true;
+  }
+
+  if (swimNeedsRedraw) {
+    drawTrainSwimPlayfield(false, showHitEffect);
+    swimNeedsRedraw = false;
+  }
 }
 
 void resetBathGame() {
@@ -3731,7 +3967,7 @@ void drawOverlay() {
         Serial.println(">>> drawOverlay: STATS_SCREEN");
         drawStats();
         break;
-      case TRAIN_DANCE: case TRAIN_SING:
+      case TRAIN_DANCE: case TRAIN_SING: case TRAIN_SWIM:
         drawMiniGameCountdown();
         break;
       case TRAIN_DANCE3: {
@@ -3778,6 +4014,20 @@ void drawOverlay() {
             break;
         }
         drawDialogBubble("You collected " + String(singNotesCollected) + " / " + String(singNotesSpawned) +" music coins (missed " + String(missedMusicCoins) +"). Your performance was " + musicTeacherFeedback);
+        break;
+      }
+      case TRAIN_SWIM3: {
+        String swimFeedback = "";
+        if (swimCollisions == 0 && swimAvoidedSharks >= swimTargetSharks) {
+          swimFeedback = "You were unstoppable!!";
+        } else if (swimCollisions <= 2) {
+          swimFeedback = "Great reflexes!";
+        } else if (swimCollisions <= 5) {
+          swimFeedback = "Good effort, keep focusing.";
+        } else {
+          swimFeedback = "Careful of those fins...";
+        }
+        drawDialogBubble("You dodged " + String(swimAvoidedSharks) + " sharks and were bumped " + String(swimCollisions) + " time(s). " + swimFeedback);
         break;
       }
       case FOOD_CONBINI2:
@@ -4354,6 +4604,9 @@ void miniGameDebrief() {
           changeState(0, HOME_LOOP, 0);
           break;
         case TRAIN_DANCE3:
+          changeState(0, HOME_LOOP, 0);
+          break;
+        case TRAIN_SWIM3:
           changeState(0, HOME_LOOP, 0);
           break;
       }
