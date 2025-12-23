@@ -147,3 +147,7 @@ Help Natsumi get ready to become a good dancer with this mini game in which you 
 
 Go to the local swimming pool and avoid 30 sharks to increase your Fitness. Yes, sharks.
 
+#### Gym
+
+Hit the gym to increase your Fitness. This mini game will test your skills and reflexes, so warm up and go for it!
+
