@@ -1,6 +1,7 @@
 #include <M5Cardputer.h>
 #include <SD.h>
 #include <algorithm>
+#include <cctype>
 #include <cstring>
 #include <vector>
 
@@ -396,6 +397,34 @@ unsigned long swimCompletionTime = 0;
 unsigned long swimLastSpawnTime = 0;
 unsigned long swimNextSpawnDelay = swimSpawnIntervalMin;
 std::vector<SwimShark> swimSharks;
+
+// Training GYM mini-game state
+struct GymLane {
+  char letter;
+  float cursorPos;
+  int direction;  // 1 = right, -1 = left
+  int zoneStart;
+};
+
+const int gymLaneCount = 3;
+const int gymBarWidth = 170;
+const int gymBarHeight = 10;
+const int gymBarStartX = 54;
+const int gymBarSpacing = 38;
+const int gymStartY = 46;
+const int gymZoneWidth = 30;
+const int gymTargetHits = 12;
+const float gymCursorSpeed = 2.4f;
+const unsigned long gymCursorUpdateInterval = 14;
+const char gymLetterPool[] = {'A', 'S', 'D', 'J', 'K', 'L'};
+const int gymLetterPoolSize = sizeof(gymLetterPool) / sizeof(gymLetterPool[0]);
+int gymSuccessfulHits = 0;
+bool gymGameRunning = false;
+bool gymGameCompleted = false;
+bool gymNeedsRedraw = false;
+unsigned long gymLastUpdate = 0;
+unsigned long gymCompletionTime = 0;
+GymLane gymLanes[gymLaneCount];
 
 String copyright = "(c) 2025 - Pantzumatic";
 String versionNumber = "0.6.1012";
@@ -2005,6 +2034,9 @@ void manageMiniGameCountdown() {
         case TRAIN_SWIM:
           changeState(0, TRAIN_SWIM2, 0);
           break;
+        case TRAIN_GYM:
+          changeState(0, TRAIN_GYM2, 0);
+          break;
         default:
           break;
       }
@@ -2499,8 +2531,152 @@ void manageTrainSwimGame() {
   }
 }
 
+// === TRAIN_GYM2 Mini-game ===
+char getRandomGymLetter() {
+  return gymLetterPool[random(0, gymLetterPoolSize)];
+}
+
+int getRandomGymZoneStart() {
+  return static_cast<int>(random(0, gymBarWidth - gymZoneWidth));
+}
+
+void setupGymLane(int index) {
+  gymLanes[index].letter = getRandomGymLetter();
+  gymLanes[index].cursorPos = random(0, gymBarWidth);
+  gymLanes[index].direction = (index % 2 == 0) ? 1 : -1;
+  gymLanes[index].zoneStart = getRandomGymZoneStart();
+}
+
+void resetTrainGymGame() {
+  gymSuccessfulHits = 0;
+  gymGameRunning = false;
+  gymGameCompleted = false;
+  gymNeedsRedraw = true;
+  gymCompletionTime = 0;
+  gymLastUpdate = millis();
+  for (int i = 0; i < gymLaneCount; i++) {
+    setupGymLane(i);
+  }
+}
+
+void startTrainGymGame() {
+  resetTrainGymGame();
+  overlayActive = false;
+  gymGameRunning = true;
+  M5Cardputer.Display.fillScreen(BLACK);
+}
+
+void drawTrainGymPlayfield(bool showCompletion) {
+  const uint16_t bgColor = BLACK;
+  const uint16_t barColor = M5Cardputer.Display.color565(50, 70, 90);
+  const uint16_t cursorColor = M5Cardputer.Display.color565(255, 245, 200);
+  const uint16_t zoneColors[gymLaneCount] = {
+    M5Cardputer.Display.color565(255, 138, 101),
+    M5Cardputer.Display.color565(129, 212, 113),
+    M5Cardputer.Display.color565(121, 187, 255)
+  };
+
+  M5Cardputer.Display.fillScreen(bgColor);
+  M5Cardputer.Display.setTextDatum(top_left);
+  M5Cardputer.Display.setTextColor(WHITE, bgColor);
+  M5Cardputer.Display.setTextSize(1);
+  M5Cardputer.Display.drawString("Press the bar's letter when the cursor is in color zone.", 6, 6);
+  M5Cardputer.Display.drawString(String("Reps: ") + gymSuccessfulHits + String("/") + gymTargetHits, 6, 20);
+
+  for (int i = 0; i < gymLaneCount; i++) {
+    int barY = gymStartY + (i * gymBarSpacing);
+    M5Cardputer.Display.setTextDatum(middle_left);
+    M5Cardputer.Display.setTextSize(2);
+    M5Cardputer.Display.drawString(String(gymLanes[i].letter), 12, barY);
+
+    M5Cardputer.Display.fillRoundRect(gymBarStartX, barY - (gymBarHeight / 2), gymBarWidth, gymBarHeight, 3, barColor);
+    M5Cardputer.Display.fillRoundRect(gymBarStartX + gymLanes[i].zoneStart, barY - (gymBarHeight / 2), gymZoneWidth, gymBarHeight, 3, zoneColors[i % gymLaneCount]);
+
+    int cursorX = gymBarStartX + static_cast<int>(gymLanes[i].cursorPos);
+    M5Cardputer.Display.fillCircle(cursorX, barY, 6, cursorColor);
+    bool cursorInZone = gymLanes[i].cursorPos >= gymLanes[i].zoneStart &&
+                        gymLanes[i].cursorPos <= gymLanes[i].zoneStart + gymZoneWidth;
+    if (cursorInZone) {
+      M5Cardputer.Display.drawRoundRect(gymBarStartX + gymLanes[i].zoneStart - 1, barY - (gymBarHeight / 2) - 1, gymZoneWidth + 2, gymBarHeight + 2, 3, WHITE);
+    }
+  }
+
+  if (showCompletion) {
+    M5Cardputer.Display.setTextDatum(middle_center);
+    M5Cardputer.Display.setTextSize(2);
+    M5Cardputer.Display.drawString("Training complete!", M5Cardputer.Display.width() / 2, M5Cardputer.Display.height() / 2);
+  }
+}
+
 void manageTrainGymGame() {
-  // MEH
+  if (!gymGameRunning && !gymGameCompleted) {
+    startTrainGymGame();
+  }
+
+  unsigned long now = millis();
+
+  if (gymGameCompleted) {
+    if (gymNeedsRedraw) {
+      drawTrainGymPlayfield(true);
+      gymNeedsRedraw = false;
+    }
+    if (now - gymCompletionTime >= 1200) {
+      changeState(0, TRAIN_GYM3, 0);
+    }
+    return;
+  }
+
+  if (now - gymLastUpdate >= gymCursorUpdateInterval) {
+    for (int i = 0; i < gymLaneCount; i++) {
+      gymLanes[i].cursorPos += gymCursorSpeed * gymLanes[i].direction;
+      if (gymLanes[i].cursorPos <= 0) {
+        gymLanes[i].cursorPos = 0;
+        gymLanes[i].direction = 1;
+      } else if (gymLanes[i].cursorPos >= gymBarWidth) {
+        gymLanes[i].cursorPos = gymBarWidth;
+        gymLanes[i].direction = -1;
+      }
+    }
+    gymLastUpdate = now;
+    gymNeedsRedraw = true;
+  }
+
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (!keyList.empty()) {
+      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      char pressed = static_cast<char>(key);
+      pressed = static_cast<char>(toupper(static_cast<unsigned char>(pressed)));
+      for (int i = 0; i < gymLaneCount; i++) {
+        if (pressed == gymLanes[i].letter) {
+          bool inZone = gymLanes[i].cursorPos >= gymLanes[i].zoneStart &&
+                        gymLanes[i].cursorPos <= gymLanes[i].zoneStart + gymZoneWidth;
+          if (inZone) {
+            gymSuccessfulHits++;
+            gymLanes[i].letter = gymLetterPool[random(0, gymLetterPoolSize)];
+            gymLanes[i].zoneStart = static_cast<int>(random(0, gymBarWidth - gymZoneWidth));
+            gymNeedsRedraw = true;
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  if (gymSuccessfulHits >= gymTargetHits && !gymGameCompleted) {
+    gymGameCompleted = true;
+    gymCompletionTime = now;
+    gymGameRunning = false;
+    if (natsumi.fitness < 4) {
+      natsumi.fitness += 1;
+    }
+    gymNeedsRedraw = true;
+  }
+
+  if (gymNeedsRedraw) {
+    drawTrainGymPlayfield(false);
+    gymNeedsRedraw = false;
+  }
 }
 
 void resetBathGame() {
