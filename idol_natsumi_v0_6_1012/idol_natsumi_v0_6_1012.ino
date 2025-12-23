@@ -70,6 +70,8 @@ enum GameState {
   TRAIN_SWIM2,
   TRAIN_SWIM3,
   TRAIN_GYM,
+  TRAIN_GYM2,
+  TRAIN_GYM3,
   TRAIN_RUN,
   TRAIN_LIBRARY,
   COMP_MENU,
@@ -716,6 +718,9 @@ void preloadImages() {
       preloadImage("/idolnat/screens/swimming_pool_bg.png", currentBackground);
       break;
     case TRAIN_GYM:
+      preloadImage("/idolnat/screens/gym_bg_BW.png", currentBackground);
+      break;
+    case TRAIN_GYM3:
       preloadImage("/idolnat/screens/gym_bg.png", currentBackground);
       break;
     case TRAIN_RUN:
@@ -774,6 +779,9 @@ void preloadImages() {
         case TRAIN_SWIM3:
           preloadImage("/idolnat/sprites/swim_teacher-90x135.png", currentCharacter);
           break;
+        case TRAIN_GYM3:
+          preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
+          break;
         default:
           preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentCharacter);
           break;
@@ -813,6 +821,9 @@ void preloadImages() {
           break;
         case TRAIN_SWIM3:
           preloadImage("/idolnat/sprites/swim_teacher-90x135.png", currentCharacter);
+          break;
+        case TRAIN_GYM3:
+          preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         default:
           preloadImage("/idolnat/sprites/natsumi_13yo-90x135.png", currentCharacter);
@@ -854,6 +865,9 @@ void preloadImages() {
         case TRAIN_SWIM3:
           preloadImage("/idolnat/sprites/swim_teacher-90x135.png", currentCharacter);
           break;
+        case TRAIN_GYM3:
+          preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
+          break;
         default:
           preloadImage("/idolnat/sprites/natsumi_15yo-90x135.png", currentCharacter);
           break;
@@ -894,6 +908,9 @@ void preloadImages() {
         case TRAIN_SWIM3:
           preloadImage("/idolnat/sprites/swim_teacher-90x135.png", currentCharacter);
           break;
+        case TRAIN_GYM3:
+          preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
+          break;
         default:
           preloadImage("/idolnat/sprites/natsumi_18yo-90x135.png", currentCharacter);
           break;
@@ -933,6 +950,9 @@ void preloadImages() {
           break;
         case TRAIN_SWIM3:
           preloadImage("/idolnat/sprites/swim_teacher-90x135.png", currentCharacter);
+          break;
+        case TRAIN_GYM3:
+          preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         default:
           preloadImage("/idolnat/sprites/natsumi_21yo-90x135.png", currentCharacter);
@@ -1270,6 +1290,16 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case TRAIN_GYM:
         screenConfig = ROOM;
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        break;
+      case TRAIN_GYM2:
+        screenConfig = GAME;
+        break;
+      case TRAIN_GYM3:
+        screenConfig = DIALOG;
+        overlayActive = true;
+        l5NeedsRedraw = true;
         break;
       case TRAIN_RUN:
         screenConfig = ROOM;
