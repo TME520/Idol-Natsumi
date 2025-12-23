@@ -352,8 +352,8 @@ bool singGameCompleted = false;
 std::vector<FallingNote> singNotes;
 
 // Training DANCE mini-game state
-const unsigned long danceCueDuration = 700;      // How long a cue stays on screen (ms)
-const unsigned long danceCueGap = 220;           // Gap before next cue appears (ms)
+const unsigned long danceCueDuration = 1000;      // How long a cue stays on screen (ms)
+const unsigned long danceCueGap = 300;           // Gap before next cue appears (ms)
 const int danceTargetScore = 30;
 int danceScore = 0;
 int danceCuesShown = 0;
@@ -421,6 +421,7 @@ int gymCursorDirection = 1;                 // 1 = right, -1 = left
 int gymZoneStart = gymBarX;
 int gymZoneWidth = 32;
 int gymCurrentStreak = 0;
+int gymMisses = 0;
 char gymTargetLetter = 'A';
 unsigned long gymLastUpdate = 0;
 unsigned long gymResultFlashUntil = 0;
@@ -2373,9 +2374,7 @@ void spawnSwimShark() {
   SwimShark shark;
   shark.lane = static_cast<int>(random(0, swimLaneCount));
   shark.x = -swimSharkLength;
-  // shark.speed = getRandomSwimSpeed();
   shark.speed = 10;
-  // shark.speed = swimSharkLength;
   shark.active = true;
   swimSharks.push_back(shark);
 }
@@ -2399,16 +2398,10 @@ void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect) {
   const uint16_t playerColor = M5Cardputer.Display.color565(70, 140, 255);
   const uint16_t textColor = BLACK;
 
-  // M5Cardputer.Display.fillScreen(poolColor);
-
   for (const auto &shark : swimSharks) {
     if (!shark.active) continue;
     int sharkX = static_cast<int>(shark.x);
     int sharkY = getSwimLaneCenter(shark.lane);
-    /*
-    M5Cardputer.Display.fillTriangle(sharkX, sharkY - (swimSharkHeight / 2), sharkX, sharkY + (swimSharkHeight / 2), sharkX + swimSharkLength, sharkY, sharkColor);
-    M5Cardputer.Display.fillRect(sharkX + 2, sharkY - 2, swimSharkLength / 2, 4, sharkBelly);
-    */
     M5Cardputer.Display.fillRect((sharkX - shark.speed), sharkY, (sharkX + swimSharkLength), (sharkY + swimSharkHeight), poolColor);
     M5Cardputer.Display.drawPng(enemySprite.data, enemySprite.length, sharkX, sharkY);
   }
@@ -2433,10 +2426,7 @@ void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect) {
 
 void handleSwimCollision() {
   swimCollisions++;
-  // swimHitFlash = true;
-  // swimHitFlashTime = millis();
   swimAvoidedSharks = max(0, swimAvoidedSharks - swimHitPenalty);
-  // swimNeedsRedraw = true;
 }
 
 void manageTrainSwimGame() {
@@ -2562,6 +2552,7 @@ void resetTrainGymGame() {
   gymCompletionTime = 0;
   refreshGymChallenge();
   gymNeedsRedraw = true;
+  gymMisses = 0;
 }
 
 void startTrainGymGame() {
@@ -2580,7 +2571,7 @@ void drawTrainGymPlayfield(bool showCompletion) {
   const uint16_t cursorColor = M5Cardputer.Display.color565(255, 190, 90);
   const uint16_t frameColor = WHITE;
 
-  M5Cardputer.Display.fillScreen(BLACK);
+  // M5Cardputer.Display.fillScreen(BLACK);
 
   M5Cardputer.Display.setTextDatum(middle_left);
   M5Cardputer.Display.setTextColor(WHITE, BLACK);
@@ -2596,9 +2587,8 @@ void drawTrainGymPlayfield(bool showCompletion) {
 
   M5Cardputer.Display.setTextDatum(top_left);
   M5Cardputer.Display.setTextColor(WHITE, BLACK);
-  M5Cardputer.Display.setTextSize(1);
+  M5Cardputer.Display.setTextSize(2);
   M5Cardputer.Display.drawString(String("Streak: ") + gymCurrentStreak + String("/") + gymTargetStreak, 6, 4);
-  M5Cardputer.Display.drawString("Press the letter when the cursor enters green", 6, screenHeight - 14);
 
   unsigned long now = millis();
   if (!showCompletion && gymResultFlashUntil > now && gymResultText.length() > 0) {
@@ -2608,6 +2598,7 @@ void drawTrainGymPlayfield(bool showCompletion) {
   }
 
   if (showCompletion) {
+    M5Cardputer.Display.fillScreen(BLACK);
     M5Cardputer.Display.setTextDatum(middle_center);
     M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.drawString("Training complete!", screenWidth / 2, screenHeight / 2);
@@ -2666,7 +2657,7 @@ void manageTrainGymGame() {
         if (correctLetter && inZone) {
           gymCurrentStreak++;
           gymCursorSpeed += gymCursorSpeedStep;
-          gymResultText = "Great timing!";
+          gymResultText = " Great timing! ";
           gymResultFlashUntil = now + gymResultFlashDuration;
           if (gymCurrentStreak >= gymTargetStreak) {
             gymGameCompleted = true;
@@ -2682,13 +2673,14 @@ void manageTrainGymGame() {
         } else {
           gymCurrentStreak = 0;
           gymCursorSpeed = gymCursorBaseSpeed;
-          gymResultText = "Miss! Try again";
+          gymResultText = " Miss! Try again ";
           gymResultFlashUntil = now + gymResultFlashDuration;
           refreshGymChallenge();
           gymCursorDirection = 1;
           gymCursorPos = gymBarX;
           gymLastUpdate = now;
           gymNeedsRedraw = true;
+          gymMisses += 1;
         }
       }
     }
@@ -4208,7 +4200,7 @@ void drawOverlay() {
         Serial.println(">>> drawOverlay: STATS_SCREEN");
         drawStats();
         break;
-      case TRAIN_DANCE: case TRAIN_SING: case TRAIN_SWIM:
+      case TRAIN_DANCE: case TRAIN_SING: case TRAIN_SWIM: case TRAIN_GYM:
         drawMiniGameCountdown();
         break;
       case TRAIN_DANCE3: {
@@ -4269,6 +4261,20 @@ void drawOverlay() {
           swimFeedback = "Careful of those fins...";
         }
         drawDialogBubble("You dodged " + String(swimAvoidedSharks) + " sharks and were bumped " + String(swimCollisions) + " time(s). " + swimFeedback);
+        break;
+      }
+      case TRAIN_GYM3: {
+        String gymFeedback = "";
+        if (gymMisses < 1) {
+          gymFeedback = "You are excellent!!";
+        } else if (gymMisses > 0 && gymMisses < 3) {
+          gymFeedback = "Great reflexes!";
+        } else if (gymMisses > 2 && gymMisses < 6) {
+          gymFeedback = "Good effort, keep training.";
+        } else {
+          gymFeedback = "Careful not to hurt yourself...";
+        }
+        drawDialogBubble("You missed " + String(gymMisses) + " moves. " + gymFeedback);
         break;
       }
       case FOOD_CONBINI2:
