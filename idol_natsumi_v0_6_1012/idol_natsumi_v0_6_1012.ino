@@ -1665,6 +1665,9 @@ void manageDialog() {
     case TRAIN_SWIM3:
       miniGameDebrief();
       break;
+    case TRAIN_GYM3:
+      miniGameDebrief();
+      break;
     default:
       break;
   }
@@ -1714,6 +1717,9 @@ void manageGame() {
       break;
     case TRAIN_SWIM2:
       manageTrainSwimGame();
+      break;
+    case TRAIN_GYM2:
+      manageTrainGymGame();
       break;
     default:
       playGame();
@@ -1844,6 +1850,10 @@ void manageRoom() {
       manageMiniGameCountdown();
       break;
     case TRAIN_SWIM:
+      characterEnabled = false;
+      manageMiniGameCountdown();
+      break;
+    case TRAIN_GYM:
       characterEnabled = false;
       manageMiniGameCountdown();
       break;
@@ -2487,6 +2497,10 @@ void manageTrainSwimGame() {
     drawTrainSwimPlayfield(false, showHitEffect);
     swimNeedsRedraw = false;
   }
+}
+
+void manageTrainGymGame() {
+  // MEH
 }
 
 void resetBathGame() {
