@@ -862,14 +862,14 @@ void preloadImages() {
         default:
           if (isNatsumiHappy) {
             preloadImage("/idolnat/sprites/natsumi_11yo_happy-90x135.png", currentCharacter);
-          } else if () {
-            //
-          } else if () {
-            //
-          } else if () {
-            //
-          } else if () {
-            //
+          } else if (natsumi.hunger < 1) {
+            preloadImage("/idolnat/sprites/natsumi_11yo_hungry-90x135.png", currentCharacter);
+          } else if (natsumi.hygiene < 1) {
+            preloadImage("/idolnat/sprites/natsumi_11yo_dirty-90x135.png", currentCharacter);
+          } else if (natsumi.energy < 1) {
+            preloadImage("/idolnat/sprites/natsumi_11yo_tired-90x135.png", currentCharacter);
+          } else if (natsumi.spirit < 1) {
+            preloadImage("/idolnat/sprites/natsumi_11yo_sad-90x135.png", currentCharacter);
           } else {
             preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentCharacter);
           }
