@@ -299,6 +299,7 @@ bool waitingForFoodDelivery = false;
 bool meditationActive = false;
 bool meditationRewardApplied = false;
 bool fiveSecondPulse = false;  // Set true by updateFiveSecondPulse() every five seconds
+bool isNatsumiHappy = false;
 
 // Onsen state
 unsigned long onsenTicks = 0;  // Number of 5-second pulses spent in the onsen
@@ -859,7 +860,19 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         default:
-          preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentCharacter);
+          if (isNatsumiHappy) {
+            preloadImage("/idolnat/sprites/natsumi_11yo_happy-90x135.png", currentCharacter);
+          } else if () {
+            //
+          } else if () {
+            //
+          } else if () {
+            //
+          } else if () {
+            //
+          } else {
+            preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentCharacter);
+          }
           break;
       }
       break;
