@@ -445,7 +445,7 @@ const int runBarHeight = 14;
 const int runBarY = 62;
 const int runGreenWidth = 44;
 const float runCursorSpeed = 0.18f;           // pixels per millisecond
-const unsigned long runTargetGreenTime = 30000;
+const unsigned long runTargetGreenTime = 10000;
 const unsigned long runMaxRedTime = 2500;
 const unsigned long runCompletionDelay = 1200;
 const unsigned long runStepInterval = 160;
@@ -2832,11 +2832,12 @@ void drawTrainRunPlayfield(bool showCompletion, bool showFailure) {
 
   M5Cardputer.Display.setTextDatum(top_left);
   M5Cardputer.Display.setTextColor(WHITE, BLACK);
-  M5Cardputer.Display.setTextSize(2);
+  M5Cardputer.Display.setTextSize(1);
   int secondsLeft = max(0, static_cast<int>((runTargetGreenTime - runGreenTime) / 1000));
-  M5Cardputer.Display.drawString(String("Hold ENTER to stay in green - ") + String(secondsLeft) + String("s"), 6, 4);
+  M5Cardputer.Display.drawString(String("Time left: ") + String(secondsLeft) + String("s"), 6, 4);
 
   if (showCompletion || showFailure) {
+    M5Cardputer.Display.fillScreen(BLACK);
     M5Cardputer.Display.setTextDatum(middle_center);
     M5Cardputer.Display.setTextSize(2);
     if (showCompletion) {
