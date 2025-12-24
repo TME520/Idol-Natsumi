@@ -2814,7 +2814,7 @@ void drawTrainRunPlayfield(bool showCompletion, bool showFailure) {
   int greenStart = barX + (runBarWidth - runGreenWidth) / 2;
   int greenEnd = greenStart + runGreenWidth;
 
-  M5Cardputer.Display.fillScreen(BLACK);
+  // M5Cardputer.Display.fillScreen(BLACK);
 
   int natsumiX = 6;
   int natsumiY = max(0, (screenHeight - 90) / 2);
@@ -2832,7 +2832,7 @@ void drawTrainRunPlayfield(bool showCompletion, bool showFailure) {
 
   M5Cardputer.Display.setTextDatum(top_left);
   M5Cardputer.Display.setTextColor(WHITE, BLACK);
-  M5Cardputer.Display.setTextSize(1);
+  M5Cardputer.Display.setTextSize(2);
   int secondsLeft = max(0, static_cast<int>((runTargetGreenTime - runGreenTime) / 1000));
   M5Cardputer.Display.drawString(String("Hold ENTER to stay in green - ") + String(secondsLeft) + String("s"), 6, 4);
 
@@ -2860,6 +2860,9 @@ void manageTrainRunGame() {
       runNeedsRedraw = false;
     }
     if (now - runCompletionTime >= runCompletionDelay) {
+      if (natsumi.fitness < 4) {
+        natsumi.fitness += 1;
+      }
       changeState(0, TRAIN_RUN3, 0);
     }
     return;
@@ -4522,6 +4525,9 @@ void drawOverlay() {
         drawDialogBubble("You missed " + String(gymMisses) + " moves. " + gymFeedback);
         break;
       }
+      case TRAIN_RUN3:
+        drawDialogBubble("Running is very good for your health, see you again very soon!!");
+        break;
       case FOOD_CONBINI2:
         drawConbimartOverlay();
         break;
@@ -5102,6 +5108,9 @@ void miniGameDebrief() {
           changeState(0, HOME_LOOP, 0);
           break;
         case TRAIN_GYM3:
+          changeState(0, HOME_LOOP, 0);
+          break;
+        case TRAIN_RUN3:
           changeState(0, HOME_LOOP, 0);
           break;
       }
