@@ -151,3 +151,7 @@ Go to the local swimming pool and avoid 30 sharks to increase your Fitness. Yes,
 
 Hit the gym to increase your Fitness. This mini game will test your skills and reflexes, so warm up and go for it!
 
+#### Run
+
+Go for a run in the forest and increase your Fitness.
+
