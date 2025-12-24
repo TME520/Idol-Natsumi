@@ -559,6 +559,9 @@ void unloadAllImages() {
 
   unloadImage(currentBackground);
   unloadImage(currentCharacter);
+  unloadImage(natsumiSprite);
+  unloadImage(enemySprite);
+  clearFoodGrid();
 
   // currentBackground points to one of the room images, so just reset it
   currentBackground.data = nullptr;
