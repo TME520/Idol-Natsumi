@@ -73,6 +73,8 @@ enum GameState {
   TRAIN_GYM2,
   TRAIN_GYM3,
   TRAIN_RUN,
+  TRAIN_RUN2,
+  TRAIN_RUN3,
   TRAIN_LIBRARY,
   COMP_MENU,
   COMP_LOCAL,
@@ -219,6 +221,12 @@ void resetTrainGymGame();
 void manageTrainGymGame();
 void drawTrainGymPlayfield(bool showCompletion);
 void startTrainGymGame();
+
+// Training RUN mini-game helpers
+void resetTrainRunGame();
+void manageTrainRunGame();
+void drawTrainRunPlayfield(bool showCompletion, bool showFailure);
+void startTrainRunGame();
 
 unsigned long changeStateCounter = 0;
 
@@ -430,6 +438,30 @@ unsigned long gymCompletionTime = 0;
 bool gymGameRunning = false;
 bool gymGameCompleted = false;
 bool gymNeedsRedraw = false;
+
+// Training RUN mini-game state
+const int runBarWidth = 120;
+const int runBarHeight = 14;
+const int runBarY = 62;
+const int runGreenWidth = 44;
+// const float runCursorSpeed = 0.18f;           // pixels per millisecond
+const float runCursorSpeed = 0.08f;
+const unsigned long runTargetGreenTime = 10000;
+const unsigned long runMaxRedTime = 2500;
+const unsigned long runCompletionDelay = 1200;
+const unsigned long runStepInterval = 160;
+float runCursorPos = 0.0f;
+bool runEnterHeld = false;
+unsigned long runGreenTime = 0;
+unsigned long runRedTime = 0;
+unsigned long runLastUpdate = 0;
+unsigned long runCompletionTime = 0;
+unsigned long runLastStepTime = 0;
+int runStepIndex = 0;
+bool runGameRunning = false;
+bool runGameCompleted = false;
+bool runGameFailed = false;
+bool runNeedsRedraw = false;
 
 String copyright = "(c) 2025 - Pantzumatic";
 String versionNumber = "0.6.1012";
@@ -758,6 +790,13 @@ void preloadImages() {
       preloadImage("/idolnat/screens/gym_bg.png", currentBackground);
       break;
     case TRAIN_RUN:
+      preloadImage("/idolnat/screens/forest_bg_BW.png", currentBackground);
+      break;
+    case TRAIN_RUN2:
+      preloadImage("/idolnat/sprites/natsumi_running_1-90x90.png", natsumiSprite);
+      preloadImage("/idolnat/sprites/natsumi_running_2-90x90.png", enemySprite);
+      break;
+    case TRAIN_RUN3:
       preloadImage("/idolnat/screens/forest_bg.png", currentBackground);
       break;
     case TRAIN_LIBRARY:
@@ -816,6 +855,9 @@ void preloadImages() {
         case TRAIN_GYM3:
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
+        case TRAIN_RUN3:
+          preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
+          break;
         default:
           preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentCharacter);
           break;
@@ -857,6 +899,9 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/swim_teacher-90x135.png", currentCharacter);
           break;
         case TRAIN_GYM3:
+          preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
+          break;
+        case TRAIN_RUN3:
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         default:
@@ -902,6 +947,9 @@ void preloadImages() {
         case TRAIN_GYM3:
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
+        case TRAIN_RUN3:
+          preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
+          break;
         default:
           preloadImage("/idolnat/sprites/natsumi_15yo-90x135.png", currentCharacter);
           break;
@@ -945,6 +993,9 @@ void preloadImages() {
         case TRAIN_GYM3:
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
+        case TRAIN_RUN3:
+          preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
+          break;
         default:
           preloadImage("/idolnat/sprites/natsumi_18yo-90x135.png", currentCharacter);
           break;
@@ -986,6 +1037,9 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/swim_teacher-90x135.png", currentCharacter);
           break;
         case TRAIN_GYM3:
+          preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
+          break;
+        case TRAIN_RUN3:
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         default:
@@ -1337,6 +1391,16 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case TRAIN_RUN:
         screenConfig = ROOM;
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        break;
+      case TRAIN_RUN2:
+        screenConfig = GAME;
+        break;
+      case TRAIN_RUN3:
+        screenConfig = DIALOG;
+        overlayActive = true;
+        l5NeedsRedraw = true;
         break;
       case TRAIN_LIBRARY:
         screenConfig = ROOM;
@@ -1702,6 +1766,9 @@ void manageDialog() {
     case TRAIN_GYM3:
       miniGameDebrief();
       break;
+    case TRAIN_RUN3:
+      miniGameDebrief();
+      break;
     default:
       break;
   }
@@ -1754,6 +1821,9 @@ void manageGame() {
       break;
     case TRAIN_GYM2:
       manageTrainGymGame();
+      break;
+    case TRAIN_RUN2:
+      manageTrainRunGame();
       break;
     default:
       playGame();
@@ -1891,6 +1961,10 @@ void manageRoom() {
       characterEnabled = false;
       manageMiniGameCountdown();
       break;
+    case TRAIN_RUN:
+      characterEnabled = false;
+      manageMiniGameCountdown();
+      break;
     case TRAIN_MENU:
       menuOpened = true;
       break;
@@ -2019,6 +2093,9 @@ void manageMiniGameCountdown() {
       case TRAIN_GYM:
         resetTrainGymGame();
         break;
+      case TRAIN_RUN:
+        resetTrainRunGame();
+        break;
       default:
         break;
     }
@@ -2044,6 +2121,9 @@ void manageMiniGameCountdown() {
         break;
       case TRAIN_GYM:
         changeState(0, TRAIN_GYM2, 0);
+        break;
+      case TRAIN_RUN:
+        changeState(0, TRAIN_RUN2, 0);
         break;
       default:
         break;
@@ -2689,6 +2769,174 @@ void manageTrainGymGame() {
   if (gymNeedsRedraw) {
     drawTrainGymPlayfield(false);
     gymNeedsRedraw = false;
+  }
+}
+
+int getRunBarX() {
+  return (M5Cardputer.Display.width() - runBarWidth) / 2;
+}
+
+void resetTrainRunGame() {
+  runCursorPos = 0.0f;
+  runEnterHeld = false;
+  runGreenTime = 0;
+  runRedTime = 0;
+  runLastUpdate = 0;
+  runCompletionTime = 0;
+  runLastStepTime = 0;
+  runStepIndex = 1;
+  runGameRunning = false;
+  runGameCompleted = false;
+  runGameFailed = false;
+  runNeedsRedraw = true;
+}
+
+void startTrainRunGame() {
+  resetTrainRunGame();
+  overlayActive = false;
+  runGameRunning = true;
+  int barX = getRunBarX();
+  runCursorPos = barX + (runBarWidth / 2);
+  runLastUpdate = millis();
+  runLastStepTime = runLastUpdate;
+  M5Cardputer.Display.fillScreen(BLACK);
+}
+
+void drawTrainRunPlayfield(bool showCompletion, bool showFailure) {
+  const int screenWidth = M5Cardputer.Display.width();
+  const int screenHeight = M5Cardputer.Display.height();
+  const uint16_t barOutline = WHITE;
+  const uint16_t redZoneColor = M5Cardputer.Display.color565(220, 80, 80);
+  const uint16_t greenZoneColor = M5Cardputer.Display.color565(80, 200, 120);
+  const uint16_t cursorColor = M5Cardputer.Display.color565(255, 210, 110);
+
+  int barX = getRunBarX();
+  int barY = runBarY;
+  int greenStart = barX + (runBarWidth - runGreenWidth) / 2;
+  int greenEnd = greenStart + runGreenWidth;
+
+  int natsumiX = 6;
+  int natsumiY = max(0, (screenHeight - 90) / 2);
+  if (runStepIndex % 2 == 1) {
+    M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, natsumiX, natsumiY);
+  } else {
+    M5Cardputer.Display.drawPng(enemySprite.data, enemySprite.length, natsumiX, natsumiY);
+  }
+
+  M5Cardputer.Display.fillRect(barX, barY, runBarWidth, runBarHeight, redZoneColor);
+  M5Cardputer.Display.fillRect(greenStart, barY, runGreenWidth, runBarHeight, greenZoneColor);
+  M5Cardputer.Display.drawRect(barX - 1, barY - 1, runBarWidth + 2, runBarHeight + 2, barOutline);
+  int cursorX = static_cast<int>(runCursorPos);
+  M5Cardputer.Display.fillRect(cursorX - 2, barY - 4, 4, runBarHeight + 8, cursorColor);
+
+  M5Cardputer.Display.setTextDatum(top_left);
+  M5Cardputer.Display.setTextColor(WHITE, BLACK);
+  M5Cardputer.Display.setTextSize(2);
+  int secondsLeft = max(0, static_cast<int>((runTargetGreenTime - runGreenTime) / 1000));
+  M5Cardputer.Display.drawString(String("Time left: ") + String(secondsLeft) + String("s "), 6, 4);
+
+  if (showCompletion || showFailure) {
+    M5Cardputer.Display.fillScreen(BLACK);
+    M5Cardputer.Display.setTextDatum(middle_center);
+    M5Cardputer.Display.setTextSize(2);
+    if (showCompletion) {
+      M5Cardputer.Display.drawString("Training complete!", screenWidth / 2, screenHeight / 2);
+    } else {
+      M5Cardputer.Display.drawString("Training failed!", screenWidth / 2, screenHeight / 2);
+    }
+  }
+}
+
+void manageTrainRunGame() {
+  if (!runGameRunning && !runGameCompleted && !runGameFailed) {
+    startTrainRunGame();
+  }
+
+  unsigned long now = millis();
+
+  if (runGameCompleted || runGameFailed) {
+    if (runNeedsRedraw) {
+      drawTrainRunPlayfield(runGameCompleted, runGameFailed);
+      runNeedsRedraw = false;
+    }
+    if (now - runCompletionTime >= runCompletionDelay) {
+      if (natsumi.fitness < 4) {
+        natsumi.fitness += 1;
+      }
+      changeState(0, TRAIN_RUN3, 0);
+    }
+    return;
+  }
+
+  bool enterHeld = false;
+  if (M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    for (size_t i = 0; i < keyList.size(); i++) {
+      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[i]);
+      if (key == 13 || key == 40) {
+        enterHeld = true;
+        break;
+      }
+    }
+  }
+  runEnterHeld = enterHeld;
+
+  unsigned long delta = (runLastUpdate == 0) ? 0 : (now - runLastUpdate);
+  if (delta > 0 && runGameRunning) {
+    float direction = runEnterHeld ? 1.0f : -1.0f;
+    runCursorPos += runCursorSpeed * static_cast<float>(delta) * direction;
+    int barX = getRunBarX();
+    int minPos = barX;
+    int maxPos = barX + runBarWidth;
+    if (runCursorPos < minPos) {
+      runCursorPos = minPos;
+    } else if (runCursorPos > maxPos) {
+      runCursorPos = maxPos;
+    }
+
+    int greenStart = barX + (runBarWidth - runGreenWidth) / 2;
+    int greenEnd = greenStart + runGreenWidth;
+    bool inGreen = runCursorPos >= greenStart && runCursorPos <= greenEnd;
+    if (inGreen) {
+      runGreenTime += delta;
+      runRedTime = 0;
+    } else {
+      runGreenTime = 0;
+      runRedTime += delta;
+    }
+
+    if (runGreenTime >= runTargetGreenTime) {
+      runGameCompleted = true;
+      runGameRunning = false;
+      runCompletionTime = now;
+      runNeedsRedraw = true;
+      if (natsumi.fitness < 4) {
+        natsumi.fitness += 1;
+      }
+      return;
+    }
+
+    if (runRedTime >= runMaxRedTime) {
+      runGameFailed = true;
+      runGameRunning = false;
+      runCompletionTime = now;
+      runNeedsRedraw = true;
+      return;
+    }
+    runNeedsRedraw = true;
+  }
+
+  if (now - runLastStepTime >= runStepInterval) {
+    runStepIndex++;
+    runLastStepTime = now;
+    runNeedsRedraw = true;
+  }
+
+  runLastUpdate = now;
+
+  if (runNeedsRedraw) {
+    drawTrainRunPlayfield(false, false);
+    runNeedsRedraw = false;
   }
 }
 
@@ -4200,7 +4448,7 @@ void drawOverlay() {
         Serial.println(">>> drawOverlay: STATS_SCREEN");
         drawStats();
         break;
-      case TRAIN_DANCE: case TRAIN_SING: case TRAIN_SWIM: case TRAIN_GYM:
+      case TRAIN_DANCE: case TRAIN_SING: case TRAIN_SWIM: case TRAIN_GYM: case TRAIN_RUN:
         drawMiniGameCountdown();
         break;
       case TRAIN_DANCE3: {
@@ -4277,6 +4525,9 @@ void drawOverlay() {
         drawDialogBubble("You missed " + String(gymMisses) + " moves. " + gymFeedback);
         break;
       }
+      case TRAIN_RUN3:
+        drawDialogBubble("Running is very good for your health, see you again very soon!!");
+        break;
       case FOOD_CONBINI2:
         drawConbimartOverlay();
         break;
@@ -4857,6 +5108,9 @@ void miniGameDebrief() {
           changeState(0, HOME_LOOP, 0);
           break;
         case TRAIN_GYM3:
+          changeState(0, HOME_LOOP, 0);
+          break;
+        case TRAIN_RUN3:
           changeState(0, HOME_LOOP, 0);
           break;
       }
