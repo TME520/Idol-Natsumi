@@ -155,3 +155,5 @@ Hit the gym to increase your Fitness. This mini game will test your skills and r
 
 Go for a run in the forest and increase your Fitness.
 
+### Do gardening
+
