@@ -58,6 +58,7 @@ enum GameState {
   REST_MEDITATE,
   REST_SLEEP,
   STATS_SCREEN,
+  GARDEN_MENU,
   GARDEN_LOOP,
   GARDEN_PLANT,
   GARDEN_WATER,
@@ -766,7 +767,7 @@ void preloadImages() {
     case REST_SLEEP:
       preloadImage("/idolnat/screens/bedroom_dark.png", currentBackground);
       break;
-    case GARDEN_LOOP: case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
+    case GARDEN_LOOP: case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP: case GARDEN_MENU:
       preloadImage("/idolnat/screens/garden_bg.png", currentBackground);
       break;
     case STATS_SCREEN:
@@ -1554,10 +1555,14 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case GARDEN_LOOP:
         screenConfig = ROOM;
+        menuOpened = false;
+        break;
+      case GARDEN_MENU:
+        screenConfig = ROOM;
         currentMenuType = "garden";
         currentMenuItems = gardenMenuItems;
         currentMenuItemsCount = gardenMenuItemCount;
-        menuOpened = false;
+        menuOpened = true;
         break;
       case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
         screenConfig = ROOM;
@@ -2208,104 +2213,98 @@ void manageGarden() {
   updateAging();
   updateStats();
 
-  if (currentState != lastGardenState) {
-    lastGardenState = currentState;
-    l5NeedsRedraw = true;
-    int &tile = gardenTiles[gardenCursorRow][gardenCursorCol];
-    switch (currentState) {
-      case GARDEN_PLANT:
-        if (tile == 0) {
-          tile = 1;
-          showToast("Seed planted");
-        } else {
-          showToast("Tile already planted");
-        }
-        break;
-      case GARDEN_WATER:
-        if (tile > 0) {
-          tile = 2;
-          showToast("Watered");
-        } else {
-          showToast("Nothing to water");
-        }
-        break;
-      case GARDEN_PICK:
-        if (tile > 0) {
-          tile = 0;
-          showToast("Harvested");
-        } else {
-          showToast("Nothing to pick");
-        }
-        break;
-      case GARDEN_CLEANUP:
+  int &tile = gardenTiles[gardenCursorRow][gardenCursorCol];
+  switch (currentState) {
+    case GARDEN_PLANT:
+      if (tile == 0) {
+        tile = 1;
+        showToast("Seed planted");
+      } else {
+        showToast("Tile already planted");
+      }
+      break;
+    case GARDEN_WATER:
+      if (tile > 0) {
+        tile = 2;
+        showToast("Watered");
+      } else {
+        showToast("Nothing to water");
+      }
+      break;
+    case GARDEN_PICK:
+      if (tile > 0) {
         tile = 0;
-        showToast("Tile cleaned");
-        break;
-      default:
-        showToast("Meh!");
-        break;
-    }
-    l5NeedsRedraw = true;
-    changeState(0, GARDEN_LOOP, 0);
-    return;
-  }
-
-  if (currentState == GARDEN_LOOP && !menuOpened) {
-    uint8_t key = 0;
-    if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-      auto keyList = M5Cardputer.Keyboard.keyList();
-      if (keyList.size() > 0) {
-        key = M5Cardputer.Keyboard.getKey(keyList[0]);
-        bool moved = false;
-        switch (key) {
-          // UP
-          case 181: case 59: case 'w': case 'W':
-            if (gardenCursorRow > 0) {
-              gardenCursorRow--;
-              moved = true;
+        showToast("Harvested");
+      } else {
+        showToast("Nothing to pick");
+      }
+      break;
+    case GARDEN_CLEANUP:
+      tile = 0;
+      showToast("Tile cleaned");
+      break;
+    case GARDEN_LOOP:
+      if (!menuOpened) {
+        uint8_t key = 0;
+        if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+          auto keyList = M5Cardputer.Keyboard.keyList();
+          if (keyList.size() > 0) {
+            key = M5Cardputer.Keyboard.getKey(keyList[0]);
+            bool moved = false;
+            switch (key) {
+              // UP
+              case 181: case 59: case 'w': case 'W':
+                if (gardenCursorRow > 0) {
+                  gardenCursorRow--;
+                  moved = true;
+                }
+                break;
+              // DOWN
+              case 182: case 46: case 's': case 'S':
+                if (gardenCursorRow < gardenRows - 1) {
+                  gardenCursorRow++;
+                  moved = true;
+                }
+                break;
+              // LEFT
+              case 180: case 44: case 'a': case 'A':
+                if (gardenCursorCol > 0) {
+                  gardenCursorCol--;
+                  moved = true;
+                }
+                break;
+              // RIGHT
+              case 183: case 47: case 'd': case 'D':
+                if (gardenCursorCol < gardenCols - 1) {
+                  gardenCursorCol++;
+                  moved = true;
+                }
+                break;
+              // ENTER
+              case 13: case 40: case ' ':
+                currentMenuType = "garden";
+                currentMenuItems = gardenMenuItems;
+                currentMenuItemsCount = gardenMenuItemCount;
+                menuOpened = true;
+                l4NeedsRedraw = true;
+                break;
+              // ESC
+              case 96:
+                menuOpened = false;
+                changeState(0, HOME_LOOP, 0);
+                return;
             }
-            break;
-          // DOWN
-          case 182: case 46: case 's': case 'S':
-            if (gardenCursorRow < gardenRows - 1) {
-              gardenCursorRow++;
-              moved = true;
+    
+            if (moved) {
+              l5NeedsRedraw = true;
             }
-            break;
-          // LEFT
-          case 180: case 44: case 'a': case 'A':
-            if (gardenCursorCol > 0) {
-              gardenCursorCol--;
-              moved = true;
-            }
-            break;
-          // RIGHT
-          case 183: case 47: case 'd': case 'D':
-            if (gardenCursorCol < gardenCols - 1) {
-              gardenCursorCol++;
-              moved = true;
-            }
-            break;
-          // ENTER
-          case 13: case 40: case ' ':
-            currentMenuType = "garden";
-            currentMenuItems = gardenMenuItems;
-            currentMenuItemsCount = gardenMenuItemCount;
-            menuOpened = true;
-            l4NeedsRedraw = true;
-            break;
-          // ESC
-          case 96:
-            menuOpened = false;
-            changeState(0, HOME_LOOP, 0);
-            return;
-        }
-
-        if (moved) {
-          l5NeedsRedraw = true;
+          }
         }
       }
-    }
+      break;
+    default:
+      showToast("Meh!");
+      break;
   }
   return;
 }
