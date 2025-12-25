@@ -280,7 +280,6 @@ const int gardenCols = 3;
 int gardenTiles[gardenRows][gardenCols] = {};
 int gardenCursorRow = 0;
 int gardenCursorCol = 0;
-GameState lastGardenState = HOME_LOOP;
 
 int lastSleepEnergyDisplayed = -1;
 int lastMeditationDisplayed = 0;
@@ -487,6 +486,92 @@ ImageBuffer currentCharacter;
 ImageBuffer currentIcon;
 ImageBuffer natsumiSprite;
 ImageBuffer enemySprite;
+
+const char* gameStateToString(GameState state) {
+  switch (state) {
+    case VERSION_SCREEN:   return "VERSION_SCREEN";
+    case M5_SCREEN:        return "M5_SCREEN";
+    case TITLE_SCREEN:     return "TITLE_SCREEN";
+    case CALIBRATION_1:    return "CALIBRATION_1";
+    case CALIBRATION_2:    return "CALIBRATION_2";
+    case CALIBRATION_3:    return "CALIBRATION_3";
+    case NEW_GAME:         return "NEW_GAME";
+    case CONTINUE_GAME:    return "CONTINUE_GAME";
+    case DEV_SCREEN:       return "DEV_SCREEN";
+    case HOME_LOOP:        return "HOME_LOOP";
+    case FOOD_MENU:        return "FOOD_MENU";
+    case FOOD_CONBINI:     return "FOOD_CONBINI";
+    case FOOD_CONBINI2:    return "FOOD_CONBINI2";
+    case FOOD_CONBINI3:    return "FOOD_CONBINI3";
+    case FOOD_COOK:        return "FOOD_COOK";
+    case FOOD_COOK2:       return "FOOD_COOK2";
+    case FOOD_REST:        return "FOOD_REST";
+    case FOOD_REST2:       return "FOOD_REST2";
+    case FOOD_REST3:       return "FOOD_REST3";
+    case FOOD_REST4:       return "FOOD_REST4";
+    case FOOD_REST5:       return "FOOD_REST5";
+    case FOOD_REST6:       return "FOOD_REST6";
+    case FOOD_REST7:       return "FOOD_REST7";
+    case FOOD_REST8:       return "FOOD_REST8";
+    case FOOD_ORDER:       return "FOOD_ORDER";
+    case FOOD_ORDER2:      return "FOOD_ORDER2";
+    case FOOD_ORDER3:      return "FOOD_ORDER3";
+    case FOOD_ORDER4:      return "FOOD_ORDER4";
+    case FOOD_ORDER5:      return "FOOD_ORDER5";
+    case FOOD_ORDER6:      return "FOOD_ORDER6";
+    case FOOD_ORDER7:      return "FOOD_ORDER7";
+    case FOOD_ORDER8:      return "FOOD_ORDER8";
+    case HEALTH_MENU:      return "HEALTH_MENU";
+    case HEALTH_WASH:      return "HEALTH_WASH";
+    case HEALTH_WASH2:     return "HEALTH_WASH2";
+    case HEALTH_DOCTOR:    return "HEALTH_DOCTOR";
+    case HEALTH_DOCTOR2:   return "HEALTH_DOCTOR2";
+    case HEALTH_DOCTOR3:   return "HEALTH_DOCTOR3";
+    case HEALTH_DOCTOR4:   return "HEALTH_DOCTOR4";
+    case HEALTH_DOCTOR5:   return "HEALTH_DOCTOR5";
+    case HEALTH_DOCTOR6:   return "HEALTH_DOCTOR6";
+    case HEALTH_TEMPLE:    return "HEALTH_TEMPLE";
+    case HEALTH_TEMPLE2:   return "HEALTH_TEMPLE2";
+    case HEALTH_TEMPLE3:   return "HEALTH_TEMPLE3";
+    case HEALTH_TEMPLE4:   return "HEALTH_TEMPLE4";
+    case HEALTH_TEMPLE5:   return "HEALTH_TEMPLE5";
+    case HEALTH_TEMPLE6:   return "HEALTH_TEMPLE6";
+    case HEALTH_ONSEN:     return "HEALTH_ONSEN";
+    case REST_MENU:        return "REST_MENU";
+    case REST_MEDITATE:    return "REST_MEDITATE";
+    case REST_SLEEP:       return "REST_SLEEP";
+    case STATS_SCREEN:     return "STATS_SCREEN";
+    case GARDEN_MENU:      return "GARDEN_MENU";
+    case GARDEN_LOOP:      return "GARDEN_LOOP";
+    case GARDEN_PLANT:     return "GARDEN_PLANT";
+    case GARDEN_WATER:     return "GARDEN_WATER";
+    case GARDEN_PICK:      return "GARDEN_PICK";
+    case GARDEN_CLEANUP:   return "GARDEN_CLEANUP";
+    case TRAIN_MENU:       return "TRAIN_MENU";
+    case TRAIN_SING:       return "TRAIN_SING";
+    case TRAIN_SING2:      return "TRAIN_SING2";
+    case TRAIN_SING3:      return "TRAIN_SING3";
+    case TRAIN_DANCE:      return "TRAIN_DANCE";
+    case TRAIN_DANCE2:     return "TRAIN_DANCE2";
+    case TRAIN_DANCE3:     return "TRAIN_DANCE3";
+    case TRAIN_SWIM:       return "TRAIN_SWIM";
+    case TRAIN_SWIM2:      return "TRAIN_SWIM2";
+    case TRAIN_SWIM3:      return "TRAIN_SWIM3";
+    case TRAIN_GYM:        return "TRAIN_GYM";
+    case TRAIN_GYM2:       return "TRAIN_GYM2";
+    case TRAIN_GYM3:       return "TRAIN_GYM3";
+    case TRAIN_RUN:        return "TRAIN_RUN";
+    case TRAIN_RUN2:       return "TRAIN_RUN2";
+    case TRAIN_RUN3:       return "TRAIN_RUN3";
+    case TRAIN_LIBRARY:    return "TRAIN_LIBRARY";
+    case COMP_MENU:        return "COMP_MENU";
+    case COMP_LOCAL:       return "COMP_LOCAL";
+    case COMP_DEPT:        return "COMP_DEPT";
+    case COMP_REG:         return "COMP_REG";
+    case COMP_NAT:         return "COMP_NAT";
+    default:               return "UNKNOWN";
+  }
+}
 
 // Toast messages
 String toastMsg = "";
@@ -1166,6 +1251,7 @@ void loop() {
   Serial.println("debugEnabled: " + String(debugEnabled) + " - menuOpened: " + String(menuOpened) + " - toastActive: " + String(toastActive));
   Serial.println("changeStateCounter: " + String(changeStateCounter) + " - l5NeedsRedraw: " + String(l5NeedsRedraw));
 */
+  Serial.println("> currentState = " + String(gameStateToString(currentState)));
   switch (screenConfig) {
     case CARD:
       manageCard();
