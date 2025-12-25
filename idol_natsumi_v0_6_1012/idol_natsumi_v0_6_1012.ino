@@ -2011,7 +2011,7 @@ void manageRoom() {
     case HEALTH_WASH2:
       wash();
       break;
-    case GARDEN_LOOP: case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
+    case GARDEN_MENU: case GARDEN_LOOP: case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
       manageGarden();
       break;
     case FOOD_MENU:
