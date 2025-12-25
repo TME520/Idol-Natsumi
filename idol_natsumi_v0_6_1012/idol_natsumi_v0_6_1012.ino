@@ -299,6 +299,7 @@ bool waitingForFoodDelivery = false;
 bool meditationActive = false;
 bool meditationRewardApplied = false;
 bool fiveSecondPulse = false;  // Set true by updateFiveSecondPulse() every five seconds
+bool isNatsumiHappy = false;
 
 // Onsen state
 unsigned long onsenTicks = 0;  // Number of 5-second pulses spent in the onsen
@@ -447,10 +448,10 @@ const int runGreenWidth = 44;
 // const float runCursorSpeed = 0.18f;           // pixels per millisecond
 const float runCursorSpeed = 0.08f;
 const unsigned long runTargetGreenTime = 10000;
-const unsigned long runMaxRedTime = 2500;
+const unsigned long runMaxRedTime = 3000;
 const unsigned long runCompletionDelay = 1200;
 const unsigned long runStepInterval = 160;
-float runCursorPos = 0.0f;
+float runCursorPos = 10.0f;
 bool runEnterHeld = false;
 unsigned long runGreenTime = 0;
 unsigned long runRedTime = 0;
@@ -558,6 +559,9 @@ void unloadAllImages() {
 
   unloadImage(currentBackground);
   unloadImage(currentCharacter);
+  unloadImage(natsumiSprite);
+  unloadImage(enemySprite);
+  clearFoodGrid();
 
   // currentBackground points to one of the room images, so just reset it
   currentBackground.data = nullptr;
@@ -859,7 +863,19 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         default:
-          preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentCharacter);
+          if (isNatsumiHappy) {
+            preloadImage("/idolnat/sprites/natsumi_11yo_happy-90x135.png", currentCharacter);
+          } else if (natsumi.hunger < 1) {
+            preloadImage("/idolnat/sprites/natsumi_11yo_hungry-90x135.png", currentCharacter);
+          } else if (natsumi.hygiene < 1) {
+            preloadImage("/idolnat/sprites/natsumi_11yo_dirty-90x135.png", currentCharacter);
+          } else if (natsumi.energy < 1) {
+            preloadImage("/idolnat/sprites/natsumi_11yo_tired-90x135.png", currentCharacter);
+          } else if (natsumi.spirit < 1) {
+            preloadImage("/idolnat/sprites/natsumi_11yo_sad-90x135.png", currentCharacter);
+          } else {
+            preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentCharacter);
+          }
           break;
       }
       break;
@@ -905,7 +921,19 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         default:
-          preloadImage("/idolnat/sprites/natsumi_13yo-90x135.png", currentCharacter);
+          if (isNatsumiHappy) {
+            preloadImage("/idolnat/sprites/natsumi_13yo_happy-90x135.png", currentCharacter);
+          } else if (natsumi.hunger < 1) {
+            preloadImage("/idolnat/sprites/natsumi_13yo_hungry-90x135.png", currentCharacter);
+          } else if (natsumi.hygiene < 1) {
+            preloadImage("/idolnat/sprites/natsumi_13yo_dirty-90x135.png", currentCharacter);
+          } else if (natsumi.energy < 1) {
+            preloadImage("/idolnat/sprites/natsumi_13yo_tired-90x135.png", currentCharacter);
+          } else if (natsumi.spirit < 1) {
+            preloadImage("/idolnat/sprites/natsumi_13yo_sad-90x135.png", currentCharacter);
+          } else {
+            preloadImage("/idolnat/sprites/natsumi_13yo-90x135.png", currentCharacter);
+          }
           break;
       }
       break;
@@ -951,7 +979,19 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         default:
-          preloadImage("/idolnat/sprites/natsumi_15yo-90x135.png", currentCharacter);
+          if (isNatsumiHappy) {
+            preloadImage("/idolnat/sprites/natsumi_15yo_happy-90x135.png", currentCharacter);
+          } else if (natsumi.hunger < 1) {
+            preloadImage("/idolnat/sprites/natsumi_15yo_hungry-90x135.png", currentCharacter);
+          } else if (natsumi.hygiene < 1) {
+            preloadImage("/idolnat/sprites/natsumi_15yo_dirty-90x135.png", currentCharacter);
+          } else if (natsumi.energy < 1) {
+            preloadImage("/idolnat/sprites/natsumi_15yo_tired-90x135.png", currentCharacter);
+          } else if (natsumi.spirit < 1) {
+            preloadImage("/idolnat/sprites/natsumi_15yo_sad-90x135.png", currentCharacter);
+          } else {
+            preloadImage("/idolnat/sprites/natsumi_15yo-90x135.png", currentCharacter);
+          }
           break;
       }
       break;
@@ -997,7 +1037,19 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         default:
-          preloadImage("/idolnat/sprites/natsumi_18yo-90x135.png", currentCharacter);
+          if (isNatsumiHappy) {
+            preloadImage("/idolnat/sprites/natsumi_18yo_happy-90x135.png", currentCharacter);
+          } else if (natsumi.hunger < 1) {
+            preloadImage("/idolnat/sprites/natsumi_18yo_hungry-90x135.png", currentCharacter);
+          } else if (natsumi.hygiene < 1) {
+            preloadImage("/idolnat/sprites/natsumi_18yo_dirty-90x135.png", currentCharacter);
+          } else if (natsumi.energy < 1) {
+            preloadImage("/idolnat/sprites/natsumi_18yo_tired-90x135.png", currentCharacter);
+          } else if (natsumi.spirit < 1) {
+            preloadImage("/idolnat/sprites/natsumi_18yo_sad-90x135.png", currentCharacter);
+          } else {
+            preloadImage("/idolnat/sprites/natsumi_18yo-90x135.png", currentCharacter);
+          }
           break;
       }
       break;
@@ -1043,7 +1095,19 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         default:
-          preloadImage("/idolnat/sprites/natsumi_21yo-90x135.png", currentCharacter);
+          if (isNatsumiHappy) {
+            preloadImage("/idolnat/sprites/natsumi_21yo_happy-90x135.png", currentCharacter);
+          } else if (natsumi.hunger < 1) {
+            preloadImage("/idolnat/sprites/natsumi_21yo_hungry-90x135.png", currentCharacter);
+          } else if (natsumi.hygiene < 1) {
+            preloadImage("/idolnat/sprites/natsumi_21yo_dirty-90x135.png", currentCharacter);
+          } else if (natsumi.energy < 1) {
+            preloadImage("/idolnat/sprites/natsumi_21yo_tired-90x135.png", currentCharacter);
+          } else if (natsumi.spirit < 1) {
+            preloadImage("/idolnat/sprites/natsumi_21yo_sad-90x135.png", currentCharacter);
+          } else {
+            preloadImage("/idolnat/sprites/natsumi_21yo-90x135.png", currentCharacter);
+          }
           break;
       }
       break;
@@ -2087,7 +2151,10 @@ void manageMiniGameCountdown() {
     miniGameCountdownStart = millis();
     miniGameCountdownValue = 3;
     switch(currentState) {
-      case TRAIN_SING2:
+      case TRAIN_DANCE:
+        resetTrainDanceGame();
+        break;
+      case TRAIN_SING:
         resetTrainSingGame();
         break;
       case TRAIN_GYM:
@@ -2095,6 +2162,9 @@ void manageMiniGameCountdown() {
         break;
       case TRAIN_RUN:
         resetTrainRunGame();
+        break;
+      case TRAIN_SWIM:
+        resetTrainSwimGame();
         break;
       default:
         break;
