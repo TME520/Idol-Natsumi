@@ -1555,14 +1555,13 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case GARDEN_LOOP:
         screenConfig = ROOM;
+        currentMenuType = "garden";
+        currentMenuItems = gardenMenuItems;
+        currentMenuItemsCount = gardenMenuItemCount;
         menuOpened = false;
         break;
       case GARDEN_MENU:
         screenConfig = ROOM;
-        currentMenuType = "garden";
-        currentMenuItems = gardenMenuItems;
-        currentMenuItemsCount = gardenMenuItemCount;
-        menuOpened = true;
         break;
       case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
         screenConfig = ROOM;
@@ -2208,7 +2207,8 @@ void drawGardenPlanter() {
 }
 
 void manageGarden() {
-  Serial.println("> Entering manageGarden()");
+  // Serial.println("> Entering manageGarden()");
+  // Serial.println(">> currentState set to " + String(currentState));
   overlayActive = true;
   updateAging();
   updateStats();
@@ -2216,6 +2216,7 @@ void manageGarden() {
   int &tile = gardenTiles[gardenCursorRow][gardenCursorCol];
   switch (currentState) {
     case GARDEN_PLANT:
+      Serial.println(">> GARDEN_PLANT");
       if (tile == 0) {
         tile = 1;
         showToast("Seed planted");
@@ -2224,6 +2225,7 @@ void manageGarden() {
       }
       break;
     case GARDEN_WATER:
+      Serial.println(">> GARDEN_WATER");
       if (tile > 0) {
         tile = 2;
         showToast("Watered");
@@ -2232,6 +2234,7 @@ void manageGarden() {
       }
       break;
     case GARDEN_PICK:
+      Serial.println(">> GARDEN_PICK");
       if (tile > 0) {
         tile = 0;
         showToast("Harvested");
@@ -2240,67 +2243,69 @@ void manageGarden() {
       }
       break;
     case GARDEN_CLEANUP:
+      Serial.println(">> GARDEN_CLEANUP");
       tile = 0;
       showToast("Tile cleaned");
       break;
-    case GARDEN_LOOP:
-      if (!menuOpened) {
-        uint8_t key = 0;
-        if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-          auto keyList = M5Cardputer.Keyboard.keyList();
-          if (keyList.size() > 0) {
-            key = M5Cardputer.Keyboard.getKey(keyList[0]);
-            bool moved = false;
-            switch (key) {
-              // UP
-              case 181: case 59: case 'w': case 'W':
-                if (gardenCursorRow > 0) {
-                  gardenCursorRow--;
-                  moved = true;
-                }
-                break;
-              // DOWN
-              case 182: case 46: case 's': case 'S':
-                if (gardenCursorRow < gardenRows - 1) {
-                  gardenCursorRow++;
-                  moved = true;
-                }
-                break;
-              // LEFT
-              case 180: case 44: case 'a': case 'A':
-                if (gardenCursorCol > 0) {
-                  gardenCursorCol--;
-                  moved = true;
-                }
-                break;
-              // RIGHT
-              case 183: case 47: case 'd': case 'D':
-                if (gardenCursorCol < gardenCols - 1) {
-                  gardenCursorCol++;
-                  moved = true;
-                }
-                break;
-              // ENTER
-              case 13: case 40: case ' ':
-                currentMenuType = "garden";
-                currentMenuItems = gardenMenuItems;
-                currentMenuItemsCount = gardenMenuItemCount;
-                menuOpened = true;
-                l4NeedsRedraw = true;
-                break;
-              // ESC
-              case 96:
-                menuOpened = false;
-                changeState(0, HOME_LOOP, 0);
-                return;
-            }
-    
-            if (moved) {
-              l5NeedsRedraw = true;
-            }
+    case GARDEN_LOOP: {
+      Serial.println(">> GARDEN_LOOP");
+      uint8_t key = 0;
+      if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+        auto keyList = M5Cardputer.Keyboard.keyList();
+        if (keyList.size() > 0) {
+          key = M5Cardputer.Keyboard.getKey(keyList[0]);
+          bool moved = false;
+          switch (key) {
+            // UP
+            case 181: case 59: case 'w': case 'W':
+              if (gardenCursorRow > 0) {
+                gardenCursorRow--;
+                moved = true;
+              }
+              break;
+            // DOWN
+            case 182: case 46: case 's': case 'S':
+              if (gardenCursorRow < gardenRows - 1) {
+                gardenCursorRow++;
+                moved = true;
+              }
+              break;
+            // LEFT
+            case 180: case 44: case 'a': case 'A':
+              if (gardenCursorCol > 0) {
+                gardenCursorCol--;
+                moved = true;
+              }
+              break;
+            // RIGHT
+            case 183: case 47: case 'd': case 'D':
+              if (gardenCursorCol < gardenCols - 1) {
+                gardenCursorCol++;
+                moved = true;
+              }
+              break;
+            // ENTER
+            case 13: case 40: case ' ':
+              menuOpened = true;
+              changeState(0, GARDEN_MENU, 0);
+              break;
+            // ESC
+            case 96:
+              menuOpened = false;
+              changeState(0, HOME_LOOP, 0);
+              return;
+          }
+          if (moved) {
+            l5NeedsRedraw = true;
           }
         }
       }
+      break;
+    }
+    case GARDEN_MENU:
+      Serial.println(">> GARDEN_MENU");
+      l5NeedsRedraw = true;
+      showToast("Menu for the garden");
       break;
     default:
       showToast("Meh!");
@@ -3715,6 +3720,7 @@ void drawToast() {
 void drawMenu(String menuType, const char* items[], int itemCount, int &selection) {
   // Draw menus on the screen (layer 4)
   // Serial.println("> Entering drawMenu() L4 with menuEnabled set to " + String(menuEnabled));
+  Serial.println(">> menuType set to " + String(menuType));
   if (menuEnabled) {
     uint8_t key = 0;
     if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -4391,7 +4397,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           if (menuOpened) {
             menuOpened = false;
             l0NeedsRedraw = true;
-            changeState(0, HOME_LOOP, 0);
+            changeState(0, GARDEN_LOOP, 0);
           } else {
             menuOpened = true;
             l4NeedsRedraw = true;
@@ -4403,7 +4409,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             menuOpened = false;
             l0NeedsRedraw = true;
           }
-          changeState(0, HOME_LOOP, 0);
+          changeState(0, GARDEN_LOOP, 0);
           break;
         case 181: case 'w': case 'W': case 59:
           // UP
