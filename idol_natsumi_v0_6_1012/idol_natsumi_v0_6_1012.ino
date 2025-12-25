@@ -274,6 +274,12 @@ int competitionMenuSelection = 0;
 int healthMenuSelection = 0;
 int restMenuSelection = 0;
 int gardenMenuSelection = 0;
+const int gardenRows = 3;
+const int gardenCols = 3;
+int gardenTiles[gardenRows][gardenCols] = {};
+int gardenCursorRow = 0;
+int gardenCursorCol = 0;
+GameState lastGardenState = HOME_LOOP;
 
 int lastSleepEnergyDisplayed = -1;
 int lastMeditationDisplayed = 0;
@@ -2139,10 +2145,169 @@ void manageHomeScreen() {
   return;
 }
 
+void drawGardenTile(int topX, int topY, int tileW, int tileH, uint16_t fillColor, uint16_t borderColor) {
+  int halfW = tileW / 2;
+  int halfH = tileH / 2;
+  int leftX = topX - halfW;
+  int rightX = topX + halfW;
+  int midY = topY + halfH;
+  int bottomY = topY + tileH;
+
+  M5Cardputer.Display.fillTriangle(topX, topY, leftX, midY, rightX, midY, fillColor);
+  M5Cardputer.Display.fillTriangle(topX, bottomY, leftX, midY, rightX, midY, fillColor);
+
+  M5Cardputer.Display.drawLine(topX, topY, leftX, midY, borderColor);
+  M5Cardputer.Display.drawLine(leftX, midY, topX, bottomY, borderColor);
+  M5Cardputer.Display.drawLine(topX, bottomY, rightX, midY, borderColor);
+  M5Cardputer.Display.drawLine(rightX, midY, topX, topY, borderColor);
+}
+
+void drawGardenPlanter() {
+  const int tileW = 34;
+  const int tileH = 18;
+  const int originX = 120;
+  const int originY = 26;
+  const uint16_t soilColor = M5Cardputer.Display.color565(120, 86, 48);
+  const uint16_t soilWetColor = M5Cardputer.Display.color565(70, 110, 150);
+  const uint16_t soilBorder = M5Cardputer.Display.color565(170, 120, 70);
+  const uint16_t activeBorder = YELLOW;
+  const uint16_t sproutColor = M5Cardputer.Display.color565(80, 200, 90);
+  const uint16_t waterColor = M5Cardputer.Display.color565(90, 180, 255);
+
+  for (int row = 0; row < gardenRows; row++) {
+    for (int col = 0; col < gardenCols; col++) {
+      int topX = originX + (col - row) * (tileW / 2);
+      int topY = originY + (col + row) * (tileH / 2);
+      int tileValue = gardenTiles[row][col];
+      uint16_t fillColor = (tileValue == 2) ? soilWetColor : soilColor;
+      uint16_t borderColor = (row == gardenCursorRow && col == gardenCursorCol) ? activeBorder : soilBorder;
+
+      drawGardenTile(topX, topY, tileW, tileH, fillColor, borderColor);
+
+      if (tileValue > 0) {
+        int centerX = topX;
+        int centerY = topY + (tileH / 2);
+        M5Cardputer.Display.fillCircle(centerX, centerY + 2, 3, sproutColor);
+        M5Cardputer.Display.drawFastVLine(centerX, centerY - 2, 4, sproutColor);
+        if (tileValue == 2) {
+          M5Cardputer.Display.fillCircle(centerX + 6, centerY + 4, 2, waterColor);
+        }
+      }
+    }
+  }
+
+  if (!menuOpened) {
+    M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+    drawText("ARROWS: Move  ENTER: Menu  ESC: Home", 120, 131, true, WHITE, 1);
+  }
+}
+
 void manageGarden() {
   Serial.println("> Entering manageGarden()");
+  overlayActive = true;
   updateAging();
   updateStats();
+
+  if (currentState != lastGardenState) {
+    lastGardenState = currentState;
+    l5NeedsRedraw = true;
+    if (currentState == GARDEN_PLANT || currentState == GARDEN_WATER || currentState == GARDEN_PICK || currentState == GARDEN_CLEANUP) {
+      int &tile = gardenTiles[gardenCursorRow][gardenCursorCol];
+      switch (currentState) {
+        case GARDEN_PLANT:
+          if (tile == 0) {
+            tile = 1;
+            showToast("Seed planted");
+          } else {
+            showToast("Tile already planted");
+          }
+          break;
+        case GARDEN_WATER:
+          if (tile > 0) {
+            tile = 2;
+            showToast("Watered");
+          } else {
+            showToast("Nothing to water");
+          }
+          break;
+        case GARDEN_PICK:
+          if (tile > 0) {
+            tile = 0;
+            showToast("Harvested");
+          } else {
+            showToast("Nothing to pick");
+          }
+          break;
+        case GARDEN_CLEANUP:
+          tile = 0;
+          showToast("Tile cleaned");
+          break;
+        default:
+          break;
+      }
+      l5NeedsRedraw = true;
+      changeState(0, GARDEN_LOOP, 0);
+      return;
+    }
+  }
+
+  if (currentState == GARDEN_LOOP && !menuOpened) {
+    uint8_t key = 0;
+    if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+      auto keyList = M5Cardputer.Keyboard.keyList();
+      if (keyList.size() > 0) {
+        key = M5Cardputer.Keyboard.getKey(keyList[0]);
+        bool moved = false;
+        switch (key) {
+          // UP
+          case 181: case 59: case 'w': case 'W':
+            if (gardenCursorRow > 0) {
+              gardenCursorRow--;
+              moved = true;
+            }
+            break;
+          // DOWN
+          case 182: case 46: case 's': case 'S':
+            if (gardenCursorRow < gardenRows - 1) {
+              gardenCursorRow++;
+              moved = true;
+            }
+            break;
+          // LEFT
+          case 180: case 44: case 'a': case 'A':
+            if (gardenCursorCol > 0) {
+              gardenCursorCol--;
+              moved = true;
+            }
+            break;
+          // RIGHT
+          case 183: case 47: case 'd': case 'D':
+            if (gardenCursorCol < gardenCols - 1) {
+              gardenCursorCol++;
+              moved = true;
+            }
+            break;
+          // ENTER
+          case 13: case 40: case ' ':
+            currentMenuType = "garden";
+            currentMenuItems = gardenMenuItems;
+            currentMenuItemsCount = gardenMenuItemCount;
+            menuOpened = true;
+            l4NeedsRedraw = true;
+            break;
+          // ESC
+          case 96:
+            menuOpened = false;
+            changeState(0, HOME_LOOP, 0);
+            return;
+        }
+
+        if (moved) {
+          l5NeedsRedraw = true;
+        }
+      }
+    }
+  }
   return;
 }
 
@@ -4600,7 +4765,10 @@ void drawOverlay() {
       // Serial.println(">>> drawOverlay: Testing for key pressed");
       if (keyList.size() > 0) {
         key = M5Cardputer.Keyboard.getKey(keyList[0]);
-        if (currentState != FOOD_COOK && currentState != FOOD_CONBINI3) {
+        if (currentState != FOOD_COOK && currentState != FOOD_CONBINI3 &&
+            currentState != GARDEN_LOOP && currentState != GARDEN_PLANT &&
+            currentState != GARDEN_WATER && currentState != GARDEN_PICK &&
+            currentState != GARDEN_CLEANUP) {
           overlayActive = false;
           changeState(0, HOME_LOOP, 0);
           return;
@@ -4851,6 +5019,9 @@ void drawOverlay() {
             zoom
           );
         }
+        break;
+      case GARDEN_LOOP: case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
+        drawGardenPlanter();
         break;
       default:
         break;
