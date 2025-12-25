@@ -760,7 +760,7 @@ void preloadImages() {
     case REST_SLEEP:
       preloadImage("/idolnat/screens/bedroom_dark.png", currentBackground);
       break;
-    case GARDEN_LOOP:
+    case GARDEN_LOOP: case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
       preloadImage("/idolnat/screens/garden_bg.png", currentBackground);
       break;
     case STATS_SCREEN:
@@ -1553,6 +1553,10 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItemsCount = gardenMenuItemCount;
         menuOpened = false;
         break;
+      case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
+        screenConfig = ROOM;
+        menuOpened = false;
+        break;
       default:
         break;
     }
@@ -1997,7 +2001,7 @@ void manageRoom() {
     case HEALTH_WASH2:
       wash();
       break;
-    case GARDEN_LOOP:
+    case GARDEN_LOOP: case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
       manageGarden();
       break;
     case FOOD_MENU:
@@ -2136,7 +2140,7 @@ void manageHomeScreen() {
 }
 
 void manageGarden() {
-  // Serial.println("> Entering manageGarden()");
+  Serial.println("> Entering manageGarden()");
   updateAging();
   updateStats();
   return;
