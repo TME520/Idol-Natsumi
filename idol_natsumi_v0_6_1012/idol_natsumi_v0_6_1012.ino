@@ -59,6 +59,10 @@ enum GameState {
   REST_SLEEP,
   STATS_SCREEN,
   GARDEN_LOOP,
+  GARDEN_PLANT,
+  GARDEN_WATER,
+  GARDEN_PICK,
+  GARDEN_CLEANUP,
   TRAIN_MENU,
   TRAIN_SING,
   TRAIN_SING2,
@@ -1544,6 +1548,10 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case GARDEN_LOOP:
         screenConfig = ROOM;
+        currentMenuType = "garden";
+        currentMenuItems = gardenMenuItems;
+        currentMenuItemsCount = gardenMenuItemCount;
+        menuOpened = false;
         break;
       default:
         break;
@@ -4177,7 +4185,91 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             changeState(4, DEV_SCREEN, 0);
             return;
           }
-  
+      }
+    } else if (menuType == "garden") {
+      switch (key) {
+        case 48:
+          // 0: PLANT
+          menuOpened = false;
+          changeState(0, GARDEN_PLANT, 0);
+          break;
+        case 49:
+          // 1: WATER
+          menuOpened = false;
+          changeState(0, GARDEN_WATER, 0);
+          break;
+        case 50:
+          // 2: PICK
+          menuOpened = false;
+          changeState(0, GARDEN_PICK, 0);
+          break;
+        case 51:
+          // 3: CLEANUP
+          menuOpened = false;
+          changeState(0, GARDEN_CLEANUP, 0);
+          break;
+        case 55:
+          // 7: DEBUG
+          if (debugActive) {
+            debugActive = false;
+            l0NeedsRedraw = true;
+            l2NeedsRedraw = false;
+          } else {
+            debugActive = true;
+            l2NeedsRedraw = true;
+          }
+          break;
+        case 43:
+          // TAB
+          if (menuOpened) {
+            menuOpened = false;
+            l0NeedsRedraw = true;
+            changeState(0, HOME_LOOP, 0);
+          } else {
+            menuOpened = true;
+            l4NeedsRedraw = true;
+          }
+          break;
+        case 96:
+          // ESC
+          if (menuOpened) {
+            menuOpened = false;
+            l0NeedsRedraw = true;
+          }
+          changeState(0, HOME_LOOP, 0);
+          break;
+        case 181: case 'w': case 'W': case 59:
+          // UP
+          selection = (selection - 1 + gardenMenuItemCount) % gardenMenuItemCount;
+          l4NeedsRedraw = true;
+          break;
+        case 182: case 's': case 'S': case 46:
+          // DOWN
+          selection = (selection + 1) % gardenMenuItemCount;
+          l4NeedsRedraw = true;
+          break;
+        case 13: case 40: case ' ':
+          // VALIDATE
+          if (selection == 0) {
+            changeState(0, GARDEN_PLANT, 0);
+          } else if (selection == 1) {
+            changeState(0, GARDEN_WATER, 0);
+          } else if (selection == 2) {
+            changeState(0, GARDEN_PICK, 0);
+          } else if (selection == 3) {
+            changeState(0, GARDEN_CLEANUP, 0);
+          } else if (selection == 7) {
+            if (debugActive) {
+              debugActive = false;
+              l0NeedsRedraw = true;
+              l2NeedsRedraw = false;
+            } else {
+              debugActive = true;
+              l2NeedsRedraw = true;
+            }
+          }
+          menuOpened = false;
+          break;
       }
     }
     if (!menuOpened) {
