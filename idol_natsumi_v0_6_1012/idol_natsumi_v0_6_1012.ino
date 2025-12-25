@@ -2211,44 +2211,43 @@ void manageGarden() {
   if (currentState != lastGardenState) {
     lastGardenState = currentState;
     l5NeedsRedraw = true;
-    if (currentState == GARDEN_PLANT || currentState == GARDEN_WATER || currentState == GARDEN_PICK || currentState == GARDEN_CLEANUP) {
-      int &tile = gardenTiles[gardenCursorRow][gardenCursorCol];
-      switch (currentState) {
-        case GARDEN_PLANT:
-          if (tile == 0) {
-            tile = 1;
-            showToast("Seed planted");
-          } else {
-            showToast("Tile already planted");
-          }
-          break;
-        case GARDEN_WATER:
-          if (tile > 0) {
-            tile = 2;
-            showToast("Watered");
-          } else {
-            showToast("Nothing to water");
-          }
-          break;
-        case GARDEN_PICK:
-          if (tile > 0) {
-            tile = 0;
-            showToast("Harvested");
-          } else {
-            showToast("Nothing to pick");
-          }
-          break;
-        case GARDEN_CLEANUP:
+    int &tile = gardenTiles[gardenCursorRow][gardenCursorCol];
+    switch (currentState) {
+      case GARDEN_PLANT:
+        if (tile == 0) {
+          tile = 1;
+          showToast("Seed planted");
+        } else {
+          showToast("Tile already planted");
+        }
+        break;
+      case GARDEN_WATER:
+        if (tile > 0) {
+          tile = 2;
+          showToast("Watered");
+        } else {
+          showToast("Nothing to water");
+        }
+        break;
+      case GARDEN_PICK:
+        if (tile > 0) {
           tile = 0;
-          showToast("Tile cleaned");
-          break;
-        default:
-          break;
-      }
-      l5NeedsRedraw = true;
-      changeState(0, GARDEN_LOOP, 0);
-      return;
+          showToast("Harvested");
+        } else {
+          showToast("Nothing to pick");
+        }
+        break;
+      case GARDEN_CLEANUP:
+        tile = 0;
+        showToast("Tile cleaned");
+        break;
+      default:
+        showToast("Meh!");
+        break;
     }
+    l5NeedsRedraw = true;
+    changeState(0, GARDEN_LOOP, 0);
+    return;
   }
 
   if (currentState == GARDEN_LOOP && !menuOpened) {
