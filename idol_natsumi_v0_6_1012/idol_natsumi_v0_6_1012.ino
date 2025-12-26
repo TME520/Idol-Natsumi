@@ -313,6 +313,7 @@ bool meditationActive = false;
 bool meditationRewardApplied = false;
 bool fiveSecondPulse = false;  // Set true by updateFiveSecondPulse() every five seconds
 bool isNatsumiHappy = false;
+bool gardenActive = false;
 
 // Onsen state
 unsigned long onsenTicks = 0;  // Number of 5-second pulses spent in the onsen
@@ -1807,6 +1808,17 @@ void updateFiveSecondPulse() {
         changeState(0, FOOD_ORDER7, 0);
       }
     }
+    if (gardenActive) {
+      // Grow the seeds
+      for (int row = 0; row < gardenRows; row++) {
+        for (int col = 0; col < gardenCols; col++) {
+          int tileValue = gardenTiles[row][col];
+          if (tileValue > 1) {
+            gardenTiles[row][col] += 5;    
+          }
+        }
+      }
+    }
   } else {
     fiveSecondPulse = false;
   }
@@ -2271,6 +2283,7 @@ void drawGardenPlanter() {
   const uint16_t sproutColor = M5Cardputer.Display.color565(80, 200, 90);
   const uint16_t waterColor = M5Cardputer.Display.color565(90, 180, 255);
 
+  gardenActive = false;
   for (int row = 0; row < gardenRows; row++) {
     for (int col = 0; col < gardenCols; col++) {
       int topX = originX + (col - row) * (tileW / 2);
@@ -2280,15 +2293,19 @@ void drawGardenPlanter() {
       uint16_t borderColor = (row == gardenCursorRow && col == gardenCursorCol) ? activeBorder : soilBorder;
 
       drawGardenTile(topX, topY, tileW, tileH, fillColor, borderColor);
+      int centerX = topX;
+      int centerY = topY + (tileH / 2);
 
-      if (tileValue > 0) {
-        int centerX = topX;
-        int centerY = topY + (tileH / 2);
+      if (tileValue == 1) {
         M5Cardputer.Display.fillCircle(centerX, centerY + 2, 3, sproutColor);
         M5Cardputer.Display.drawFastVLine(centerX, centerY - 2, 4, sproutColor);
-        if (tileValue == 2) {
-          M5Cardputer.Display.fillCircle(centerX + 6, centerY + 4, 2, waterColor);
-        }
+      } else if (tileValue == 2) {
+        M5Cardputer.Display.fillCircle(centerX + 6, centerY + 4, 2, waterColor);
+          gardenActive = true;
+      } else if (tileValue > 2 && tileValue < 30) {
+        // Sprite 1
+      } else if (tileValue > 30 && tileValue <= 60) {
+        // Sprite 2
       }
     }
   }
@@ -2407,9 +2424,7 @@ void manageGarden() {
       break;
     }
     case GARDEN_MENU:
-      Serial.println(">> GARDEN_MENU");
-      // l5NeedsRedraw = true;
-      showToast("Menu for the garden");
+      // Serial.println(">> GARDEN_MENU");
       break;
     default:
       showToast("Meh!");
