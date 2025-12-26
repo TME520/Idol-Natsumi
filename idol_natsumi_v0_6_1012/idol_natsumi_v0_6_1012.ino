@@ -1251,7 +1251,7 @@ void loop() {
   Serial.println("debugEnabled: " + String(debugEnabled) + " - menuOpened: " + String(menuOpened) + " - toastActive: " + String(toastActive));
   Serial.println("changeStateCounter: " + String(changeStateCounter) + " - l5NeedsRedraw: " + String(l5NeedsRedraw));
 */
-  Serial.println("> currentState = " + String(gameStateToString(currentState)));
+  // Serial.println("> currentState = " + String(gameStateToString(currentState)));
   switch (screenConfig) {
     case CARD:
       manageCard();
@@ -1279,9 +1279,10 @@ void loop() {
 // === Menu and state logic ===
 void changeState(int baseLayer, GameState targetState, int delay) {
   // Manage state transitions
-  Serial.println("> Entering changeState() with baseLayer set to " + String(baseLayer) + " and targetState set to " + String(targetState) + " with delay set to " + String(delay));
+  // Serial.println("> Entering changeState() with baseLayer set to " + String(baseLayer) + " and targetState set to " + String(targetState) + " with delay set to " + String(delay));
   if (changeStateCounter == delay) {
     Serial.println("Proceed with transition");
+    Serial.println("> currentState = " + String(gameStateToString(currentState)));
     changeStateCounter = 0;
     currentState = targetState;
     preloadImages();
@@ -1641,13 +1642,14 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case GARDEN_LOOP:
         screenConfig = ROOM;
-        currentMenuType = "garden";
-        currentMenuItems = gardenMenuItems;
-        currentMenuItemsCount = gardenMenuItemCount;
         menuOpened = false;
         break;
       case GARDEN_MENU:
         screenConfig = ROOM;
+        currentMenuType = "garden";
+        currentMenuItems = gardenMenuItems;
+        currentMenuItemsCount = gardenMenuItemCount;
+        menuOpened = true;
         break;
       case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
         screenConfig = ROOM;
@@ -2097,7 +2099,11 @@ void manageRoom() {
     case HEALTH_WASH2:
       wash();
       break;
-    case GARDEN_MENU: case GARDEN_LOOP: case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
+    case GARDEN_MENU:
+      overlayEnabled = false;
+      // manageGarden();
+      break;
+    case GARDEN_LOOP: case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
       manageGarden();
       break;
     case FOOD_MENU:
@@ -2168,6 +2174,8 @@ void manageRoom() {
     selectionPtr = &homeMenuSelection;
   } else if (currentMenuType == "dev") {
     selectionPtr = &devMenuSelection;
+  } else if (currentMenuType == "garden") {
+    selectionPtr = &gardenMenuSelection;
   } else {
     selectionPtr = &mainMenuSelection;
   }
@@ -2344,6 +2352,7 @@ void manageGarden() {
           switch (key) {
             // UP
             case 181: case 59: case 'w': case 'W':
+              Serial.println(">>> UP");
               if (gardenCursorRow > 0) {
                 gardenCursorRow--;
                 moved = true;
@@ -2351,6 +2360,7 @@ void manageGarden() {
               break;
             // DOWN
             case 182: case 46: case 's': case 'S':
+              Serial.println(">>> DOWN");
               if (gardenCursorRow < gardenRows - 1) {
                 gardenCursorRow++;
                 moved = true;
@@ -2358,6 +2368,7 @@ void manageGarden() {
               break;
             // LEFT
             case 180: case 44: case 'a': case 'A':
+              Serial.println(">>> LEFT");
               if (gardenCursorCol > 0) {
                 gardenCursorCol--;
                 moved = true;
@@ -2365,6 +2376,7 @@ void manageGarden() {
               break;
             // RIGHT
             case 183: case 47: case 'd': case 'D':
+              Serial.println(">>> RIGHT");
               if (gardenCursorCol < gardenCols - 1) {
                 gardenCursorCol++;
                 moved = true;
@@ -2372,11 +2384,13 @@ void manageGarden() {
               break;
             // ENTER
             case 13: case 40: case ' ':
+              Serial.println(">>> ENTER");
               menuOpened = true;
               changeState(0, GARDEN_MENU, 0);
               break;
             // ESC
             case 96:
+              Serial.println(">>> ESC");
               menuOpened = false;
               changeState(0, HOME_LOOP, 0);
               return;
@@ -2390,7 +2404,7 @@ void manageGarden() {
     }
     case GARDEN_MENU:
       Serial.println(">> GARDEN_MENU");
-      l5NeedsRedraw = true;
+      // l5NeedsRedraw = true;
       showToast("Menu for the garden");
       break;
     default:
@@ -3806,7 +3820,7 @@ void drawToast() {
 void drawMenu(String menuType, const char* items[], int itemCount, int &selection) {
   // Draw menus on the screen (layer 4)
   // Serial.println("> Entering drawMenu() L4 with menuEnabled set to " + String(menuEnabled));
-  Serial.println(">> menuType set to " + String(menuType));
+  // Serial.println(">> menuType set to " + String(menuType));
   if (menuEnabled) {
     uint8_t key = 0;
     if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -4446,24 +4460,29 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           }
       }
     } else if (menuType == "garden") {
+      Serial.println(">> drawMenu - garden menuType");
       switch (key) {
         case 48:
           // 0: PLANT
+          Serial.println(">>> drawMenu - 0: PLANT");
           menuOpened = false;
           changeState(0, GARDEN_PLANT, 0);
           break;
         case 49:
           // 1: WATER
+          Serial.println(">>> drawMenu - 1: WATER");
           menuOpened = false;
           changeState(0, GARDEN_WATER, 0);
           break;
         case 50:
           // 2: PICK
+          Serial.println(">>> drawMenu - 2: PICK");
           menuOpened = false;
           changeState(0, GARDEN_PICK, 0);
           break;
         case 51:
           // 3: CLEANUP
+          Serial.println(">>> drawMenu - 3: CLEANUP");
           menuOpened = false;
           changeState(0, GARDEN_CLEANUP, 0);
           break;
@@ -4499,11 +4518,13 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           break;
         case 181: case 'w': case 'W': case 59:
           // UP
+          Serial.println(">>> drawMenu - UP");
           selection = (selection - 1 + gardenMenuItemCount) % gardenMenuItemCount;
           l4NeedsRedraw = true;
           break;
         case 182: case 's': case 'S': case 46:
           // DOWN
+          Serial.println(">>> drawMenu - DOWN");
           selection = (selection + 1) % gardenMenuItemCount;
           l4NeedsRedraw = true;
           break;
@@ -4852,13 +4873,13 @@ void drawOverlay() {
     uint8_t key = 0;
     if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
       auto keyList = M5Cardputer.Keyboard.keyList();
-      // Serial.println(">>> drawOverlay: Testing for key pressed");
+      Serial.println(">>> drawOverlay: Testing for key pressed");
       if (keyList.size() > 0) {
         key = M5Cardputer.Keyboard.getKey(keyList[0]);
         if (currentState != FOOD_COOK && currentState != FOOD_CONBINI3 &&
             currentState != GARDEN_LOOP && currentState != GARDEN_PLANT &&
             currentState != GARDEN_WATER && currentState != GARDEN_PICK &&
-            currentState != GARDEN_CLEANUP) {
+            currentState != GARDEN_CLEANUP && currentState != GARDEN_MENU) {
           overlayActive = false;
           changeState(0, HOME_LOOP, 0);
           return;
