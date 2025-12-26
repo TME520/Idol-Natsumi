@@ -2101,7 +2101,6 @@ void manageRoom() {
       break;
     case GARDEN_MENU:
       overlayEnabled = false;
-      // manageGarden();
       break;
     case GARDEN_LOOP: case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
       manageGarden();
@@ -2308,6 +2307,7 @@ void manageGarden() {
   updateStats();
 
   int &tile = gardenTiles[gardenCursorRow][gardenCursorCol];
+  Serial.println(">> tile: " + String(tile));
   switch (currentState) {
     case GARDEN_PLANT:
       Serial.println(">> GARDEN_PLANT");
@@ -2317,6 +2317,7 @@ void manageGarden() {
       } else {
         showToast("Tile already planted");
       }
+      changeState(0, GARDEN_LOOP, 0);
       break;
     case GARDEN_WATER:
       Serial.println(">> GARDEN_WATER");
@@ -2326,6 +2327,7 @@ void manageGarden() {
       } else {
         showToast("Nothing to water");
       }
+      changeState(0, GARDEN_LOOP, 0);
       break;
     case GARDEN_PICK:
       Serial.println(">> GARDEN_PICK");
@@ -2335,11 +2337,13 @@ void manageGarden() {
       } else {
         showToast("Nothing to pick");
       }
+      changeState(0, GARDEN_LOOP, 0);
       break;
     case GARDEN_CLEANUP:
       Serial.println(">> GARDEN_CLEANUP");
       tile = 0;
       showToast("Tile cleaned");
+      changeState(0, GARDEN_LOOP, 0);
       break;
     case GARDEN_LOOP: {
       Serial.println(">> GARDEN_LOOP");
