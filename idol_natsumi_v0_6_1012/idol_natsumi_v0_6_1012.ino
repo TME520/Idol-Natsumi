@@ -1814,7 +1814,8 @@ void updateFiveSecondPulse() {
         for (int col = 0; col < gardenCols; col++) {
           int tileValue = gardenTiles[row][col];
           if (tileValue > 1) {
-            gardenTiles[row][col] += 5;    
+            gardenTiles[row][col] += 5;
+            Serial.println(">>> Gardening -> Current tile value is " + String(tileValue));  
           }
         }
       }
@@ -2296,12 +2297,15 @@ void drawGardenPlanter() {
       int centerX = topX;
       int centerY = topY + (tileH / 2);
 
+      if (tileValue > 1) {
+        gardenActive = true;
+      }
+
       if (tileValue == 1) {
         M5Cardputer.Display.fillCircle(centerX, centerY + 2, 3, sproutColor);
         M5Cardputer.Display.drawFastVLine(centerX, centerY - 2, 4, sproutColor);
       } else if (tileValue == 2) {
         M5Cardputer.Display.fillCircle(centerX + 6, centerY + 4, 2, waterColor);
-        gardenActive = true;
       } else if (tileValue > 2 && tileValue < 30) {
         preloadImage("/idolnat/sprites/flower_stage_01-22x16.png", natsumiSprite);
         M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX, centerY);
