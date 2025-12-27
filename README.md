@@ -157,3 +157,5 @@ Go for a run in the forest and increase your Fitness.
 
 ### Do gardening
 
+Natsumi can grow her own flowers and sell them on a market to make some extra money.
+
