@@ -50,8 +50,8 @@ Stat caps: 0 is the lowest while 4 is the highest.
 | **Popularity** | Active     | 0–4    | COMPETITION (LOCAL, DEPARTMENTAL, REGIONAL, NATIONAL)                     | —                                                                |
 | **Performance**| Active     | 0–4    | TRAINING → SING, DANCE                                                   | —                                                                |
 | **Fitness**    | Passive    | 0–4    | TRAINING → SWIM, GYM, RUN                                               | Decreases by 1 every time Age increases by 1 year                |
-| **Culture**    | Active     | 0–4    | TRAINING → LIBRARY                                                      | —                                                                |
-| **Charm**      | Active     | 0–4    | FOOD → COOK, RESTAURANT, ORDER                                           | —                                                                |
+| **Culture**    | Active     | 0–4    | TRAINING → LIBRARY, MARKET                                                      | —                                                                |
+| **Charm**      | Active     | 0–4    | FOOD → COOK, RESTAURANT, ORDER, MARKET                                           | —                                                                |
 
 ### Keep Natsumi fed
 

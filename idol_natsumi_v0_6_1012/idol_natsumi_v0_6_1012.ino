@@ -16,6 +16,7 @@ enum GameState {
   CONTINUE_GAME,
   DEV_SCREEN,
   HOME_LOOP,
+  FLOWERS_MARKET,
   FOOD_MENU,
   FOOD_CONBINI,
   FOOD_CONBINI2,
@@ -501,6 +502,7 @@ const char* gameStateToString(GameState state) {
     case CONTINUE_GAME:    return "CONTINUE_GAME";
     case DEV_SCREEN:       return "DEV_SCREEN";
     case HOME_LOOP:        return "HOME_LOOP";
+    case FLOWERS_MARKET:   return "FLOWERS_MARKET";
     case FOOD_MENU:        return "FOOD_MENU";
     case FOOD_CONBINI:     return "FOOD_CONBINI";
     case FOOD_CONBINI2:    return "FOOD_CONBINI2";
@@ -713,6 +715,9 @@ void preloadImages() {
       break;
     case HOME_LOOP:
       preloadImage("/idolnat/screens/lounge.png", currentBackground);
+      break;
+    case FLOWERS_MARKET:
+      preloadImage("/idolnat/screens/flower_market_bg.png", currentBackground);
       break;
     case FOOD_MENU:
       preloadImage("/idolnat/screens/kitchen.png", currentBackground);
@@ -1441,6 +1446,10 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         l5NeedsRedraw = true;
         toastEnabled = false;
         break;
+      case FLOWERS_MARKET:
+        screenConfig = IDLE;
+        characterEnabled = false;
+        break;
       case FOOD_MENU:
         screenConfig = ROOM;
         currentMenuType = "food";
@@ -2052,6 +2061,10 @@ void manageIdle() {
   overlayEnabled = true;
   helperEnabled = false;
   switch (currentState) {
+    case FLOWERS_MARKET:
+      characterEnabled = false;
+      changeState(0, HOME_LOOP, microWait);
+      break;
     case FOOD_CONBINI:
       characterEnabled = false;
       changeState(0, FOOD_CONBINI2, microWait);
