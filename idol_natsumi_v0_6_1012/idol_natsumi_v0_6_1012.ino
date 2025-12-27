@@ -16,6 +16,11 @@ enum GameState {
   CONTINUE_GAME,
   DEV_SCREEN,
   HOME_LOOP,
+  FLOWERS_MARKET,
+  FLOWERS_MARKET2,
+  FLOWERS_MARKET3,
+  FLOWERS_MARKET4,
+  FLOWERS_MARKET5,
   FOOD_MENU,
   FOOD_CONBINI,
   FOOD_CONBINI2,
@@ -58,7 +63,12 @@ enum GameState {
   REST_MEDITATE,
   REST_SLEEP,
   STATS_SCREEN,
+  GARDEN_MENU,
   GARDEN_LOOP,
+  GARDEN_PLANT,
+  GARDEN_WATER,
+  GARDEN_PICK,
+  GARDEN_CLEANUP,
   TRAIN_MENU,
   TRAIN_SING,
   TRAIN_SING2,
@@ -113,6 +123,7 @@ struct NatsumiStats {
   int culture;
   int charm;
   int money;
+  int flowers;
   unsigned long lastHungerUpdate = 0;
   unsigned long lastHygieneUpdate = 0;
   unsigned long lastEnergyUpdate = 0;
@@ -245,19 +256,21 @@ const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: DEV SCREEN"};
 const char* homeMenuItems[] = {"0: STATS", "1: FOOD", "2: TRAINING", "3: COMPETITION", "4: HEALTH", "5: REST", "6: GARDEN", "7: DEBUG"};
 const char* devMenuItems[] = {"0: CALIB1", "1: CALIB2", "2: CALIB3", "3: EXIT"};
 const char* foodMenuItems[] = {"0: FRIDGE", "1: RESTAURANT", "2: ORDER", "3: CONBINI"};
-const char* trainingMenuItems[] = {"0: SING", "1: DANCE", "2: SWIM", "3: GYM", "4: RUN", "5: LIBRARY"};
+const char* trainingMenuItems[] = {"0: SING", "1: DANCE", "2: SWIM", "3: GYM", "4: RUN", "5: LIBRARY", "6: MARKET"};
 const char* competitionMenuItems[] = {"0: LOCAL", "1: DEPARTMENTAL", "2: REGIONAL", "3: NATIONAL"};
 const char* healthMenuItems[] = {"0: WASH", "1: DOCTOR", "2: TEMPLE", "3: ONSEN"};
 const char* restMenuItems[] = {"0: MEDITATE", "1: SLEEP"};
+const char* gardenMenuItems[] = {"0: PLANT", "1: WATER", "2: PICK", "3: CLEANUP"};
 const char** currentMenuItems = nullptr;
 const int mainMenuItemCount = 3;
 const int homeMenuItemCount = 8;
 const int devMenuItemCount = 4;
 const int foodMenuItemCount = 4;
-const int trainingMenuItemCount = 6;
+const int trainingMenuItemCount = 7;
 const int competitionMenuItemCount = 4;
 const int healthMenuItemCount = 4;
 const int restMenuItemCount = 2;
+const int gardenMenuItemCount = 4;
 int currentMenuItemsCount = 0;
 int homeMenuSelection = 0;
 int mainMenuSelection = 0;
@@ -267,6 +280,12 @@ int trainingMenuSelection = 0;
 int competitionMenuSelection = 0;
 int healthMenuSelection = 0;
 int restMenuSelection = 0;
+int gardenMenuSelection = 0;
+const int gardenRows = 3;
+const int gardenCols = 3;
+int gardenTiles[gardenRows][gardenCols] = {};
+int gardenCursorRow = 0;
+int gardenCursorCol = 0;
 
 int lastSleepEnergyDisplayed = -1;
 int lastMeditationDisplayed = 0;
@@ -300,6 +319,7 @@ bool meditationActive = false;
 bool meditationRewardApplied = false;
 bool fiveSecondPulse = false;  // Set true by updateFiveSecondPulse() every five seconds
 bool isNatsumiHappy = false;
+bool gardenActive = false;
 
 // Onsen state
 unsigned long onsenTicks = 0;  // Number of 5-second pulses spent in the onsen
@@ -474,6 +494,97 @@ ImageBuffer currentIcon;
 ImageBuffer natsumiSprite;
 ImageBuffer enemySprite;
 
+const char* gameStateToString(GameState state) {
+  switch (state) {
+    case VERSION_SCREEN:   return "VERSION_SCREEN";
+    case M5_SCREEN:        return "M5_SCREEN";
+    case TITLE_SCREEN:     return "TITLE_SCREEN";
+    case CALIBRATION_1:    return "CALIBRATION_1";
+    case CALIBRATION_2:    return "CALIBRATION_2";
+    case CALIBRATION_3:    return "CALIBRATION_3";
+    case NEW_GAME:         return "NEW_GAME";
+    case CONTINUE_GAME:    return "CONTINUE_GAME";
+    case DEV_SCREEN:       return "DEV_SCREEN";
+    case HOME_LOOP:        return "HOME_LOOP";
+    case FLOWERS_MARKET:   return "FLOWERS_MARKET";
+    case FLOWERS_MARKET2:   return "FLOWERS_MARKET2";
+    case FLOWERS_MARKET3:   return "FLOWERS_MARKET3";
+    case FLOWERS_MARKET4:   return "FLOWERS_MARKET4";
+    case FLOWERS_MARKET5:   return "FLOWERS_MARKET5";
+    case FOOD_MENU:        return "FOOD_MENU";
+    case FOOD_CONBINI:     return "FOOD_CONBINI";
+    case FOOD_CONBINI2:    return "FOOD_CONBINI2";
+    case FOOD_CONBINI3:    return "FOOD_CONBINI3";
+    case FOOD_COOK:        return "FOOD_COOK";
+    case FOOD_COOK2:       return "FOOD_COOK2";
+    case FOOD_REST:        return "FOOD_REST";
+    case FOOD_REST2:       return "FOOD_REST2";
+    case FOOD_REST3:       return "FOOD_REST3";
+    case FOOD_REST4:       return "FOOD_REST4";
+    case FOOD_REST5:       return "FOOD_REST5";
+    case FOOD_REST6:       return "FOOD_REST6";
+    case FOOD_REST7:       return "FOOD_REST7";
+    case FOOD_REST8:       return "FOOD_REST8";
+    case FOOD_ORDER:       return "FOOD_ORDER";
+    case FOOD_ORDER2:      return "FOOD_ORDER2";
+    case FOOD_ORDER3:      return "FOOD_ORDER3";
+    case FOOD_ORDER4:      return "FOOD_ORDER4";
+    case FOOD_ORDER5:      return "FOOD_ORDER5";
+    case FOOD_ORDER6:      return "FOOD_ORDER6";
+    case FOOD_ORDER7:      return "FOOD_ORDER7";
+    case FOOD_ORDER8:      return "FOOD_ORDER8";
+    case HEALTH_MENU:      return "HEALTH_MENU";
+    case HEALTH_WASH:      return "HEALTH_WASH";
+    case HEALTH_WASH2:     return "HEALTH_WASH2";
+    case HEALTH_DOCTOR:    return "HEALTH_DOCTOR";
+    case HEALTH_DOCTOR2:   return "HEALTH_DOCTOR2";
+    case HEALTH_DOCTOR3:   return "HEALTH_DOCTOR3";
+    case HEALTH_DOCTOR4:   return "HEALTH_DOCTOR4";
+    case HEALTH_DOCTOR5:   return "HEALTH_DOCTOR5";
+    case HEALTH_DOCTOR6:   return "HEALTH_DOCTOR6";
+    case HEALTH_TEMPLE:    return "HEALTH_TEMPLE";
+    case HEALTH_TEMPLE2:   return "HEALTH_TEMPLE2";
+    case HEALTH_TEMPLE3:   return "HEALTH_TEMPLE3";
+    case HEALTH_TEMPLE4:   return "HEALTH_TEMPLE4";
+    case HEALTH_TEMPLE5:   return "HEALTH_TEMPLE5";
+    case HEALTH_TEMPLE6:   return "HEALTH_TEMPLE6";
+    case HEALTH_ONSEN:     return "HEALTH_ONSEN";
+    case REST_MENU:        return "REST_MENU";
+    case REST_MEDITATE:    return "REST_MEDITATE";
+    case REST_SLEEP:       return "REST_SLEEP";
+    case STATS_SCREEN:     return "STATS_SCREEN";
+    case GARDEN_MENU:      return "GARDEN_MENU";
+    case GARDEN_LOOP:      return "GARDEN_LOOP";
+    case GARDEN_PLANT:     return "GARDEN_PLANT";
+    case GARDEN_WATER:     return "GARDEN_WATER";
+    case GARDEN_PICK:      return "GARDEN_PICK";
+    case GARDEN_CLEANUP:   return "GARDEN_CLEANUP";
+    case TRAIN_MENU:       return "TRAIN_MENU";
+    case TRAIN_SING:       return "TRAIN_SING";
+    case TRAIN_SING2:      return "TRAIN_SING2";
+    case TRAIN_SING3:      return "TRAIN_SING3";
+    case TRAIN_DANCE:      return "TRAIN_DANCE";
+    case TRAIN_DANCE2:     return "TRAIN_DANCE2";
+    case TRAIN_DANCE3:     return "TRAIN_DANCE3";
+    case TRAIN_SWIM:       return "TRAIN_SWIM";
+    case TRAIN_SWIM2:      return "TRAIN_SWIM2";
+    case TRAIN_SWIM3:      return "TRAIN_SWIM3";
+    case TRAIN_GYM:        return "TRAIN_GYM";
+    case TRAIN_GYM2:       return "TRAIN_GYM2";
+    case TRAIN_GYM3:       return "TRAIN_GYM3";
+    case TRAIN_RUN:        return "TRAIN_RUN";
+    case TRAIN_RUN2:       return "TRAIN_RUN2";
+    case TRAIN_RUN3:       return "TRAIN_RUN3";
+    case TRAIN_LIBRARY:    return "TRAIN_LIBRARY";
+    case COMP_MENU:        return "COMP_MENU";
+    case COMP_LOCAL:       return "COMP_LOCAL";
+    case COMP_DEPT:        return "COMP_DEPT";
+    case COMP_REG:         return "COMP_REG";
+    case COMP_NAT:         return "COMP_NAT";
+    default:               return "UNKNOWN";
+  }
+}
+
 // Toast messages
 String toastMsg = "";
 unsigned long toastUntil = 0;  // timestamp when toast should disappear
@@ -612,6 +723,18 @@ void preloadImages() {
       break;
     case HOME_LOOP:
       preloadImage("/idolnat/screens/lounge.png", currentBackground);
+      break;
+    case FLOWERS_MARKET:
+      preloadImage("/idolnat/screens/flower_market_bg.png", currentBackground);
+      break;
+    case FLOWERS_MARKET2:
+      preloadImage("/idolnat/screens/flower_market_step1.png", currentBackground);
+      break;
+    case FLOWERS_MARKET3:
+      preloadImage("/idolnat/screens/flower_market_step2.png", currentBackground);
+      break;
+    case FLOWERS_MARKET4:
+      preloadImage("/idolnat/screens/flower_market_step3.png", currentBackground);
       break;
     case FOOD_MENU:
       preloadImage("/idolnat/screens/kitchen.png", currentBackground);
@@ -753,7 +876,7 @@ void preloadImages() {
     case REST_SLEEP:
       preloadImage("/idolnat/screens/bedroom_dark.png", currentBackground);
       break;
-    case GARDEN_LOOP:
+    case GARDEN_LOOP: case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP: case GARDEN_MENU:
       preloadImage("/idolnat/screens/garden_bg.png", currentBackground);
       break;
     case STATS_SCREEN:
@@ -1152,6 +1275,7 @@ void loop() {
   Serial.println("debugEnabled: " + String(debugEnabled) + " - menuOpened: " + String(menuOpened) + " - toastActive: " + String(toastActive));
   Serial.println("changeStateCounter: " + String(changeStateCounter) + " - l5NeedsRedraw: " + String(l5NeedsRedraw));
 */
+  // Serial.println("> currentState = " + String(gameStateToString(currentState)));
   switch (screenConfig) {
     case CARD:
       manageCard();
@@ -1179,9 +1303,10 @@ void loop() {
 // === Menu and state logic ===
 void changeState(int baseLayer, GameState targetState, int delay) {
   // Manage state transitions
-  Serial.println("> Entering changeState() with baseLayer set to " + String(baseLayer) + " and targetState set to " + String(targetState) + " with delay set to " + String(delay));
+  // Serial.println("> Entering changeState() with baseLayer set to " + String(baseLayer) + " and targetState set to " + String(targetState) + " with delay set to " + String(delay));
   if (changeStateCounter == delay) {
     Serial.println("Proceed with transition");
+    Serial.println("> currentState = " + String(gameStateToString(currentState)));
     changeStateCounter = 0;
     currentState = targetState;
     preloadImages();
@@ -1236,6 +1361,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         natsumi.culture = 0;
         natsumi.charm = 0;
         natsumi.money = 1800;
+        natsumi.flowers = 0;
         natsumi.lastHungerUpdate = 0;
         natsumi.lastHygieneUpdate = 0;
         natsumi.lastEnergyUpdate = 0;
@@ -1282,6 +1408,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         natsumi.culture = 0;
         natsumi.charm = 0;
         natsumi.money = 1800;
+        natsumi.flowers = 0;
         natsumi.lastHungerUpdate = 0;
         natsumi.lastHygieneUpdate = 0;
         natsumi.lastEnergyUpdate = 0;
@@ -1335,6 +1462,14 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         overlayActive = true;
         l5NeedsRedraw = true;
         toastEnabled = false;
+        break;
+      case FLOWERS_MARKET:
+        screenConfig = IDLE;
+        characterEnabled = false;
+        break;
+      case FLOWERS_MARKET2: case FLOWERS_MARKET3: case FLOWERS_MARKET4:
+        screenConfig = CARD;
+        characterEnabled = false;
         break;
       case FOOD_MENU:
         screenConfig = ROOM;
@@ -1541,6 +1676,18 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case GARDEN_LOOP:
         screenConfig = ROOM;
+        menuOpened = false;
+        break;
+      case GARDEN_MENU:
+        screenConfig = ROOM;
+        currentMenuType = "garden";
+        currentMenuItems = gardenMenuItems;
+        currentMenuItemsCount = gardenMenuItemCount;
+        menuOpened = true;
+        break;
+      case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
+        screenConfig = ROOM;
+        menuOpened = false;
         break;
       default:
         break;
@@ -1694,6 +1841,18 @@ void updateFiveSecondPulse() {
         changeState(0, FOOD_ORDER7, 0);
       }
     }
+    if (gardenActive) {
+      // Grow the seeds
+      for (int row = 0; row < gardenRows; row++) {
+        for (int col = 0; col < gardenCols; col++) {
+          int tileValue = gardenTiles[row][col];
+          if (tileValue > 1) {
+            gardenTiles[row][col] += 5;
+            Serial.println(">>> Gardening -> Current tile value is " + String(tileValue));  
+          }
+        }
+      }
+    }
   } else {
     fiveSecondPulse = false;
   }
@@ -1728,6 +1887,15 @@ void manageCard() {
       break;
     case CONTINUE_GAME:
       changeState(0, HOME_LOOP, 0);
+      break;
+    case FLOWERS_MARKET2:
+      changeState(0, FLOWERS_MARKET3, 20);
+      break;
+    case FLOWERS_MARKET3:
+      changeState(0, FLOWERS_MARKET4, 20);
+      break;
+    case FLOWERS_MARKET4:
+      changeState(0, HOME_LOOP, 20);
       break;
     case FOOD_REST6:
       changeState(0, FOOD_REST7, 20);
@@ -1923,6 +2091,10 @@ void manageIdle() {
   overlayEnabled = true;
   helperEnabled = false;
   switch (currentState) {
+    case FLOWERS_MARKET:
+      characterEnabled = false;
+      changeState(0, FLOWERS_MARKET2, microWait);
+      break;
     case FOOD_CONBINI:
       characterEnabled = false;
       changeState(0, FOOD_CONBINI2, microWait);
@@ -1986,7 +2158,10 @@ void manageRoom() {
     case HEALTH_WASH2:
       wash();
       break;
-    case GARDEN_LOOP:
+    case GARDEN_MENU:
+      overlayEnabled = false;
+      break;
+    case GARDEN_LOOP: case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
       manageGarden();
       break;
     case FOOD_MENU:
@@ -2057,6 +2232,8 @@ void manageRoom() {
     selectionPtr = &homeMenuSelection;
   } else if (currentMenuType == "dev") {
     selectionPtr = &devMenuSelection;
+  } else if (currentMenuType == "garden") {
+    selectionPtr = &gardenMenuSelection;
   } else {
     selectionPtr = &mainMenuSelection;
   }
@@ -2124,10 +2301,224 @@ void manageHomeScreen() {
   return;
 }
 
+void drawGardenTile(int topX, int topY, int tileW, int tileH, uint16_t fillColor, uint16_t borderColor) {
+  int halfW = tileW / 2;
+  int halfH = tileH / 2;
+  int leftX = topX - halfW;
+  int rightX = topX + halfW;
+  int midY = topY + halfH;
+  int bottomY = topY + tileH;
+
+  M5Cardputer.Display.fillTriangle(topX, topY, leftX, midY, rightX, midY, fillColor);
+  M5Cardputer.Display.fillTriangle(topX, bottomY, leftX, midY, rightX, midY, fillColor);
+
+  M5Cardputer.Display.drawLine(topX, topY, leftX, midY, borderColor);
+  M5Cardputer.Display.drawLine(leftX, midY, topX, bottomY, borderColor);
+  M5Cardputer.Display.drawLine(topX, bottomY, rightX, midY, borderColor);
+  M5Cardputer.Display.drawLine(rightX, midY, topX, topY, borderColor);
+}
+
+void drawGardenPlanter() {
+  /*
+  const int tileW = 34;
+  const int tileH = 18;
+  const int originX = 120;
+  const int originY = 26;
+  */
+  const int tileW = 48;
+  const int tileH = 36;
+  const int originX = 147;
+  const int originY = 7;
+  const uint16_t soilColor = M5Cardputer.Display.color565(120, 86, 48);
+  const uint16_t soilWetColor = M5Cardputer.Display.color565(70, 110, 150);
+  const uint16_t soilBorder = M5Cardputer.Display.color565(170, 120, 70);
+  const uint16_t activeBorder = YELLOW;
+  const uint16_t sproutColor = M5Cardputer.Display.color565(80, 200, 90);
+  const uint16_t waterColor = M5Cardputer.Display.color565(90, 180, 255);
+
+  gardenActive = false;
+  for (int row = 0; row < gardenRows; row++) {
+    for (int col = 0; col < gardenCols; col++) {
+      int topX = originX + (col - row) * (tileW / 2);
+      int topY = originY + (col + row) * (tileH / 2);
+      int tileValue = gardenTiles[row][col];
+      uint16_t fillColor = (tileValue == 2) ? soilWetColor : soilColor;
+      uint16_t borderColor = (row == gardenCursorRow && col == gardenCursorCol) ? activeBorder : soilBorder;
+
+      drawGardenTile(topX, topY, tileW, tileH, fillColor, borderColor);
+      int centerX = topX;
+      int centerY = topY + (tileH / 2);
+
+      if (tileValue > 1) {
+        gardenActive = true;
+      }
+
+      if (tileValue == 1) {
+        M5Cardputer.Display.fillCircle(centerX, centerY + 2, 3, sproutColor);
+        M5Cardputer.Display.drawFastVLine(centerX, centerY - 2, 4, sproutColor);
+      } else if (tileValue == 2) {
+        M5Cardputer.Display.fillCircle(centerX + 6, centerY + 4, 2, waterColor);
+      } else if (tileValue > 2 && tileValue < 30) {
+        preloadImage("/idolnat/sprites/flower_stage_01-22x16.png", natsumiSprite);
+        M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
+        unloadImage(natsumiSprite);
+      } else if (tileValue > 30 && tileValue <= 60) {
+        preloadImage("/idolnat/sprites/flower_stage_02-20x16.png", natsumiSprite);
+        M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
+        unloadImage(natsumiSprite);
+      } else if (tileValue > 60 && tileValue <= 90) {
+        preloadImage("/idolnat/sprites/flower_stage_03-14x16.png", natsumiSprite);
+        M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
+        unloadImage(natsumiSprite);
+      } else if (tileValue > 90 && tileValue <= 120) {
+        preloadImage("/idolnat/sprites/flower_stage_04-11x16.png", natsumiSprite);
+        M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
+        unloadImage(natsumiSprite);
+      } else if (tileValue > 120 && tileValue <= 150) {
+        preloadImage("/idolnat/sprites/flower_stage_05-10x16.png", natsumiSprite);
+        M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
+        unloadImage(natsumiSprite);
+      } else if (tileValue > 150 && tileValue <= 180) {
+        preloadImage("/idolnat/sprites/flower_stage_06-12x16.png", natsumiSprite);
+        M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
+        unloadImage(natsumiSprite);
+      } else if (tileValue > 180 && tileValue <= 210) {
+        preloadImage("/idolnat/sprites/flower_stage_07-10x16.png", natsumiSprite);
+        M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
+        unloadImage(natsumiSprite);
+      } else if (tileValue > 210) {
+        preloadImage("/idolnat/sprites/flower_stage_08-10x16.png", natsumiSprite);
+        M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
+        unloadImage(natsumiSprite);
+      }
+    }
+  }
+
+  if (!menuOpened) {
+    M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+    drawText("ARROWS: Move  ENTER: Menu  ESC: Home", 120, 131, true, WHITE, 1);
+  }
+}
+
 void manageGarden() {
   // Serial.println("> Entering manageGarden()");
+  // Serial.println(">> currentState set to " + String(currentState));
+  overlayActive = true;
   updateAging();
   updateStats();
+
+  int &tile = gardenTiles[gardenCursorRow][gardenCursorCol];
+  Serial.println(">> tile: " + String(tile));
+  switch (currentState) {
+    case GARDEN_PLANT:
+      Serial.println(">> GARDEN_PLANT");
+      if (tile == 0) {
+        tile = 1;
+        showToast("Seed planted");
+      } else {
+        showToast("Tile already planted");
+      }
+      changeState(0, GARDEN_LOOP, 0);
+      break;
+    case GARDEN_WATER:
+      Serial.println(">> GARDEN_WATER");
+      if (tile == 0) {
+        showToast("Nothing to water");
+      } else if (tile == 1) {
+        tile = 2;
+        showToast("Watered");
+      } else {
+        showToast("No need to water");
+      }
+      changeState(0, GARDEN_LOOP, 0);
+      break;
+    case GARDEN_PICK:
+      Serial.println(">> GARDEN_PICK");
+      if (tile == 0) {
+        showToast("Nothing to pick");
+      } else if (tile > 209) {
+        tile = 0;
+        natsumi.flowers += 1;
+        showToast("Natsumi now has " + String(natsumi.flowers) + " flowers");
+      } else {
+        showToast("Not ready yet");
+      }
+      changeState(0, GARDEN_LOOP, 0);
+      break;
+    case GARDEN_CLEANUP:
+      Serial.println(">> GARDEN_CLEANUP");
+      tile = 0;
+      showToast("Tile cleaned");
+      changeState(0, GARDEN_LOOP, 0);
+      break;
+    case GARDEN_LOOP: {
+      Serial.println(">> GARDEN_LOOP");
+      uint8_t key = 0;
+      if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+        auto keyList = M5Cardputer.Keyboard.keyList();
+        if (keyList.size() > 0) {
+          key = M5Cardputer.Keyboard.getKey(keyList[0]);
+          bool moved = false;
+          switch (key) {
+            // UP
+            case 181: case 59: case 'w': case 'W':
+              Serial.println(">>> UP");
+              if (gardenCursorRow > 0) {
+                gardenCursorRow--;
+                moved = true;
+              }
+              break;
+            // DOWN
+            case 182: case 46: case 's': case 'S':
+              Serial.println(">>> DOWN");
+              if (gardenCursorRow < gardenRows - 1) {
+                gardenCursorRow++;
+                moved = true;
+              }
+              break;
+            // LEFT
+            case 180: case 44: case 'a': case 'A':
+              Serial.println(">>> LEFT");
+              if (gardenCursorCol > 0) {
+                gardenCursorCol--;
+                moved = true;
+              }
+              break;
+            // RIGHT
+            case 183: case 47: case 'd': case 'D':
+              Serial.println(">>> RIGHT");
+              if (gardenCursorCol < gardenCols - 1) {
+                gardenCursorCol++;
+                moved = true;
+              }
+              break;
+            // ENTER
+            case 13: case 40: case ' ':
+              Serial.println(">>> ENTER");
+              menuOpened = true;
+              changeState(0, GARDEN_MENU, 0);
+              break;
+            // ESC
+            case 96:
+              Serial.println(">>> ESC");
+              menuOpened = false;
+              changeState(0, HOME_LOOP, 0);
+              return;
+          }
+          if (moved) {
+            l5NeedsRedraw = true;
+          }
+        }
+      }
+      break;
+    }
+    case GARDEN_MENU:
+      // Serial.println(">> GARDEN_MENU");
+      break;
+    default:
+      showToast("Meh!");
+      break;
+  }
   return;
 }
 
@@ -3537,6 +3928,7 @@ void drawToast() {
 void drawMenu(String menuType, const char* items[], int itemCount, int &selection) {
   // Draw menus on the screen (layer 4)
   // Serial.println("> Entering drawMenu() L4 with menuEnabled set to " + String(menuEnabled));
+  // Serial.println(">> menuType set to " + String(menuType));
   if (menuEnabled) {
     uint8_t key = 0;
     if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -3760,6 +4152,11 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           menuOpened = false;
           changeState(0, TRAIN_LIBRARY, 0);
           break;
+        case 54:
+          // 6: MARKET
+          menuOpened = false;
+          changeState(0, FLOWERS_MARKET, 0);
+          break;
         case 55:
           // 7: DEBUG
           if (debugActive) {
@@ -3814,6 +4211,8 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             changeState(0, TRAIN_RUN, 0);
           } else if (selection == 5) {
             changeState(0, TRAIN_LIBRARY, 0);
+          } else if (selection == 6) {
+            changeState(0, FLOWERS_MARKET, 0);
           } else if (selection == 7) {
             if (debugActive) {
               debugActive = false;
@@ -4174,7 +4573,98 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             changeState(4, DEV_SCREEN, 0);
             return;
           }
-  
+      }
+    } else if (menuType == "garden") {
+      Serial.println(">> drawMenu - garden menuType");
+      switch (key) {
+        case 48:
+          // 0: PLANT
+          Serial.println(">>> drawMenu - 0: PLANT");
+          menuOpened = false;
+          changeState(0, GARDEN_PLANT, 0);
+          break;
+        case 49:
+          // 1: WATER
+          Serial.println(">>> drawMenu - 1: WATER");
+          menuOpened = false;
+          changeState(0, GARDEN_WATER, 0);
+          break;
+        case 50:
+          // 2: PICK
+          Serial.println(">>> drawMenu - 2: PICK");
+          menuOpened = false;
+          changeState(0, GARDEN_PICK, 0);
+          break;
+        case 51:
+          // 3: CLEANUP
+          Serial.println(">>> drawMenu - 3: CLEANUP");
+          menuOpened = false;
+          changeState(0, GARDEN_CLEANUP, 0);
+          break;
+        case 55:
+          // 7: DEBUG
+          if (debugActive) {
+            debugActive = false;
+            l0NeedsRedraw = true;
+            l2NeedsRedraw = false;
+          } else {
+            debugActive = true;
+            l2NeedsRedraw = true;
+          }
+          break;
+        case 43:
+          // TAB
+          if (menuOpened) {
+            menuOpened = false;
+            l0NeedsRedraw = true;
+            changeState(0, GARDEN_LOOP, 0);
+          } else {
+            menuOpened = true;
+            l4NeedsRedraw = true;
+          }
+          break;
+        case 96:
+          // ESC
+          if (menuOpened) {
+            menuOpened = false;
+            l0NeedsRedraw = true;
+          }
+          changeState(0, GARDEN_LOOP, 0);
+          break;
+        case 181: case 'w': case 'W': case 59:
+          // UP
+          Serial.println(">>> drawMenu - UP");
+          selection = (selection - 1 + gardenMenuItemCount) % gardenMenuItemCount;
+          l4NeedsRedraw = true;
+          break;
+        case 182: case 's': case 'S': case 46:
+          // DOWN
+          Serial.println(">>> drawMenu - DOWN");
+          selection = (selection + 1) % gardenMenuItemCount;
+          l4NeedsRedraw = true;
+          break;
+        case 13: case 40: case ' ':
+          // VALIDATE
+          if (selection == 0) {
+            changeState(0, GARDEN_PLANT, 0);
+          } else if (selection == 1) {
+            changeState(0, GARDEN_WATER, 0);
+          } else if (selection == 2) {
+            changeState(0, GARDEN_PICK, 0);
+          } else if (selection == 3) {
+            changeState(0, GARDEN_CLEANUP, 0);
+          } else if (selection == 7) {
+            if (debugActive) {
+              debugActive = false;
+              l0NeedsRedraw = true;
+              l2NeedsRedraw = false;
+            } else {
+              debugActive = true;
+              l2NeedsRedraw = true;
+            }
+          }
+          menuOpened = false;
+          break;
       }
     }
     if (!menuOpened) {
@@ -4498,10 +4988,13 @@ void drawOverlay() {
     uint8_t key = 0;
     if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
       auto keyList = M5Cardputer.Keyboard.keyList();
-      // Serial.println(">>> drawOverlay: Testing for key pressed");
+      Serial.println(">>> drawOverlay: Testing for key pressed");
       if (keyList.size() > 0) {
         key = M5Cardputer.Keyboard.getKey(keyList[0]);
-        if (currentState != FOOD_COOK && currentState != FOOD_CONBINI3) {
+        if (currentState != FOOD_COOK && currentState != FOOD_CONBINI3 &&
+            currentState != GARDEN_LOOP && currentState != GARDEN_PLANT &&
+            currentState != GARDEN_WATER && currentState != GARDEN_PICK &&
+            currentState != GARDEN_CLEANUP && currentState != GARDEN_MENU) {
           overlayActive = false;
           changeState(0, HOME_LOOP, 0);
           return;
@@ -4752,6 +5245,9 @@ void drawOverlay() {
             zoom
           );
         }
+        break;
+      case GARDEN_LOOP: case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
+        drawGardenPlanter();
         break;
       default:
         break;
