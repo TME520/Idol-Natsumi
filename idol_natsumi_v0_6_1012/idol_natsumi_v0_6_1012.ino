@@ -252,7 +252,7 @@ const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: DEV SCREEN"};
 const char* homeMenuItems[] = {"0: STATS", "1: FOOD", "2: TRAINING", "3: COMPETITION", "4: HEALTH", "5: REST", "6: GARDEN", "7: DEBUG"};
 const char* devMenuItems[] = {"0: CALIB1", "1: CALIB2", "2: CALIB3", "3: EXIT"};
 const char* foodMenuItems[] = {"0: FRIDGE", "1: RESTAURANT", "2: ORDER", "3: CONBINI"};
-const char* trainingMenuItems[] = {"0: SING", "1: DANCE", "2: SWIM", "3: GYM", "4: RUN", "5: LIBRARY"};
+const char* trainingMenuItems[] = {"0: SING", "1: DANCE", "2: SWIM", "3: GYM", "4: RUN", "5: LIBRARY", "6: MARKET"};
 const char* competitionMenuItems[] = {"0: LOCAL", "1: DEPARTMENTAL", "2: REGIONAL", "3: NATIONAL"};
 const char* healthMenuItems[] = {"0: WASH", "1: DOCTOR", "2: TEMPLE", "3: ONSEN"};
 const char* restMenuItems[] = {"0: MEDITATE", "1: SLEEP"};
@@ -262,7 +262,7 @@ const int mainMenuItemCount = 3;
 const int homeMenuItemCount = 8;
 const int devMenuItemCount = 4;
 const int foodMenuItemCount = 4;
-const int trainingMenuItemCount = 6;
+const int trainingMenuItemCount = 7;
 const int competitionMenuItemCount = 4;
 const int healthMenuItemCount = 4;
 const int restMenuItemCount = 2;
@@ -4122,6 +4122,11 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           menuOpened = false;
           changeState(0, TRAIN_LIBRARY, 0);
           break;
+        case 54:
+          // 6: MARKET
+          menuOpened = false;
+          changeState(0, FLOWERS_MARKET, 0);
+          break;
         case 55:
           // 7: DEBUG
           if (debugActive) {
@@ -4176,6 +4181,8 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             changeState(0, TRAIN_RUN, 0);
           } else if (selection == 5) {
             changeState(0, TRAIN_LIBRARY, 0);
+          } else if (selection == 6) {
+            changeState(0, FLOWERS_MARKET, 0);
           } else if (selection == 7) {
             if (debugActive) {
               debugActive = false;
