@@ -118,6 +118,7 @@ struct NatsumiStats {
   int culture;
   int charm;
   int money;
+  int flowers;
   unsigned long lastHungerUpdate = 0;
   unsigned long lastHygieneUpdate = 0;
   unsigned long lastEnergyUpdate = 0;
@@ -1338,6 +1339,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         natsumi.culture = 0;
         natsumi.charm = 0;
         natsumi.money = 1800;
+        natsumi.flowers = 0;
         natsumi.lastHungerUpdate = 0;
         natsumi.lastHygieneUpdate = 0;
         natsumi.lastEnergyUpdate = 0;
@@ -1384,6 +1386,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         natsumi.culture = 0;
         natsumi.charm = 0;
         natsumi.money = 1800;
+        natsumi.flowers = 0;
         natsumi.lastHungerUpdate = 0;
         natsumi.lastHygieneUpdate = 0;
         natsumi.lastEnergyUpdate = 0;
@@ -2376,21 +2379,26 @@ void manageGarden() {
       break;
     case GARDEN_WATER:
       Serial.println(">> GARDEN_WATER");
-      if (tile > 0) {
+      if (tile == 0) {
+        showToast("Nothing to water");
+      } else if (tile == 1) {
         tile = 2;
         showToast("Watered");
       } else {
-        showToast("Nothing to water");
+        showToast("No need to water");
       }
       changeState(0, GARDEN_LOOP, 0);
       break;
     case GARDEN_PICK:
       Serial.println(">> GARDEN_PICK");
-      if (tile > 0) {
-        tile = 0;
-        showToast("Harvested");
-      } else {
+      if (tile == 0) {
         showToast("Nothing to pick");
+      } else if (tile > 209) {
+        tile = 0;
+        natsumi.flowers += 1;
+        showToast("Natsumi now has " + String(natsumi.flowers) + " flowers");
+      } else {
+        showToast("Not ready yet");
       }
       changeState(0, GARDEN_LOOP, 0);
       break;
