@@ -17,6 +17,10 @@ enum GameState {
   DEV_SCREEN,
   HOME_LOOP,
   FLOWERS_MARKET,
+  FLOWERS_MARKET2,
+  FLOWERS_MARKET3,
+  FLOWERS_MARKET4,
+  FLOWERS_MARKET5,
   FOOD_MENU,
   FOOD_CONBINI,
   FOOD_CONBINI2,
@@ -503,6 +507,10 @@ const char* gameStateToString(GameState state) {
     case DEV_SCREEN:       return "DEV_SCREEN";
     case HOME_LOOP:        return "HOME_LOOP";
     case FLOWERS_MARKET:   return "FLOWERS_MARKET";
+    case FLOWERS_MARKET2:   return "FLOWERS_MARKET2";
+    case FLOWERS_MARKET3:   return "FLOWERS_MARKET3";
+    case FLOWERS_MARKET4:   return "FLOWERS_MARKET4";
+    case FLOWERS_MARKET5:   return "FLOWERS_MARKET5";
     case FOOD_MENU:        return "FOOD_MENU";
     case FOOD_CONBINI:     return "FOOD_CONBINI";
     case FOOD_CONBINI2:    return "FOOD_CONBINI2";
@@ -718,6 +726,15 @@ void preloadImages() {
       break;
     case FLOWERS_MARKET:
       preloadImage("/idolnat/screens/flower_market_bg.png", currentBackground);
+      break;
+    case FLOWERS_MARKET2:
+      preloadImage("/idolnat/screens/flower_market_step1.png", currentBackground);
+      break;
+    case FLOWERS_MARKET3:
+      preloadImage("/idolnat/screens/flower_market_step2.png", currentBackground);
+      break;
+    case FLOWERS_MARKET4:
+      preloadImage("/idolnat/screens/flower_market_step3.png", currentBackground);
       break;
     case FOOD_MENU:
       preloadImage("/idolnat/screens/kitchen.png", currentBackground);
@@ -1450,6 +1467,10 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         screenConfig = IDLE;
         characterEnabled = false;
         break;
+      case FLOWERS_MARKET2: case FLOWERS_MARKET3: case FLOWERS_MARKET4:
+        screenConfig = CARD;
+        characterEnabled = false;
+        break;
       case FOOD_MENU:
         screenConfig = ROOM;
         currentMenuType = "food";
@@ -1867,6 +1888,15 @@ void manageCard() {
     case CONTINUE_GAME:
       changeState(0, HOME_LOOP, 0);
       break;
+    case FLOWERS_MARKET2:
+      changeState(0, FLOWERS_MARKET3, 20);
+      break;
+    case FLOWERS_MARKET3:
+      changeState(0, FLOWERS_MARKET4, 20);
+      break;
+    case FLOWERS_MARKET4:
+      changeState(0, HOME_LOOP, 20);
+      break;
     case FOOD_REST6:
       changeState(0, FOOD_REST7, 20);
       break;
@@ -2063,7 +2093,7 @@ void manageIdle() {
   switch (currentState) {
     case FLOWERS_MARKET:
       characterEnabled = false;
-      changeState(0, HOME_LOOP, microWait);
+      changeState(0, FLOWERS_MARKET2, microWait);
       break;
     case FOOD_CONBINI:
       characterEnabled = false;
