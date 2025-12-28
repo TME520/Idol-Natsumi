@@ -21,6 +21,8 @@ enum GameState {
   FLOWERS_MARKET3,
   FLOWERS_MARKET4,
   FLOWERS_MARKET5,
+  FLOWERS_MARKET6,
+  FLOWERS_MARKET7,
   FOOD_MENU,
   FOOD_CONBINI,
   FOOD_CONBINI2,
@@ -286,6 +288,8 @@ const int gardenCols = 3;
 int gardenTiles[gardenRows][gardenCols] = {};
 int gardenCursorRow = 0;
 int gardenCursorCol = 0;
+int flowersPrice = 0;
+int flowersRevenue = 0;
 
 int lastSleepEnergyDisplayed = -1;
 int lastMeditationDisplayed = 0;
@@ -320,6 +324,7 @@ bool meditationRewardApplied = false;
 bool fiveSecondPulse = false;  // Set true by updateFiveSecondPulse() every five seconds
 bool isNatsumiHappy = false;
 bool gardenActive = false;
+bool flowersSaleInProgress = false;
 
 // Onsen state
 unsigned long onsenTicks = 0;  // Number of 5-second pulses spent in the onsen
@@ -507,10 +512,12 @@ const char* gameStateToString(GameState state) {
     case DEV_SCREEN:       return "DEV_SCREEN";
     case HOME_LOOP:        return "HOME_LOOP";
     case FLOWERS_MARKET:   return "FLOWERS_MARKET";
-    case FLOWERS_MARKET2:   return "FLOWERS_MARKET2";
-    case FLOWERS_MARKET3:   return "FLOWERS_MARKET3";
-    case FLOWERS_MARKET4:   return "FLOWERS_MARKET4";
-    case FLOWERS_MARKET5:   return "FLOWERS_MARKET5";
+    case FLOWERS_MARKET2:  return "FLOWERS_MARKET2";
+    case FLOWERS_MARKET3:  return "FLOWERS_MARKET3";
+    case FLOWERS_MARKET4:  return "FLOWERS_MARKET4";
+    case FLOWERS_MARKET5:  return "FLOWERS_MARKET5";
+    case FLOWERS_MARKET6:  return "FLOWERS_MARKET6";
+    case FLOWERS_MARKET7:  return "FLOWERS_MARKET7";
     case FOOD_MENU:        return "FOOD_MENU";
     case FOOD_CONBINI:     return "FOOD_CONBINI";
     case FOOD_CONBINI2:    return "FOOD_CONBINI2";
@@ -724,7 +731,7 @@ void preloadImages() {
     case HOME_LOOP:
       preloadImage("/idolnat/screens/lounge.png", currentBackground);
       break;
-    case FLOWERS_MARKET:
+    case FLOWERS_MARKET: case FLOWERS_MARKET7:
       preloadImage("/idolnat/screens/flower_market_bg.png", currentBackground);
       break;
     case FLOWERS_MARKET2:
@@ -736,7 +743,7 @@ void preloadImages() {
     case FLOWERS_MARKET4:
       preloadImage("/idolnat/screens/flower_market_step3.png", currentBackground);
       break;
-    case FLOWERS_MARKET5:
+    case FLOWERS_MARKET5: case FLOWERS_MARKET6:
       preloadImage("/idolnat/screens/flower_market_bg2.png", currentBackground);
       break;
     case FOOD_MENU:
@@ -891,7 +898,6 @@ void preloadImages() {
       preloadImage("/idolnat/screens/singing_school_bg_BW.png", currentBackground);
       break;
     case TRAIN_SING2:
-      // preloadImage("/idolnat/screens/singing_school_bg.png", currentBackground);
       preloadImage("/idolnat/sprites/natsumi_head_sprite-22x20.png", natsumiSprite);
       break;
     case TRAIN_SING3:
@@ -1474,11 +1480,16 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         screenConfig = CARD;
         characterEnabled = false;
         break;
-      case FLOWERS_MARKET5:
+      case FLOWERS_MARKET5: case FLOWERS_MARKET6:
         screenConfig = GAME;
         overlayActive = true;
         l5NeedsRedraw = true;
         toastEnabled = false;
+        break;
+      case FLOWERS_MARKET7:
+        screenConfig = DIALOG;
+        overlayActive = true;
+        l5NeedsRedraw = true;
         break;
       case FOOD_MENU:
         screenConfig = ROOM;
@@ -1898,13 +1909,13 @@ void manageCard() {
       changeState(0, HOME_LOOP, 0);
       break;
     case FLOWERS_MARKET2:
-      changeState(0, FLOWERS_MARKET3, 20);
+      changeState(0, FLOWERS_MARKET3, 10);
       break;
     case FLOWERS_MARKET3:
-      changeState(0, FLOWERS_MARKET4, 20);
+      changeState(0, FLOWERS_MARKET4, 10);
       break;
     case FLOWERS_MARKET4:
-      changeState(0, FLOWERS_MARKET5, 20);
+      changeState(0, FLOWERS_MARKET5, 10);
       break;
     case FOOD_REST6:
       changeState(0, FOOD_REST7, 20);
@@ -1980,6 +1991,9 @@ void manageDialog() {
   overlayEnabled = true;
   helperEnabled = false;
   switch (currentState) {
+    case FLOWERS_GARDEN7:
+      miniGameDebrief();
+      break;
     case FOOD_CONBINI3:
       cashier();
       break;
@@ -2068,6 +2082,9 @@ void manageGame() {
       break;
     case FLOWERS_MARKET5:
       manageFlowersMarket();
+      break;
+    case FLOWERS_MARKET7:
+      manageFlowersSale();
       break;
     default:
       playGame();
@@ -3746,17 +3763,11 @@ void manageFlowersMarket() {
           return;
         // ENTER
         case 13: case 40: case ' ':
-          if (natsumi.flowers > 0) {
-            int salePrice = prices[flowerMarketSelection] * natsumi.flowers;
-            natsumi.money += salePrice;
-            showToast("Sold " + String(natsumi.flowers) + " flowers for $" + String(salePrice));
-            natsumi.flowers = 0;
-          } else {
-            showToast("No flowers to sell");
-          }
+          flowersPrice = prices[flowerMarketSelection];
           flowerMarketInitialized = false;
           overlayActive = false;
-          changeState(0, HOME_LOOP, 0);
+          flowersSaleInProgress = true;
+          changeState(0, FLOWERS_MARKET6, 0);
           return;
       }
     }
@@ -3795,6 +3806,11 @@ void manageFlowersMarket() {
     drawText("LEFT/RIGHT: Price  ENTER: Sell  ESC: Home", 120, 131, true, WHITE, 1);
     flowerMarketNeedsRedraw = false;
   }
+}
+
+void manageFlowersSale() {
+  //
+  flowersSaleInProgress = false;
 }
 
 void wash() {
@@ -5373,6 +5389,9 @@ void drawOverlay() {
       case GARDEN_LOOP: case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
         drawGardenPlanter();
         break;
+      case FLOWERS_GARDEN7:
+        drawDialogBubble("I sold all my flowers and made " + String(flowersRevenue) + "$");
+        break;
       default:
         break;
     }
@@ -5788,6 +5807,9 @@ void miniGameDebrief() {
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       switch (currentState) {
+        case FLOWERS_MARKET7:
+          changeState(0, HOME_LOOP, 0);
+          break;
         case TRAIN_SING3:
           changeState(0, HOME_LOOP, 0);
           break;
