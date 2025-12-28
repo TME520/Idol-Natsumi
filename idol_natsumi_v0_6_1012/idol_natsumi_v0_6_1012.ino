@@ -3486,7 +3486,7 @@ void finalizeBathOutcome(String outcomeText) {
 
   if (outcomeText == "Perfect!") {
     if (natsumi.hygiene < 4) {
-      natsumi.hygiene += 1;
+      natsumi.hygiene = 4;
     }
     changeState(0, HEALTH_WASH2, 0);
   }
@@ -3799,11 +3799,7 @@ void manageFlowersMarket() {
 
 void wash() {
   if (changeStateCounter==0) {
-    if (natsumi.hygiene < 4) {
-      showToast("Washed (+1 Hygiene)");
-    } else {
-      showToast("Natsumi is clean");
-    }
+    showToast("Natsumi is clean");
   }
   changeState(0, HOME_LOOP, shortWait);
 }
