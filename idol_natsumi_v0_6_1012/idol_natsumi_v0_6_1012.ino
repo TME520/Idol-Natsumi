@@ -849,8 +849,17 @@ void preloadImages() {
     case FOOD_ORDER7: case FOOD_ORDER8:
       preloadImage("/idolnat/screens/orderibi_food_delivered.png", currentBackground);
       break;
-    case HEALTH_WASH: case HEALTH_WASH2:
+    case HEALTH_WASH: case HEALTH_WASH5:
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
+      break;
+    case HEALTH_WASH2:
+      preloadImage("/idolnat/screens/bathroom_step1.png", currentBackground);
+      break;
+    case HEALTH_WASH3:
+      preloadImage("/idolnat/screens/bathroom_step2.png", currentBackground);
+      break;
+    case HEALTH_WASH4:
+      preloadImage("/idolnat/screens/bathroom_step3.png", currentBackground);
       break;
     case HEALTH_DOCTOR: case HEALTH_DOCTOR2: case HEALTH_DOCTOR6:
       preloadImage("/idolnat/screens/doctors_office_bg.png", currentBackground);
@@ -983,7 +992,7 @@ void preloadImages() {
         case FOOD_ORDER8:
           preloadImage("/idolnat/sprites/delivery_girl-90x135.png", currentCharacter);
           break;
-        case HEALTH_WASH: case HEALTH_WASH2:
+        case HEALTH_WASH: case HEALTH_WASH5:
           preloadImage("/idolnat/sprites/natsumi_11yo_washing-90x135.png", currentCharacter);
           break;
         case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
@@ -1041,7 +1050,7 @@ void preloadImages() {
         case FOOD_ORDER8:
           preloadImage("/idolnat/sprites/delivery_girl-90x135.png", currentCharacter);
           break;
-        case HEALTH_WASH: case HEALTH_WASH2:
+        case HEALTH_WASH: case HEALTH_WASH5:
           preloadImage("/idolnat/sprites/natsumi_13yo_washing-90x135.png", currentCharacter);
           break;
         case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
@@ -1099,7 +1108,7 @@ void preloadImages() {
         case FOOD_ORDER8:
           preloadImage("/idolnat/sprites/delivery_girl-90x135.png", currentCharacter);
           break;
-        case HEALTH_WASH: case HEALTH_WASH2:
+        case HEALTH_WASH: case HEALTH_WASH5:
           preloadImage("/idolnat/sprites/natsumi_15yo_washing-90x135.png", currentCharacter);
           break;
         case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
@@ -1157,7 +1166,7 @@ void preloadImages() {
         case FOOD_ORDER8:
           preloadImage("/idolnat/sprites/delivery_girl-90x135.png", currentCharacter);
           break;
-        case HEALTH_WASH: case HEALTH_WASH2:
+        case HEALTH_WASH: case HEALTH_WASH5:
           preloadImage("/idolnat/sprites/natsumi_18yo_washing-90x135.png", currentCharacter);
           break;
         case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
@@ -1215,7 +1224,7 @@ void preloadImages() {
         case FOOD_ORDER8:
           preloadImage("/idolnat/sprites/delivery_girl-90x135.png", currentCharacter);
           break;
-        case HEALTH_WASH: case HEALTH_WASH2:
+        case HEALTH_WASH: case HEALTH_WASH5:
           preloadImage("/idolnat/sprites/natsumi_21yo_washing-90x135.png", currentCharacter);
           break;
         case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
@@ -1648,6 +1657,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         resetBathGame();
         break;
       case HEALTH_WASH2: case HEALTH_WASH3: case HEALTH_WASH4:
+        screenConfig = CARD;
         break;
       case HEALTH_WASH5:
         screenConfig = ROOM;
@@ -1959,6 +1969,15 @@ void manageCard() {
       break;
     case HEALTH_ONSEN:
       manageOnsen();
+      break;
+    case HEALTH_WASH2:
+      changeState(0, HEALTH_WASH3, 20);
+      break;
+    case HEALTH_WASH3:
+      changeState(0, HEALTH_WASH4, 20);
+      break;
+    case HEALTH_WASH4:
+      changeState(0, HEALTH_WASH5, 20);
       break;
     case DEV_SCREEN:
       break;
@@ -3504,7 +3523,7 @@ void finalizeBathOutcome(String outcomeText) {
 
   if (outcomeText == "Perfect!") {
     if (natsumi.hygiene < 4) {
-      natsumi.hygiene += 1;
+      natsumi.hygiene = 4;
     }
     changeState(0, HEALTH_WASH2, 0);
   }
