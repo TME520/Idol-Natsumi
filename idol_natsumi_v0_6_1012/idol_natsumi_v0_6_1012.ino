@@ -743,8 +743,12 @@ void preloadImages() {
     case FLOWERS_MARKET4:
       preloadImage("/idolnat/screens/flower_market_step3.png", currentBackground);
       break;
-    case FLOWERS_MARKET5: case FLOWERS_MARKET6:
+    case FLOWERS_MARKET5:
       preloadImage("/idolnat/screens/flower_market_bg2.png", currentBackground);
+      break;
+    case FLOWERS_MARKET6:
+      preloadImage("/idolnat/screens/flower_market_bg2.png", currentBackground);
+      preloadImage("/idolnat/sprites/flower_stage_08-10x16.png", natsumiSprite);
       break;
     case FOOD_MENU:
       preloadImage("/idolnat/screens/kitchen.png", currentBackground);
