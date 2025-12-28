@@ -736,6 +736,9 @@ void preloadImages() {
     case FLOWERS_MARKET4:
       preloadImage("/idolnat/screens/flower_market_step3.png", currentBackground);
       break;
+    case FLOWERS_MARKET5:
+      preloadImage("/idolnat/screens/flower_market_bg2.png", currentBackground);
+      break;
     case FOOD_MENU:
       preloadImage("/idolnat/screens/kitchen.png", currentBackground);
       break;
@@ -1470,6 +1473,12 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case FLOWERS_MARKET2: case FLOWERS_MARKET3: case FLOWERS_MARKET4:
         screenConfig = CARD;
         characterEnabled = false;
+        break;
+      case FLOWERS_MARKET5:
+        screenConfig = GAME;
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        toastEnabled = false;
         break;
       case FOOD_MENU:
         screenConfig = ROOM;
