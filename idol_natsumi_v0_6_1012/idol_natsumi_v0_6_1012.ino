@@ -747,7 +747,7 @@ void preloadImages() {
       preloadImage("/idolnat/screens/flower_market_bg2.png", currentBackground);
       break;
     case FLOWERS_MARKET6:
-      preloadImage("/idolnat/screens/flower_market_bg2.png", currentBackground);
+      preloadImage("/idolnat/screens/flower_market_bg3.png", currentBackground);
       preloadImage("/idolnat/sprites/flower_stage_08-10x16.png", natsumiSprite);
       break;
     case FOOD_MENU:
@@ -1995,7 +1995,7 @@ void manageDialog() {
   overlayEnabled = true;
   helperEnabled = false;
   switch (currentState) {
-    case FLOWERS_GARDEN7:
+    case FLOWERS_MARKET7:
       miniGameDebrief();
       break;
     case FOOD_CONBINI3:
@@ -2088,9 +2088,6 @@ void manageGame() {
       manageFlowersMarket();
       break;
     case FLOWERS_MARKET6:
-      manageFlowersSale();
-      break;
-    case FLOWERS_MARKET7:
       manageFlowersSale();
       break;
     default:
@@ -3824,6 +3821,8 @@ void manageFlowersSale() {
   const int spriteW = 10;
   const int spriteH = 16;
   const int padding = 4;
+  const int initialX = 60;
+  const int initialY = 30;
   const int screenWidth = M5Cardputer.Display.width();
   const int screenHeight = M5Cardputer.Display.height();
 
@@ -3841,8 +3840,8 @@ void manageFlowersSale() {
     for (int i = 0; i < natsumi.flowers; ++i) {
       int col = i % columns;
       int row = i / columns;
-      int x = padding + col * (spriteW + padding);
-      int y = padding + row * (spriteH + padding);
+      int x = initialX + padding + col * (spriteW + padding);
+      int y = initialY + padding + row * (spriteH + padding);
       flowerPositions.push_back({x, y});
       flowerSlots.push_back(i);
     }
@@ -5461,7 +5460,7 @@ void drawOverlay() {
       case GARDEN_LOOP: case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
         drawGardenPlanter();
         break;
-      case FLOWERS_GARDEN7:
+      case FLOWERS_MARKET7:
         drawDialogBubble("I sold all my flowers and made " + String(flowersRevenue) + "$");
         break;
       default:
