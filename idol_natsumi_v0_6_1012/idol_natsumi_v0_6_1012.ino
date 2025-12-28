@@ -2201,7 +2201,7 @@ void manageRoom() {
     case HOME_LOOP:
       manageHomeScreen();
       break;
-    case HEALTH_WASH2:
+    case HEALTH_WASH5:
       wash();
       break;
     case GARDEN_MENU:
@@ -3518,8 +3518,8 @@ void finalizeBathOutcome(String outcomeText) {
   bathOutcomeTime = millis();
   bathGameRunning = false;
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("Bath is " + outcomeText, 120, 131, true, WHITE, 1);
-  showToast("Bath is " + outcomeText);
+  drawText("Shower temperature is " + outcomeText, 120, 131, true, WHITE, 1);
+  showToast("Shower is " + outcomeText);
 
   if (outcomeText == "Perfect!") {
     if (natsumi.hygiene < 4) {
@@ -3736,7 +3736,7 @@ void wash() {
       showToast("Natsumi is clean");
     }
   }
-  changeState(0, HOME_LOOP, shortWait);
+  changeState(0, HOME_LOOP, 20);
 }
 
 void drawSleepEnergyOverlay() {
