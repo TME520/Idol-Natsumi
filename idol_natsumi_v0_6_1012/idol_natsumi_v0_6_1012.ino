@@ -3822,8 +3822,8 @@ void manageFlowersSale() {
   const int spriteW = 10 * spriteScale;
   const int spriteH = 16 * spriteScale;
   const int padding = 4;
-  const int initialX = 60;
-  const int initialY = 30;
+  const int initialX = 20;
+  const int initialY = 10;
   const int screenWidth = M5Cardputer.Display.width();
   const int screenHeight = M5Cardputer.Display.height();
 
@@ -3833,7 +3833,8 @@ void manageFlowersSale() {
     flowerSlots.clear();
     flowerPositions.clear();
 
-    int columns = (screenWidth - padding) / (spriteW + padding);
+    // int columns = (screenWidth - padding) / (spriteW + padding);
+    int columns = 8;
     if (columns < 1) {
       columns = 1;
     }
@@ -3843,6 +3844,8 @@ void manageFlowersSale() {
       int row = i / columns;
       int x = initialX + padding + col * (spriteW + padding);
       int y = initialY + padding + row * (spriteH + padding);
+      // int x = padding + col * (spriteW + padding);
+      // int y = padding + row * (spriteH + padding);
       flowerPositions.push_back({x, y});
       flowerSlots.push_back(i);
     }
