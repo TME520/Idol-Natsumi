@@ -2207,6 +2207,10 @@ void manageRoom() {
       characterEnabled = false;
       manageMiniGameCountdown();
       break;
+    case TRAIN_LIBRARY:
+      characterEnabled = false;
+      manageLibrary();
+      break;
     case TRAIN_SING:
       characterEnabled = false;
       manageMiniGameCountdown();
@@ -2456,9 +2460,13 @@ void manageGarden() {
       if (tile == 0) {
         showToast("Nothing to pick");
       } else if (tile > 209) {
-        tile = 0;
-        natsumi.flowers += 1;
-        showToast("Natsumi now has " + String(natsumi.flowers) + " flowers");
+        if (natsumi.flowers < 24) {
+          tile = 0;
+          natsumi.flowers += 1;
+          showToast("Natsumi now has " + String(natsumi.flowers) + " flowers");
+        } else {
+          showToast("FLowers storage full. Sell some");
+        }
       } else {
         showToast("Not ready yet");
       }
@@ -3686,6 +3694,11 @@ void drawDialogBubble(const String& dialogText) {
   // Helper text at the bottom
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
   drawText("Press any key to continue", 120, 131, true, WHITE, 1);
+}
+
+void manageLibrary() {
+  //
+  return;
 }
 
 void wash() {
