@@ -46,6 +46,9 @@ enum GameState {
   HEALTH_MENU,
   HEALTH_WASH,
   HEALTH_WASH2,
+  HEALTH_WASH3,
+  HEALTH_WASH4,
+  HEALTH_WASH5,
   HEALTH_DOCTOR,
   HEALTH_DOCTOR2,
   HEALTH_DOCTOR3,
@@ -536,6 +539,9 @@ const char* gameStateToString(GameState state) {
     case HEALTH_MENU:      return "HEALTH_MENU";
     case HEALTH_WASH:      return "HEALTH_WASH";
     case HEALTH_WASH2:     return "HEALTH_WASH2";
+    case HEALTH_WASH3:     return "HEALTH_WASH3";
+    case HEALTH_WASH4:     return "HEALTH_WASH4";
+    case HEALTH_WASH5:     return "HEALTH_WASH5";
     case HEALTH_DOCTOR:    return "HEALTH_DOCTOR";
     case HEALTH_DOCTOR2:   return "HEALTH_DOCTOR2";
     case HEALTH_DOCTOR3:   return "HEALTH_DOCTOR3";
@@ -1641,7 +1647,9 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         menuOpened = false;
         resetBathGame();
         break;
-      case HEALTH_WASH2:
+      case HEALTH_WASH2: case HEALTH_WASH3: case HEALTH_WASH4:
+        break;
+      case HEALTH_WASH5:
         screenConfig = ROOM;
         menuEnabled = false;
         l4NeedsRedraw = false;
