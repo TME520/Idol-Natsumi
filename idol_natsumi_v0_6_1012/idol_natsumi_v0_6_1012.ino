@@ -2087,6 +2087,9 @@ void manageGame() {
     case FLOWERS_MARKET5:
       manageFlowersMarket();
       break;
+    case FLOWERS_MARKET6:
+      manageFlowersSale();
+      break;
     case FLOWERS_MARKET7:
       manageFlowersSale();
       break;
@@ -3813,8 +3816,73 @@ void manageFlowersMarket() {
 }
 
 void manageFlowersSale() {
-  //
-  flowersSaleInProgress = false;
+  static bool flowersSaleInitialized = false;
+  static std::vector<int> flowerSlots;
+  static std::vector<std::pair<int, int>> flowerPositions;
+  static bool flowerSaleNeedsRedraw = true;
+
+  const int spriteW = 10;
+  const int spriteH = 16;
+  const int padding = 4;
+  const int screenWidth = M5Cardputer.Display.width();
+  const int screenHeight = M5Cardputer.Display.height();
+
+  if (!flowersSaleInitialized) {
+    flowersSaleInitialized = true;
+    flowerSaleNeedsRedraw = true;
+    flowerSlots.clear();
+    flowerPositions.clear();
+
+    int columns = (screenWidth - padding) / (spriteW + padding);
+    if (columns < 1) {
+      columns = 1;
+    }
+
+    for (int i = 0; i < natsumi.flowers; ++i) {
+      int col = i % columns;
+      int row = i / columns;
+      int x = padding + col * (spriteW + padding);
+      int y = padding + row * (spriteH + padding);
+      flowerPositions.push_back({x, y});
+      flowerSlots.push_back(i);
+    }
+  }
+
+  if (fiveSecondPulse && !flowerSlots.empty()) {
+    bool sold = (random(0, 2) == 0);
+    if (sold) {
+      int soldIndex = random(0, flowerSlots.size());
+      flowerSlots.erase(flowerSlots.begin() + soldIndex);
+      if (natsumi.flowers > 0) {
+        natsumi.flowers -= 1;
+      }
+      flowersRevenue += flowersPrice;
+      flowerSaleNeedsRedraw = true;
+    }
+  }
+
+  if (natsumi.flowers <= 0 || flowerSlots.empty()) {
+    flowersSaleInProgress = false;
+    flowersSaleInitialized = false;
+    changeState(0, FLOWERS_MARKET7, 0);
+    return;
+  }
+
+  if (flowerSaleNeedsRedraw) {
+    drawImage(currentBackground);
+    for (int index : flowerSlots) {
+      if (index < static_cast<int>(flowerPositions.size())) {
+        auto position = flowerPositions[index];
+        M5Cardputer.Display.drawPng(
+          natsumiSprite.data,
+          natsumiSprite.length,
+          position.first,
+          position.second
+        );
+      }
+    }
+    flowerSaleNeedsRedraw = false;
+  }
 }
 
 void wash() {
