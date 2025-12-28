@@ -3682,7 +3682,114 @@ void drawDialogBubble(const String& dialogText) {
 }
 
 void manageFlowersMarket() {
-  // Update this function manageFlowersMarket()
+  static bool flowerMarketInitialized = false;
+  static int flowerMarketSelection = 1;
+  static bool flowerMarketNeedsRedraw = true;
+
+  overlayActive = false;
+
+  if (!flowerMarketInitialized) {
+    flowerMarketSelection = 1;
+    flowerMarketNeedsRedraw = true;
+    flowerMarketInitialized = true;
+  }
+
+  int handicapScore = natsumi.spirit + natsumi.charm + natsumi.culture;
+  int prices[3];
+  if (handicapScore <= 3) {
+    prices[0] = 200;
+    prices[1] = 250;
+    prices[2] = 300;
+  } else if (handicapScore <= 8) {
+    prices[0] = 350;
+    prices[1] = 400;
+    prices[2] = 450;
+  } else if (handicapScore <= 11) {
+    prices[0] = 500;
+    prices[1] = 550;
+    prices[2] = 600;
+  } else {
+    prices[0] = 650;
+    prices[1] = 700;
+    prices[2] = 800;
+  }
+
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (!keyList.empty()) {
+      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (key) {
+        // LEFT
+        case 180: case 44: case 'a': case 'A':
+          if (flowerMarketSelection > 0) {
+            flowerMarketSelection -= 1;
+            flowerMarketNeedsRedraw = true;
+          }
+          break;
+        // RIGHT
+        case 183: case 47: case 'd': case 'D':
+          if (flowerMarketSelection < 2) {
+            flowerMarketSelection += 1;
+            flowerMarketNeedsRedraw = true;
+          }
+          break;
+        // ESC
+        case 96: case 43:
+          flowerMarketInitialized = false;
+          overlayActive = false;
+          changeState(0, HOME_LOOP, 0);
+          return;
+        // ENTER
+        case 13: case 40: case ' ':
+          if (natsumi.flowers > 0) {
+            int salePrice = prices[flowerMarketSelection] * natsumi.flowers;
+            natsumi.money += salePrice;
+            showToast("Sold " + String(natsumi.flowers) + " flowers for $" + String(salePrice));
+            natsumi.flowers = 0;
+          } else {
+            showToast("No flowers to sell");
+          }
+          flowerMarketInitialized = false;
+          overlayActive = false;
+          changeState(0, HOME_LOOP, 0);
+          return;
+      }
+    }
+  }
+
+  if (flowerMarketNeedsRedraw) {
+    const int screenWidth = M5Cardputer.Display.width();
+    const int screenHeight = M5Cardputer.Display.height();
+    const int buttonCount = 3;
+    const int buttonW = 60;
+    const int buttonH = 26;
+    const int buttonGap = 12;
+    const int totalW = (buttonW * buttonCount) + (buttonGap * (buttonCount - 1));
+    const int startX = (screenWidth - totalW) / 2;
+    const int startY = screenHeight - buttonH - 24;
+
+    drawImage(currentBackground);
+
+    const uint16_t buttonFill = M5Cardputer.Display.color565(18, 26, 48);
+    const uint16_t buttonBorder = M5Cardputer.Display.color565(120, 170, 255);
+    const uint16_t buttonActive = M5Cardputer.Display.color565(255, 200, 40);
+    const uint16_t buttonActiveFill = M5Cardputer.Display.color565(60, 48, 12);
+
+    for (int i = 0; i < buttonCount; ++i) {
+      int x = startX + i * (buttonW + buttonGap);
+      uint16_t fillColor = (i == flowerMarketSelection) ? buttonActiveFill : buttonFill;
+      uint16_t borderColor = (i == flowerMarketSelection) ? buttonActive : buttonBorder;
+      uint16_t textColor = (i == flowerMarketSelection) ? buttonActive : WHITE;
+
+      M5Cardputer.Display.fillRoundRect(x, startY, buttonW, buttonH, 6, fillColor);
+      M5Cardputer.Display.drawRoundRect(x, startY, buttonW, buttonH, 6, borderColor);
+      drawText("$" + String(prices[i]), x + (buttonW / 2), startY + 9, true, textColor, 1);
+    }
+
+    M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+    drawText("LEFT/RIGHT: Price  ENTER: Sell  ESC: Home", 120, 131, true, WHITE, 1);
+    flowerMarketNeedsRedraw = false;
+  }
 }
 
 void wash() {
