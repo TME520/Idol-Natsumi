@@ -927,7 +927,26 @@ void preloadImages() {
       preloadImage("/idolnat/screens/forest_bg.png", currentBackground);
       break;
     case TRAIN_LIBRARY:
-      preloadImage("/idolnat/screens/library_bg.png", currentBackground);
+      switch(natsumi.age) {
+        case 11: case 12:
+          preloadImage("/idolnat/screens/natsumi_11_library.png", currentBackground);
+          break;
+        case 13: case 14:
+          preloadImage("/idolnat/screens/natsumi_13_library.png", currentBackground);
+          break;
+        case 15: case 16: case 17:
+          preloadImage("/idolnat/screens/natsumi_15_library.png", currentBackground);
+          break;
+        case 18: case 19: case 20:
+          preloadImage("/idolnat/screens/natsumi_18_library.png", currentBackground);
+          break;
+        case 21: case 22:
+          preloadImage("/idolnat/screens/natsumi_21_library.png", currentBackground);
+          break;
+        default:
+          preloadImage("/idolnat/screens/natsumi_21_library.png", currentBackground);
+          break;
+      }
       break;
     case COMP_MENU:
       preloadImage("/idolnat/screens/competition.png", currentBackground);
