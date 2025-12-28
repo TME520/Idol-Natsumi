@@ -3818,8 +3818,9 @@ void manageFlowersSale() {
   static std::vector<std::pair<int, int>> flowerPositions;
   static bool flowerSaleNeedsRedraw = true;
 
-  const int spriteW = 10;
-  const int spriteH = 16;
+  const int spriteScale = 2;
+  const int spriteW = 10 * spriteScale;
+  const int spriteH = 16 * spriteScale;
   const int padding = 4;
   const int initialX = 60;
   const int initialY = 30;
@@ -3876,7 +3877,12 @@ void manageFlowersSale() {
           natsumiSprite.data,
           natsumiSprite.length,
           position.first,
-          position.second
+          position.second,
+          0,
+          0,
+          0,
+          0,
+          spriteScale
         );
       }
     }
