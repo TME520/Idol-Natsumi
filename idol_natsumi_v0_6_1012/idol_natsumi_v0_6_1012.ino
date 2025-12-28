@@ -2066,6 +2066,9 @@ void manageGame() {
     case TRAIN_RUN2:
       manageTrainRunGame();
       break;
+    case FLOWERS_MARKET5:
+      manageFlowersMarket();
+      break;
     default:
       playGame();
       break;
@@ -3676,6 +3679,10 @@ void drawDialogBubble(const String& dialogText) {
   // Helper text at the bottom
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
   drawText("Press any key to continue", 120, 131, true, WHITE, 1);
+}
+
+void manageFlowersMarket() {
+  // Update this function manageFlowersMarket()
 }
 
 void wash() {
