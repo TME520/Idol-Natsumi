@@ -1518,6 +1518,17 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         screenConfig = CARD;
         characterEnabled = false;
         break;
+      case FLOWERS_MARKET5: case FLOWERS_MARKET6:
+        screenConfig = GAME;
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        toastEnabled = false;
+        break;
+      case FLOWERS_MARKET7:
+        screenConfig = DIALOG;
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        break;
       case FOOD_MENU:
         screenConfig = ROOM;
         currentMenuType = "food";
@@ -1939,13 +1950,13 @@ void manageCard() {
       changeState(0, HOME_LOOP, 0);
       break;
     case FLOWERS_MARKET2:
-      changeState(0, FLOWERS_MARKET3, 20);
+      changeState(0, FLOWERS_MARKET3, 10);
       break;
     case FLOWERS_MARKET3:
-      changeState(0, FLOWERS_MARKET4, 20);
+      changeState(0, FLOWERS_MARKET4, 10);
       break;
     case FLOWERS_MARKET4:
-      changeState(0, HOME_LOOP, 20);
+      changeState(0, FLOWERS_MARKET5, 10);
       break;
     case FOOD_REST6:
       changeState(0, FOOD_REST7, 20);
@@ -2030,6 +2041,9 @@ void manageDialog() {
   overlayEnabled = true;
   helperEnabled = false;
   switch (currentState) {
+    case FLOWERS_MARKET7:
+      miniGameDebrief();
+      break;
     case FOOD_CONBINI3:
       cashier();
       break;
@@ -2115,6 +2129,12 @@ void manageGame() {
       break;
     case TRAIN_RUN2:
       manageTrainRunGame();
+      break;
+    case FLOWERS_MARKET5:
+      manageFlowersMarket();
+      break;
+    case FLOWERS_MARKET6:
+      manageFlowersSale();
       break;
     default:
       playGame();
