@@ -93,6 +93,11 @@ enum GameState {
   TRAIN_LIBRARY,
   COMP_MENU,
   COMP_LOCAL,
+  COMP_LOCAL2,
+  COMP_LOCAL3,
+  COMP_LOCAL4,
+  COMP_LOCAL5,
+  COMP_LOCAL6,
   COMP_DEPT,
   COMP_REG,
   COMP_NAT
@@ -597,6 +602,11 @@ const char* gameStateToString(GameState state) {
     case TRAIN_LIBRARY:    return "TRAIN_LIBRARY";
     case COMP_MENU:        return "COMP_MENU";
     case COMP_LOCAL:       return "COMP_LOCAL";
+    case COMP_LOCAL2:      return "COMP_LOCAL2";
+    case COMP_LOCAL3:      return "COMP_LOCAL3";
+    case COMP_LOCAL4:      return "COMP_LOCAL4";
+    case COMP_LOCAL5:      return "COMP_LOCAL5";
+    case COMP_LOCAL6:      return "COMP_LOCAL6";
     case COMP_DEPT:        return "COMP_DEPT";
     case COMP_REG:         return "COMP_REG";
     case COMP_NAT:         return "COMP_NAT";
@@ -985,6 +995,12 @@ void preloadImages() {
     case COMP_MENU:
       preloadImage("/idolnat/screens/competition.png", currentBackground);
       break;
+    case COMP_LOCAL: case COMP_LOCAL6:
+      preloadImage("/idolnat/screens/competition_local.png", currentBackground);
+      break;
+    case COMP_LOCAL2: case COMP_LOCAL3: case COMP_LOCAL4: case COMP_LOCAL5:
+      preloadImage("/idolnat/screens/local_singing_comp_bg.png", currentBackground);
+      break;
     case HEALTH_MENU:
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
       break;
@@ -1037,6 +1053,9 @@ void preloadImages() {
           break;
         case TRAIN_RUN3:
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
+          break;
+        case COMP_LOCAL3: case COMP_LOCAL6:
+          preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
         default:
           if (isNatsumiHappy) {
@@ -1096,6 +1115,9 @@ void preloadImages() {
         case TRAIN_RUN3:
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
+        case COMP_LOCAL3: case COMP_LOCAL6:
+          preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
+          break;
         default:
           if (isNatsumiHappy) {
             preloadImage("/idolnat/sprites/natsumi_13yo_happy-90x135.png", currentCharacter);
@@ -1153,6 +1175,9 @@ void preloadImages() {
           break;
         case TRAIN_RUN3:
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
+          break;
+        case COMP_LOCAL3: case COMP_LOCAL6:
+          preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
         default:
           if (isNatsumiHappy) {
@@ -1212,6 +1237,9 @@ void preloadImages() {
         case TRAIN_RUN3:
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
+        case COMP_LOCAL3: case COMP_LOCAL6:
+          preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
+          break;
         default:
           if (isNatsumiHappy) {
             preloadImage("/idolnat/sprites/natsumi_18yo_happy-90x135.png", currentCharacter);
@@ -1269,6 +1297,9 @@ void preloadImages() {
           break;
         case TRAIN_RUN3:
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
+          break;
+        case COMP_LOCAL3: case COMP_LOCAL6:
+          preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
         default:
           if (isNatsumiHappy) {
@@ -1678,6 +1709,21 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItems = competitionMenuItems;
         currentMenuItemsCount = competitionMenuItemCount;
         break;
+      case COMP_LOCAL: case COMP_LOCAL2:
+        screenConfig = IDLE;
+        characterEnabled = false;
+        break;
+      case COMP_LOCAL3: case COMP_LOCAL6:
+        screenConfig = DIALOG;
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        break;
+      case COMP_LOCAL4:
+        screenConfig = ROOM;
+        break;
+      case COMP_LOCAL5:
+        screenConfig = GAME;
+        break;
       case HEALTH_MENU:
         screenConfig = ROOM;
         currentMenuType = "health";
@@ -1823,7 +1869,7 @@ void updateAging() {
     preloadImages();
     updateSpirit();
     showToast(String("Natsumi turned ") + natsumi.age + " years old!");
-    natsumi.money += 70000;
+    natsumi.money += 10000;
     l5NeedsRedraw=true;
   }
 }
@@ -2069,6 +2115,9 @@ void manageDialog() {
     case HEALTH_TEMPLE: case HEALTH_TEMPLE6:
       priest();
       break;
+    case COMP_LOCAL3:
+      competitionHost();
+      break;
     case TRAIN_DANCE3:
       miniGameDebrief();
       break;
@@ -2082,6 +2131,9 @@ void manageDialog() {
       miniGameDebrief();
       break;
     case TRAIN_RUN3:
+      miniGameDebrief();
+      break;
+    case COMP_LOCAL6:
       miniGameDebrief();
       break;
     default:
@@ -5984,6 +6036,20 @@ void cashier() {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       overlayActive = false;
       changeState(0, HOME_LOOP, 0);
+      return;
+    }
+  }
+}
+
+void competitionHost() {
+  // Serial.println("> Entering competitionHost()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      overlayActive = false;
+      changeState(0, COMP_LOCAL4, 0);
       return;
     }
   }
