@@ -2171,8 +2171,13 @@ void manageIdle() {
   helperEnabled = false;
   switch (currentState) {
     case FLOWERS_MARKET:
-      characterEnabled = false;
-      changeState(0, FLOWERS_MARKET2, microWait);
+      if (natsumi.flowers > 0) {
+        characterEnabled = false;
+        changeState(0, FLOWERS_MARKET2, microWait);
+      } else {
+        changeState(0, HOME_LOOP, 0);
+        showToast("No flowers to sell");
+      }
       break;
     case FOOD_CONBINI:
       characterEnabled = false;
@@ -2402,12 +2407,6 @@ void drawGardenTile(int topX, int topY, int tileW, int tileH, uint16_t fillColor
 }
 
 void drawGardenPlanter() {
-  /*
-  const int tileW = 34;
-  const int tileH = 18;
-  const int originX = 120;
-  const int originY = 26;
-  */
   const int tileW = 48;
   const int tileH = 36;
   const int originX = 147;
@@ -3556,7 +3555,7 @@ void finalizeBathOutcome(String outcomeText) {
   drawText("Shower temperature is " + outcomeText, 120, 131, true, WHITE, 1);
   showToast("Shower is " + outcomeText);
 
-  if (outcomeText == "Perfect!") {
+  if (outcomeText == "perfect!") {
     if (natsumi.hygiene < 4) {
       natsumi.hygiene = 4;
     }
@@ -3597,11 +3596,11 @@ void manageBathGame() {
     int zoneBottom = idealZoneY + idealZoneHeight;
     int sliderCenter = sliderYPosition + (sliderHeight / 2);
     if (sliderCenter < zoneTop) {
-      finalizeBathOutcome("Too hot!");
+      finalizeBathOutcome("too hot!");
     } else if (sliderCenter > zoneBottom) {
-      finalizeBathOutcome("Too cold!");
+      finalizeBathOutcome("too cold!");
     } else {
-      finalizeBathOutcome("Perfect!");
+      finalizeBathOutcome("perfect!");
     }
     return;
   }
@@ -3625,11 +3624,11 @@ void manageBathGame() {
     int zoneBottom = idealZoneY + idealZoneHeight;
     int sliderCenter = sliderYPosition + (sliderHeight / 2);
     if (sliderCenter < zoneTop) {
-      finalizeBathOutcome("Too hot!");
+      finalizeBathOutcome("too hot!");
     } else if (sliderCenter > zoneBottom) {
-      finalizeBathOutcome("Too cold!");
+      finalizeBathOutcome("too cold!");
     } else {
-      finalizeBathOutcome("Perfect!");
+      finalizeBathOutcome("perfect!");
     }
     return;
   }
