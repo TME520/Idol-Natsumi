@@ -3758,8 +3758,7 @@ void drawDialogBubble(const String& dialogText) {
 }
 
 void manageLibrary() {
-  //
-  return;
+  // Update this function
 }
 
 void manageFlowersMarket() {
