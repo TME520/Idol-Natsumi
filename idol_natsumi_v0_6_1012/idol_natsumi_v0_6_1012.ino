@@ -46,6 +46,9 @@ enum GameState {
   HEALTH_MENU,
   HEALTH_WASH,
   HEALTH_WASH2,
+  HEALTH_WASH3,
+  HEALTH_WASH4,
+  HEALTH_WASH5,
   HEALTH_DOCTOR,
   HEALTH_DOCTOR2,
   HEALTH_DOCTOR3,
@@ -536,6 +539,9 @@ const char* gameStateToString(GameState state) {
     case HEALTH_MENU:      return "HEALTH_MENU";
     case HEALTH_WASH:      return "HEALTH_WASH";
     case HEALTH_WASH2:     return "HEALTH_WASH2";
+    case HEALTH_WASH3:     return "HEALTH_WASH3";
+    case HEALTH_WASH4:     return "HEALTH_WASH4";
+    case HEALTH_WASH5:     return "HEALTH_WASH5";
     case HEALTH_DOCTOR:    return "HEALTH_DOCTOR";
     case HEALTH_DOCTOR2:   return "HEALTH_DOCTOR2";
     case HEALTH_DOCTOR3:   return "HEALTH_DOCTOR3";
@@ -843,8 +849,17 @@ void preloadImages() {
     case FOOD_ORDER7: case FOOD_ORDER8:
       preloadImage("/idolnat/screens/orderibi_food_delivered.png", currentBackground);
       break;
-    case HEALTH_WASH: case HEALTH_WASH2:
+    case HEALTH_WASH: case HEALTH_WASH5:
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
+      break;
+    case HEALTH_WASH2:
+      preloadImage("/idolnat/screens/bathroom_step1.png", currentBackground);
+      break;
+    case HEALTH_WASH3:
+      preloadImage("/idolnat/screens/bathroom_step2.png", currentBackground);
+      break;
+    case HEALTH_WASH4:
+      preloadImage("/idolnat/screens/bathroom_step3.png", currentBackground);
       break;
     case HEALTH_DOCTOR: case HEALTH_DOCTOR2: case HEALTH_DOCTOR6:
       preloadImage("/idolnat/screens/doctors_office_bg.png", currentBackground);
@@ -927,7 +942,26 @@ void preloadImages() {
       preloadImage("/idolnat/screens/forest_bg.png", currentBackground);
       break;
     case TRAIN_LIBRARY:
-      preloadImage("/idolnat/screens/library_bg.png", currentBackground);
+      switch(natsumi.age) {
+        case 11: case 12:
+          preloadImage("/idolnat/screens/natsumi_11_library.png", currentBackground);
+          break;
+        case 13: case 14:
+          preloadImage("/idolnat/screens/natsumi_13_library.png", currentBackground);
+          break;
+        case 15: case 16: case 17:
+          preloadImage("/idolnat/screens/natsumi_15_library.png", currentBackground);
+          break;
+        case 18: case 19: case 20:
+          preloadImage("/idolnat/screens/natsumi_18_library.png", currentBackground);
+          break;
+        case 21: case 22:
+          preloadImage("/idolnat/screens/natsumi_21_library.png", currentBackground);
+          break;
+        default:
+          preloadImage("/idolnat/screens/natsumi_21_library.png", currentBackground);
+          break;
+      }
       break;
     case COMP_MENU:
       preloadImage("/idolnat/screens/competition.png", currentBackground);
@@ -958,7 +992,7 @@ void preloadImages() {
         case FOOD_ORDER8:
           preloadImage("/idolnat/sprites/delivery_girl-90x135.png", currentCharacter);
           break;
-        case HEALTH_WASH: case HEALTH_WASH2:
+        case HEALTH_WASH: case HEALTH_WASH5:
           preloadImage("/idolnat/sprites/natsumi_11yo_washing-90x135.png", currentCharacter);
           break;
         case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
@@ -1016,7 +1050,7 @@ void preloadImages() {
         case FOOD_ORDER8:
           preloadImage("/idolnat/sprites/delivery_girl-90x135.png", currentCharacter);
           break;
-        case HEALTH_WASH: case HEALTH_WASH2:
+        case HEALTH_WASH: case HEALTH_WASH5:
           preloadImage("/idolnat/sprites/natsumi_13yo_washing-90x135.png", currentCharacter);
           break;
         case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
@@ -1074,7 +1108,7 @@ void preloadImages() {
         case FOOD_ORDER8:
           preloadImage("/idolnat/sprites/delivery_girl-90x135.png", currentCharacter);
           break;
-        case HEALTH_WASH: case HEALTH_WASH2:
+        case HEALTH_WASH: case HEALTH_WASH5:
           preloadImage("/idolnat/sprites/natsumi_15yo_washing-90x135.png", currentCharacter);
           break;
         case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
@@ -1132,7 +1166,7 @@ void preloadImages() {
         case FOOD_ORDER8:
           preloadImage("/idolnat/sprites/delivery_girl-90x135.png", currentCharacter);
           break;
-        case HEALTH_WASH: case HEALTH_WASH2:
+        case HEALTH_WASH: case HEALTH_WASH5:
           preloadImage("/idolnat/sprites/natsumi_18yo_washing-90x135.png", currentCharacter);
           break;
         case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
@@ -1190,7 +1224,7 @@ void preloadImages() {
         case FOOD_ORDER8:
           preloadImage("/idolnat/sprites/delivery_girl-90x135.png", currentCharacter);
           break;
-        case HEALTH_WASH: case HEALTH_WASH2:
+        case HEALTH_WASH: case HEALTH_WASH5:
           preloadImage("/idolnat/sprites/natsumi_21yo_washing-90x135.png", currentCharacter);
           break;
         case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
@@ -1622,7 +1656,10 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         menuOpened = false;
         resetBathGame();
         break;
-      case HEALTH_WASH2:
+      case HEALTH_WASH2: case HEALTH_WASH3: case HEALTH_WASH4:
+        screenConfig = CARD;
+        break;
+      case HEALTH_WASH5:
         screenConfig = ROOM;
         menuEnabled = false;
         l4NeedsRedraw = false;
@@ -1933,6 +1970,15 @@ void manageCard() {
     case HEALTH_ONSEN:
       manageOnsen();
       break;
+    case HEALTH_WASH2:
+      changeState(0, HEALTH_WASH3, 20);
+      break;
+    case HEALTH_WASH3:
+      changeState(0, HEALTH_WASH4, 20);
+      break;
+    case HEALTH_WASH4:
+      changeState(0, HEALTH_WASH5, 20);
+      break;
     case DEV_SCREEN:
       break;
     default:
@@ -2155,7 +2201,7 @@ void manageRoom() {
     case HOME_LOOP:
       manageHomeScreen();
       break;
-    case HEALTH_WASH2:
+    case HEALTH_WASH5:
       wash();
       break;
     case GARDEN_MENU:
@@ -2187,6 +2233,10 @@ void manageRoom() {
     case TRAIN_DANCE:
       characterEnabled = false;
       manageMiniGameCountdown();
+      break;
+    case TRAIN_LIBRARY:
+      characterEnabled = false;
+      manageLibrary();
       break;
     case TRAIN_SING:
       characterEnabled = false;
@@ -2437,9 +2487,13 @@ void manageGarden() {
       if (tile == 0) {
         showToast("Nothing to pick");
       } else if (tile > 209) {
-        tile = 0;
-        natsumi.flowers += 1;
-        showToast("Natsumi now has " + String(natsumi.flowers) + " flowers");
+        if (natsumi.flowers < 24) {
+          tile = 0;
+          natsumi.flowers += 1;
+          showToast("Natsumi now has " + String(natsumi.flowers) + " flowers");
+        } else {
+          showToast("FLowers storage full. Sell some");
+        }
       } else {
         showToast("Not ready yet");
       }
@@ -2943,14 +2997,16 @@ void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect) {
     if (!shark.active) continue;
     int sharkX = static_cast<int>(shark.x);
     int sharkY = getSwimLaneCenter(shark.lane);
-    M5Cardputer.Display.fillRect((sharkX - shark.speed), sharkY, (sharkX + swimSharkLength), (sharkY + swimSharkHeight), poolColor);
+    // M5Cardputer.Display.fillRect((sharkX - shark.speed), sharkY, (sharkX + swimSharkLength), (sharkY + swimSharkHeight), poolColor);
+    M5Cardputer.Display.fillRect((sharkX - shark.speed), sharkY, (sharkX + swimSharkLength), (sharkY + swimSharkHeight), playerColor);
     M5Cardputer.Display.drawPng(enemySprite.data, enemySprite.length, sharkX, sharkY);
   }
 
   int playerX = screenWidth - 32;
   int playerY = getSwimLaneCenter(swimPlayerLane);
 
-  M5Cardputer.Display.fillRect(playerX, 20, playerX + 22, 130, poolColor);
+  // M5Cardputer.Display.fillRect(playerX, 20, playerX + 22, 130, poolColor);
+  M5Cardputer.Display.fillRect(playerX, 20, playerX + 22, 130, playerColor);
   M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, playerX, playerY);
 
   M5Cardputer.Display.setTextDatum(top_left);
@@ -3464,12 +3520,12 @@ void finalizeBathOutcome(String outcomeText) {
   bathOutcomeTime = millis();
   bathGameRunning = false;
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("Bath is " + outcomeText, 120, 131, true, WHITE, 1);
-  showToast("Bath is " + outcomeText);
+  drawText("Shower temperature is " + outcomeText, 120, 131, true, WHITE, 1);
+  showToast("Shower is " + outcomeText);
 
   if (outcomeText == "Perfect!") {
     if (natsumi.hygiene < 4) {
-      natsumi.hygiene += 1;
+      natsumi.hygiene = 4;
     }
     changeState(0, HEALTH_WASH2, 0);
   }
@@ -3669,6 +3725,11 @@ void drawDialogBubble(const String& dialogText) {
   drawText("Press any key to continue", 120, 131, true, WHITE, 1);
 }
 
+void manageLibrary() {
+  //
+  return;
+}
+
 void wash() {
   if (changeStateCounter==0) {
     if (natsumi.hygiene < 4) {
@@ -3677,7 +3738,7 @@ void wash() {
       showToast("Natsumi is clean");
     }
   }
-  changeState(0, HOME_LOOP, shortWait);
+  changeState(0, HOME_LOOP, 20);
 }
 
 void drawSleepEnergyOverlay() {
