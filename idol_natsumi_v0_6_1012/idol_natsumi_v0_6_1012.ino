@@ -2997,14 +2997,16 @@ void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect) {
     if (!shark.active) continue;
     int sharkX = static_cast<int>(shark.x);
     int sharkY = getSwimLaneCenter(shark.lane);
-    M5Cardputer.Display.fillRect((sharkX - shark.speed), sharkY, (sharkX + swimSharkLength), (sharkY + swimSharkHeight), poolColor);
+    // M5Cardputer.Display.fillRect((sharkX - shark.speed), sharkY, (sharkX + swimSharkLength), (sharkY + swimSharkHeight), poolColor);
+    M5Cardputer.Display.fillRect((sharkX - shark.speed), sharkY, (sharkX + swimSharkLength), (sharkY + swimSharkHeight), playerColor);
     M5Cardputer.Display.drawPng(enemySprite.data, enemySprite.length, sharkX, sharkY);
   }
 
   int playerX = screenWidth - 32;
   int playerY = getSwimLaneCenter(swimPlayerLane);
 
-  M5Cardputer.Display.fillRect(playerX, 20, playerX + 22, 130, poolColor);
+  // M5Cardputer.Display.fillRect(playerX, 20, playerX + 22, 130, poolColor);
+  M5Cardputer.Display.fillRect(playerX, 20, playerX + 22, 130, playerColor);
   M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, playerX, playerY);
 
   M5Cardputer.Display.setTextDatum(top_left);
