@@ -5528,6 +5528,9 @@ void drawOverlay() {
       case GARDEN_LOOP: case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
         drawGardenPlanter();
         break;
+      case FLOWERS_MARKET7:
+        drawDialogBubble("I sold all my flowers and made " + String(flowersRevenue) + "$");
+        break;
       default:
         break;
     }
@@ -5943,6 +5946,9 @@ void miniGameDebrief() {
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       switch (currentState) {
+        case FLOWERS_MARKET7:
+          changeState(0, HOME_LOOP, 0);
+          break;
         case TRAIN_SING3:
           changeState(0, HOME_LOOP, 0);
           break;
