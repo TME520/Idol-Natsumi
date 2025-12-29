@@ -21,6 +21,8 @@ enum GameState {
   FLOWERS_MARKET3,
   FLOWERS_MARKET4,
   FLOWERS_MARKET5,
+  FLOWERS_MARKET6,
+  FLOWERS_MARKET7,
   FOOD_MENU,
   FOOD_CONBINI,
   FOOD_CONBINI2,
@@ -289,6 +291,8 @@ const int gardenCols = 3;
 int gardenTiles[gardenRows][gardenCols] = {};
 int gardenCursorRow = 0;
 int gardenCursorCol = 0;
+int flowersPrice = 0;
+int flowersRevenue = 0;
 
 int lastSleepEnergyDisplayed = -1;
 int lastMeditationDisplayed = 0;
@@ -323,6 +327,7 @@ bool meditationRewardApplied = false;
 bool fiveSecondPulse = false;  // Set true by updateFiveSecondPulse() every five seconds
 bool isNatsumiHappy = false;
 bool gardenActive = false;
+bool flowersSaleInProgress = false;
 
 // Onsen state
 unsigned long onsenTicks = 0;  // Number of 5-second pulses spent in the onsen
@@ -514,6 +519,8 @@ const char* gameStateToString(GameState state) {
     case FLOWERS_MARKET3:   return "FLOWERS_MARKET3";
     case FLOWERS_MARKET4:   return "FLOWERS_MARKET4";
     case FLOWERS_MARKET5:   return "FLOWERS_MARKET5";
+    case FLOWERS_MARKET6:  return "FLOWERS_MARKET6";
+    case FLOWERS_MARKET7:  return "FLOWERS_MARKET7";
     case FOOD_MENU:        return "FOOD_MENU";
     case FOOD_CONBINI:     return "FOOD_CONBINI";
     case FOOD_CONBINI2:    return "FOOD_CONBINI2";
@@ -730,7 +737,7 @@ void preloadImages() {
     case HOME_LOOP:
       preloadImage("/idolnat/screens/lounge.png", currentBackground);
       break;
-    case FLOWERS_MARKET:
+    case FLOWERS_MARKET: case FLOWERS_MARKET7:
       preloadImage("/idolnat/screens/flower_market_bg.png", currentBackground);
       break;
     case FLOWERS_MARKET2:
@@ -741,6 +748,13 @@ void preloadImages() {
       break;
     case FLOWERS_MARKET4:
       preloadImage("/idolnat/screens/flower_market_step3.png", currentBackground);
+      break;
+    case FLOWERS_MARKET5:
+      preloadImage("/idolnat/screens/flower_market_bg2.png", currentBackground);
+      break;
+    case FLOWERS_MARKET6:
+      preloadImage("/idolnat/screens/flower_market_bg3.png", currentBackground);
+      preloadImage("/idolnat/sprites/flower_stage_08-10x16.png", natsumiSprite);
       break;
     case FOOD_MENU:
       preloadImage("/idolnat/screens/kitchen.png", currentBackground);
@@ -903,7 +917,6 @@ void preloadImages() {
       preloadImage("/idolnat/screens/singing_school_bg_BW.png", currentBackground);
       break;
     case TRAIN_SING2:
-      // preloadImage("/idolnat/screens/singing_school_bg.png", currentBackground);
       preloadImage("/idolnat/sprites/natsumi_head_sprite-22x20.png", natsumiSprite);
       break;
     case TRAIN_SING3:
