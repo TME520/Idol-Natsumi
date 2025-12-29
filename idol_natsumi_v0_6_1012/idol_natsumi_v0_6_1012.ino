@@ -250,11 +250,14 @@ const unsigned long hungerInterval = 120000;   // 2 minutes
 const unsigned long hygieneInterval = 240000;  // 4 minutes
 const unsigned long energyInterval = 240000;   // 4 minutes
 const unsigned long meditateInterval = 300000;   // 5 minutes
+const unsigned long librarySegmentInterval = 5000; // 5 seconds
 const unsigned long fiveSecondInterval = 5000;  // 5 seconds
 const int STAT_MAX = 4;
+const int librarySegmentCount = 30;
 unsigned long meditateStart = 0;
 unsigned long lastMeditationRedraw = 0;
 unsigned long lastFiveSecondTick = 0;
+unsigned long libraryStartTime = 0;
 
 String currentMenuType = "main";
 const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: DEV SCREEN"};
@@ -325,9 +328,12 @@ bool waitingForFoodDelivery = false;
 bool meditationActive = false;
 bool meditationRewardApplied = false;
 bool fiveSecondPulse = false;  // Set true by updateFiveSecondPulse() every five seconds
+bool libraryInitialized = false;
+bool libraryRewardApplied = false;
 bool isNatsumiHappy = false;
 bool gardenActive = false;
 bool flowersSaleInProgress = false;
+int librarySegmentsFilled = 0;
 
 // Onsen state
 unsigned long onsenTicks = 0;  // Number of 5-second pulses spent in the onsen
@@ -1661,6 +1667,10 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case TRAIN_LIBRARY:
         screenConfig = ROOM;
+        libraryInitialized = false;
+        libraryRewardApplied = false;
+        librarySegmentsFilled = 0;
+        libraryStartTime = 0;
         break;
       case COMP_MENU:
         screenConfig = ROOM;
@@ -3757,8 +3767,64 @@ void drawDialogBubble(const String& dialogText) {
   drawText("Press any key to continue", 120, 131, true, WHITE, 1);
 }
 
+void drawLibraryProgressBar() {
+  const int barY = 121;
+  const int barH = 10;
+  const int barX = 6;
+  const int barW = 228;
+  const int gap = 1;
+  const int segmentCount = librarySegmentCount;
+  const uint16_t fillColor = M5Cardputer.Display.color565(120, 170, 255);
+  const uint16_t emptyColor = M5Cardputer.Display.color565(28, 36, 48);
+
+  int availableWidth = barW - (segmentCount - 1) * gap;
+  int segmentWidth = availableWidth / segmentCount;
+  int extraPixels = availableWidth % segmentCount;
+
+  M5Cardputer.Display.fillRect(0, barY - 2, 240, barH + 4, BLACK);
+  int currentX = barX;
+  for (int i = 0; i < segmentCount; ++i) {
+    int width = segmentWidth + (i < extraPixels ? 1 : 0);
+    uint16_t color = (i < librarySegmentsFilled) ? fillColor : emptyColor;
+    M5Cardputer.Display.fillRect(currentX, barY, width, barH, color);
+    currentX += width + gap;
+  }
+}
+
 void manageLibrary() {
-  // Update this function
+  overlayActive = true;
+
+  if (!libraryInitialized) {
+    libraryInitialized = true;
+    libraryRewardApplied = false;
+    libraryStartTime = millis();
+    librarySegmentsFilled = 0;
+    l5NeedsRedraw = true;
+  }
+
+  unsigned long now = millis();
+  unsigned long elapsed = (now >= libraryStartTime) ? (now - libraryStartTime) : 0;
+  int segments = elapsed / librarySegmentInterval;
+  if (segments > librarySegmentCount) {
+    segments = librarySegmentCount;
+  }
+
+  if (segments != librarySegmentsFilled) {
+    librarySegmentsFilled = segments;
+    l5NeedsRedraw = true;
+  }
+
+  if (librarySegmentsFilled >= librarySegmentCount) {
+    if (!libraryRewardApplied) {
+      if (natsumi.culture < STAT_MAX) {
+        natsumi.culture += 1;
+      }
+      libraryRewardApplied = true;
+      overlayActive = false;
+      changeState(0, HOME_LOOP, 0);
+    }
+  }
+  return;
 }
 
 void manageFlowersMarket() {
@@ -5291,6 +5357,9 @@ void drawOverlay() {
         break;
       case TRAIN_DANCE: case TRAIN_SING: case TRAIN_SWIM: case TRAIN_GYM: case TRAIN_RUN:
         drawMiniGameCountdown();
+        break;
+      case TRAIN_LIBRARY:
+        drawLibraryProgressBar();
         break;
       case TRAIN_DANCE3: {
         int missedDanceCues = danceCuesShown - danceScore;
