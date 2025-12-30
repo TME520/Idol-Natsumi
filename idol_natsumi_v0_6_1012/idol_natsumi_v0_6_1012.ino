@@ -4115,7 +4115,7 @@ void manageCompetition() {
   static unsigned long competitionCompletionTime = 0;
   static bool competitionCompleted = false;
 
-  const int targetNotes = 10;
+  const int targetNotes = 50;
   const int noteRadius = 5;
   const int playerWidth = 22;
   const int playerHeight = 20;
@@ -4138,18 +4138,23 @@ void manageCompetition() {
 
     switch (currentState) {
       case COMP_LOCAL5:
+        Serial.println(">> COMP_LOCAL5 - 3 columns");
         competitionColumns = 3;
         break;
       case COMP_DEPT5:
+        Serial.println(">> COMP_DEPT5 - 4 columns");
         competitionColumns = 4;
         break;
       case COMP_REG5:
+        Serial.println(">> COMP_REG5 - 5 columns");
         competitionColumns = 5;
         break;
       case COMP_NAT5:
+        Serial.println(">> COMP_NAT5 - 6 columns");
         competitionColumns = 6;
         break;
       default:
+        Serial.println(">> default - 3 columns");
         competitionColumns = 3;
         break;
     }
