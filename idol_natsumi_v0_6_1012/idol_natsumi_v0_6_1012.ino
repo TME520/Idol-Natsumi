@@ -99,8 +99,11 @@ enum GameState {
   COMP_LOCAL5,
   COMP_LOCAL6,
   COMP_DEPT,
+  COMP_DEPT5,
   COMP_REG,
-  COMP_NAT
+  COMP_REG5,
+  COMP_NAT,
+  COMP_NAT5
 };
 
 GameState currentState = VERSION_SCREEN;
@@ -608,8 +611,11 @@ const char* gameStateToString(GameState state) {
     case COMP_LOCAL5:      return "COMP_LOCAL5";
     case COMP_LOCAL6:      return "COMP_LOCAL6";
     case COMP_DEPT:        return "COMP_DEPT";
+    case COMP_DEPT5:       return "COMP_DEPT5";
     case COMP_REG:         return "COMP_REG";
+    case COMP_REG5:        return "COMP_REG5";
     case COMP_NAT:         return "COMP_NAT";
+    case COMP_NAT5:        return "COMP_NAT5";
     default:               return "UNKNOWN";
   }
 }
@@ -999,7 +1005,11 @@ void preloadImages() {
       preloadImage("/idolnat/screens/competition_local.png", currentBackground);
       break;
     case COMP_LOCAL2: case COMP_LOCAL3: case COMP_LOCAL4: case COMP_LOCAL5:
+    case COMP_DEPT5: case COMP_REG5: case COMP_NAT5:
       preloadImage("/idolnat/screens/local_singing_comp_bg.png", currentBackground);
+      if (currentState == COMP_LOCAL5 || currentState == COMP_DEPT5 || currentState == COMP_REG5 || currentState == COMP_NAT5) {
+        preloadImage("/idolnat/sprites/natsumi_head_sprite-22x20.png", natsumiSprite);
+      }
       break;
     case HEALTH_MENU:
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
@@ -1726,6 +1736,9 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         characterEnabled = false;
         break;
       case COMP_LOCAL5:
+      case COMP_DEPT5:
+      case COMP_REG5:
+      case COMP_NAT5:
         screenConfig = GAME;
         break;
       case HEALTH_MENU:
@@ -2203,6 +2216,9 @@ void manageGame() {
       manageFlowersSale();
       break;
     case COMP_LOCAL5:
+    case COMP_DEPT5:
+    case COMP_REG5:
+    case COMP_NAT5:
       manageCompetition();
       break;
     default:
@@ -4088,8 +4104,145 @@ void manageFlowersSale() {
 }
 
 void manageCompetition() {
-  // Update this function
-  changeState(0, COMP_LOCAL6, microWait);
+  static bool competitionInitialized = false;
+  static GameState competitionState = COMP_LOCAL5;
+  static std::vector<FallingNote> competitionNotes;
+  static int competitionColumns = 3;
+  static int competitionColumnWidth = 0;
+  static int competitionPlayerColumn = 0;
+  static int competitionNotesCollected = 0;
+  static unsigned long competitionLastSpawn = 0;
+  static unsigned long competitionCompletionTime = 0;
+  static bool competitionCompleted = false;
+
+  const int targetNotes = 10;
+  const int noteRadius = 5;
+  const int playerWidth = 22;
+  const int playerHeight = 20;
+  const unsigned long spawnInterval = 650;
+  const int fallSpeed = 3;
+  const uint16_t laneColor = M5Cardputer.Display.color565(40, 40, 60);
+  const uint16_t noteColor = M5Cardputer.Display.color565(255, 215, 0);
+
+  const int screenWidth = M5Cardputer.Display.width();
+  const int screenHeight = M5Cardputer.Display.height();
+  const int playerY = screenHeight - 12;
+
+  if (!competitionInitialized || competitionState != currentState) {
+    competitionState = currentState;
+    competitionNotes.clear();
+    competitionNotesCollected = 0;
+    competitionLastSpawn = 0;
+    competitionCompletionTime = 0;
+    competitionCompleted = false;
+
+    switch (currentState) {
+      case COMP_LOCAL5:
+        competitionColumns = 3;
+        break;
+      case COMP_DEPT5:
+        competitionColumns = 4;
+        break;
+      case COMP_REG5:
+        competitionColumns = 5;
+        break;
+      case COMP_NAT5:
+        competitionColumns = 6;
+        break;
+      default:
+        competitionColumns = 3;
+        break;
+    }
+
+    competitionColumnWidth = screenWidth / competitionColumns;
+    competitionPlayerColumn = competitionColumns / 2;
+    competitionInitialized = true;
+  }
+
+  unsigned long now = millis();
+
+  if (competitionCompleted) {
+    if (competitionCompletionTime == 0) {
+      competitionCompletionTime = now;
+    }
+    if (now - competitionCompletionTime >= 500) {
+      competitionInitialized = false;
+      changeState(0, COMP_LOCAL6, microWait);
+    }
+    return;
+  }
+
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (!keyList.empty()) {
+      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (key) {
+        case 180: case 44: case 'a': case 'A':  // LEFT
+          if (competitionPlayerColumn > 0) {
+            competitionPlayerColumn--;
+          }
+          break;
+        case 183: case 47: case 'd': case 'D':  // RIGHT
+          if (competitionPlayerColumn < competitionColumns - 1) {
+            competitionPlayerColumn++;
+          }
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  if (now - competitionLastSpawn >= spawnInterval) {
+    if (competitionNotes.size() < 14) {
+      FallingNote newNote = {static_cast<int>(random(0, competitionColumns)), 0, true};
+      competitionNotes.push_back(newNote);
+    }
+    competitionLastSpawn = now;
+  }
+
+  for (auto &note : competitionNotes) {
+    if (!note.active) continue;
+    note.y += fallSpeed;
+    if (note.y >= playerY - noteRadius) {
+      if (note.column == competitionPlayerColumn) {
+        competitionNotesCollected++;
+        note.active = false;
+      } else if (note.y > screenHeight) {
+        note.active = false;
+      }
+    }
+  }
+
+  competitionNotes.erase(std::remove_if(competitionNotes.begin(), competitionNotes.end(), [&](const FallingNote &note) {
+    return !note.active || note.y > screenHeight;
+  }), competitionNotes.end());
+
+  if (competitionNotesCollected >= targetNotes) {
+    competitionCompleted = true;
+  }
+
+  drawImage(currentBackground);
+
+  for (int i = 1; i < competitionColumns; i++) {
+    int x = i * competitionColumnWidth;
+    M5Cardputer.Display.drawFastVLine(x, 0, screenHeight, laneColor);
+  }
+
+  for (const auto &note : competitionNotes) {
+    if (!note.active) continue;
+    int x = note.column * competitionColumnWidth + (competitionColumnWidth / 2);
+    M5Cardputer.Display.fillCircle(x, note.y, noteRadius, noteColor);
+  }
+
+  int playerCenterX = competitionPlayerColumn * competitionColumnWidth + (competitionColumnWidth / 2);
+  int groundY = playerY + (playerHeight / 2);
+  M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, playerCenterX - (playerWidth / 2), groundY - playerHeight);
+
+  M5Cardputer.Display.setTextDatum(top_left);
+  M5Cardputer.Display.setTextColor(WHITE, BLACK);
+  M5Cardputer.Display.setTextSize(1);
+  M5Cardputer.Display.drawString(String("Notes: ") + competitionNotesCollected + String("/") + targetNotes, 6, 4);
 }
 
 void wash() {
@@ -4659,17 +4812,17 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         case 49:
           // 1: DEPARTMENTAL
           menuOpened = false;
-          changeState(0, COMP_DEPT, 0);
+          changeState(0, COMP_DEPT5, 0);
           break;
         case 50:
           // 2: REGIONAL
           menuOpened = false;
-          changeState(0, COMP_REG, 0);
+          changeState(0, COMP_REG5, 0);
           break;
         case 51:
           // 3: NATIONAL
           menuOpened = false;
-          changeState(0, COMP_NAT, 0);
+          changeState(0, COMP_NAT5, 0);
           break;
         case 55:
           // 7: DEBUG
@@ -4716,11 +4869,11 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           if (selection == 0) {
             changeState(0, COMP_LOCAL, 0);
           } else if (selection == 1) {
-            changeState(0, COMP_DEPT, 0);
+            changeState(0, COMP_DEPT5, 0);
           } else if (selection == 2) {
-            changeState(0, COMP_REG, 0);
+            changeState(0, COMP_REG5, 0);
           } else if (selection == 3) {
-            changeState(0, COMP_NAT, 0);
+            changeState(0, COMP_NAT5, 0);
           } else if (selection == 7) {
             if (debugActive) {
               debugActive = false;
