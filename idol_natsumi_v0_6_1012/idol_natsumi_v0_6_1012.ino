@@ -325,8 +325,8 @@ int lastSleepEnergyDisplayed = -1;
 int lastMeditationDisplayed = 0;
 int restaurantSelection = 0;
 int orderibiSelection = 0;
-
 int foodDeliveryCounter = 0;
+int happinessCounter = 0;
 
 bool l0NeedsRedraw = false; // Background
 bool l1NeedsRedraw = false; // Character
@@ -2140,6 +2140,13 @@ void updateFiveSecondPulse() {
     }
     if (saveRequired) {
       saveGameToSd();
+    }
+    if (isNatsumiHappy) {
+      happinessCounter += 1;
+      if (happinessCounter >= microWait) {
+        isNatsumiHappy = false;
+        happinessCounter = 0;
+      }
     }
   } else {
     fiveSecondPulse = false;
@@ -4388,24 +4395,36 @@ void manageCompetition() {
         case COMP_LOCAL5:
           if (natsumi.competition == 0) {
             natsumi.competition = 1;
+            if (natsumi.popularity < 4) {
+              natsumi.popularity += 1;
+            }
             showToast("Departmental competition unlocked");
           }
           break;
         case COMP_DEPT5:
           if (natsumi.competition == 1) {
             natsumi.competition = 2;
+            if (natsumi.popularity < 4) {
+              natsumi.popularity += 1;
+            }
             showToast("Regional competition unlocked");
           }
           break;
         case COMP_REG5:
           if (natsumi.competition == 2) {
             natsumi.competition = 3;
+            if (natsumi.popularity < 4) {
+              natsumi.popularity += 1;
+            }
             showToast("National competition unlocked");
           }
           break;
         case COMP_NAT5:
           if (natsumi.competition == 3) {
             natsumi.competition = 4;
+            if (natsumi.popularity < 4) {
+              natsumi.popularity += 1;
+            }
           }
           break;
       }
