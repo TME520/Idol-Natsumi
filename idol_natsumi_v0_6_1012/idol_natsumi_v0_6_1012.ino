@@ -4085,6 +4085,7 @@ void manageFlowersSale() {
 
 void manageCompetition() {
   // Update this function
+  changeState(0, COMP_LOCAL6, microWait);
 }
 
 void wash() {
