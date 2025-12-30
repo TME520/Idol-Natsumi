@@ -121,6 +121,8 @@ enum GameState {
 GameState currentState = VERSION_SCREEN;
 GameState doctorState = HOME_LOOP;
 GameState priestState = HOME_LOOP;
+GameState loadedContinueState = HOME_LOOP;
+bool continueStateLoaded = false;
 
 // === Screen configs definitions ===
 enum ScreenState {
@@ -650,6 +652,16 @@ const char* gameStateToString(GameState state) {
   }
 }
 
+GameState gameStateFromString(const String& stateString) {
+  for (int i = VERSION_SCREEN; i <= COMP_NAT6; ++i) {
+    GameState state = static_cast<GameState>(i);
+    if (stateString == gameStateToString(state)) {
+      return state;
+    }
+  }
+  return HOME_LOOP;
+}
+
 // Toast messages
 String toastMsg = "";
 unsigned long toastUntil = 0;  // timestamp when toast should disappear
@@ -723,7 +735,16 @@ bool saveGameToSd() {
   saveFile.println("watermelon=" + String(fridge.watermelon));
 
   saveFile.println("[garden]");
-  saveFile.println("garden_tiles=" + String(gardenTiles[gardenRows][gardenCols]));
+  saveFile.print("garden_tiles=");
+  for (int row = 0; row < gardenRows; ++row) {
+    for (int col = 0; col < gardenCols; ++col) {
+      if (row > 0 || col > 0) {
+        saveFile.print(",");
+      }
+      saveFile.print(gardenTiles[row][col]);
+    }
+  }
+  saveFile.println();
   saveFile.println("garden_active=" + String(gardenActive));
   
   saveFile.println("[meta]");
@@ -734,6 +755,129 @@ bool saveGameToSd() {
 
   saveFile.close();
   Serial.println(">> saveGameToSd: Save complete");
+  return true;
+}
+
+bool loadGameFromSd() {
+  Serial.println(">> loadGameFromSd: Loading save data");
+  loadedContinueState = HOME_LOOP;
+  if (!SD.exists(saveGamePath)) {
+    Serial.println(">> loadGameFromSd: Save file not found");
+    return false;
+  }
+
+  File saveFile = SD.open(saveGamePath, FILE_READ);
+  if (!saveFile) {
+    Serial.println(">> loadGameFromSd: Failed to open save file");
+    return false;
+  }
+
+  String section = "";
+  while (saveFile.available()) {
+    String line = saveFile.readStringUntil('\n');
+    line.trim();
+    if (line.length() == 0) {
+      continue;
+    }
+    if (line.startsWith("[")) {
+      section = line;
+      continue;
+    }
+
+    int separatorIndex = line.indexOf('=');
+    if (separatorIndex < 0) {
+      continue;
+    }
+
+    String key = line.substring(0, separatorIndex);
+    String value = line.substring(separatorIndex + 1);
+    value.trim();
+
+    if (section == "[natsumi]") {
+      if (key == "age") natsumi.age = value.toInt();
+      else if (key == "age_ms") natsumi.ageMilliseconds = value.toInt();
+      else if (key == "hunger") natsumi.hunger = value.toInt();
+      else if (key == "hygiene") natsumi.hygiene = value.toInt();
+      else if (key == "energy") natsumi.energy = value.toInt();
+      else if (key == "spirit") natsumi.spirit = value.toInt();
+      else if (key == "popularity") natsumi.popularity = value.toInt();
+      else if (key == "performance") natsumi.performance = value.toInt();
+      else if (key == "fitness") natsumi.fitness = value.toInt();
+      else if (key == "culture") natsumi.culture = value.toInt();
+      else if (key == "charm") natsumi.charm = value.toInt();
+      else if (key == "money") natsumi.money = value.toInt();
+      else if (key == "flowers") natsumi.flowers = value.toInt();
+      else if (key == "competition") natsumi.competition = value.toInt();
+      else if (key == "last_hunger_update") natsumi.lastHungerUpdate = value.toInt();
+      else if (key == "last_hygiene_update") natsumi.lastHygieneUpdate = value.toInt();
+      else if (key == "last_energy_update") natsumi.lastEnergyUpdate = value.toInt();
+    } else if (section == "[fridge]") {
+      if (key == "red_apple") fridge.redApple = value.toInt();
+      else if (key == "green_apple") fridge.greenApple = value.toInt();
+      else if (key == "avocado") fridge.avocado = value.toInt();
+      else if (key == "bread") fridge.bread = value.toInt();
+      else if (key == "banana") fridge.banana = value.toInt();
+      else if (key == "broccoli") fridge.broccoli = value.toInt();
+      else if (key == "sweets") fridge.sweets = value.toInt();
+      else if (key == "carrot") fridge.carrot = value.toInt();
+      else if (key == "meat") fridge.meat = value.toInt();
+      else if (key == "coconut") fridge.coconut = value.toInt();
+      else if (key == "coconut_juice") fridge.coconutJuice = value.toInt();
+      else if (key == "coffee") fridge.coffee = value.toInt();
+      else if (key == "biscuits") fridge.biscuits = value.toInt();
+      else if (key == "corn") fridge.corn = value.toInt();
+      else if (key == "croissant") fridge.croissant = value.toInt();
+      else if (key == "fried_egg") fridge.friedEgg = value.toInt();
+      else if (key == "grapes") fridge.grapes = value.toInt();
+      else if (key == "kiwi") fridge.kiwi = value.toInt();
+      else if (key == "milk") fridge.milk = value.toInt();
+      else if (key == "orange") fridge.orange = value.toInt();
+      else if (key == "peach") fridge.peach = value.toInt();
+      else if (key == "pear") fridge.pear = value.toInt();
+      else if (key == "strawberries") fridge.strawberries = value.toInt();
+      else if (key == "maki") fridge.maki = value.toInt();
+      else if (key == "sushi") fridge.sushi = value.toInt();
+      else if (key == "watermelon") fridge.watermelon = value.toInt();
+    } else if (section == "[garden]") {
+      if (key == "garden_tiles") {
+        int tileCount = 0;
+        int startIndex = 0;
+        while (startIndex < value.length() && tileCount < gardenRows * gardenCols) {
+          int commaIndex = value.indexOf(',', startIndex);
+          String token = (commaIndex == -1) ? value.substring(startIndex) : value.substring(startIndex, commaIndex);
+          token.trim();
+          if (token.length() > 0) {
+            int row = tileCount / gardenCols;
+            int col = tileCount % gardenCols;
+            gardenTiles[row][col] = token.toInt();
+            tileCount++;
+          }
+          if (commaIndex == -1) {
+            break;
+          }
+          startIndex = commaIndex + 1;
+        }
+        if (tileCount == 1 && value.indexOf(',') == -1) {
+          int fillValue = value.toInt();
+          for (int row = 0; row < gardenRows; ++row) {
+            for (int col = 0; col < gardenCols; ++col) {
+              gardenTiles[row][col] = fillValue;
+            }
+          }
+        }
+      } else if (key == "garden_active") {
+        gardenActive = (value.toInt() != 0);
+      }
+    } else if (section == "[meta]") {
+      if (key == "current_state") loadedContinueState = gameStateFromString(value);
+      else if (key == "playtime_total_ms") playtimeTotalMs = value.toInt();
+      else if (key == "session_start_ms") sessionStart = value.toInt();
+      else if (key == "last_age_tick") lastAgeTick = value.toInt();
+    }
+  }
+
+  saveFile.close();
+  Serial.println(">> loadGameFromSd: Load complete");
   return true;
 }
 
@@ -1630,6 +1774,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         lastAgeTick = 0;
         break;
       case CONTINUE_GAME:
+        screenConfig = CARD;
         natsumi.age = 11;
         natsumi.ageMilliseconds = 0;
         natsumi.hunger = 4;
@@ -1676,6 +1821,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         playtimeTotalMs = 0;
         sessionStart = millis();
         lastAgeTick = 0;
+        continueStateLoaded = loadGameFromSd();
         break;
       case DEV_SCREEN:
         screenConfig = CARD;
@@ -2189,7 +2335,12 @@ void manageCard() {
       changeState(0, HOME_LOOP, 0);
       break;
     case CONTINUE_GAME:
-      changeState(0, HOME_LOOP, 0);
+      if (continueStateLoaded) {
+        continueStateLoaded = false;
+        changeState(0, loadedContinueState, 0);
+      } else {
+        changeState(0, HOME_LOOP, 0);
+      }
       break;
     case FLOWERS_MARKET2:
       changeState(0, FLOWERS_MARKET3, 10);
