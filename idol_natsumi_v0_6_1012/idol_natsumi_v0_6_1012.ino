@@ -4678,12 +4678,20 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         case 49:
           // 1: RESTAURANT
           menuOpened = false;
-          changeState(0, FOOD_REST, 0);
+          if (natsumi.age > 15) {
+            changeState(0, FOOD_REST, 0);
+          } else {
+            showToast("Too young to go there");
+          }
           break;
         case 50:
           // 2: ORDER
           menuOpened = false;
-          changeState(0, FOOD_ORDER, 0);
+          if (natsumi.age > 13) {
+            changeState(0, FOOD_ORDER, 0);
+          } else {
+            showToast("Too young to use this");
+          }
           break;
         case 51:
           // 3: CONBINI
@@ -4853,22 +4861,60 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         case 48:
           // 0: LOCAL
           menuOpened = false;
-          changeState(0, COMP_LOCAL, 0);
+          if (natsumi.age > 13) {
+            if (natsumi.competition == 0) {
+              changeState(0, COMP_LOCAL, 0);
+            } else {
+              showToast("Already completed");
+            }
+          } else {
+            showToast("Too young to compete");
+          }
           break;
         case 49:
           // 1: DEPARTMENTAL
           menuOpened = false;
-          changeState(0, COMP_DEPT5, 0);
+          if (natsumi.age > 15) {
+            if (natsumi.competition == 1) {
+              changeState(0, COMP_DEPT5, 0);
+            } else if (natsumi.competition < 1) {
+              showToast("Complete local comp. 1st");
+            } else {
+              showToast("Already completed");
+            }
+          } else {
+            showToast("Too young to compete");
+          }
           break;
         case 50:
           // 2: REGIONAL
           menuOpened = false;
-          changeState(0, COMP_REG5, 0);
+          if (natsumi.age > 15) {
+            if (natsumi.competition == 2) {
+              changeState(0, COMP_REG5, 0);
+            } else if (natsumi.competition < 2) {
+              showToast("Complete lower comp. 1st");
+            } else {
+              showToast("Already completed");
+            }
+          } else {
+            showToast("Too young to compete");
+          }
           break;
         case 51:
           // 3: NATIONAL
           menuOpened = false;
-          changeState(0, COMP_NAT5, 0);
+          if (natsumi.age > 15) {
+            if (natsumi.competition == 3) {
+              changeState(0, COMP_NAT5, 0);
+            } else if (natsumi.competition < 3) {
+              showToast("Complete lower comp. 1st");
+            } else {
+              showToast("Already completed");
+            }
+          } else {
+            showToast("Too young to compete");
+          }
           break;
         case 55:
           // 7: DEBUG
