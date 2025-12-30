@@ -2198,6 +2198,9 @@ void manageGame() {
     case FLOWERS_MARKET6:
       manageFlowersSale();
       break;
+    case COMP_LOCAL5:
+      manageCompetition();
+      break;
     default:
       playGame();
       break;
@@ -2262,6 +2265,14 @@ void manageIdle() {
       break;
     case REST_SLEEP:
       sleep();
+      break;
+    case COMP_LOCAL:
+      characterEnabled = false;
+      changeState(0, COMP_LOCAL2, microWait);
+      break;
+    case COMP_LOCAL2:
+      characterEnabled = false;
+      changeState(0, COMP_LOCAL3, microWait);
       break;
     default:
       break;
@@ -2359,6 +2370,10 @@ void manageRoom() {
       break;
     case COMP_MENU:
       menuOpened = true;
+      break;
+    case COMP_LOCAL4:
+      characterEnabled = false;
+      manageMiniGameCountdown();
       break;
     case HEALTH_MENU:
       menuOpened = true;
@@ -2733,6 +2748,9 @@ void manageMiniGameCountdown() {
         break;
       case TRAIN_RUN:
         changeState(0, TRAIN_RUN2, 0);
+        break;
+      case COMP_LOCAL4:
+        changeState(0, COMP_LOCAL5, 0);
         break;
       default:
         break;
@@ -4063,6 +4081,10 @@ void manageFlowersSale() {
     }
     flowerSaleNeedsRedraw = false;
   }
+}
+
+void manageCompetition() {
+  // Update this function
 }
 
 void wash() {
@@ -5651,6 +5673,12 @@ void drawOverlay() {
       case FLOWERS_MARKET7:
         drawDialogBubble("I sold all my flowers and made " + String(flowersRevenue) + "$");
         break;
+      case COMP_LOCAL3:
+        drawDialogBubble("Welcome to the Shiodome Ward Community Center! Get ready for a nice singing competition! Sore dewa, hajimemasho !");
+        break;
+      case COMP_LOCAL6:
+        drawDialogBubble("Thanks for joining us, come back again!!");
+        break;
       default:
         break;
     }
@@ -6096,6 +6124,9 @@ void miniGameDebrief() {
           changeState(0, HOME_LOOP, 0);
           break;
         case TRAIN_RUN3:
+          changeState(0, HOME_LOOP, 0);
+          break;
+        case COMP_LOCAL6:
           changeState(0, HOME_LOOP, 0);
           break;
       }
