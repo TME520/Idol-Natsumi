@@ -1717,6 +1717,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         screenConfig = DIALOG;
         overlayActive = true;
         l5NeedsRedraw = true;
+        characterEnabled = true;
         break;
       case COMP_LOCAL4:
         screenConfig = ROOM;
