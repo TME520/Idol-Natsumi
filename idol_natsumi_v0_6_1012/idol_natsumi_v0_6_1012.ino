@@ -231,6 +231,9 @@ const unsigned long microWait = 60;
 const unsigned long shortWait = 200;
 const unsigned long mediumWait = 3200;
 const unsigned long longWait = 6400;
+const char* saveGamePath = "/idolnat/savegame.dat";
+String saveStatusMsg = "";
+unsigned long saveStatusUntil = 0;
 
 // Onsen mini-game helpers
 void resetBathGame();
@@ -653,6 +656,76 @@ void showToast(const String& msg, unsigned long ms = longWait) {
   toastMsg = msg;
   toastUntil = millis() + ms;
   l3NeedsRedraw = true;
+}
+
+bool saveGameToSd() {
+  Serial.println(">> saveGameToSd: Writing save data");
+  if (SD.exists(saveGamePath)) {
+    SD.remove(saveGamePath);
+  }
+
+  File saveFile = SD.open(saveGamePath, FILE_WRITE);
+  if (!saveFile) {
+    Serial.println(">> saveGameToSd: Failed to open save file");
+    return false;
+  }
+
+  saveFile.println("[natsumi]");
+  saveFile.println("age=" + String(natsumi.age));
+  saveFile.println("age_ms=" + String(natsumi.ageMilliseconds));
+  saveFile.println("hunger=" + String(natsumi.hunger));
+  saveFile.println("hygiene=" + String(natsumi.hygiene));
+  saveFile.println("energy=" + String(natsumi.energy));
+  saveFile.println("spirit=" + String(natsumi.spirit));
+  saveFile.println("popularity=" + String(natsumi.popularity));
+  saveFile.println("performance=" + String(natsumi.performance));
+  saveFile.println("fitness=" + String(natsumi.fitness));
+  saveFile.println("culture=" + String(natsumi.culture));
+  saveFile.println("charm=" + String(natsumi.charm));
+  saveFile.println("money=" + String(natsumi.money));
+  saveFile.println("flowers=" + String(natsumi.flowers));
+  saveFile.println("competition=" + String(natsumi.competition));
+  saveFile.println("last_hunger_update=" + String(natsumi.lastHungerUpdate));
+  saveFile.println("last_hygiene_update=" + String(natsumi.lastHygieneUpdate));
+  saveFile.println("last_energy_update=" + String(natsumi.lastEnergyUpdate));
+
+  saveFile.println("[fridge]");
+  saveFile.println("red_apple=" + String(fridge.redApple));
+  saveFile.println("green_apple=" + String(fridge.greenApple));
+  saveFile.println("avocado=" + String(fridge.avocado));
+  saveFile.println("bread=" + String(fridge.bread));
+  saveFile.println("banana=" + String(fridge.banana));
+  saveFile.println("broccoli=" + String(fridge.broccoli));
+  saveFile.println("sweets=" + String(fridge.sweets));
+  saveFile.println("carrot=" + String(fridge.carrot));
+  saveFile.println("meat=" + String(fridge.meat));
+  saveFile.println("coconut=" + String(fridge.coconut));
+  saveFile.println("coconut_juice=" + String(fridge.coconutJuice));
+  saveFile.println("coffee=" + String(fridge.coffee));
+  saveFile.println("biscuits=" + String(fridge.biscuits));
+  saveFile.println("corn=" + String(fridge.corn));
+  saveFile.println("croissant=" + String(fridge.croissant));
+  saveFile.println("fried_egg=" + String(fridge.friedEgg));
+  saveFile.println("grapes=" + String(fridge.grapes));
+  saveFile.println("kiwi=" + String(fridge.kiwi));
+  saveFile.println("milk=" + String(fridge.milk));
+  saveFile.println("orange=" + String(fridge.orange));
+  saveFile.println("peach=" + String(fridge.peach));
+  saveFile.println("pear=" + String(fridge.pear));
+  saveFile.println("strawberries=" + String(fridge.strawberries));
+  saveFile.println("maki=" + String(fridge.maki));
+  saveFile.println("sushi=" + String(fridge.sushi));
+  saveFile.println("watermelon=" + String(fridge.watermelon));
+
+  saveFile.println("[meta]");
+  saveFile.println("current_state=" + String(gameStateToString(currentState)));
+  saveFile.println("playtime_total_ms=" + String(playtimeTotalMs));
+  saveFile.println("session_start_ms=" + String(sessionStart));
+  saveFile.println("last_age_tick=" + String(lastAgeTick));
+
+  saveFile.close();
+  Serial.println(">> saveGameToSd: Save complete");
+  return true;
 }
 
 // === UI Helper Functions ===
@@ -1615,6 +1688,8 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         overlayActive = true;
         l5NeedsRedraw = true;
         toastEnabled = false;
+        saveStatusMsg = "";
+        saveStatusUntil = 0;
         break;
       case FLOWERS_MARKET:
         screenConfig = IDLE;
@@ -6196,6 +6271,8 @@ void drawStats() {
 
   M5Cardputer.Display.setTextDatum(top_left);
   M5Cardputer.Display.setTextSize(1);
+  String footerText = saveStatusMsg.length() > 0 ? saveStatusMsg : "S: Save  Any key: Back";
+  drawText(footerText, cardX + cardW / 2, cardY + cardH - 7, true, accentColor, 1, panelColor);
   // Serial.println("> Exiting drawStats()");
 }
 
@@ -6328,14 +6405,29 @@ void drawOnsenOverlay() {
 
 void manageStats() {
   // Serial.println("> Entering manageStats()");
+  if (saveStatusUntil > 0 && millis() > saveStatusUntil) {
+    saveStatusUntil = 0;
+    if (saveStatusMsg.length() > 0) {
+      saveStatusMsg = "";
+      l5NeedsRedraw = true;
+    }
+  }
+
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      overlayActive = false;
-      changeState(0, HOME_LOOP, 0);
-      return;
+      if (key == 's' || key == 'S') {
+        bool saved = saveGameToSd();
+        saveStatusMsg = saved ? "Saved to savegame.dat" : "Save failed";
+        saveStatusUntil = millis() + 2000;
+        l5NeedsRedraw = true;
+      } else {
+        overlayActive = false;
+        changeState(0, HOME_LOOP, 0);
+        return;
+      }
     }
   }
 }
