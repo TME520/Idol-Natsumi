@@ -137,6 +137,7 @@ struct NatsumiStats {
   int charm;
   int money;
   int flowers;
+  int competition;
   unsigned long lastHungerUpdate = 0;
   unsigned long lastHygieneUpdate = 0;
   unsigned long lastEnergyUpdate = 0;
@@ -1456,6 +1457,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         natsumi.charm = 0;
         natsumi.money = 1800;
         natsumi.flowers = 0;
+        natsumi.competition = 0;
         natsumi.lastHungerUpdate = 0;
         natsumi.lastHygieneUpdate = 0;
         natsumi.lastEnergyUpdate = 0;
@@ -1503,6 +1505,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         natsumi.charm = 0;
         natsumi.money = 1800;
         natsumi.flowers = 0;
+        natsumi.competition = 0;
         natsumi.lastHungerUpdate = 0;
         natsumi.lastHygieneUpdate = 0;
         natsumi.lastEnergyUpdate = 0;
@@ -4167,6 +4170,7 @@ void manageCompetition() {
   unsigned long now = millis();
 
   if (competitionCompleted) {
+    /*
     if (competitionCompletionTime == 0) {
       competitionCompletionTime = now;
     }
@@ -4174,7 +4178,39 @@ void manageCompetition() {
       competitionInitialized = false;
       changeState(0, COMP_LOCAL6, microWait);
     }
-    return;
+    */
+    if (competitionNotesCollected == targetNotes) {
+      switch (currentState) {
+        case COMP_LOCAL5:
+          if (natsumi.competition == 0) {
+            natsumi.competition = 1;
+            showToast("Departmental competition unlocked");
+          }
+          break;
+        case COMP_DEPT5:
+          if (natsumi.competition == 1) {
+            natsumi.competition = 2;
+            showToast("Regional competition unlocked");
+          }
+          break;
+        case COMP_REG5:
+          if (natsumi.competition == 2) {
+            natsumi.competition = 3;
+            showToast("National competition unlocked");
+          }
+          break;
+        case COMP_NAT5:
+          if (natsumi.competition == 3) {
+            natsumi.competition = 4;
+          }
+          break;
+      }
+      competitionInitialized = false;
+      changeState(0, COMP_LOCAL6, 0);
+      return;
+    }
+  } else {
+    showToast("Train more to unlock next level");
   }
 
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -4185,11 +4221,15 @@ void manageCompetition() {
         case 180: case 44: case 'a': case 'A':  // LEFT
           if (competitionPlayerColumn > 0) {
             competitionPlayerColumn--;
+          } else if (competitionPlayerColumn == 0) {
+            competitionPlayerColumn = competitionColumns - 1;
           }
           break;
         case 183: case 47: case 'd': case 'D':  // RIGHT
           if (competitionPlayerColumn < competitionColumns - 1) {
             competitionPlayerColumn++;
+          } else if (competitionPlayerColumn == competitionColumns - 1) {
+            competitionPlayerColumn = 0;
           }
           break;
         default:
@@ -4227,7 +4267,8 @@ void manageCompetition() {
     competitionCompleted = true;
   }
 
-  drawImage(currentBackground);
+  // drawImage(currentBackground);
+  M5Cardputer.Display.fillRect(0, 0, 240, 135, BLACK);
 
   for (int i = 1; i < competitionColumns; i++) {
     int x = i * competitionColumnWidth;
