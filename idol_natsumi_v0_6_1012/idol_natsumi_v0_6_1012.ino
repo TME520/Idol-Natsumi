@@ -521,6 +521,7 @@ bool runGameRunning = false;
 bool runGameCompleted = false;
 bool runGameFailed = false;
 bool runNeedsRedraw = false;
+bool saveRequired = false;
 
 String copyright = "(c) 2025 - Pantzumatic";
 String versionNumber = "0.6.1012";
@@ -2129,6 +2130,9 @@ void updateFiveSecondPulse() {
           }
         }
       }
+    }
+    if (saveRequired) {
+      saveGameToSd();
     }
   } else {
     fiveSecondPulse = false;
