@@ -1359,7 +1359,7 @@ void loop() {
   Serial.println("debugEnabled: " + String(debugEnabled) + " - menuOpened: " + String(menuOpened) + " - toastActive: " + String(toastActive));
   Serial.println("changeStateCounter: " + String(changeStateCounter) + " - l5NeedsRedraw: " + String(l5NeedsRedraw));
 */
-  // Serial.println("> currentState = " + String(gameStateToString(currentState)));
+  Serial.println("> currentState = " + String(gameStateToString(currentState)));
   switch (screenConfig) {
     case CARD:
       manageCard();
@@ -1720,6 +1720,9 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case COMP_LOCAL4:
         screenConfig = ROOM;
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        characterEnabled = false;
         break;
       case COMP_LOCAL5:
         screenConfig = GAME;
@@ -5430,7 +5433,7 @@ void drawOverlay() {
         Serial.println(">>> drawOverlay: STATS_SCREEN");
         drawStats();
         break;
-      case TRAIN_DANCE: case TRAIN_SING: case TRAIN_SWIM: case TRAIN_GYM: case TRAIN_RUN:
+      case TRAIN_DANCE: case TRAIN_SING: case TRAIN_SWIM: case TRAIN_GYM: case TRAIN_RUN: case COMP_LOCAL4:
         drawMiniGameCountdown();
         break;
       case TRAIN_LIBRARY:
@@ -6065,9 +6068,9 @@ void cashier() {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       overlayActive = false;
       changeState(0, HOME_LOOP, 0);
-      return;
     }
   }
+  return;
 }
 
 void competitionHost() {
@@ -6079,9 +6082,9 @@ void competitionHost() {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       overlayActive = false;
       changeState(0, COMP_LOCAL4, 0);
-      return;
     }
   }
+  return;
 }
 
 void foodDelivery() {
