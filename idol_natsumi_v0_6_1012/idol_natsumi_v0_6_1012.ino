@@ -99,11 +99,23 @@ enum GameState {
   COMP_LOCAL5,
   COMP_LOCAL6,
   COMP_DEPT,
+  COMP_DEPT2,
+  COMP_DEPT3,
+  COMP_DEPT4,
   COMP_DEPT5,
+  COMP_DEPT6,
   COMP_REG,
+  COMP_REG2,
+  COMP_REG3,
+  COMP_REG4,
   COMP_REG5,
+  COMP_REG6,
   COMP_NAT,
-  COMP_NAT5
+  COMP_NAT2,
+  COMP_NAT3,
+  COMP_NAT4,
+  COMP_NAT5,
+  COMP_NAT6
 };
 
 GameState currentState = VERSION_SCREEN;
@@ -612,11 +624,23 @@ const char* gameStateToString(GameState state) {
     case COMP_LOCAL5:      return "COMP_LOCAL5";
     case COMP_LOCAL6:      return "COMP_LOCAL6";
     case COMP_DEPT:        return "COMP_DEPT";
+    case COMP_DEPT2:       return "COMP_DEPT2";
+    case COMP_DEPT3:       return "COMP_DEPT3";
+    case COMP_DEPT4:       return "COMP_DEPT4";
     case COMP_DEPT5:       return "COMP_DEPT5";
+    case COMP_DEPT6:       return "COMP_DEPT6";
     case COMP_REG:         return "COMP_REG";
+    case COMP_REG2:        return "COMP_REG2";
+    case COMP_REG3:        return "COMP_REG3";
+    case COMP_REG4:        return "COMP_REG4";
     case COMP_REG5:        return "COMP_REG5";
+    case COMP_REG6:        return "COMP_REG6";
     case COMP_NAT:         return "COMP_NAT";
+    case COMP_NAT2:        return "COMP_NAT2";
+    case COMP_NAT3:        return "COMP_NAT3";
+    case COMP_NAT4:        return "COMP_NAT4";
     case COMP_NAT5:        return "COMP_NAT5";
+    case COMP_NAT6:        return "COMP_NAT6";
     default:               return "UNKNOWN";
   }
 }
@@ -1005,12 +1029,29 @@ void preloadImages() {
     case COMP_LOCAL: case COMP_LOCAL6:
       preloadImage("/idolnat/screens/competition_local.png", currentBackground);
       break;
-    case COMP_LOCAL2: case COMP_LOCAL3: case COMP_LOCAL4: case COMP_LOCAL5:
-    case COMP_DEPT5: case COMP_REG5: case COMP_NAT5:
+    case COMP_DEPT: case COMP_DEPT6:
+      preloadImage("/idolnat/screens/competition_departmental.png", currentBackground);
+      break;
+    case COMP_REG: case COMP_REG6:
+      preloadImage("/idolnat/screens/competition_regional.png", currentBackground);
+      break;
+    case COMP_NAT: case COMP_NAT6:
+      preloadImage("/idolnat/screens/competition_national.png", currentBackground);
+      break;
+    case COMP_LOCAL2: case COMP_LOCAL3: case COMP_LOCAL4:
       preloadImage("/idolnat/screens/local_singing_comp_bg.png", currentBackground);
-      if (currentState == COMP_LOCAL5 || currentState == COMP_DEPT5 || currentState == COMP_REG5 || currentState == COMP_NAT5) {
-        preloadImage("/idolnat/sprites/natsumi_head_sprite-22x20.png", natsumiSprite);
-      }
+      break;
+    case COMP_DEPT2: case COMP_DEPT3: case COMP_DEPT4:
+      preloadImage("/idolnat/screens/departmental_singing_comp_bg.png", currentBackground);
+      break;
+    case COMP_REG2: case COMP_REG3: case COMP_REG4:
+      preloadImage("/idolnat/screens/regional_singing_comp_bg.png", currentBackground);
+      break;
+    case COMP_NAT2: case COMP_NAT3: case COMP_NAT4:
+      preloadImage("/idolnat/screens/national_singing_comp_bg.png", currentBackground);
+      break;
+    case COMP_LOCAL5: case COMP_DEPT5: case COMP_REG5: case COMP_NAT5:
+      preloadImage("/idolnat/sprites/natsumi_head_sprite-22x20.png", natsumiSprite);
       break;
     case HEALTH_MENU:
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
@@ -1066,6 +1107,9 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         case COMP_LOCAL3: case COMP_LOCAL6:
+        case COMP_DEPT: case COMP_DEPT6:
+        case COMP_REG: case COMP_REG6:
+        case COMP_NAT: case COMP_NAT6:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
         default:
@@ -1127,6 +1171,9 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         case COMP_LOCAL3: case COMP_LOCAL6:
+        case COMP_DEPT: case COMP_DEPT6:
+        case COMP_REG: case COMP_REG6:
+        case COMP_NAT: case COMP_NAT6:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
         default:
@@ -1188,6 +1235,9 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         case COMP_LOCAL3: case COMP_LOCAL6:
+        case COMP_DEPT: case COMP_DEPT6:
+        case COMP_REG: case COMP_REG6:
+        case COMP_NAT: case COMP_NAT6:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
         default:
@@ -1249,6 +1299,9 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         case COMP_LOCAL3: case COMP_LOCAL6:
+        case COMP_DEPT: case COMP_DEPT6:
+        case COMP_REG: case COMP_REG6:
+        case COMP_NAT: case COMP_NAT6:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
         default:
@@ -1310,6 +1363,9 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         case COMP_LOCAL3: case COMP_LOCAL6:
+        case COMP_DEPT: case COMP_DEPT6:
+        case COMP_REG: case COMP_REG6:
+        case COMP_NAT: case COMP_NAT6:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
         default:
@@ -1723,16 +1779,25 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItemsCount = competitionMenuItemCount;
         break;
       case COMP_LOCAL: case COMP_LOCAL2:
+      case COMP_DEPT: case COMP_DEPT2:
+      case COMP_REG: case COMP_REG2:
+      case COMP_NAT: case COMP_NAT2:
         screenConfig = IDLE;
         characterEnabled = false;
         break;
       case COMP_LOCAL3: case COMP_LOCAL6:
+      case COMP_DEPT3: case COMP_DEPT6:
+      case COMP_REG3: case COMP_REG6:
+      case COMP_NAT3: case COMP_NAT6:
         screenConfig = DIALOG;
         overlayActive = true;
         l5NeedsRedraw = true;
         characterEnabled = true;
         break;
       case COMP_LOCAL4:
+      case COMP_DEPT4:
+      case COMP_REG4:
+      case COMP_NAT4:
         screenConfig = ROOM;
         overlayActive = true;
         l5NeedsRedraw = true;
@@ -2136,6 +2201,9 @@ void manageDialog() {
       priest();
       break;
     case COMP_LOCAL3:
+    case COMP_DEPT3:
+    case COMP_REG3:
+    case COMP_NAT3:
       competitionHost();
       break;
     case TRAIN_DANCE3:
@@ -2154,6 +2222,9 @@ void manageDialog() {
       miniGameDebrief();
       break;
     case COMP_LOCAL6:
+    case COMP_DEPT6:
+    case COMP_REG6:
+    case COMP_NAT6:
       miniGameDebrief();
       break;
     default:
@@ -2297,6 +2368,30 @@ void manageIdle() {
       characterEnabled = false;
       changeState(0, COMP_LOCAL3, microWait);
       break;
+    case COMP_DEPT:
+      characterEnabled = false;
+      changeState(0, COMP_DEPT2, microWait);
+      break;
+    case COMP_DEPT2:
+      characterEnabled = false;
+      changeState(0, COMP_DEPT3, microWait);
+      break;
+    case COMP_REG:
+      characterEnabled = false;
+      changeState(0, COMP_REG2, microWait);
+      break;
+    case COMP_REG2:
+      characterEnabled = false;
+      changeState(0, COMP_REG3, microWait);
+      break;
+    case COMP_NAT:
+      characterEnabled = false;
+      changeState(0, COMP_NAT2, microWait);
+      break;
+    case COMP_NAT2:
+      characterEnabled = false;
+      changeState(0, COMP_NAT3, microWait);
+      break;
     default:
       break;
   }
@@ -2395,6 +2490,18 @@ void manageRoom() {
       menuOpened = true;
       break;
     case COMP_LOCAL4:
+      characterEnabled = false;
+      manageMiniGameCountdown();
+      break;
+    case COMP_DEPT4:
+      characterEnabled = false;
+      manageMiniGameCountdown();
+      break;
+    case COMP_REG4:
+      characterEnabled = false;
+      manageMiniGameCountdown();
+      break;
+    case COMP_NAT4:
       characterEnabled = false;
       manageMiniGameCountdown();
       break;
@@ -2774,6 +2881,15 @@ void manageMiniGameCountdown() {
         break;
       case COMP_LOCAL4:
         changeState(0, COMP_LOCAL5, 0);
+        break;
+      case COMP_DEPT4:
+        changeState(0, COMP_DEPT5, 0);
+        break;
+      case COMP_REG4:
+        changeState(0, COMP_REG5, 0);
+        break;
+      case COMP_NAT4:
+        changeState(0, COMP_NAT5, 0);
         break;
       default:
         break;
@@ -6447,7 +6563,7 @@ void miniGameDebrief() {
         case TRAIN_RUN3:
           changeState(0, HOME_LOOP, 0);
           break;
-        case COMP_LOCAL6:
+        case COMP_LOCAL6: case COMP_DEPT6: case COMP_REG6: case COMP_NAT6:
           changeState(0, HOME_LOOP, 0);
           break;
       }
