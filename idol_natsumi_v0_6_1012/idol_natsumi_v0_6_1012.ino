@@ -521,10 +521,11 @@ bool runGameRunning = false;
 bool runGameCompleted = false;
 bool runGameFailed = false;
 bool runNeedsRedraw = false;
+
 bool saveRequired = false;
 
-String copyright = "(c) 2025 - Pantzumatic";
-String versionNumber = "0.6.1012";
+String copyright = "(c) 2026 - Pantzumatic";
+String versionNumber = "0.6.1012 Pragma";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -671,6 +672,9 @@ bool saveGameToSd() {
     return false;
   }
 
+  saveFile.println("[version]");
+  saveFile.println(String(versionNumber));
+  
   saveFile.println("[natsumi]");
   saveFile.println("age=" + String(natsumi.age));
   saveFile.println("age_ms=" + String(natsumi.ageMilliseconds));
@@ -718,6 +722,10 @@ bool saveGameToSd() {
   saveFile.println("sushi=" + String(fridge.sushi));
   saveFile.println("watermelon=" + String(fridge.watermelon));
 
+  saveFile.println("[garden]");
+  saveFile.println("garden_tiles=" + String(gardenTiles[gardenRows][gardenCols]));
+  saveFile.println("garden_active=" + String(gardenActive));
+  
   saveFile.println("[meta]");
   saveFile.println("current_state=" + String(gameStateToString(currentState)));
   saveFile.println("playtime_total_ms=" + String(playtimeTotalMs));
