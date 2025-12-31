@@ -1648,7 +1648,7 @@ void updateTitleScreenMusic() {
   static bool titleMusicPlaying = false;
   if (currentState == TITLE_SCREEN2) {
     if (!titleMusicPlaying) {
-      M5Cardputer.Speaker.playWav(titleScreenMusicPath);
+      M5Cardputer.Speaker.playWav(SD, titleScreenMusicPath);
       titleMusicPlaying = true;
     }
     return;
