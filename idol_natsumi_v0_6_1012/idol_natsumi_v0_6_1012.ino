@@ -127,6 +127,8 @@ GameState priestState = HOME_LOOP;
 GameState loadedContinueState = HOME_LOOP;
 bool continueStateLoaded = false;
 
+const char* titleScreenMusicPath = "/idolnat/music/Minami Toshida - Night Train to Osaka (1988).wav";
+
 // === Screen configs definitions ===
 enum ScreenState {
   CARD,
@@ -1642,10 +1644,29 @@ void drawImage(const ImageBuffer& img) {
   }
 }
 
+void updateTitleScreenMusic() {
+  static bool titleMusicPlaying = false;
+  if (currentState == TITLE_SCREEN2) {
+    if (!titleMusicPlaying) {
+      M5Cardputer.Speaker.playWav(titleScreenMusicPath);
+      titleMusicPlaying = true;
+    }
+    return;
+  }
+
+  if (currentState == NEW_GAME || currentState == CONTINUE_GAME) {
+    if (titleMusicPlaying) {
+      M5Cardputer.Speaker.stop();
+      titleMusicPlaying = false;
+    }
+  }
+}
+
 // === Setup and loop ===
 void setup() {
   auto cfg = M5.config();
   M5Cardputer.begin(cfg);
+  M5Cardputer.Speaker.begin();
   delay(1000);
   Serial.begin(115200);
   delay(1000);
@@ -1665,6 +1686,7 @@ void loop() {
   if (millis() - lastUpdate < FRAME_DELAY) return;
   lastUpdate = millis();
   updateFiveSecondPulse();
+  updateTitleScreenMusic();
 /*
   Serial.println("l0NeedsRedraw: " + String(l0NeedsRedraw) + " - l1NeedsRedraw: " + String(l1NeedsRedraw) + " - l2NeedsRedraw: " + String(l2NeedsRedraw) + " - l3NeedsRedraw: " + String(l3NeedsRedraw));
   Serial.println("l4NeedsRedraw: " + String(l4NeedsRedraw) + " - l5NeedsRedraw: " + String(l5NeedsRedraw));
