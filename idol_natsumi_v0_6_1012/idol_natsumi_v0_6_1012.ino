@@ -4311,6 +4311,7 @@ void manageLibrary() {
       isNatsumiHappy = true;
       libraryRewardApplied = true;
       overlayActive = false;
+      characterEnabled = true;
       changeState(0, HOME_LOOP, 0);
     }
   }
