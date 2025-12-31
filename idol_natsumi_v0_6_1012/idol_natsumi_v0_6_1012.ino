@@ -2990,6 +2990,7 @@ void manageGarden() {
       Serial.println(">> GARDEN_PLANT");
       if (tile == 0) {
         tile = 1;
+        gardenMenuSelection = 1;
         showToast("Seed planted");
       } else {
         showToast("Tile already planted");
@@ -3002,6 +3003,7 @@ void manageGarden() {
         showToast("Nothing to water");
       } else if (tile == 1) {
         tile = 2;
+        gardenMenuSelection = 0;
         showToast("Watered");
       } else {
         showToast("No need to water");
@@ -3016,6 +3018,7 @@ void manageGarden() {
         if (natsumi.flowers < 24) {
           tile = 0;
           natsumi.flowers += 1;
+          gardenMenuSelection = 0;
           showToast("Natsumi now has " + String(natsumi.flowers) + " flowers");
         } else {
           showToast("Flowers storage full. Sell some");
@@ -6420,6 +6423,7 @@ void drawOverlay() {
         break;
       case FLOWERS_MARKET7:
         drawDialogBubble("I sold all my flowers and made " + String(flowersRevenue) + "$");
+        flowersRevenue = 0;
         break;
       case COMP_LOCAL3:
         drawDialogBubble("Welcome to the Shiodome Ward Community Center! Get ready for a nice singing competition! Sore dewa, hajimemasho !");
