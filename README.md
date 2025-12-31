@@ -1,11 +1,15 @@
 # Idol-Natsumi
 Manage the daily life and artistic career of Natsumi Hasegawa, an aspiring Japanese idol from a small town.
 
+![cover](./itch.io/cover.png "Cover")
+
 ## Presentation
 
 *Idol Natsumi* is a Tamagotchi like game, with a short game loop, simple mechanics, that can be played on-the-go. The player has to be able to progress in the game even by just playing it for 5 minutes.
 
 In *Idol Natsumi*, the player takes care of and raises a Japanese girl named Natsumi Hasegawa from age 11 to age 21. Her goal in life is to become a popular singer in Japan.
+
+![Natsumi](./itch.io/lounge.png "Natsumi")
 
 ## Core mechanics
 
@@ -88,6 +92,8 @@ Stat caps: 0 is the lowest while 4 is the highest.
 
 #### Go to the restaurant
 
+![restaurant](./itch.io/restaurant.png "Restaurant")
+
 | FOOD                    | PRICE |
 |-------------------------|-------|
 | Tofu vegetable Teishoku | $700  |
@@ -154,6 +160,10 @@ Hit the gym to increase your Fitness. This mini game will test your skills and r
 #### Run
 
 Go for a run in the forest and increase your Fitness.
+
+### Go to the temple
+
+![temple](./itch.io/temple.png "Temple")
 
 ### Do gardening
 
