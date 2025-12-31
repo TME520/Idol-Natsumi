@@ -1741,6 +1741,9 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case TITLE_SCREEN:
         screenConfig = CARD;
+        break;
+      case TITLE_SCREEN2:
+        screenConfig = CARD;
         currentMenuType = "main";
         currentMenuItems = mainMenuItems;
         currentMenuItemsCount = mainMenuItemCount;
@@ -2355,6 +2358,9 @@ void manageCard() {
       changeState(0, TITLE_SCREEN, microWait);
       break;
     case TITLE_SCREEN:
+      changeState(0, TITLE_SCREEN2, microWait);
+      break;
+    case TITLE_SCREEN2:
       break;
     case NEW_GAME:
       changeState(0, HOME_LOOP, 0);
