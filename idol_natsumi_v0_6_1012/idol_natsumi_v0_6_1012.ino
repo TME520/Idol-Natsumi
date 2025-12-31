@@ -8,6 +8,7 @@
 enum GameState {
   VERSION_SCREEN,
   M5_SCREEN,
+  MOTTO_SCREEN,
   TITLE_SCREEN,
   CALIBRATION_1,
   CALIBRATION_2,
@@ -115,7 +116,8 @@ enum GameState {
   COMP_NAT3,
   COMP_NAT4,
   COMP_NAT5,
-  COMP_NAT6
+  COMP_NAT6,
+  COMP_NAT7
 };
 
 GameState currentState = VERSION_SCREEN;
@@ -224,7 +226,8 @@ bool conbimartInitialized = false;
 // === Game Time Tracking ===
 // 60000 milliseconds in a minute
 // 86,400,000 milliseconds in a day
-unsigned long agingInterval = 60000;  // 1 minute for testing
+// unsigned long agingInterval = 60000;  // 1 minute for testing
+unsigned long agingInterval = 86400000;  // 1 day
 unsigned long sessionStart = 0;           // millis() when NEW_GAME starts
 unsigned long playtimeTotalMs = 0;        // total playtime in ms (could persist later)
 int lastAgeTick = 0;
@@ -272,10 +275,13 @@ void startTrainRunGame();
 
 unsigned long changeStateCounter = 0;
 
-const unsigned long hungerInterval = 120000;   // 2 minutes
-const unsigned long hygieneInterval = 240000;  // 4 minutes
+// const unsigned long hungerInterval = 120000;   // 2 minutes
+const unsigned long hungerInterval = 1200000;   // 20 minutes
+// const unsigned long hygieneInterval = 240000;  // 4 minutes
+const unsigned long hygieneInterval = 2400000;  // 40 minutes
 const unsigned long energyInterval = 240000;   // 4 minutes
-const unsigned long meditateInterval = 300000;   // 5 minutes
+// const unsigned long meditateInterval = 300000;   // 5 minutes
+const unsigned long meditateInterval = 3000000;   // 50 minutes
 const unsigned long librarySegmentInterval = 5000; // 5 seconds
 const unsigned long fiveSecondInterval = 5000;  // 5 seconds
 const int STAT_MAX = 4;
@@ -540,6 +546,7 @@ const char* gameStateToString(GameState state) {
   switch (state) {
     case VERSION_SCREEN:   return "VERSION_SCREEN";
     case M5_SCREEN:        return "M5_SCREEN";
+    case MOTTO_SCREEN:     return "MOTTO_SCREEN";
     case TITLE_SCREEN:     return "TITLE_SCREEN";
     case CALIBRATION_1:    return "CALIBRATION_1";
     case CALIBRATION_2:    return "CALIBRATION_2";
@@ -648,6 +655,7 @@ const char* gameStateToString(GameState state) {
     case COMP_NAT4:        return "COMP_NAT4";
     case COMP_NAT5:        return "COMP_NAT5";
     case COMP_NAT6:        return "COMP_NAT6";
+    case COMP_NAT7:        return "COMP_NAT7";
     default:               return "UNKNOWN";
   }
 }
@@ -992,6 +1000,9 @@ void preloadImages() {
     case M5_SCREEN:
       preloadImage("/idolnat/screens/m5_logo.png", currentBackground);
       break;
+    case MOTTO_SCREEN:
+      preloadImage("/idolnat/screens/motto.png", currentBackground);
+      break;
     case TITLE_SCREEN:
       preloadImage("/idolnat/screens/title02.png", currentBackground);
       break;
@@ -1261,8 +1272,14 @@ void preloadImages() {
     case COMP_REG: case COMP_REG6:
       preloadImage("/idolnat/screens/competition_regional.png", currentBackground);
       break;
-    case COMP_NAT: case COMP_NAT6:
+    case COMP_NAT:
       preloadImage("/idolnat/screens/competition_national.png", currentBackground);
+      break;
+    case COMP_NAT6:
+      preloadImage("/idolnat/screens/competition.png", currentBackground);
+      break;
+    case COMP_NAT7:
+      preloadImage("/idolnat/screens/national_champion.png", currentBackground);
       break;
     case COMP_LOCAL2: case COMP_LOCAL3: case COMP_LOCAL4:
       preloadImage("/idolnat/screens/local_singing_comp_bg.png", currentBackground);
@@ -1714,6 +1731,9 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case M5_SCREEN:
         screenConfig = CARD;
         break;
+      case MOTTO_SCREEN:
+        screenConfig = CARD;
+        break;
       case VERSION_SCREEN:
         screenConfig = TEXT;
         break;
@@ -2012,7 +2032,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case COMP_LOCAL: case COMP_LOCAL2:
       case COMP_DEPT: case COMP_DEPT2:
       case COMP_REG: case COMP_REG2:
-      case COMP_NAT: case COMP_NAT2:
+      case COMP_NAT: case COMP_NAT2: case COMP_NAT7:
         screenConfig = IDLE;
         characterEnabled = false;
         break;
@@ -2327,6 +2347,9 @@ void manageCard() {
   helperEnabled = false;
   switch (currentState) {
     case M5_SCREEN:
+      changeState(0, MOTTO_SCREEN, microWait);
+      break;
+    case MOTTO_SCREEN:
       changeState(0, TITLE_SCREEN, microWait);
       break;
     case TITLE_SCREEN:
@@ -2643,6 +2666,10 @@ void manageIdle() {
     case COMP_NAT2:
       characterEnabled = false;
       changeState(0, COMP_NAT3, microWait);
+      break;
+    case COMP_NAT7:
+      characterEnabled = false;
+      changeState(0, HOME_LOOP, microWait);
       break;
     default:
       break;
@@ -6389,7 +6416,41 @@ void drawOverlay() {
         drawDialogBubble("Welcome to the Shiodome Ward Community Center! Get ready for a nice singing competition! Sore dewa, hajimemasho !");
         break;
       case COMP_LOCAL6:
-        drawDialogBubble("Thanks for joining us, come back again!!");
+        if (natsumi.competition == 1) {
+          drawDialogBubble("Congratulations!! You are now ready for Departmental Competitions!!");
+        } else {
+          drawDialogBubble("Thanks for participating! Train some more and come back again!!");
+        }
+        break;
+      case COMP_DEPT3:
+        drawDialogBubble("Welcome to the Hanamori City Hall Auditorium! Get ready for a nice singing competition! Sore dewa, hajimemasho !");
+        break;
+      case COMP_DEPT6:
+        if (natsumi.competition == 2) {
+          drawDialogBubble("Congratulations!! You are now ready for Regional Competitions!!");
+        } else {
+          drawDialogBubble("Thanks for participating! Train some more and come back again!!");
+        }
+        break;
+      case COMP_REG3:
+        drawDialogBubble("Welcome to the Osaka Minami Art Center - Stage B! Get ready for a nice singing competition! Sore dewa, hajimemasho !");
+        break;
+      case COMP_REG6:
+        if (natsumi.competition == 3) {
+          drawDialogBubble("Congratulations!! You are now ready for Departmental Competitions!!");
+        } else {
+          drawDialogBubble("Thanks for participating! Train some more and come back again!!");
+        }
+        break;
+      case COMP_NAT3:
+        drawDialogBubble("Welcome to the Tokyo Grand Dome Hall! Get ready for a nice singing competition! Sore dewa, hajimemasho !");
+        break;
+      case COMP_NAT6:
+        if (natsumi.competition == 4) {
+          drawDialogBubble("Congratulations!! You made it to the top!!");
+        } else {
+          drawDialogBubble("Thanks for participating! Train some more and come back again!!");
+        }
         break;
       default:
         break;
@@ -6864,10 +6925,15 @@ void miniGameDebrief() {
           isNatsumiHappy = true;
           changeState(0, HOME_LOOP, 0);
           break;
-        case COMP_LOCAL6: case COMP_DEPT6: case COMP_REG6: case COMP_NAT6:
+        case COMP_LOCAL6: case COMP_DEPT6: case COMP_REG6:
           saveRequired = true;
           isNatsumiHappy = true;
           changeState(0, HOME_LOOP, 0);
+          break;
+        case COMP_NAT6:
+          saveRequired = true;
+          isNatsumiHappy = true;
+          changeState(0, COMP_NAT7, 0);
           break;
       }
       return;
