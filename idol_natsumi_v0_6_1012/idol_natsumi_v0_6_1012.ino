@@ -3018,7 +3018,7 @@ void manageGarden() {
           natsumi.flowers += 1;
           showToast("Natsumi now has " + String(natsumi.flowers) + " flowers");
         } else {
-          showToast("FLowers storage full. Sell some");
+          showToast("Flowers storage full. Sell some");
         }
       } else {
         showToast("Not ready yet");
