@@ -10,6 +10,7 @@ enum GameState {
   M5_SCREEN,
   MOTTO_SCREEN,
   TITLE_SCREEN,
+  TITLE_SCREEN2,
   CALIBRATION_1,
   CALIBRATION_2,
   CALIBRATION_3,
@@ -548,6 +549,7 @@ const char* gameStateToString(GameState state) {
     case M5_SCREEN:        return "M5_SCREEN";
     case MOTTO_SCREEN:     return "MOTTO_SCREEN";
     case TITLE_SCREEN:     return "TITLE_SCREEN";
+    case TITLE_SCREEN2:    return "TITLE_SCREEN2";
     case CALIBRATION_1:    return "CALIBRATION_1";
     case CALIBRATION_2:    return "CALIBRATION_2";
     case CALIBRATION_3:    return "CALIBRATION_3";
@@ -556,10 +558,10 @@ const char* gameStateToString(GameState state) {
     case DEV_SCREEN:       return "DEV_SCREEN";
     case HOME_LOOP:        return "HOME_LOOP";
     case FLOWERS_MARKET:   return "FLOWERS_MARKET";
-    case FLOWERS_MARKET2:   return "FLOWERS_MARKET2";
-    case FLOWERS_MARKET3:   return "FLOWERS_MARKET3";
-    case FLOWERS_MARKET4:   return "FLOWERS_MARKET4";
-    case FLOWERS_MARKET5:   return "FLOWERS_MARKET5";
+    case FLOWERS_MARKET2:  return "FLOWERS_MARKET2";
+    case FLOWERS_MARKET3:  return "FLOWERS_MARKET3";
+    case FLOWERS_MARKET4:  return "FLOWERS_MARKET4";
+    case FLOWERS_MARKET5:  return "FLOWERS_MARKET5";
     case FLOWERS_MARKET6:  return "FLOWERS_MARKET6";
     case FLOWERS_MARKET7:  return "FLOWERS_MARKET7";
     case FOOD_MENU:        return "FOOD_MENU";
