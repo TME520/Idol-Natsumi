@@ -534,7 +534,7 @@ bool runNeedsRedraw = false;
 bool saveRequired = false;
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "0.6.1012 Pragma";
+String versionNumber = "0.6.1012 Pharma-1";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -791,6 +791,7 @@ bool loadGameFromSd() {
     }
     if (line.startsWith("[")) {
       section = line;
+      Serial.println(">>>  loadGameFromSd: section=" + section);
       continue;
     }
 
@@ -804,8 +805,9 @@ bool loadGameFromSd() {
     value.trim();
 
     if (section == "[natsumi]") {
+      Serial.println(">>>  loadGameFromSd - natsumi: key=" + key);
       if (key == "age") natsumi.age = value.toInt();
-      else if (key == "age_ms") natsumi.ageMilliseconds = value.toInt();
+      else if (key == "age_ms") natsumi.ageMilliseconds = strtoul(value.c_str(), nullptr, 10);
       else if (key == "hunger") natsumi.hunger = value.toInt();
       else if (key == "hygiene") natsumi.hygiene = value.toInt();
       else if (key == "energy") natsumi.energy = value.toInt();
@@ -818,10 +820,11 @@ bool loadGameFromSd() {
       else if (key == "money") natsumi.money = value.toInt();
       else if (key == "flowers") natsumi.flowers = value.toInt();
       else if (key == "competition") natsumi.competition = value.toInt();
-      else if (key == "last_hunger_update") natsumi.lastHungerUpdate = value.toInt();
-      else if (key == "last_hygiene_update") natsumi.lastHygieneUpdate = value.toInt();
-      else if (key == "last_energy_update") natsumi.lastEnergyUpdate = value.toInt();
+      else if (key == "last_hunger_update") natsumi.lastHungerUpdate = strtoul(value.c_str(), nullptr, 10);
+      else if (key == "last_hygiene_update") natsumi.lastHygieneUpdate = strtoul(value.c_str(), nullptr, 10);
+      else if (key == "last_energy_update") natsumi.lastEnergyUpdate = strtoul(value.c_str(), nullptr, 10);
     } else if (section == "[fridge]") {
+      Serial.println(">>>  loadGameFromSd - fridge: key=" + key);
       if (key == "red_apple") fridge.redApple = value.toInt();
       else if (key == "green_apple") fridge.greenApple = value.toInt();
       else if (key == "avocado") fridge.avocado = value.toInt();
@@ -849,6 +852,7 @@ bool loadGameFromSd() {
       else if (key == "sushi") fridge.sushi = value.toInt();
       else if (key == "watermelon") fridge.watermelon = value.toInt();
     } else if (section == "[garden]") {
+      Serial.println(">>>  loadGameFromSd - garden: key=" + key);
       if (key == "garden_tiles") {
         int tileCount = 0;
         int startIndex = 0;
@@ -880,9 +884,9 @@ bool loadGameFromSd() {
       }
     } else if (section == "[meta]") {
       if (key == "current_state") loadedContinueState = gameStateFromString(value);
-      else if (key == "playtime_total_ms") playtimeTotalMs = value.toInt();
-      else if (key == "session_start_ms") sessionStart = value.toInt();
-      else if (key == "last_age_tick") lastAgeTick = value.toInt();
+      else if (key == "playtime_total_ms") playtimeTotalMs = strtoul(value.c_str(), nullptr, 10);
+      else if (key == "session_start_ms") sessionStart = strtoul(value.c_str(), nullptr, 10);
+      else if (key == "last_age_tick") lastAgeTick = strtoul(value.c_str(), nullptr, 10);
     }
   }
 
@@ -1800,6 +1804,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case CONTINUE_GAME:
         screenConfig = CARD;
+        /*
         natsumi.age = 11;
         natsumi.ageMilliseconds = 0;
         natsumi.hunger = 4;
@@ -1846,6 +1851,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         playtimeTotalMs = 0;
         sessionStart = millis();
         lastAgeTick = 0;
+        */
         continueStateLoaded = loadGameFromSd();
         break;
       case DEV_SCREEN:
