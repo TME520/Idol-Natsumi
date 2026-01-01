@@ -2325,13 +2325,10 @@ void updateFiveSecondPulse() {
     }
     if (saveRequired) {
       saveGameToSd();
+      saveRequired = false;
     }
     if (isNatsumiHappy) {
-      happinessCounter += 1;
-      if (happinessCounter >= microWait) {
-        isNatsumiHappy = false;
-        happinessCounter = 0;
-      }
+      isNatsumiHappy = false;
     }
   } else {
     fiveSecondPulse = false;
@@ -2931,7 +2928,7 @@ void drawGardenPlanter() {
       int centerX = topX;
       int centerY = topY + (tileH / 2);
 
-      if (tileValue > 1) {
+      if (tileValue > 1 && !gardenActive) {
         gardenActive = true;
       }
 
@@ -2975,6 +2972,7 @@ void drawGardenPlanter() {
       }
     }
   }
+  unloadImage(natsumiSprite);
 
   if (!menuOpened) {
     M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
@@ -6227,7 +6225,7 @@ void drawOverlay() {
             musicTeacherFeedback = "good enough.";
             break;
           case 6: case 7: case 8:
-            musicTeacherFeedback = "quite poor...";
+            musicTeacherFeedback = "not good...";
             break;
           default:
             musicTeacherFeedback = "very bad...";
@@ -6354,15 +6352,19 @@ void drawOverlay() {
         if (natsumi.hunger < 2) {
           drawDialogBubble("You need to eat more...");
           doctorState = FOOD_MENU;
+          foodMenuSelection = 0;
         } else if (natsumi.hygiene < 2) {
           drawDialogBubble("You need better hygiene...");
           doctorState = HEALTH_MENU;
+          healthMenuSelection = 0;
         } else if (natsumi.fitness < 2) {
           drawDialogBubble("You need to exercise more...");
           doctorState = TRAIN_MENU;
+          trainingMenuSelection = 2;
         } else if (natsumi.energy < 2) {
           drawDialogBubble("You need to sleep more...");
           doctorState = REST_MENU;
+          restMenuSelection = 1;
         } else {
           drawDialogBubble("Congratulations!! You are in shape!");
           doctorState = HOME_LOOP;
@@ -6376,22 +6378,28 @@ void drawOverlay() {
           if (natsumi.hunger < 2) {
             drawDialogBubble("You need to eat more...");
             priestState = FOOD_MENU;
+            foodMenuSelection = 0;
           } else if (natsumi.hygiene < 2) {
             drawDialogBubble("You need better hygiene...");
             priestState = HEALTH_MENU;
+            healthMenuSelection = 0;
           } else if (natsumi.energy < 2) {
             drawDialogBubble("You need to exercise more...");
             priestState = HEALTH_MENU;
+            healthMenuSelection = 2;
           } else if (natsumi.performance < 2) {
             drawDialogBubble("You need to train more...");
             priestState = TRAIN_MENU;
+            trainingMenuSelection = 0;
           } else if (natsumi.popularity < 2) {
             drawDialogBubble("You need to compete more...");
             priestState = COMP_MENU;
+            competitionMenuSelection = natsumi.popularity;
           }
         } else if (natsumi.charm < 2) {
           drawDialogBubble("Treat yourself to some nice food, it\'s good for the soul.");
           priestState = FOOD_MENU;
+          foodMenuSelection = 2;
         } else {
           drawDialogBubble("Congratulations!! You have a strong mind!");
           priestState = HOME_LOOP;
