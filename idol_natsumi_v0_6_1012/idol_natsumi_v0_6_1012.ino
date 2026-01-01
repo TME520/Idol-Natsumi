@@ -535,7 +535,7 @@ bool runNeedsRedraw = false;
 bool saveRequired = false;
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "0.6.1012 Pharma-1";
+String versionNumber = "0.6.1012 Update 2";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -2334,7 +2334,6 @@ void updateFiveSecondPulse() {
     }
     if (isNatsumiHappy) {
       isNatsumiHappy = false;
-      l0NeedsRedraw = true;
     }
   } else {
     fiveSecondPulse = false;
@@ -3001,7 +3000,7 @@ void manageGarden() {
         tile = 1;
         // showToast("Seed planted");
         saveRequired = true;
-        isNatsumiHappy = true;
+        // isNatsumiHappy = true;
       } else {
         showToast("Tile already planted");
       }
@@ -3015,7 +3014,7 @@ void manageGarden() {
         tile = 2;
         // showToast("Watered");
         saveRequired = true;
-        isNatsumiHappy = true;
+        // isNatsumiHappy = true;
       } else {
         showToast("No need to water");
       }
@@ -3029,7 +3028,7 @@ void manageGarden() {
           natsumi.flowers += 1;
           showToast("Natsumi now has " + String(natsumi.flowers) + " flowers");
           saveRequired = true;
-          isNatsumiHappy = true;
+          // isNatsumiHappy = true;
         } else {
           showToast("Flowers storage full. Sell some");
         }
@@ -4534,6 +4533,8 @@ void manageFlowersSale() {
         );
       }
     }
+    M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+    drawText("Selling flowers: " + String(natsumi.flowers) + " left (" + String(flowersRevenue) + "$ profit", 120, 131, true, WHITE, 1);
     flowerSaleNeedsRedraw = false;
   }
 }
