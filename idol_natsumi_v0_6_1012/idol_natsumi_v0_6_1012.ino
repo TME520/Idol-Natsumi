@@ -823,9 +823,11 @@ bool loadGameFromSd() {
       else if (key == "money") natsumi.money = value.toInt();
       else if (key == "flowers") natsumi.flowers = value.toInt();
       else if (key == "competition") natsumi.competition = value.toInt();
+      /*
       else if (key == "last_hunger_update") natsumi.lastHungerUpdate = strtoul(value.c_str(), nullptr, 10);
       else if (key == "last_hygiene_update") natsumi.lastHygieneUpdate = strtoul(value.c_str(), nullptr, 10);
       else if (key == "last_energy_update") natsumi.lastEnergyUpdate = strtoul(value.c_str(), nullptr, 10);
+      */
     } else if (section == "[fridge]") {
       Serial.println(">>>  loadGameFromSd - fridge: key=" + key);
       if (key == "red_apple") fridge.redApple = value.toInt();
@@ -1810,7 +1812,9 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case CONTINUE_GAME:
         screenConfig = CARD;
         if (loadGameFromSd()) {
-          //
+          natsumi.lastHungerUpdate = 0;
+          natsumi.lastHygieneUpdate = 0;
+          natsumi.lastEnergyUpdate = 0;
         } else {
           natsumi.age = 11;
           natsumi.ageMilliseconds = 0;
