@@ -534,7 +534,7 @@ bool runNeedsRedraw = false;
 bool saveRequired = false;
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "0.6.1012 Pragma";
+String versionNumber = "0.6.1012 Pharma-1";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -773,12 +773,14 @@ bool loadGameFromSd() {
   loadedContinueState = HOME_LOOP;
   if (!SD.exists(saveGamePath)) {
     Serial.println(">> loadGameFromSd: Save file not found");
+    showToast("Save file not found");
     return false;
   }
 
   File saveFile = SD.open(saveGamePath, FILE_READ);
   if (!saveFile) {
     Serial.println(">> loadGameFromSd: Failed to open save file");
+    showToast("Corrupted save file");
     return false;
   }
 
@@ -791,6 +793,7 @@ bool loadGameFromSd() {
     }
     if (line.startsWith("[")) {
       section = line;
+      Serial.println(">>>  loadGameFromSd: section=" + section);
       continue;
     }
 
@@ -804,8 +807,9 @@ bool loadGameFromSd() {
     value.trim();
 
     if (section == "[natsumi]") {
+      Serial.println(">>>  loadGameFromSd - natsumi: key=" + key);
       if (key == "age") natsumi.age = value.toInt();
-      else if (key == "age_ms") natsumi.ageMilliseconds = value.toInt();
+      else if (key == "age_ms") natsumi.ageMilliseconds = strtoul(value.c_str(), nullptr, 10);
       else if (key == "hunger") natsumi.hunger = value.toInt();
       else if (key == "hygiene") natsumi.hygiene = value.toInt();
       else if (key == "energy") natsumi.energy = value.toInt();
@@ -818,10 +822,11 @@ bool loadGameFromSd() {
       else if (key == "money") natsumi.money = value.toInt();
       else if (key == "flowers") natsumi.flowers = value.toInt();
       else if (key == "competition") natsumi.competition = value.toInt();
-      else if (key == "last_hunger_update") natsumi.lastHungerUpdate = value.toInt();
-      else if (key == "last_hygiene_update") natsumi.lastHygieneUpdate = value.toInt();
-      else if (key == "last_energy_update") natsumi.lastEnergyUpdate = value.toInt();
+      else if (key == "last_hunger_update") natsumi.lastHungerUpdate = strtoul(value.c_str(), nullptr, 10);
+      else if (key == "last_hygiene_update") natsumi.lastHygieneUpdate = strtoul(value.c_str(), nullptr, 10);
+      else if (key == "last_energy_update") natsumi.lastEnergyUpdate = strtoul(value.c_str(), nullptr, 10);
     } else if (section == "[fridge]") {
+      Serial.println(">>>  loadGameFromSd - fridge: key=" + key);
       if (key == "red_apple") fridge.redApple = value.toInt();
       else if (key == "green_apple") fridge.greenApple = value.toInt();
       else if (key == "avocado") fridge.avocado = value.toInt();
@@ -849,6 +854,7 @@ bool loadGameFromSd() {
       else if (key == "sushi") fridge.sushi = value.toInt();
       else if (key == "watermelon") fridge.watermelon = value.toInt();
     } else if (section == "[garden]") {
+      Serial.println(">>>  loadGameFromSd - garden: key=" + key);
       if (key == "garden_tiles") {
         int tileCount = 0;
         int startIndex = 0;
@@ -880,14 +886,15 @@ bool loadGameFromSd() {
       }
     } else if (section == "[meta]") {
       if (key == "current_state") loadedContinueState = gameStateFromString(value);
-      else if (key == "playtime_total_ms") playtimeTotalMs = value.toInt();
-      else if (key == "session_start_ms") sessionStart = value.toInt();
-      else if (key == "last_age_tick") lastAgeTick = value.toInt();
+      else if (key == "playtime_total_ms") playtimeTotalMs = strtoul(value.c_str(), nullptr, 10);
+      else if (key == "session_start_ms") sessionStart = strtoul(value.c_str(), nullptr, 10);
+      else if (key == "last_age_tick") lastAgeTick = strtoul(value.c_str(), nullptr, 10);
     }
   }
 
   saveFile.close();
   Serial.println(">> loadGameFromSd: Load complete");
+  showToast("Save file loaded");
   return true;
 }
 
@@ -1800,53 +1807,56 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case CONTINUE_GAME:
         screenConfig = CARD;
-        natsumi.age = 11;
-        natsumi.ageMilliseconds = 0;
-        natsumi.hunger = 4;
-        natsumi.hygiene = 4;
-        natsumi.energy = 4;
-        natsumi.spirit = 4;
-        natsumi.popularity = 0;
-        natsumi.performance = 0;
-        natsumi.fitness = 0;
-        natsumi.culture = 0;
-        natsumi.charm = 0;
-        natsumi.money = 1800;
-        natsumi.flowers = 0;
-        natsumi.competition = 0;
-        natsumi.lastHungerUpdate = 0;
-        natsumi.lastHygieneUpdate = 0;
-        natsumi.lastEnergyUpdate = 0;
-        fridge.redApple = 3;
-        fridge.greenApple = 0;
-        fridge.avocado = 0;
-        fridge.bread = 10;
-        fridge.banana = 6;
-        fridge.broccoli = 0;
-        fridge.sweets = 1;
-        fridge.carrot = 0;
-        fridge.meat = 1;
-        fridge.coconut = 1;
-        fridge.coconutJuice = 0;
-        fridge.coffee = 0;
-        fridge.biscuits = 0;
-        fridge.corn = 0;
-        fridge.croissant = 0;
-        fridge.friedEgg = 0;
-        fridge.grapes = 0;
-        fridge.kiwi = 0;
-        fridge.milk = 0;
-        fridge.orange = 2;
-        fridge.peach = 0;
-        fridge.pear = 0;
-        fridge.strawberries = 0;
-        fridge.maki = 0;
-        fridge.sushi = 0;
-        fridge.watermelon = 0;
-        playtimeTotalMs = 0;
-        sessionStart = millis();
-        lastAgeTick = 0;
-        continueStateLoaded = loadGameFromSd();
+        if (loadGameFromSd()) {
+          //
+        } else {
+          natsumi.age = 11;
+          natsumi.ageMilliseconds = 0;
+          natsumi.hunger = 4;
+          natsumi.hygiene = 4;
+          natsumi.energy = 4;
+          natsumi.spirit = 4;
+          natsumi.popularity = 0;
+          natsumi.performance = 0;
+          natsumi.fitness = 0;
+          natsumi.culture = 0;
+          natsumi.charm = 0;
+          natsumi.money = 1800;
+          natsumi.flowers = 0;
+          natsumi.competition = 0;
+          natsumi.lastHungerUpdate = 0;
+          natsumi.lastHygieneUpdate = 0;
+          natsumi.lastEnergyUpdate = 0;
+          fridge.redApple = 3;
+          fridge.greenApple = 0;
+          fridge.avocado = 0;
+          fridge.bread = 10;
+          fridge.banana = 6;
+          fridge.broccoli = 0;
+          fridge.sweets = 1;
+          fridge.carrot = 0;
+          fridge.meat = 1;
+          fridge.coconut = 1;
+          fridge.coconutJuice = 0;
+          fridge.coffee = 0;
+          fridge.biscuits = 0;
+          fridge.corn = 0;
+          fridge.croissant = 0;
+          fridge.friedEgg = 0;
+          fridge.grapes = 0;
+          fridge.kiwi = 0;
+          fridge.milk = 0;
+          fridge.orange = 2;
+          fridge.peach = 0;
+          fridge.pear = 0;
+          fridge.strawberries = 0;
+          fridge.maki = 0;
+          fridge.sushi = 0;
+          fridge.watermelon = 0;
+          playtimeTotalMs = 0;
+          sessionStart = millis();
+          lastAgeTick = 0;
+        }
         break;
       case DEV_SCREEN:
         screenConfig = CARD;
@@ -2319,13 +2329,11 @@ void updateFiveSecondPulse() {
     }
     if (saveRequired) {
       saveGameToSd();
+      saveRequired = false;
     }
     if (isNatsumiHappy) {
-      happinessCounter += 1;
-      if (happinessCounter >= microWait) {
-        isNatsumiHappy = false;
-        happinessCounter = 0;
-      }
+      isNatsumiHappy = false;
+      l1NeedsRedraw = true;
     }
   } else {
     fiveSecondPulse = false;
@@ -2925,7 +2933,7 @@ void drawGardenPlanter() {
       int centerX = topX;
       int centerY = topY + (tileH / 2);
 
-      if (tileValue > 1) {
+      if (tileValue > 1 && !gardenActive) {
         gardenActive = true;
       }
 
@@ -2990,7 +2998,9 @@ void manageGarden() {
       Serial.println(">> GARDEN_PLANT");
       if (tile == 0) {
         tile = 1;
-        showToast("Seed planted");
+        // showToast("Seed planted");
+        saveRequired = true;
+        isNatsumiHappy = true;
       } else {
         showToast("Tile already planted");
       }
@@ -2999,10 +3009,12 @@ void manageGarden() {
     case GARDEN_WATER:
       Serial.println(">> GARDEN_WATER");
       if (tile == 0) {
-        showToast("Nothing to water");
+        showToast("Plant seed 1st");
       } else if (tile == 1) {
         tile = 2;
-        showToast("Watered");
+        // showToast("Watered");
+        saveRequired = true;
+        isNatsumiHappy = true;
       } else {
         showToast("No need to water");
       }
@@ -3010,15 +3022,15 @@ void manageGarden() {
       break;
     case GARDEN_PICK:
       Serial.println(">> GARDEN_PICK");
-      if (tile == 0) {
-        showToast("Nothing to pick");
-      } else if (tile > 209) {
+      if (tile > 209) {
         if (natsumi.flowers < 24) {
           tile = 0;
           natsumi.flowers += 1;
           showToast("Natsumi now has " + String(natsumi.flowers) + " flowers");
+          saveRequired = true;
+          isNatsumiHappy = true;
         } else {
-          showToast("FLowers storage full. Sell some");
+          showToast("Flowers storage full. Sell some");
         }
       } else {
         showToast("Not ready yet");
@@ -3028,8 +3040,9 @@ void manageGarden() {
     case GARDEN_CLEANUP:
       Serial.println(">> GARDEN_CLEANUP");
       tile = 0;
-      showToast("Tile cleaned");
+      // showToast("Tile cleaned");
       changeState(0, GARDEN_LOOP, 0);
+      saveRequired = true;
       break;
     case GARDEN_LOOP: {
       Serial.println(">> GARDEN_LOOP");
@@ -3073,11 +3086,22 @@ void manageGarden() {
               }
               break;
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40: case ' ': {
               Serial.println(">>> ENTER");
               menuOpened = true;
+              int tileValue = gardenTiles[gardenCursorRow][gardenCursorCol];
+              if (tileValue == 0) {
+                gardenMenuSelection = 0;
+              } else if (tileValue == 1) {
+                gardenMenuSelection = 1;
+              } else if (tileValue < 210) {
+                gardenMenuSelection = 3;
+              } else {
+                gardenMenuSelection = 2;
+              }
               changeState(0, GARDEN_MENU, 0);
               break;
+            }
             // ESC
             case 96:
               Serial.println(">>> ESC");
@@ -4999,18 +5023,30 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           break;
         case 50:
           // 2: TRAINING
-          menuOpened = true;
-          changeState(0, TRAIN_MENU, 0);
+          if (!waitingForFoodDelivery) {
+            menuOpened = true;
+            changeState(0, TRAIN_MENU, 0);
+          } else {
+            showToast("Wait for food delivery");
+          }
           break;
         case 51:
           // 3: COMPETITION
-          menuOpened = true;
-          changeState(0, COMP_MENU, 0);
+          if (!waitingForFoodDelivery) {
+            menuOpened = true;
+            changeState(0, COMP_MENU, 0);
+          } else {
+            showToast("Wait for food delivery");
+          }
           break;
         case 52:
           // 4: HEALTH
-          menuOpened = true;
-          changeState(0, HEALTH_MENU, 0);
+          if (!waitingForFoodDelivery) {
+            menuOpened = true;
+            changeState(0, HEALTH_MENU, 0);
+          } else {
+            showToast("Wait for food delivery");
+          }
           break;
         case 53:
           // 5: REST
@@ -5070,11 +5106,23 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           } else if (selection == 1) {
             changeState(0, FOOD_MENU, 0);
           } else if (selection == 2) {
-            changeState(0, TRAIN_MENU, 0);
+            if (!waitingForFoodDelivery) {
+              changeState(0, TRAIN_MENU, 0);
+            } else {
+              showToast("Wait for food delivery");
+            }
           } else if (selection == 3) {
-            changeState(0, COMP_MENU, 0);
+            if (!waitingForFoodDelivery) {
+              changeState(0, COMP_MENU, 0);
+            } else {
+              showToast("Wait for food delivery");
+            }
           } else if (selection == 4) {
-            changeState(0, HEALTH_MENU, 0);
+            if (!waitingForFoodDelivery) {
+              changeState(0, HEALTH_MENU, 0);
+            } else {
+              showToast("Wait for food delivery");
+            }
           } else if (selection == 5) {
             changeState(0, REST_MENU, 0);
           } else if (selection == 6) {
@@ -5103,27 +5151,39 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         case 49:
           // 1: RESTAURANT
           menuOpened = false;
-          if (natsumi.age > 15) {
-            changeState(0, FOOD_REST, 0);
+          if (!waitingForFoodDelivery) {
+            if (natsumi.age > 15) {
+              changeState(0, FOOD_REST, 0);
+            } else {
+              changeState(0, HOME_LOOP, 0);
+              showToast("Too young to go there");
+            }
           } else {
-            changeState(0, HOME_LOOP, 0);
-            showToast("Too young to go there");
+            showToast("Wait for food delivery");
           }
           break;
         case 50:
           // 2: ORDER
           menuOpened = false;
-          if (natsumi.age > 13) {
-            changeState(0, FOOD_ORDER, 0);
+          if (!waitingForFoodDelivery) {
+            if (natsumi.age > 13) {
+              changeState(0, FOOD_ORDER, 0);
+            } else {
+              changeState(0, HOME_LOOP, 0);
+              showToast("Too young to use this");
+            }
           } else {
-            changeState(0, HOME_LOOP, 0);
-            showToast("Too young to use this");
+            showToast("Wait for food delivery");
           }
           break;
         case 51:
           // 3: CONBINI
-          menuOpened = false;
-          changeState(0, FOOD_CONBINI, 0);
+          if (!waitingForFoodDelivery) {
+            menuOpened = false;
+            changeState(0, FOOD_CONBINI, 0);
+          } else {
+            showToast("Wait for food delivery");
+          }
           break;
         case 43:
           // TAB
@@ -5159,21 +5219,33 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           if (selection == 0) {
             changeState(0, FOOD_COOK, 0);
           } else if (selection == 1) {
-            if (natsumi.age > 15) {
-              changeState(0, FOOD_REST, 0);
+            if (!waitingForFoodDelivery) {
+              if (natsumi.age > 15) {
+                changeState(0, FOOD_REST, 0);
+              } else {
+                changeState(0, HOME_LOOP, 0);
+                showToast("Too young to go there");
+              }
             } else {
-              changeState(0, HOME_LOOP, 0);
-              showToast("Too young to go there");
+              showToast("Wait for food delivery");
             }
           } else if (selection == 2) {
-            if (natsumi.age > 13) {
-              changeState(0, FOOD_ORDER, 0);
+            if (!waitingForFoodDelivery) {
+              if (natsumi.age > 13) {
+                changeState(0, FOOD_ORDER, 0);
+              } else {
+                changeState(0, HOME_LOOP, 0);
+                showToast("Too young to use this");
+              }
             } else {
-              changeState(0, HOME_LOOP, 0);
-              showToast("Too young to use this");
+              showToast("Wait for food delivery");
             }
           } else if (selection == 3) {
-            changeState(0, FOOD_CONBINI, 0);
+            if (!waitingForFoodDelivery) {
+              changeState(0, FOOD_CONBINI, 0);
+            } else {
+              showToast("Wait for food delivery");
+            }
           } else if (selection == 4) {
             if (debugActive) {
               debugActive = false;
@@ -6218,7 +6290,7 @@ void drawOverlay() {
             musicTeacherFeedback = "good enough.";
             break;
           case 6: case 7: case 8:
-            musicTeacherFeedback = "quite poor...";
+            musicTeacherFeedback = "not good...";
             break;
           default:
             musicTeacherFeedback = "very bad...";
@@ -6345,15 +6417,19 @@ void drawOverlay() {
         if (natsumi.hunger < 2) {
           drawDialogBubble("You need to eat more...");
           doctorState = FOOD_MENU;
+          foodMenuSelection = 0;
         } else if (natsumi.hygiene < 2) {
           drawDialogBubble("You need better hygiene...");
           doctorState = HEALTH_MENU;
+          healthMenuSelection = 0;
         } else if (natsumi.fitness < 2) {
           drawDialogBubble("You need to exercise more...");
           doctorState = TRAIN_MENU;
+          trainingMenuSelection = 2;
         } else if (natsumi.energy < 2) {
           drawDialogBubble("You need to sleep more...");
           doctorState = REST_MENU;
+          restMenuSelection = 1;
         } else {
           drawDialogBubble("Congratulations!! You are in shape!");
           doctorState = HOME_LOOP;
@@ -6367,22 +6443,28 @@ void drawOverlay() {
           if (natsumi.hunger < 2) {
             drawDialogBubble("You need to eat more...");
             priestState = FOOD_MENU;
+            foodMenuSelection = 0;
           } else if (natsumi.hygiene < 2) {
             drawDialogBubble("You need better hygiene...");
             priestState = HEALTH_MENU;
+            healthMenuSelection = 0;
           } else if (natsumi.energy < 2) {
             drawDialogBubble("You need to exercise more...");
             priestState = HEALTH_MENU;
+            healthMenuSelection = 2;
           } else if (natsumi.performance < 2) {
             drawDialogBubble("You need to train more...");
             priestState = TRAIN_MENU;
+            trainingMenuSelection = 0;
           } else if (natsumi.popularity < 2) {
             drawDialogBubble("You need to compete more...");
             priestState = COMP_MENU;
+            competitionMenuSelection = natsumi.popularity;
           }
         } else if (natsumi.charm < 2) {
           drawDialogBubble("Treat yourself to some nice food, it\'s good for the soul.");
           priestState = FOOD_MENU;
+          foodMenuSelection = 1;
         } else {
           drawDialogBubble("Congratulations!! You have a strong mind!");
           priestState = HOME_LOOP;
@@ -6420,6 +6502,7 @@ void drawOverlay() {
         break;
       case FLOWERS_MARKET7:
         drawDialogBubble("I sold all my flowers and made " + String(flowersRevenue) + "$");
+        flowersRevenue = 0;
         break;
       case COMP_LOCAL3:
         drawDialogBubble("Welcome to the Shiodome Ward Community Center! Get ready for a nice singing competition! Sore dewa, hajimemasho !");
