@@ -4535,7 +4535,7 @@ void manageFlowersSale() {
       }
     }
     M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-    drawText("Selling flowers: " + String(natsumi.flowers) + " left (" + String(flowersRevenue) + "$ profit", 120, 131, true, WHITE, 1);
+    drawText("Selling: " + String(natsumi.flowers) + " left, " + String(flowersRevenue) + "$ profit", 120, 131, true, WHITE, 1);
     flowerSaleNeedsRedraw = false;
   }
 }
