@@ -280,7 +280,8 @@ unsigned long changeStateCounter = 0;
 const unsigned long hungerInterval = 1200000;   // 20 minutes
 // const unsigned long hygieneInterval = 240000;  // 4 minutes
 const unsigned long hygieneInterval = 2400000;  // 40 minutes
-const unsigned long energyInterval = 240000;   // 4 minutes
+// const unsigned long energyInterval = 240000;   // 4 minutes
+const unsigned long energyInterval = 2400000;   // 40 minutes
 // const unsigned long meditateInterval = 300000;   // 5 minutes
 const unsigned long meditateInterval = 3000000;   // 50 minutes
 const unsigned long librarySegmentInterval = 5000; // 5 seconds
@@ -2333,7 +2334,7 @@ void updateFiveSecondPulse() {
     }
     if (isNatsumiHappy) {
       isNatsumiHappy = false;
-      l1NeedsRedraw = true;
+      l0NeedsRedraw = true;
     }
   } else {
     fiveSecondPulse = false;
@@ -4411,9 +4412,11 @@ void manageFlowersMarket() {
         // ENTER
         case 13: case 40: case ' ':
           flowersPrice = prices[flowerMarketSelection];
+          Serial.println("> manageFlowersMarket - flowersPrice=" + String(flowersPrice));
           flowerMarketInitialized = false;
           overlayActive = false;
           flowersSaleInProgress = true;
+          flowersRevenue = 0;
           changeState(0, FLOWERS_MARKET6, 0);
           return;
       }
@@ -4476,7 +4479,6 @@ void manageFlowersSale() {
     flowerSlots.clear();
     flowerPositions.clear();
 
-    // int columns = (screenWidth - padding) / (spriteW + padding);
     int columns = 8;
     if (columns < 1) {
       columns = 1;
@@ -4487,8 +4489,6 @@ void manageFlowersSale() {
       int row = i / columns;
       int x = initialX + padding + col * (spriteW + padding);
       int y = initialY + padding + row * (spriteH + padding);
-      // int x = padding + col * (spriteW + padding);
-      // int y = padding + row * (spriteH + padding);
       flowerPositions.push_back({x, y});
       flowerSlots.push_back(i);
     }
@@ -4501,8 +4501,10 @@ void manageFlowersSale() {
       flowerSlots.erase(flowerSlots.begin() + soldIndex);
       if (natsumi.flowers > 0) {
         natsumi.flowers -= 1;
+        natsumi.money += flowersPrice;
+        flowersRevenue += flowersPrice;
       }
-      flowersRevenue += flowersPrice;
+      Serial.println("> manageFlowersSale - flowersRevenue=" + String(flowersRevenue));
       flowerSaleNeedsRedraw = true;
     }
   }
@@ -4600,15 +4602,6 @@ void manageCompetition() {
   unsigned long now = millis();
 
   if (competitionCompleted) {
-    /*
-    if (competitionCompletionTime == 0) {
-      competitionCompletionTime = now;
-    }
-    if (now - competitionCompletionTime >= 500) {
-      competitionInitialized = false;
-      changeState(0, COMP_LOCAL6, microWait);
-    }
-    */
     if (competitionNotesCollected == targetNotes) {
       switch (currentState) {
         case COMP_LOCAL5:
@@ -6501,8 +6494,7 @@ void drawOverlay() {
         drawGardenPlanter();
         break;
       case FLOWERS_MARKET7:
-        drawDialogBubble("I sold all my flowers and made " + String(flowersRevenue) + "$");
-        flowersRevenue = 0;
+        drawDialogBubble("I sold all my flowers and made " + String(flowersRevenue) + "$. I have " + String(natsumi.money) + "$ in the bank.");
         break;
       case COMP_LOCAL3:
         drawDialogBubble("Welcome to the Shiodome Ward Community Center! Get ready for a nice singing competition! Sore dewa, hajimemasho !");
