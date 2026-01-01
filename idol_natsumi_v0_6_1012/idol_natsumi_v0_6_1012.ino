@@ -2994,8 +2994,9 @@ void manageGarden() {
       Serial.println(">> GARDEN_PLANT");
       if (tile == 0) {
         tile = 1;
-        // gardenMenuSelection = 1;
-        showToast("Seed planted");
+        // showToast("Seed planted");
+        saveRequired = true;
+        isNatsumiHappy = true;
       } else {
         showToast("Tile already planted");
       }
@@ -3004,11 +3005,12 @@ void manageGarden() {
     case GARDEN_WATER:
       Serial.println(">> GARDEN_WATER");
       if (tile == 0) {
-        showToast("Nothing to water");
+        showToast("Plant seed 1st");
       } else if (tile == 1) {
         tile = 2;
-        // gardenMenuSelection = 0;
-        showToast("Watered");
+        // showToast("Watered");
+        saveRequired = true;
+        isNatsumiHappy = true;
       } else {
         showToast("No need to water");
       }
@@ -3016,14 +3018,13 @@ void manageGarden() {
       break;
     case GARDEN_PICK:
       Serial.println(">> GARDEN_PICK");
-      if (tile == 0) {
-        showToast("Nothing to pick");
-      } else if (tile > 209) {
+      if (tile > 209) {
         if (natsumi.flowers < 24) {
           tile = 0;
           natsumi.flowers += 1;
-          // gardenMenuSelection = 0;
           showToast("Natsumi now has " + String(natsumi.flowers) + " flowers");
+          saveRequired = true;
+          isNatsumiHappy = true;
         } else {
           showToast("Flowers storage full. Sell some");
         }
@@ -3035,9 +3036,9 @@ void manageGarden() {
     case GARDEN_CLEANUP:
       Serial.println(">> GARDEN_CLEANUP");
       tile = 0;
-      showToast("Tile cleaned");
-      // gardenMenuSelection = 0;
+      // showToast("Tile cleaned");
       changeState(0, GARDEN_LOOP, 0);
+      saveRequired = true;
       break;
     case GARDEN_LOOP: {
       Serial.println(">> GARDEN_LOOP");
