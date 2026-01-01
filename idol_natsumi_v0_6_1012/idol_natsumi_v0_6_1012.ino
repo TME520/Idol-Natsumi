@@ -2329,6 +2329,7 @@ void updateFiveSecondPulse() {
     }
     if (isNatsumiHappy) {
       isNatsumiHappy = false;
+      l1NeedsRedraw = true;
     }
   } else {
     fiveSecondPulse = false;
@@ -2932,59 +2933,46 @@ void drawGardenPlanter() {
         gardenActive = true;
       }
 
-      if (tileValue == 0) {
-        gardenMenuSelection = 0;
-      } else if (tileValue == 1) {
+      if (tileValue == 1) {
         M5Cardputer.Display.fillCircle(centerX, centerY + 2, 3, sproutColor);
         M5Cardputer.Display.drawFastVLine(centerX, centerY - 2, 4, sproutColor);
-        gardenMenuSelection = 1;
       } else if (tileValue == 2) {
         M5Cardputer.Display.fillCircle(centerX + 6, centerY + 4, 2, waterColor);
-        gardenMenuSelection = 3;
       } else if (tileValue > 2 && tileValue < 30) {
         preloadImage("/idolnat/sprites/flower_stage_01-22x16.png", natsumiSprite);
         M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
-        gardenMenuSelection = 3;
         unloadImage(natsumiSprite);
       } else if (tileValue > 30 && tileValue <= 60) {
         preloadImage("/idolnat/sprites/flower_stage_02-20x16.png", natsumiSprite);
         M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
-        gardenMenuSelection = 3;
         unloadImage(natsumiSprite);
       } else if (tileValue > 60 && tileValue <= 90) {
         preloadImage("/idolnat/sprites/flower_stage_03-14x16.png", natsumiSprite);
         M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
-        gardenMenuSelection = 3;
         unloadImage(natsumiSprite);
       } else if (tileValue > 90 && tileValue <= 120) {
         preloadImage("/idolnat/sprites/flower_stage_04-11x16.png", natsumiSprite);
         M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
-        gardenMenuSelection = 3;
         unloadImage(natsumiSprite);
       } else if (tileValue > 120 && tileValue <= 150) {
         preloadImage("/idolnat/sprites/flower_stage_05-10x16.png", natsumiSprite);
         M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
-        gardenMenuSelection = 3;
         unloadImage(natsumiSprite);
       } else if (tileValue > 150 && tileValue <= 180) {
         preloadImage("/idolnat/sprites/flower_stage_06-12x16.png", natsumiSprite);
         M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
-        gardenMenuSelection = 3;
         unloadImage(natsumiSprite);
       } else if (tileValue > 180 && tileValue <= 210) {
         preloadImage("/idolnat/sprites/flower_stage_07-10x16.png", natsumiSprite);
         M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
-        gardenMenuSelection = 3;
         unloadImage(natsumiSprite);
       } else if (tileValue > 210) {
         preloadImage("/idolnat/sprites/flower_stage_08-10x16.png", natsumiSprite);
         M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
-        gardenMenuSelection = 2;
         unloadImage(natsumiSprite);
       }
     }
   }
-  unloadImage(natsumiSprite);
 
   if (!menuOpened) {
     M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
@@ -3006,7 +2994,7 @@ void manageGarden() {
       Serial.println(">> GARDEN_PLANT");
       if (tile == 0) {
         tile = 1;
-        gardenMenuSelection = 1;
+        // gardenMenuSelection = 1;
         showToast("Seed planted");
       } else {
         showToast("Tile already planted");
@@ -3019,7 +3007,7 @@ void manageGarden() {
         showToast("Nothing to water");
       } else if (tile == 1) {
         tile = 2;
-        gardenMenuSelection = 0;
+        // gardenMenuSelection = 0;
         showToast("Watered");
       } else {
         showToast("No need to water");
@@ -3034,7 +3022,7 @@ void manageGarden() {
         if (natsumi.flowers < 24) {
           tile = 0;
           natsumi.flowers += 1;
-          gardenMenuSelection = 0;
+          // gardenMenuSelection = 0;
           showToast("Natsumi now has " + String(natsumi.flowers) + " flowers");
         } else {
           showToast("Flowers storage full. Sell some");
@@ -3048,6 +3036,7 @@ void manageGarden() {
       Serial.println(">> GARDEN_CLEANUP");
       tile = 0;
       showToast("Tile cleaned");
+      // gardenMenuSelection = 0;
       changeState(0, GARDEN_LOOP, 0);
       break;
     case GARDEN_LOOP: {
@@ -3092,11 +3081,22 @@ void manageGarden() {
               }
               break;
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40: case ' ': {
               Serial.println(">>> ENTER");
               menuOpened = true;
+              int tileValue = gardenTiles[gardenCursorRow][gardenCursorCol];
+              if (tileValue == 0) {
+                gardenMenuSelection = 0;
+              } else if (tileValue == 1) {
+                gardenMenuSelection = 1;
+              } else if (tileValue < 210) {
+                gardenMenuSelection = 3;
+              } else {
+                gardenMenuSelection = 2;
+              }
               changeState(0, GARDEN_MENU, 0);
               break;
+            }
             // ESC
             case 96:
               Serial.println(">>> ESC");
