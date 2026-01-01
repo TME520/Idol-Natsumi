@@ -2328,9 +2328,6 @@ void updateFiveSecondPulse() {
           }
         }
         break;
-      default:
-        if (natsumi.energy > 0) natsumi.energy--;
-        break;
     }
     if (saveRequired) {
       saveGameToSd();
