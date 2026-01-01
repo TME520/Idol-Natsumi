@@ -1654,6 +1654,7 @@ void drawImage(const ImageBuffer& img) {
 void setup() {
   auto cfg = M5.config();
   M5Cardputer.begin(cfg);
+  randomSeed(esp_random());
   delay(1000);
   Serial.begin(115200);
   delay(1000);
@@ -2231,7 +2232,7 @@ void updateStats() {
   unsigned long currentMillis = millis();
   int previousEnergy = natsumi.energy;
 
-  // Hunger decreases every 2 minutes
+  // Hunger
   if (currentMillis - natsumi.lastHungerUpdate >= hungerInterval) {
     if (natsumi.hunger > 0) natsumi.hunger--;
     natsumi.lastHungerUpdate = currentMillis;
@@ -2240,7 +2241,7 @@ void updateStats() {
     l5NeedsRedraw=true;
   }
 
-  // Hygiene decreases every 4 minutes
+  // Hygiene
   if (currentMillis - natsumi.lastHygieneUpdate >= hygieneInterval) {
     if (natsumi.hygiene > 0) natsumi.hygiene--;
     natsumi.lastHygieneUpdate = currentMillis;
@@ -2249,20 +2250,9 @@ void updateStats() {
     l5NeedsRedraw=true;
   }
 
-  // Energy decreases every 4 minutes
+  // Energy
   if (currentMillis - natsumi.lastEnergyUpdate >= energyInterval) {
-    switch (currentState) {
-      case REST_SLEEP: case HEALTH_ONSEN:
-        if (natsumi.energy < 4) {
-          natsumi.energy++;
-          saveRequired = true;
-          isNatsumiHappy = true;
-        }
-        break;
-      default:
-        if (natsumi.energy > 0) natsumi.energy--;
-        break;
-    }
+    if (natsumi.energy > 0) natsumi.energy--;
     natsumi.lastEnergyUpdate = currentMillis;
     Serial.print("Energy decreased: ");
     Serial.println(natsumi.energy);
@@ -2327,6 +2317,20 @@ void updateFiveSecondPulse() {
           }
         }
       }
+    }
+    switch (currentState) {
+      case REST_SLEEP: case HEALTH_ONSEN:
+        if (natsumi.energy < 4) {
+          if ( random(300) > (((natsumi.hunger + natsumi.hygiene + natsumi.spirit + natsumi.fitness)*10)+10)) {
+            natsumi.energy++;
+            saveRequired = true;
+            isNatsumiHappy = true;
+          }
+        }
+        break;
+      default:
+        if (natsumi.energy > 0) natsumi.energy--;
+        break;
     }
     if (saveRequired) {
       saveGameToSd();
