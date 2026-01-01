@@ -773,12 +773,14 @@ bool loadGameFromSd() {
   loadedContinueState = HOME_LOOP;
   if (!SD.exists(saveGamePath)) {
     Serial.println(">> loadGameFromSd: Save file not found");
+    showToast("Save file not found");
     return false;
   }
 
   File saveFile = SD.open(saveGamePath, FILE_READ);
   if (!saveFile) {
     Serial.println(">> loadGameFromSd: Failed to open save file");
+    showToast("Corrupted save file");
     return false;
   }
 
@@ -892,6 +894,7 @@ bool loadGameFromSd() {
 
   saveFile.close();
   Serial.println(">> loadGameFromSd: Load complete");
+  showToast("Save file loaded");
   return true;
 }
 
@@ -1804,55 +1807,56 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case CONTINUE_GAME:
         screenConfig = CARD;
-        /*
-        natsumi.age = 11;
-        natsumi.ageMilliseconds = 0;
-        natsumi.hunger = 4;
-        natsumi.hygiene = 4;
-        natsumi.energy = 4;
-        natsumi.spirit = 4;
-        natsumi.popularity = 0;
-        natsumi.performance = 0;
-        natsumi.fitness = 0;
-        natsumi.culture = 0;
-        natsumi.charm = 0;
-        natsumi.money = 1800;
-        natsumi.flowers = 0;
-        natsumi.competition = 0;
-        natsumi.lastHungerUpdate = 0;
-        natsumi.lastHygieneUpdate = 0;
-        natsumi.lastEnergyUpdate = 0;
-        fridge.redApple = 3;
-        fridge.greenApple = 0;
-        fridge.avocado = 0;
-        fridge.bread = 10;
-        fridge.banana = 6;
-        fridge.broccoli = 0;
-        fridge.sweets = 1;
-        fridge.carrot = 0;
-        fridge.meat = 1;
-        fridge.coconut = 1;
-        fridge.coconutJuice = 0;
-        fridge.coffee = 0;
-        fridge.biscuits = 0;
-        fridge.corn = 0;
-        fridge.croissant = 0;
-        fridge.friedEgg = 0;
-        fridge.grapes = 0;
-        fridge.kiwi = 0;
-        fridge.milk = 0;
-        fridge.orange = 2;
-        fridge.peach = 0;
-        fridge.pear = 0;
-        fridge.strawberries = 0;
-        fridge.maki = 0;
-        fridge.sushi = 0;
-        fridge.watermelon = 0;
-        playtimeTotalMs = 0;
-        sessionStart = millis();
-        lastAgeTick = 0;
-        */
-        continueStateLoaded = loadGameFromSd();
+        if (loadGameFromSd()) {
+          //
+        } else {
+          natsumi.age = 11;
+          natsumi.ageMilliseconds = 0;
+          natsumi.hunger = 4;
+          natsumi.hygiene = 4;
+          natsumi.energy = 4;
+          natsumi.spirit = 4;
+          natsumi.popularity = 0;
+          natsumi.performance = 0;
+          natsumi.fitness = 0;
+          natsumi.culture = 0;
+          natsumi.charm = 0;
+          natsumi.money = 1800;
+          natsumi.flowers = 0;
+          natsumi.competition = 0;
+          natsumi.lastHungerUpdate = 0;
+          natsumi.lastHygieneUpdate = 0;
+          natsumi.lastEnergyUpdate = 0;
+          fridge.redApple = 3;
+          fridge.greenApple = 0;
+          fridge.avocado = 0;
+          fridge.bread = 10;
+          fridge.banana = 6;
+          fridge.broccoli = 0;
+          fridge.sweets = 1;
+          fridge.carrot = 0;
+          fridge.meat = 1;
+          fridge.coconut = 1;
+          fridge.coconutJuice = 0;
+          fridge.coffee = 0;
+          fridge.biscuits = 0;
+          fridge.corn = 0;
+          fridge.croissant = 0;
+          fridge.friedEgg = 0;
+          fridge.grapes = 0;
+          fridge.kiwi = 0;
+          fridge.milk = 0;
+          fridge.orange = 2;
+          fridge.peach = 0;
+          fridge.pear = 0;
+          fridge.strawberries = 0;
+          fridge.maki = 0;
+          fridge.sushi = 0;
+          fridge.watermelon = 0;
+          playtimeTotalMs = 0;
+          sessionStart = millis();
+          lastAgeTick = 0;
+        }
         break;
       case DEV_SCREEN:
         screenConfig = CARD;
