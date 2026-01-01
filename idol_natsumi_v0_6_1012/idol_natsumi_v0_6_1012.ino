@@ -5018,18 +5018,30 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           break;
         case 50:
           // 2: TRAINING
-          menuOpened = true;
-          changeState(0, TRAIN_MENU, 0);
+          if (!waitingForFoodDelivery) {
+            menuOpened = true;
+            changeState(0, TRAIN_MENU, 0);
+          } else {
+            showToast("Wait for food delivery");
+          }
           break;
         case 51:
           // 3: COMPETITION
-          menuOpened = true;
-          changeState(0, COMP_MENU, 0);
+          if (!waitingForFoodDelivery) {
+            menuOpened = true;
+            changeState(0, COMP_MENU, 0);
+          } else {
+            showToast("Wait for food delivery");
+          }
           break;
         case 52:
           // 4: HEALTH
-          menuOpened = true;
-          changeState(0, HEALTH_MENU, 0);
+          if (!waitingForFoodDelivery) {
+            menuOpened = true;
+            changeState(0, HEALTH_MENU, 0);
+          } else {
+            showToast("Wait for food delivery");
+          }
           break;
         case 53:
           // 5: REST
@@ -5089,11 +5101,23 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           } else if (selection == 1) {
             changeState(0, FOOD_MENU, 0);
           } else if (selection == 2) {
-            changeState(0, TRAIN_MENU, 0);
+            if (!waitingForFoodDelivery) {
+              changeState(0, TRAIN_MENU, 0);
+            } else {
+              showToast("Wait for food delivery");
+            }
           } else if (selection == 3) {
-            changeState(0, COMP_MENU, 0);
+            if (!waitingForFoodDelivery) {
+              changeState(0, COMP_MENU, 0);
+            } else {
+              showToast("Wait for food delivery");
+            }
           } else if (selection == 4) {
-            changeState(0, HEALTH_MENU, 0);
+            if (!waitingForFoodDelivery) {
+              changeState(0, HEALTH_MENU, 0);
+            } else {
+              showToast("Wait for food delivery");
+            }
           } else if (selection == 5) {
             changeState(0, REST_MENU, 0);
           } else if (selection == 6) {
@@ -5122,27 +5146,39 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         case 49:
           // 1: RESTAURANT
           menuOpened = false;
-          if (natsumi.age > 15) {
-            changeState(0, FOOD_REST, 0);
+          if (!waitingForFoodDelivery) {
+            if (natsumi.age > 15) {
+              changeState(0, FOOD_REST, 0);
+            } else {
+              changeState(0, HOME_LOOP, 0);
+              showToast("Too young to go there");
+            }
           } else {
-            changeState(0, HOME_LOOP, 0);
-            showToast("Too young to go there");
+            showToast("Wait for food delivery");
           }
           break;
         case 50:
           // 2: ORDER
           menuOpened = false;
-          if (natsumi.age > 13) {
-            changeState(0, FOOD_ORDER, 0);
+          if (!waitingForFoodDelivery) {
+            if (natsumi.age > 13) {
+              changeState(0, FOOD_ORDER, 0);
+            } else {
+              changeState(0, HOME_LOOP, 0);
+              showToast("Too young to use this");
+            }
           } else {
-            changeState(0, HOME_LOOP, 0);
-            showToast("Too young to use this");
+            showToast("Wait for food delivery");
           }
           break;
         case 51:
           // 3: CONBINI
-          menuOpened = false;
-          changeState(0, FOOD_CONBINI, 0);
+          if (!waitingForFoodDelivery) {
+            menuOpened = false;
+            changeState(0, FOOD_CONBINI, 0);
+          } else {
+            showToast("Wait for food delivery");
+          }
           break;
         case 43:
           // TAB
@@ -5178,21 +5214,33 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           if (selection == 0) {
             changeState(0, FOOD_COOK, 0);
           } else if (selection == 1) {
-            if (natsumi.age > 15) {
-              changeState(0, FOOD_REST, 0);
+            if (!waitingForFoodDelivery) {
+              if (natsumi.age > 15) {
+                changeState(0, FOOD_REST, 0);
+              } else {
+                changeState(0, HOME_LOOP, 0);
+                showToast("Too young to go there");
+              }
             } else {
-              changeState(0, HOME_LOOP, 0);
-              showToast("Too young to go there");
+              showToast("Wait for food delivery");
             }
           } else if (selection == 2) {
-            if (natsumi.age > 13) {
-              changeState(0, FOOD_ORDER, 0);
+            if (!waitingForFoodDelivery) {
+              if (natsumi.age > 13) {
+                changeState(0, FOOD_ORDER, 0);
+              } else {
+                changeState(0, HOME_LOOP, 0);
+                showToast("Too young to use this");
+              }
             } else {
-              changeState(0, HOME_LOOP, 0);
-              showToast("Too young to use this");
+              showToast("Wait for food delivery");
             }
           } else if (selection == 3) {
-            changeState(0, FOOD_CONBINI, 0);
+            if (!waitingForFoodDelivery) {
+              changeState(0, FOOD_CONBINI, 0);
+            } else {
+              showToast("Wait for food delivery");
+            }
           } else if (selection == 4) {
             if (debugActive) {
               debugActive = false;
