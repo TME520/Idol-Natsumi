@@ -367,7 +367,9 @@ bool libraryRewardApplied = false;
 bool isNatsumiHappy = false;
 bool gardenActive = false;
 bool flowersSaleInProgress = false;
+
 int librarySegmentsFilled = 0;
+int flowersSaleHandicap = 0;
 
 // Onsen state
 unsigned long onsenTicks = 0;  // Number of 5-second pulses spent in the onsen
@@ -535,7 +537,7 @@ bool runNeedsRedraw = false;
 bool saveRequired = false;
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "0.6.1012 Update 2";
+String versionNumber = "0.6.1012 Update 3";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -2320,6 +2322,11 @@ void updateFiveSecondPulse() {
             Serial.println(">>> Gardening -> Current tile value is " + String(tileValue));  
           }
         }
+      }
+      switch (currentState) {
+        case GARDEN_LOOP:
+          drawGardenPlanter();
+          break;
       }
     }
     switch (currentState) {
@@ -4416,6 +4423,7 @@ void manageFlowersMarket() {
         // ENTER
         case 13: case 40: case ' ':
           flowersPrice = prices[flowerMarketSelection];
+          flowersSaleHandicap = flowerMarketSelection;
           Serial.println("> manageFlowersMarket - flowersPrice=" + String(flowersPrice));
           flowerMarketInitialized = false;
           overlayActive = false;
@@ -4499,7 +4507,8 @@ void manageFlowersSale() {
   }
 
   if (fiveSecondPulse && !flowerSlots.empty()) {
-    bool sold = (random(0, 2) == 0);
+    // bool sold = (random(0, 2) == 0);
+    bool sold = (random(0, flowersSaleHandicap) == 0);
     if (sold) {
       int soldIndex = random(0, flowerSlots.size());
       flowerSlots.erase(flowerSlots.begin() + soldIndex);
