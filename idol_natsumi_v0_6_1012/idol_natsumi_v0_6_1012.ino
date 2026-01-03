@@ -2333,7 +2333,8 @@ void saveScreenshotToSd() {
   const uint32_t pixelDataSize = rowSize * static_cast<uint32_t>(height);
   const uint32_t fileSize = 54 + pixelDataSize;
 
-  screenshotFile.write("BM", 2);
+  const uint8_t bmpSignature[2] = {'B', 'M'};
+  screenshotFile.write(bmpSignature, sizeof(bmpSignature));
   writeLittleEndian32(screenshotFile, fileSize);
   writeLittleEndian16(screenshotFile, 0);
   writeLittleEndian16(screenshotFile, 0);
