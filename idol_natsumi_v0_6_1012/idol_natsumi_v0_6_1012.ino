@@ -2357,9 +2357,10 @@ void saveScreenshotToSd() {
     M5Cardputer.Display.readRect(0, y, width, 1, lineBuffer.data());
     for (int16_t x = 0; x < width; ++x) {
       uint16_t color = lineBuffer[x];
-      uint8_t r = static_cast<uint8_t>((color & 0x1F) * 255 / 31);
+      color = static_cast<uint16_t>((color >> 8) | (color << 8));
+      uint8_t r = static_cast<uint8_t>(((color >> 11) & 0x1F) * 255 / 31);
       uint8_t g = static_cast<uint8_t>(((color >> 5) & 0x3F) * 255 / 63);
-      uint8_t b = static_cast<uint8_t>(((color >> 11) & 0x1F) * 255 / 31);
+      uint8_t b = static_cast<uint8_t>((color & 0x1F) * 255 / 31);
       size_t offset = static_cast<size_t>(x) * 3;
       rowBuffer[offset] = b;
       rowBuffer[offset + 1] = g;
