@@ -2351,20 +2351,19 @@ void saveScreenshotToSd() {
   writeLittleEndian32(screenshotFile, 0);
   writeLittleEndian32(screenshotFile, 0);
 
-  std::vector<uint16_t> lineBuffer(width);
+  std::vector<uint8_t> lineBuffer(static_cast<size_t>(width) * 3);
   std::vector<uint8_t> rowBuffer(rowSize, 0);
   for (int16_t y = height - 1; y >= 0; --y) {
-    M5Cardputer.Display.readRect(0, y, width, 1, lineBuffer.data());
+    M5Cardputer.Display.readRectRGB(0, y, width, 1, lineBuffer.data());
     for (int16_t x = 0; x < width; ++x) {
-      uint16_t color = lineBuffer[x];
-      color = static_cast<uint16_t>((color >> 8) | (color << 8));
-      uint8_t r = static_cast<uint8_t>(((color >> 11) & 0x1F) * 255 / 31);
-      uint8_t g = static_cast<uint8_t>(((color >> 5) & 0x3F) * 255 / 63);
-      uint8_t b = static_cast<uint8_t>((color & 0x1F) * 255 / 31);
-      size_t offset = static_cast<size_t>(x) * 3;
-      rowBuffer[offset] = b;
-      rowBuffer[offset + 1] = g;
-      rowBuffer[offset + 2] = r;
+      size_t rgbOffset = static_cast<size_t>(x) * 3;
+      size_t bmpOffset = static_cast<size_t>(x) * 3;
+      uint8_t r = lineBuffer[rgbOffset];
+      uint8_t g = lineBuffer[rgbOffset + 1];
+      uint8_t b = lineBuffer[rgbOffset + 2];
+      rowBuffer[bmpOffset] = b;
+      rowBuffer[bmpOffset + 1] = g;
+      rowBuffer[bmpOffset + 2] = r;
     }
     screenshotFile.write(rowBuffer.data(), rowSize);
   }
