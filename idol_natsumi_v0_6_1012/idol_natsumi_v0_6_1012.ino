@@ -2291,6 +2291,87 @@ void updateSpirit() {
   return;
 }
 
+void writeLittleEndian16(File& file, uint16_t value) {
+  uint8_t buffer[2] = {
+    static_cast<uint8_t>(value & 0xFF),
+    static_cast<uint8_t>((value >> 8) & 0xFF)
+  };
+  file.write(buffer, sizeof(buffer));
+}
+
+void writeLittleEndian32(File& file, uint32_t value) {
+  uint8_t buffer[4] = {
+    static_cast<uint8_t>(value & 0xFF),
+    static_cast<uint8_t>((value >> 8) & 0xFF),
+    static_cast<uint8_t>((value >> 16) & 0xFF),
+    static_cast<uint8_t>((value >> 24) & 0xFF)
+  };
+  file.write(buffer, sizeof(buffer));
+}
+
+void saveScreenshotToSd() {
+  const char* screenshotDir = "/screenshots";
+  if (!SD.exists(screenshotDir)) {
+    if (!SD.mkdir(screenshotDir)) {
+      Serial.println(">> saveScreenshotToSd: Failed to create /screenshots");
+      return;
+    }
+  }
+
+  static uint32_t screenshotIndex = 0;
+  const uint32_t now = millis();
+  const String screenshotPath = String(screenshotDir) + "/shot_" + String(now) + "_" + String(screenshotIndex++) + ".bmp";
+  File screenshotFile = SD.open(screenshotPath, FILE_WRITE);
+  if (!screenshotFile) {
+    Serial.println(">> saveScreenshotToSd: Failed to open screenshot file");
+    return;
+  }
+
+  const int16_t width = M5Cardputer.Display.width();
+  const int16_t height = M5Cardputer.Display.height();
+  const uint32_t rowSize = (static_cast<uint32_t>(width) * 3 + 3) & ~3;
+  const uint32_t pixelDataSize = rowSize * static_cast<uint32_t>(height);
+  const uint32_t fileSize = 54 + pixelDataSize;
+
+  const uint8_t bmpSignature[2] = {'B', 'M'};
+  screenshotFile.write(bmpSignature, sizeof(bmpSignature));
+  writeLittleEndian32(screenshotFile, fileSize);
+  writeLittleEndian16(screenshotFile, 0);
+  writeLittleEndian16(screenshotFile, 0);
+  writeLittleEndian32(screenshotFile, 54);
+  writeLittleEndian32(screenshotFile, 40);
+  writeLittleEndian32(screenshotFile, static_cast<uint32_t>(width));
+  writeLittleEndian32(screenshotFile, static_cast<uint32_t>(height));
+  writeLittleEndian16(screenshotFile, 1);
+  writeLittleEndian16(screenshotFile, 24);
+  writeLittleEndian32(screenshotFile, 0);
+  writeLittleEndian32(screenshotFile, pixelDataSize);
+  writeLittleEndian32(screenshotFile, 0);
+  writeLittleEndian32(screenshotFile, 0);
+  writeLittleEndian32(screenshotFile, 0);
+  writeLittleEndian32(screenshotFile, 0);
+
+  std::vector<uint8_t> lineBuffer(static_cast<size_t>(width) * 3);
+  std::vector<uint8_t> rowBuffer(rowSize, 0);
+  for (int16_t y = height - 1; y >= 0; --y) {
+    M5Cardputer.Display.readRectRGB(0, y, width, 1, lineBuffer.data());
+    for (int16_t x = 0; x < width; ++x) {
+      size_t rgbOffset = static_cast<size_t>(x) * 3;
+      size_t bmpOffset = static_cast<size_t>(x) * 3;
+      uint8_t r = lineBuffer[rgbOffset];
+      uint8_t g = lineBuffer[rgbOffset + 1];
+      uint8_t b = lineBuffer[rgbOffset + 2];
+      rowBuffer[bmpOffset] = b;
+      rowBuffer[bmpOffset + 1] = g;
+      rowBuffer[bmpOffset + 2] = r;
+    }
+    screenshotFile.write(rowBuffer.data(), rowSize);
+  }
+
+  screenshotFile.close();
+  Serial.println(">> saveScreenshotToSd: Saved " + screenshotPath);
+}
+
 void updateFiveSecondPulse() {
   unsigned long now = millis();
   if (now < lastFiveSecondTick) {
@@ -2301,6 +2382,7 @@ void updateFiveSecondPulse() {
     lastFiveSecondTick = now;
     Serial.println(">>> 5 sec tick");
     fiveSecondPulse = true;
+    // saveScreenshotToSd();
     if (waitingForFoodDelivery) {
       Serial.println(">>> Pending food delivery (" + String(foodDeliveryCounter) + ")");
       foodDeliveryCounter += 1;
