@@ -2382,7 +2382,7 @@ void updateFiveSecondPulse() {
     lastFiveSecondTick = now;
     Serial.println(">>> 5 sec tick");
     fiveSecondPulse = true;
-    saveScreenshotToSd();
+    // saveScreenshotToSd();
     if (waitingForFoodDelivery) {
       Serial.println(">>> Pending food delivery (" + String(foodDeliveryCounter) + ")");
       foodDeliveryCounter += 1;
