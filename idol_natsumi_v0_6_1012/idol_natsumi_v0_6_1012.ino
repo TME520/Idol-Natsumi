@@ -1365,9 +1365,9 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         case COMP_LOCAL3: case COMP_LOCAL6:
-        case COMP_DEPT: case COMP_DEPT6:
-        case COMP_REG: case COMP_REG6:
-        case COMP_NAT: case COMP_NAT6:
+        case COMP_DEPT3: case COMP_DEPT6:
+        case COMP_REG3: case COMP_REG6:
+        case COMP_NAT3: case COMP_NAT6:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
         default:
@@ -1429,9 +1429,9 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         case COMP_LOCAL3: case COMP_LOCAL6:
-        case COMP_DEPT: case COMP_DEPT6:
-        case COMP_REG: case COMP_REG6:
-        case COMP_NAT: case COMP_NAT6:
+        case COMP_DEPT3: case COMP_DEPT6:
+        case COMP_REG3: case COMP_REG6:
+        case COMP_NAT3: case COMP_NAT6:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
         default:
@@ -1493,9 +1493,9 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         case COMP_LOCAL3: case COMP_LOCAL6:
-        case COMP_DEPT: case COMP_DEPT6:
-        case COMP_REG: case COMP_REG6:
-        case COMP_NAT: case COMP_NAT6:
+        case COMP_DEPT3: case COMP_DEPT6:
+        case COMP_REG3: case COMP_REG6:
+        case COMP_NAT3: case COMP_NAT6:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
         default:
@@ -1557,9 +1557,9 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         case COMP_LOCAL3: case COMP_LOCAL6:
-        case COMP_DEPT: case COMP_DEPT6:
-        case COMP_REG: case COMP_REG6:
-        case COMP_NAT: case COMP_NAT6:
+        case COMP_DEPT3: case COMP_DEPT6:
+        case COMP_REG3: case COMP_REG6:
+        case COMP_NAT3: case COMP_NAT6:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
         default:
@@ -1621,9 +1621,9 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         case COMP_LOCAL3: case COMP_LOCAL6:
-        case COMP_DEPT: case COMP_DEPT6:
-        case COMP_REG: case COMP_REG6:
-        case COMP_NAT: case COMP_NAT6:
+        case COMP_DEPT3: case COMP_DEPT6:
+        case COMP_REG3: case COMP_REG6:
+        case COMP_NAT3: case COMP_NAT6:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
         default:
@@ -4690,10 +4690,6 @@ void manageCompetition() {
         Serial.println(">> COMP_NAT5 - 6 columns");
         competitionColumns = 6;
         break;
-      default:
-        Serial.println(">> default - 3 columns");
-        competitionColumns = 3;
-        break;
     }
 
     competitionColumnWidth = screenWidth / competitionColumns;
@@ -4712,6 +4708,7 @@ void manageCompetition() {
             if (natsumi.popularity < 4) {
               natsumi.popularity += 1;
             }
+            competitionMenuSelection = 1;
             showToast("Departmental competition unlocked");
           }
           break;
@@ -4721,6 +4718,7 @@ void manageCompetition() {
             if (natsumi.popularity < 4) {
               natsumi.popularity += 1;
             }
+            competitionMenuSelection = 2;
             showToast("Regional competition unlocked");
           }
           break;
@@ -4730,6 +4728,7 @@ void manageCompetition() {
             if (natsumi.popularity < 4) {
               natsumi.popularity += 1;
             }
+            competitionMenuSelection = 3;
             showToast("National competition unlocked");
           }
           break;
