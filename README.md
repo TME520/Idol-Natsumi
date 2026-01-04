@@ -20,14 +20,18 @@ In *Idol Natsumi*, the player takes care of and raises a Japanese girl named Nat
 * **ENTER** key validates whatever option is selected
 * **UP/DOWN** Navigate menus
 
-### The 4 stages of Natsumi's life
-
-* Between 11 years old and 13 years old: preteen - No access to Restaurant, Order and Competition
-* Between 13 years old and 15 years old: teenager phase 1 - Gains access to Order and local Competition
-* Between 15 and 18 years old: teenager phase 2 - All limits are lifted
-* Between 18 and 21 years old: young adult
+### Game progression
 
 Age progression is automatic, Natsumi ages one year every 24 hours.
+
+|  AGE  |  LIMITS  |
+|-------|----------|
+| 11-12 | No access to Competition, Mobile app and Restaurant |
+| 13    | Unlock access to Local Competition |
+| 14    | Unlock access to mobile app (Orderibi) |
+| 15    | Unlock access to Departmental Competition |
+| 16    | Unlock access to Regional Competition and Restaurant |
+| 17    | Unlock access to National Competition |
 
 ### Statistics
 
@@ -102,6 +106,8 @@ Stat caps: 0 is the lowest while 4 is the highest.
 
 #### Order takeaway food
 
+Natsumi can use the Orderibi mobile app to get food delivered at home
+
 | FOOD                    | PRICE |
 |-------------------------|-------|
 | Cheap bento             | $600  |
@@ -110,13 +116,7 @@ Stat caps: 0 is the lowest while 4 is the highest.
 
 #### Shop at the local conbini ("ConbiMart")
 
-| FOOD                    | PRICE |
-|-------------------------|-------|
-| Salmon & mayo Onigiri   | $150  |
-| Instant ramen           | $180  |
-| Egg sandwich            | $240  |
-| Lucky Custard Cup       | $220  |
-| Green tea soda          | $130  |
+Natsumi can walk to her local combini to stock her fridge with vegetables, fruits and drinks.
 
 ### Compete
 
@@ -167,3 +167,4 @@ Go for a run in the forest and increase your Fitness.
 
 ### Do gardening
 
+Natsumi can grow flowers and sell it to the local market.

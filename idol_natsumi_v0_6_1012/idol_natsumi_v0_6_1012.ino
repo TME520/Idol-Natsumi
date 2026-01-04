@@ -228,6 +228,7 @@ bool conbimartInitialized = false;
 // 60000 milliseconds in a minute
 // 86,400,000 milliseconds in a day
 // unsigned long agingInterval = 60000;  // 1 minute for testing
+// unsigned long agingInterval = 60000;  // 10 minutes for testing
 unsigned long agingInterval = 86400000;  // 1 day
 unsigned long sessionStart = 0;           // millis() when NEW_GAME starts
 unsigned long playtimeTotalMs = 0;        // total playtime in ms (could persist later)
@@ -537,7 +538,7 @@ bool runNeedsRedraw = false;
 bool saveRequired = false;
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "0.6.1012 Update 3";
+String versionNumber = "0.6.1012 Update 4";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -1364,9 +1365,9 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         case COMP_LOCAL3: case COMP_LOCAL6:
-        case COMP_DEPT: case COMP_DEPT6:
-        case COMP_REG: case COMP_REG6:
-        case COMP_NAT: case COMP_NAT6:
+        case COMP_DEPT3: case COMP_DEPT6:
+        case COMP_REG3: case COMP_REG6:
+        case COMP_NAT3: case COMP_NAT6:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
         default:
@@ -1428,9 +1429,9 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         case COMP_LOCAL3: case COMP_LOCAL6:
-        case COMP_DEPT: case COMP_DEPT6:
-        case COMP_REG: case COMP_REG6:
-        case COMP_NAT: case COMP_NAT6:
+        case COMP_DEPT3: case COMP_DEPT6:
+        case COMP_REG3: case COMP_REG6:
+        case COMP_NAT3: case COMP_NAT6:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
         default:
@@ -1492,9 +1493,9 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         case COMP_LOCAL3: case COMP_LOCAL6:
-        case COMP_DEPT: case COMP_DEPT6:
-        case COMP_REG: case COMP_REG6:
-        case COMP_NAT: case COMP_NAT6:
+        case COMP_DEPT3: case COMP_DEPT6:
+        case COMP_REG3: case COMP_REG6:
+        case COMP_NAT3: case COMP_NAT6:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
         default:
@@ -1556,9 +1557,9 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         case COMP_LOCAL3: case COMP_LOCAL6:
-        case COMP_DEPT: case COMP_DEPT6:
-        case COMP_REG: case COMP_REG6:
-        case COMP_NAT: case COMP_NAT6:
+        case COMP_DEPT3: case COMP_DEPT6:
+        case COMP_REG3: case COMP_REG6:
+        case COMP_NAT3: case COMP_NAT6:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
         default:
@@ -1620,9 +1621,9 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/gym_teacher-90x135.png", currentCharacter);
           break;
         case COMP_LOCAL3: case COMP_LOCAL6:
-        case COMP_DEPT: case COMP_DEPT6:
-        case COMP_REG: case COMP_REG6:
-        case COMP_NAT: case COMP_NAT6:
+        case COMP_DEPT3: case COMP_DEPT6:
+        case COMP_REG3: case COMP_REG6:
+        case COMP_NAT3: case COMP_NAT6:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
         default:
@@ -2229,6 +2230,7 @@ void updateAging() {
     updateSpirit();
     showToast(String("Natsumi turned ") + natsumi.age + " years old!");
     natsumi.money += 10000;
+    saveRequired = true;
     l5NeedsRedraw=true;
   }
 }
@@ -2244,6 +2246,7 @@ void updateStats() {
     natsumi.lastHungerUpdate = currentMillis;
     Serial.print("Hunger decreased: ");
     Serial.println(natsumi.hunger);
+    saveRequired = true;
     l5NeedsRedraw=true;
   }
 
@@ -2253,6 +2256,7 @@ void updateStats() {
     natsumi.lastHygieneUpdate = currentMillis;
     Serial.print("Hygiene decreased: ");
     Serial.println(natsumi.hygiene);
+    saveRequired = true;
     l5NeedsRedraw=true;
   }
 
@@ -2262,6 +2266,7 @@ void updateStats() {
     natsumi.lastEnergyUpdate = currentMillis;
     Serial.print("Energy decreased: ");
     Serial.println(natsumi.energy);
+    saveRequired = true;
     l5NeedsRedraw=true;
   }
 }
@@ -2457,7 +2462,7 @@ void manageCard() {
       changeState(0, MOTTO_SCREEN, microWait);
       break;
     case MOTTO_SCREEN:
-      changeState(0, TITLE_SCREEN, microWait);
+      changeState(0, TITLE_SCREEN, 10);
       break;
     case TITLE_SCREEN:
       changeState(0, TITLE_SCREEN2, microWait);
@@ -4685,10 +4690,6 @@ void manageCompetition() {
         Serial.println(">> COMP_NAT5 - 6 columns");
         competitionColumns = 6;
         break;
-      default:
-        Serial.println(">> default - 3 columns");
-        competitionColumns = 3;
-        break;
     }
 
     competitionColumnWidth = screenWidth / competitionColumns;
@@ -4707,6 +4708,9 @@ void manageCompetition() {
             if (natsumi.popularity < 4) {
               natsumi.popularity += 1;
             }
+            competitionInitialized = false;
+            changeState(0, COMP_LOCAL6, 0);
+            competitionMenuSelection = 1;
             showToast("Departmental competition unlocked");
           }
           break;
@@ -4716,6 +4720,9 @@ void manageCompetition() {
             if (natsumi.popularity < 4) {
               natsumi.popularity += 1;
             }
+            competitionInitialized = false;
+            changeState(0, COMP_DEPT6, 0);
+            competitionMenuSelection = 2;
             showToast("Regional competition unlocked");
           }
           break;
@@ -4725,6 +4732,9 @@ void manageCompetition() {
             if (natsumi.popularity < 4) {
               natsumi.popularity += 1;
             }
+            competitionInitialized = false;
+            changeState(0, COMP_REG6, 0);
+            competitionMenuSelection = 3;
             showToast("National competition unlocked");
           }
           break;
@@ -4734,11 +4744,11 @@ void manageCompetition() {
             if (natsumi.popularity < 4) {
               natsumi.popularity += 1;
             }
+            competitionInitialized = false;
+            changeState(0, COMP_NAT6, 0);
           }
           break;
       }
-      competitionInitialized = false;
-      changeState(0, COMP_LOCAL6, 0);
       return;
     }
   } else {
@@ -5461,7 +5471,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // 0: LOCAL
           Serial.println(">> Local competition, age = " + String(natsumi.age));
           menuOpened = false;
-          if (natsumi.age > 13) {
+          if (natsumi.age > 12) {
             if (natsumi.competition == 0) {
               changeState(0, COMP_LOCAL, 0);
             } else {
@@ -5476,9 +5486,9 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         case 49:
           // 1: DEPARTMENTAL
           menuOpened = false;
-          if (natsumi.age > 15) {
+          if (natsumi.age > 14) {
             if (natsumi.competition == 1) {
-              changeState(0, COMP_DEPT5, 0);
+              changeState(0, COMP_DEPT, 0);
             } else if (natsumi.competition < 1) {
               changeState(0, HOME_LOOP, 0);
               showToast("Complete local comp. 1st");
@@ -5496,7 +5506,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           menuOpened = false;
           if (natsumi.age > 15) {
             if (natsumi.competition == 2) {
-              changeState(0, COMP_REG5, 0);
+              changeState(0, COMP_REG, 0);
             } else if (natsumi.competition < 2) {
               changeState(0, HOME_LOOP, 0);
               showToast("Complete lower comp. 1st");
@@ -5512,9 +5522,9 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         case 51:
           // 3: NATIONAL
           menuOpened = false;
-          if (natsumi.age > 15) {
+          if (natsumi.age > 16) {
             if (natsumi.competition == 3) {
-              changeState(0, COMP_NAT5, 0);
+              changeState(0, COMP_NAT, 0);
             } else if (natsumi.competition < 3) {
               changeState(0, HOME_LOOP, 0);
               showToast("Complete lower comp. 1st");
@@ -5570,7 +5580,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         case 13: case 40: case ' ':
           // VALIDATE
           if (selection == 0) {
-            if (natsumi.age > 13) {
+            if (natsumi.age > 12) {
               if (natsumi.competition == 0) {
                 changeState(0, COMP_LOCAL, 0);
               } else {
@@ -5580,9 +5590,9 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
               showToast("Too young to compete");
             }
           } else if (selection == 1) {
-            if (natsumi.age > 15) {
+            if (natsumi.age > 14) {
               if (natsumi.competition == 1) {
-                changeState(0, COMP_DEPT5, 0);
+                changeState(0, COMP_DEPT, 0);
               } else if (natsumi.competition < 1) {
                 changeState(0, HOME_LOOP, 0);
                 showToast("Complete local comp. 1st");
@@ -5597,7 +5607,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           } else if (selection == 2) {
             if (natsumi.age > 15) {
               if (natsumi.competition == 2) {
-                changeState(0, COMP_REG5, 0);
+                changeState(0, COMP_REG, 0);
               } else if (natsumi.competition < 2) {
                 changeState(0, HOME_LOOP, 0);
                 showToast("Complete lower comp. 1st");
@@ -5610,9 +5620,9 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
               showToast("Too young to compete");
             }
           } else if (selection == 3) {
-            if (natsumi.age > 15) {
+            if (natsumi.age > 16) {
               if (natsumi.competition == 3) {
-                changeState(0, COMP_NAT5, 0);
+                changeState(0, COMP_NAT, 0);
               } else if (natsumi.competition < 3) {
                 changeState(0, HOME_LOOP, 0);
                 showToast("Complete lower comp. 1st");
@@ -6337,7 +6347,7 @@ void drawOverlay() {
         Serial.println(">>> drawOverlay: STATS_SCREEN");
         drawStats();
         break;
-      case TRAIN_DANCE: case TRAIN_SING: case TRAIN_SWIM: case TRAIN_GYM: case TRAIN_RUN: case COMP_LOCAL4:
+      case TRAIN_DANCE: case TRAIN_SING: case TRAIN_SWIM: case TRAIN_GYM: case TRAIN_RUN: case COMP_LOCAL4: case COMP_DEPT: case COMP_REG4: case COMP_NAT4:
         drawMiniGameCountdown();
         break;
       case TRAIN_LIBRARY:
@@ -7045,7 +7055,20 @@ void competitionHost() {
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       overlayActive = false;
-      changeState(0, COMP_LOCAL4, 0);
+      switch(currentState) {
+        case COMP_LOCAL3:
+          changeState(0, COMP_LOCAL4, 0);
+          break;
+        case COMP_DEPT3:
+          changeState(0, COMP_DEPT4, 0);
+          break;
+        case COMP_REG3:
+          changeState(0, COMP_REG4, 0);
+          break;
+        case COMP_NAT3:
+          changeState(0, COMP_NAT4, 0);
+          break;
+      }
     }
   }
   return;
