@@ -9,7 +9,7 @@ Manage the daily life and artistic career of Natsumi Hasegawa, an aspiring Japan
 
 In *Idol Natsumi*, the player takes care of and raises a Japanese girl named Natsumi Hasegawa from age 11 to age 21. Her goal in life is to become a popular singer in Japan.
 
-![Natsumi](./itch.io/lounge.png "Natsumi")
+![Title screen](./screenshots/title.png "Title screen")
 
 ## Core mechanics
 
@@ -34,6 +34,8 @@ Age progression is automatic, Natsumi ages one year every 24 hours.
 | 17    | Unlock access to National Competition |
 
 ### Statistics
+
+![Statistics](./screenshots/stats.png "Statistics")
 
 Stat caps: 0 is the lowest while 4 is the highest.
 
@@ -62,6 +64,8 @@ Stat caps: 0 is the lowest while 4 is the highest.
 | **Charm**      | Active     | 0–4    | FOOD → COOK, RESTAURANT, ORDER, MARKET                                           | —                                                                |
 
 ### Keep Natsumi fed
+
+![Food menu](./screenshots/food_menu.png "Food menu")
 
 #### Eat at home
 
@@ -96,8 +100,6 @@ Stat caps: 0 is the lowest while 4 is the highest.
 
 #### Go to the restaurant
 
-![restaurant](./itch.io/restaurant.png "Restaurant")
-
 | FOOD                    | PRICE |
 |-------------------------|-------|
 | Tofu vegetable Teishoku | $700  |
@@ -119,6 +121,8 @@ Natsumi can use the Orderibi mobile app to get food delivered at home
 Natsumi can walk to her local combini to stock her fridge with vegetables, fruits and drinks.
 
 ### Compete
+
+![Competition menu](./screenshots/competition_menu.png "Competition menu")
 
 #### Start locally
 
@@ -143,13 +147,22 @@ Step into the Tokyo Grand Dome Hall, compete against Japan’s top young singers
 
 #### Singing
 
+![Sing game](./screenshots/sing_game.png "Sing game")
+![Sing debrief](./screenshots/sing_debrief.png "Sing debrief")
+
 In this mini game, improve your Performance level by catching music coins falling from the sky before they hit the ground. Use the LEFT and RIGHT arrow keys to move horizontally and make sure you drop as few music coins as possible.
 
 #### Dancing
 
+![Dance game](./screenshots/dance_game.png "Dance game")
+![Dance debrief](./screenshots/dance_debrief.png "Dance debrief")
+
 Help Natsumi get ready to become a good dancer with this mini game in which you must press the LEFT, RIGHT, UP or DOWN arrow keys according to what's displayed on the screen. Get it right 30 times to increase your Performance level.
 
 #### Swimming
+
+![Swin game](./screenshots/swim_game.png "Swim game")
+![Swim debrief](./screenshots/swim_debrief.png "Swim debrief")
 
 Go to the local swimming pool and avoid 30 sharks to increase your Fitness. Yes, sharks.
 
@@ -163,8 +176,13 @@ Go for a run in the forest and increase your Fitness.
 
 ### Go to the temple
 
-![temple](./itch.io/temple.png "Temple")
+![temple](./screenshots/temple.png "Temple")
 
 ### Do gardening
+
+![Flowers market 1](./screenshots/flowers_market1.png "Flowers market 1")
+![Flowers market 2](./screenshots/flowers_market2.png "Flowers market 2")
+![Flowers market 3](./screenshots/flowers_market3.png "Flowers market 3")
+![Flowers market 4](./screenshots/flowers_market_debrief.png "Flowers market 4")
 
 Natsumi can grow flowers and sell it to the local market.
