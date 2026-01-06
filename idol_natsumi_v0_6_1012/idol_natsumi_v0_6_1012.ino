@@ -1658,6 +1658,17 @@ void drawImage(const ImageBuffer& img) {
   }
 }
 
+void printBatteryLevel() {
+  int batteryLevel = M5Cardputer.Power.getBatteryLevel();
+  Serial.print("Battery level: ");
+  Serial.print(batteryLevel);
+  Serial.println("%");
+  if (batteryLevel < 10) {
+    Serial.print("Battery is LOW");
+    showToast("[WARN] Battery is low");
+  }
+}
+
 // === Setup and loop ===
 void setup() {
   auto cfg = M5.config();
@@ -1682,6 +1693,7 @@ void loop() {
   if (millis() - lastUpdate < FRAME_DELAY) return;
   lastUpdate = millis();
   updateFiveSecondPulse();
+  printBatteryLevel();
 /*
   Serial.println("l0NeedsRedraw: " + String(l0NeedsRedraw) + " - l1NeedsRedraw: " + String(l1NeedsRedraw) + " - l2NeedsRedraw: " + String(l2NeedsRedraw) + " - l3NeedsRedraw: " + String(l3NeedsRedraw));
   Serial.println("l4NeedsRedraw: " + String(l4NeedsRedraw) + " - l5NeedsRedraw: " + String(l5NeedsRedraw));
