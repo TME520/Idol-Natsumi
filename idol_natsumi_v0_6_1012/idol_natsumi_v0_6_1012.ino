@@ -66,6 +66,7 @@ enum GameState {
   HEALTH_TEMPLE5,
   HEALTH_TEMPLE6,
   HEALTH_ONSEN,
+  IDLE_SCREEN,
   REST_MENU,
   REST_MEDITATE,
   REST_SLEEP,
@@ -367,6 +368,7 @@ bool libraryInitialized = false;
 bool libraryRewardApplied = false;
 bool isNatsumiHappy = false;
 bool gardenActive = false;
+bool isPlayerGardening = false;
 bool flowersSaleInProgress = false;
 
 int librarySegmentsFilled = 0;
@@ -538,7 +540,7 @@ bool runNeedsRedraw = false;
 bool saveRequired = false;
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "0.6.1012 Update 4";
+String versionNumber = "0.6.1012 Update 5";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -609,6 +611,7 @@ const char* gameStateToString(GameState state) {
     case HEALTH_TEMPLE5:   return "HEALTH_TEMPLE5";
     case HEALTH_TEMPLE6:   return "HEALTH_TEMPLE6";
     case HEALTH_ONSEN:     return "HEALTH_ONSEN";
+    case IDLE_SCREEN:      return "IDLE_SCREEN";
     case REST_MENU:        return "REST_MENU";
     case REST_MEDITATE:    return "REST_MEDITATE";
     case REST_SLEEP:       return "REST_SLEEP";
@@ -2400,20 +2403,24 @@ void updateFiveSecondPulse() {
       }
     }
     if (gardenActive) {
-      // Grow the seeds
-      for (int row = 0; row < gardenRows; row++) {
-        for (int col = 0; col < gardenCols; col++) {
-          int tileValue = gardenTiles[row][col];
-          if (tileValue > 1) {
-            gardenTiles[row][col] += 5;
-            Serial.println(">>> Gardening -> Current tile value is " + String(tileValue));  
+      if (!isPlayerGardening) {
+        // Grow the seeds
+        for (int row = 0; row < gardenRows; row++) {
+          for (int col = 0; col < gardenCols; col++) {
+            int tileValue = gardenTiles[row][col];
+            if (tileValue > 1) {
+              gardenTiles[row][col] += 5;
+              Serial.println(">>> Gardening -> Current tile value is " + String(tileValue));  
+            }
           }
         }
-      }
-      switch (currentState) {
-        case GARDEN_LOOP:
-          drawGardenPlanter();
-          break;
+        switch (currentState) {
+          case GARDEN_LOOP:
+            drawGardenPlanter();
+            break;
+        }
+      } else {
+        isPlayerGardening = false;
       }
     }
     switch (currentState) {
@@ -3097,9 +3104,7 @@ void manageGarden() {
       Serial.println(">> GARDEN_PLANT");
       if (tile == 0) {
         tile = 1;
-        // showToast("Seed planted");
         saveRequired = true;
-        // isNatsumiHappy = true;
       } else {
         showToast("Tile already planted");
       }
@@ -3111,9 +3116,7 @@ void manageGarden() {
         showToast("Plant seed 1st");
       } else if (tile == 1) {
         tile = 2;
-        // showToast("Watered");
         saveRequired = true;
-        // isNatsumiHappy = true;
       } else {
         showToast("No need to water");
       }
@@ -3127,7 +3130,6 @@ void manageGarden() {
           natsumi.flowers += 1;
           showToast("Natsumi now has " + String(natsumi.flowers) + " flowers");
           saveRequired = true;
-          // isNatsumiHappy = true;
         } else {
           showToast("Flowers storage full. Sell some");
         }
@@ -3139,7 +3141,6 @@ void manageGarden() {
     case GARDEN_CLEANUP:
       Serial.println(">> GARDEN_CLEANUP");
       tile = 0;
-      // showToast("Tile cleaned");
       changeState(0, GARDEN_LOOP, 0);
       saveRequired = true;
       break;
@@ -3158,6 +3159,7 @@ void manageGarden() {
               if (gardenCursorRow > 0) {
                 gardenCursorRow--;
                 moved = true;
+                isPlayerGardening = true;
               }
               break;
             // DOWN
@@ -3166,6 +3168,7 @@ void manageGarden() {
               if (gardenCursorRow < gardenRows - 1) {
                 gardenCursorRow++;
                 moved = true;
+                isPlayerGardening = true;
               }
               break;
             // LEFT
@@ -3174,6 +3177,7 @@ void manageGarden() {
               if (gardenCursorCol > 0) {
                 gardenCursorCol--;
                 moved = true;
+                isPlayerGardening = true;
               }
               break;
             // RIGHT
@@ -3182,6 +3186,7 @@ void manageGarden() {
               if (gardenCursorCol < gardenCols - 1) {
                 gardenCursorCol++;
                 moved = true;
+                isPlayerGardening = true;
               }
               break;
             // ENTER
@@ -4647,6 +4652,7 @@ void manageCompetition() {
   static int competitionColumns = 3;
   static int competitionColumnWidth = 0;
   static int competitionPlayerColumn = 0;
+  static int competitionNotesSpawned = 0;
   static int competitionNotesCollected = 0;
   static unsigned long competitionLastSpawn = 0;
   static unsigned long competitionCompletionTime = 0;
@@ -4668,6 +4674,7 @@ void manageCompetition() {
   if (!competitionInitialized || competitionState != currentState) {
     competitionState = currentState;
     competitionNotes.clear();
+    competitionNotesSpawned = 0;
     competitionNotesCollected = 0;
     competitionLastSpawn = 0;
     competitionCompletionTime = 0;
@@ -4700,7 +4707,7 @@ void manageCompetition() {
   unsigned long now = millis();
 
   if (competitionCompleted) {
-    if (competitionNotesCollected == targetNotes) {
+    if (competitionNotesCollected == targetNotes && competitionNotesCollected == competitionNotesSpawned) {
       switch (currentState) {
         case COMP_LOCAL5:
           if (natsumi.competition == 0) {
@@ -4752,7 +4759,7 @@ void manageCompetition() {
       return;
     }
   } else {
-    showToast("Train more to unlock next level");
+    showToast("Too many misses, disqualified");
   }
 
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -6947,7 +6954,7 @@ void cookFood() {
                   saveRequired = true;
                   isNatsumiHappy = true;
                 }
-                showToast("Eating " + String(choice.label));
+                showToast("Having " + String(choice.label));
                 clearFoodGrid();
                 overlayActive = false;
                 selectedFood = String(choice.label);
