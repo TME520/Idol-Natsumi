@@ -3105,6 +3105,7 @@ void manageGarden() {
       if (tile == 0) {
         tile = 1;
         saveRequired = true;
+        isPlayerGardening = true;
       } else {
         showToast("Tile already planted");
       }
@@ -3117,6 +3118,7 @@ void manageGarden() {
       } else if (tile == 1) {
         tile = 2;
         saveRequired = true;
+        isPlayerGardening = true;
       } else {
         showToast("No need to water");
       }
@@ -3130,6 +3132,7 @@ void manageGarden() {
           natsumi.flowers += 1;
           showToast("Natsumi now has " + String(natsumi.flowers) + " flowers");
           saveRequired = true;
+          isPlayerGardening = true;
         } else {
           showToast("Flowers storage full. Sell some");
         }
@@ -3143,6 +3146,7 @@ void manageGarden() {
       tile = 0;
       changeState(0, GARDEN_LOOP, 0);
       saveRequired = true;
+      isPlayerGardening = true;
       break;
     case GARDEN_LOOP: {
       Serial.println(">> GARDEN_LOOP");
