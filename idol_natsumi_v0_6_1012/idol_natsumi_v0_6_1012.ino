@@ -66,6 +66,7 @@ enum GameState {
   HEALTH_TEMPLE5,
   HEALTH_TEMPLE6,
   HEALTH_ONSEN,
+  IDLE_SCREEN,
   REST_MENU,
   REST_MEDITATE,
   REST_SLEEP,
@@ -367,7 +368,9 @@ bool libraryInitialized = false;
 bool libraryRewardApplied = false;
 bool isNatsumiHappy = false;
 bool gardenActive = false;
+bool isPlayerGardening = false;
 bool flowersSaleInProgress = false;
+bool unlockedNextCompetitionLevel = false;
 
 int librarySegmentsFilled = 0;
 int flowersSaleHandicap = 0;
@@ -538,7 +541,7 @@ bool runNeedsRedraw = false;
 bool saveRequired = false;
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "0.6.1012 Update 4";
+String versionNumber = "0.6.1012 Update 5";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -609,6 +612,7 @@ const char* gameStateToString(GameState state) {
     case HEALTH_TEMPLE5:   return "HEALTH_TEMPLE5";
     case HEALTH_TEMPLE6:   return "HEALTH_TEMPLE6";
     case HEALTH_ONSEN:     return "HEALTH_ONSEN";
+    case IDLE_SCREEN:      return "IDLE_SCREEN";
     case REST_MENU:        return "REST_MENU";
     case REST_MEDITATE:    return "REST_MEDITATE";
     case REST_SLEEP:       return "REST_SLEEP";
@@ -1655,6 +1659,17 @@ void drawImage(const ImageBuffer& img) {
   }
 }
 
+void printBatteryLevel() {
+  int batteryLevel = M5Cardputer.Power.getBatteryLevel();
+  Serial.print("Battery level: ");
+  Serial.print(batteryLevel);
+  Serial.println("%");
+  if (batteryLevel < 10) {
+    Serial.print("Battery is LOW");
+    showToast("[WARN] Battery is low");
+  }
+}
+
 // === Setup and loop ===
 void setup() {
   auto cfg = M5.config();
@@ -1679,6 +1694,7 @@ void loop() {
   if (millis() - lastUpdate < FRAME_DELAY) return;
   lastUpdate = millis();
   updateFiveSecondPulse();
+  printBatteryLevel();
 /*
   Serial.println("l0NeedsRedraw: " + String(l0NeedsRedraw) + " - l1NeedsRedraw: " + String(l1NeedsRedraw) + " - l2NeedsRedraw: " + String(l2NeedsRedraw) + " - l3NeedsRedraw: " + String(l3NeedsRedraw));
   Serial.println("l4NeedsRedraw: " + String(l4NeedsRedraw) + " - l5NeedsRedraw: " + String(l5NeedsRedraw));
@@ -2400,20 +2416,24 @@ void updateFiveSecondPulse() {
       }
     }
     if (gardenActive) {
-      // Grow the seeds
-      for (int row = 0; row < gardenRows; row++) {
-        for (int col = 0; col < gardenCols; col++) {
-          int tileValue = gardenTiles[row][col];
-          if (tileValue > 1) {
-            gardenTiles[row][col] += 5;
-            Serial.println(">>> Gardening -> Current tile value is " + String(tileValue));  
+      if (!isPlayerGardening) {
+        // Grow the seeds
+        for (int row = 0; row < gardenRows; row++) {
+          for (int col = 0; col < gardenCols; col++) {
+            int tileValue = gardenTiles[row][col];
+            if (tileValue > 1) {
+              gardenTiles[row][col] += 5;
+              Serial.println(">>> Gardening -> Current tile value is " + String(tileValue));  
+            }
           }
         }
-      }
-      switch (currentState) {
-        case GARDEN_LOOP:
-          drawGardenPlanter();
-          break;
+        switch (currentState) {
+          case GARDEN_LOOP:
+            drawGardenPlanter();
+            break;
+        }
+      } else {
+        isPlayerGardening = false;
       }
     }
     switch (currentState) {
@@ -3097,9 +3117,8 @@ void manageGarden() {
       Serial.println(">> GARDEN_PLANT");
       if (tile == 0) {
         tile = 1;
-        // showToast("Seed planted");
         saveRequired = true;
-        // isNatsumiHappy = true;
+        isPlayerGardening = true;
       } else {
         showToast("Tile already planted");
       }
@@ -3111,9 +3130,8 @@ void manageGarden() {
         showToast("Plant seed 1st");
       } else if (tile == 1) {
         tile = 2;
-        // showToast("Watered");
         saveRequired = true;
-        // isNatsumiHappy = true;
+        isPlayerGardening = true;
       } else {
         showToast("No need to water");
       }
@@ -3127,7 +3145,7 @@ void manageGarden() {
           natsumi.flowers += 1;
           showToast("Natsumi now has " + String(natsumi.flowers) + " flowers");
           saveRequired = true;
-          // isNatsumiHappy = true;
+          isPlayerGardening = true;
         } else {
           showToast("Flowers storage full. Sell some");
         }
@@ -3139,9 +3157,9 @@ void manageGarden() {
     case GARDEN_CLEANUP:
       Serial.println(">> GARDEN_CLEANUP");
       tile = 0;
-      // showToast("Tile cleaned");
       changeState(0, GARDEN_LOOP, 0);
       saveRequired = true;
+      isPlayerGardening = true;
       break;
     case GARDEN_LOOP: {
       Serial.println(">> GARDEN_LOOP");
@@ -3158,6 +3176,7 @@ void manageGarden() {
               if (gardenCursorRow > 0) {
                 gardenCursorRow--;
                 moved = true;
+                isPlayerGardening = true;
               }
               break;
             // DOWN
@@ -3166,6 +3185,7 @@ void manageGarden() {
               if (gardenCursorRow < gardenRows - 1) {
                 gardenCursorRow++;
                 moved = true;
+                isPlayerGardening = true;
               }
               break;
             // LEFT
@@ -3174,6 +3194,7 @@ void manageGarden() {
               if (gardenCursorCol > 0) {
                 gardenCursorCol--;
                 moved = true;
+                isPlayerGardening = true;
               }
               break;
             // RIGHT
@@ -3182,6 +3203,7 @@ void manageGarden() {
               if (gardenCursorCol < gardenCols - 1) {
                 gardenCursorCol++;
                 moved = true;
+                isPlayerGardening = true;
               }
               break;
             // ENTER
@@ -4647,6 +4669,7 @@ void manageCompetition() {
   static int competitionColumns = 3;
   static int competitionColumnWidth = 0;
   static int competitionPlayerColumn = 0;
+  static int competitionNotesSpawned = 0;
   static int competitionNotesCollected = 0;
   static unsigned long competitionLastSpawn = 0;
   static unsigned long competitionCompletionTime = 0;
@@ -4668,6 +4691,7 @@ void manageCompetition() {
   if (!competitionInitialized || competitionState != currentState) {
     competitionState = currentState;
     competitionNotes.clear();
+    competitionNotesSpawned = 0;
     competitionNotesCollected = 0;
     competitionLastSpawn = 0;
     competitionCompletionTime = 0;
@@ -4700,7 +4724,7 @@ void manageCompetition() {
   unsigned long now = millis();
 
   if (competitionCompleted) {
-    if (competitionNotesCollected == targetNotes) {
+    if (competitionNotesCollected == targetNotes && competitionNotesCollected == competitionNotesSpawned) {
       switch (currentState) {
         case COMP_LOCAL5:
           if (natsumi.competition == 0) {
@@ -4749,10 +4773,12 @@ void manageCompetition() {
           }
           break;
       }
+      unlockedNextCompetitionLevel = true;
       return;
     }
   } else {
-    showToast("Train more to unlock next level");
+    unlockedNextCompetitionLevel = false;
+    showToast("Too many misses, disqualified");
   }
 
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -6607,40 +6633,40 @@ void drawOverlay() {
         drawDialogBubble("Welcome to the Shiodome Ward Community Center! Get ready for a nice singing competition! Sore dewa, hajimemasho !");
         break;
       case COMP_LOCAL6:
-        if (natsumi.competition == 1) {
-          drawDialogBubble("Congratulations!! You are now ready for Departmental Competitions!!");
+        if (unlockedNextCompetitionLevel) {
+          drawDialogBubble("Congratulations!! You are now ready for Departmental Competition!!");
         } else {
-          drawDialogBubble("Thanks for participating! Train some more and come back again!!");
+          drawDialogBubble("You did not win that Local competition, but thanks for participating! Train some more and come back again!!");
         }
         break;
       case COMP_DEPT3:
         drawDialogBubble("Welcome to the Hanamori City Hall Auditorium! Get ready for a nice singing competition! Sore dewa, hajimemasho !");
         break;
       case COMP_DEPT6:
-        if (natsumi.competition == 2) {
-          drawDialogBubble("Congratulations!! You are now ready for Regional Competitions!!");
+        if (unlockedNextCompetitionLevel) {
+          drawDialogBubble("Congratulations!! You are now ready for Regional Competition!!");
         } else {
-          drawDialogBubble("Thanks for participating! Train some more and come back again!!");
+          drawDialogBubble("You did not win that Departmental competition, but thanks for participating! Train some more and come back again!!");
         }
         break;
       case COMP_REG3:
         drawDialogBubble("Welcome to the Osaka Minami Art Center - Stage B! Get ready for a nice singing competition! Sore dewa, hajimemasho !");
         break;
       case COMP_REG6:
-        if (natsumi.competition == 3) {
-          drawDialogBubble("Congratulations!! You are now ready for Departmental Competitions!!");
+        if (unlockedNextCompetitionLevel) {
+          drawDialogBubble("Congratulations!! You are now ready for National Competition!!");
         } else {
-          drawDialogBubble("Thanks for participating! Train some more and come back again!!");
+          drawDialogBubble("You did not win that Regional competition, but thanks for participating! Train some more and come back again!!");
         }
         break;
       case COMP_NAT3:
         drawDialogBubble("Welcome to the Tokyo Grand Dome Hall! Get ready for a nice singing competition! Sore dewa, hajimemasho !");
         break;
       case COMP_NAT6:
-        if (natsumi.competition == 4) {
-          drawDialogBubble("Congratulations!! You made it to the top!!");
+        if (unlockedNextCompetitionLevel) {
+          drawDialogBubble("Congratulations!! You made it to the top!! You are the new National champion!! ");
         } else {
-          drawDialogBubble("Thanks for participating! Train some more and come back again!!");
+          drawDialogBubble("You did not win that National competition, but thanks for participating!");
         }
         break;
       default:
@@ -6947,7 +6973,7 @@ void cookFood() {
                   saveRequired = true;
                   isNatsumiHappy = true;
                 }
-                showToast("Eating " + String(choice.label));
+                showToast("Having " + String(choice.label));
                 clearFoodGrid();
                 overlayActive = false;
                 selectedFood = String(choice.label);
