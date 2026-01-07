@@ -370,6 +370,7 @@ bool isNatsumiHappy = false;
 bool gardenActive = false;
 bool isPlayerGardening = false;
 bool flowersSaleInProgress = false;
+bool unlockedNextCompetitionLevel = false;
 
 int librarySegmentsFilled = 0;
 int flowersSaleHandicap = 0;
@@ -4772,9 +4773,11 @@ void manageCompetition() {
           }
           break;
       }
+      unlockedNextCompetitionLevel = true;
       return;
     }
   } else {
+    unlockedNextCompetitionLevel = false;
     showToast("Too many misses, disqualified");
   }
 
@@ -6630,40 +6633,40 @@ void drawOverlay() {
         drawDialogBubble("Welcome to the Shiodome Ward Community Center! Get ready for a nice singing competition! Sore dewa, hajimemasho !");
         break;
       case COMP_LOCAL6:
-        if (natsumi.competition == 1) {
-          drawDialogBubble("Congratulations!! You are now ready for Departmental Competitions!!");
+        if (unlockedNextCompetitionLevel) {
+          drawDialogBubble("Congratulations!! You are now ready for Departmental Competition!!");
         } else {
-          drawDialogBubble("Thanks for participating! Train some more and come back again!!");
+          drawDialogBubble("You did not win that Local competition, but thanks for participating! Train some more and come back again!!");
         }
         break;
       case COMP_DEPT3:
         drawDialogBubble("Welcome to the Hanamori City Hall Auditorium! Get ready for a nice singing competition! Sore dewa, hajimemasho !");
         break;
       case COMP_DEPT6:
-        if (natsumi.competition == 2) {
-          drawDialogBubble("Congratulations!! You are now ready for Regional Competitions!!");
+        if (unlockedNextCompetitionLevel) {
+          drawDialogBubble("Congratulations!! You are now ready for Regional Competition!!");
         } else {
-          drawDialogBubble("Thanks for participating! Train some more and come back again!!");
+          drawDialogBubble("You did not win that Departmental competition, but thanks for participating! Train some more and come back again!!");
         }
         break;
       case COMP_REG3:
         drawDialogBubble("Welcome to the Osaka Minami Art Center - Stage B! Get ready for a nice singing competition! Sore dewa, hajimemasho !");
         break;
       case COMP_REG6:
-        if (natsumi.competition == 3) {
-          drawDialogBubble("Congratulations!! You are now ready for Departmental Competitions!!");
+        if (unlockedNextCompetitionLevel) {
+          drawDialogBubble("Congratulations!! You are now ready for National Competition!!");
         } else {
-          drawDialogBubble("Thanks for participating! Train some more and come back again!!");
+          drawDialogBubble("You did not win that Regional competition, but thanks for participating! Train some more and come back again!!");
         }
         break;
       case COMP_NAT3:
         drawDialogBubble("Welcome to the Tokyo Grand Dome Hall! Get ready for a nice singing competition! Sore dewa, hajimemasho !");
         break;
       case COMP_NAT6:
-        if (natsumi.competition == 4) {
-          drawDialogBubble("Congratulations!! You made it to the top!!");
+        if (unlockedNextCompetitionLevel) {
+          drawDialogBubble("Congratulations!! You made it to the top!! You are the new National champion!! ");
         } else {
-          drawDialogBubble("Thanks for participating! Train some more and come back again!!");
+          drawDialogBubble("You did not win that National competition, but thanks for participating!");
         }
         break;
       default:
