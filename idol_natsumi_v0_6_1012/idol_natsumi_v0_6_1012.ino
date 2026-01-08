@@ -66,7 +66,8 @@ enum GameState {
   HEALTH_TEMPLE5,
   HEALTH_TEMPLE6,
   HEALTH_ONSEN,
-  IDLE_SCREEN,
+  IDLE_HOME,
+  IDLE_STATS,
   REST_MENU,
   REST_MEDITATE,
   REST_SLEEP,
@@ -612,7 +613,8 @@ const char* gameStateToString(GameState state) {
     case HEALTH_TEMPLE5:   return "HEALTH_TEMPLE5";
     case HEALTH_TEMPLE6:   return "HEALTH_TEMPLE6";
     case HEALTH_ONSEN:     return "HEALTH_ONSEN";
-    case IDLE_SCREEN:      return "IDLE_SCREEN";
+    case IDLE_HOME:        return "IDLE_HOME";
+    case IDLE_STATS:       return "IDLE_STATS";
     case REST_MENU:        return "REST_MENU";
     case REST_MEDITATE:    return "REST_MEDITATE";
     case REST_SLEEP:       return "REST_SLEEP";
