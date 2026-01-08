@@ -384,6 +384,8 @@ int lastOnsenSpiritDisplayed = -1;
 
 unsigned long lastUpdate = 0;
 const int FRAME_DELAY = 50;
+unsigned long lastActivityMs = 0;
+bool btnAWasPressed = false;
 unsigned long lastKeyTime = 0;
 const unsigned long keyCooldown = 200;  // milliseconds between accepted presses
 
@@ -1040,6 +1042,9 @@ void preloadImages() {
     case HOME_LOOP:
       preloadImage("/idolnat/screens/lounge.png", currentBackground);
       break;
+    case IDLE_SCREEN:
+      preloadImage("/idolnat/screens/black.png", currentBackground);
+      break;
     case FLOWERS_MARKET: case FLOWERS_MARKET7:
       preloadImage("/idolnat/screens/flower_market_bg.png", currentBackground);
       break;
@@ -1680,6 +1685,7 @@ void setup() {
   delay(1000);
   Serial.println("");
   Serial.println("*** BEGIN ***");
+  lastActivityMs = millis();
 
   if (!SD.begin()) {
     drawText("SD init failed!", 120, 131, true, RED, 1); // centered
@@ -1691,8 +1697,19 @@ void setup() {
 void loop() {
   M5Cardputer.update();
 
-  if (millis() - lastUpdate < FRAME_DELAY) return;
-  lastUpdate = millis();
+  unsigned long now = millis();
+  bool keyboardActivity = M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed();
+  btnAWasPressed = M5Cardputer.BtnA.wasPressed();
+  bool userInputDetected = keyboardActivity || btnAWasPressed;
+  if (userInputDetected) {
+    lastActivityMs = now;
+    if (currentState == IDLE_SCREEN) {
+      changeState(0, HOME_LOOP, 0);
+    }
+  }
+
+  if (now - lastUpdate < FRAME_DELAY) return;
+  lastUpdate = now;
   updateFiveSecondPulse();
   printBatteryLevel();
 /*
@@ -1701,6 +1718,10 @@ void loop() {
   Serial.println("debugEnabled: " + String(debugEnabled) + " - menuOpened: " + String(menuOpened) + " - toastActive: " + String(toastActive));
   Serial.println("changeStateCounter: " + String(changeStateCounter) + " - l5NeedsRedraw: " + String(l5NeedsRedraw));
 */
+  if (currentState == HOME_LOOP && (now - lastActivityMs >= 60000)) {
+    changeState(0, IDLE_SCREEN, 0);
+  }
+
   Serial.println("> currentState = " + String(gameStateToString(currentState)));
   switch (screenConfig) {
     case CARD:
@@ -1896,6 +1917,10 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuType = "home";
         currentMenuItems = homeMenuItems;
         currentMenuItemsCount = homeMenuItemCount;
+        overlayActive = false;
+        break;
+      case IDLE_SCREEN:
+        screenConfig = IDLE;
         overlayActive = false;
         break;
       case STATS_SCREEN:
@@ -4257,7 +4282,7 @@ void manageBathGame() {
   }
 
   bool buttonPressed = false;
-  if (M5Cardputer.BtnA.wasPressed()) {
+  if (btnAWasPressed) {
     buttonPressed = true;
   }
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
