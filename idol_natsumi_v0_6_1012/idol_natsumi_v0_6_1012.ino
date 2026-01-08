@@ -243,6 +243,7 @@ const unsigned long longWait = 6400;
 const char* saveGamePath = "/idolnat/savegame.dat";
 String saveStatusMsg = "";
 unsigned long saveStatusUntil = 0;
+unsigned long counterToScreensaver = 0;
 
 // Onsen mini-game helpers
 void resetBathGame();
@@ -1042,6 +1043,9 @@ void preloadImages() {
     case HOME_LOOP:
       preloadImage("/idolnat/screens/lounge.png", currentBackground);
       break;
+    case IDLE_HOME:
+      preloadImage("/idolnat/screens/screensaver01.png", currentBackground);
+      break;
     case FLOWERS_MARKET: case FLOWERS_MARKET7:
       preloadImage("/idolnat/screens/flower_market_bg.png", currentBackground);
       break;
@@ -1732,6 +1736,7 @@ void loop() {
 void changeState(int baseLayer, GameState targetState, int delay) {
   // Manage state transitions
   // Serial.println("> Entering changeState() with baseLayer set to " + String(baseLayer) + " and targetState set to " + String(targetState) + " with delay set to " + String(delay));
+  counterToScreensaver = 0;
   if (changeStateCounter == delay) {
     Serial.println("Proceed with transition");
     Serial.println("> currentState = " + String(gameStateToString(currentState)));
@@ -2448,6 +2453,17 @@ void updateFiveSecondPulse() {
           }
         }
         break;
+      case HOME_LOOP:
+        counterToScreensaver += 1;
+        if (counterToScreensaver > longWait) {
+          changeState(0, IDLE_HOME, 0);
+        }
+        break;
+      case IDLE_HOME:
+        if (counterToScreensaver < longWait) {
+          changeState(0, HOME_LOOP, 0);
+        }
+        break;
     }
     if (saveRequired) {
       saveGameToSd();
@@ -2501,6 +2517,9 @@ void manageCard() {
       } else {
         changeState(0, HOME_LOOP, 0);
       }
+      break;
+    case IDLE_HOME:
+      manageScreensaver();
       break;
     case FLOWERS_MARKET2:
       changeState(0, FLOWERS_MARKET3, 10);
@@ -7070,6 +7089,20 @@ void cashier() {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       overlayActive = false;
       changeState(0, HOME_LOOP, 0);
+    }
+  }
+  return;
+}
+
+void manageScreensaver() {
+  // Serial.println("> Entering manageScreensaver()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      overlayActive = false;
+      counterToScreensaver = 0;
     }
   }
   return;
