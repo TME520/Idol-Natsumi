@@ -1908,6 +1908,10 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItemsCount = homeMenuItemCount;
         overlayActive = false;
         break;
+      case IDLE_HOME: case IDLE_STATS:
+        screenConfig = CARD;
+        characterEnabled = false;
+        break;
       case STATS_SCREEN:
         screenConfig = GAME;
         overlayActive = true;
@@ -2525,6 +2529,7 @@ void manageCard() {
       break;
     case IDLE_HOME:
       characterEnabled = false;
+      menuEnabled = false;
       manageScreensaver();
       break;
     case FLOWERS_MARKET2:
@@ -7101,13 +7106,12 @@ void cashier() {
 }
 
 void manageScreensaver() {
-  // Serial.println("> Entering manageScreensaver()");
+  Serial.println("> Entering manageScreensaver()");
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      overlayActive = false;
       counterToScreensaver = 0;
     }
   }
