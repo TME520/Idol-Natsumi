@@ -2480,6 +2480,7 @@ void updateFiveSecondPulse() {
     }
     if (isNatsumiHappy) {
       isNatsumiHappy = false;
+      changeState(0, HOME_LOOP, 0);
     }
   } else {
     fiveSecondPulse = false;
@@ -6382,7 +6383,7 @@ void drawOverlay() {
     uint8_t key = 0;
     if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
       auto keyList = M5Cardputer.Keyboard.keyList();
-      Serial.println(">>> drawOverlay: Testing for key pressed");
+      // Serial.println(">>> drawOverlay: Testing for key pressed");
       if (keyList.size() > 0) {
         key = M5Cardputer.Keyboard.getKey(keyList[0]);
         if (currentState != FOOD_COOK && currentState != FOOD_CONBINI3 &&
@@ -6399,10 +6400,10 @@ void drawOverlay() {
   if (l5NeedsRedraw && overlayActive && overlayEnabled) {
     switch (currentState) {
       case HOME_LOOP:
-        Serial.println(">>> drawOverlay: HOME_LOOP");
+        // Serial.println(">>> drawOverlay: HOME_LOOP");
         break;
       case STATS_SCREEN:
-        Serial.println(">>> drawOverlay: STATS_SCREEN");
+        // Serial.println(">>> drawOverlay: STATS_SCREEN");
         drawStats();
         break;
       case TRAIN_DANCE: case TRAIN_SING: case TRAIN_SWIM: case TRAIN_GYM: case TRAIN_RUN: case COMP_LOCAL4: case COMP_DEPT: case COMP_REG4: case COMP_NAT4:
