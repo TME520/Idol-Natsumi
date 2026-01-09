@@ -236,6 +236,7 @@ unsigned long sessionStart = 0;           // millis() when NEW_GAME starts
 unsigned long playtimeTotalMs = 0;        // total playtime in ms (could persist later)
 int lastAgeTick = 0;
 int spiritScore = 0;
+const unsigned long screensaverWait = 10;
 const unsigned long microWait = 60;
 const unsigned long shortWait = 200;
 const unsigned long mediumWait = 3200;
@@ -543,7 +544,7 @@ bool runNeedsRedraw = false;
 bool saveRequired = false;
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "0.6.1012 Update 5";
+String versionNumber = "0.6.1012 Update 6";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -1736,7 +1737,9 @@ void loop() {
 void changeState(int baseLayer, GameState targetState, int delay) {
   // Manage state transitions
   // Serial.println("> Entering changeState() with baseLayer set to " + String(baseLayer) + " and targetState set to " + String(targetState) + " with delay set to " + String(delay));
-  counterToScreensaver = 0;
+  if (currentState != HOME_LOOP && currentState != IDLE_HOME && currentState != IDLE_STATS) {
+    counterToScreensaver = 0;
+  }
   if (changeStateCounter == delay) {
     Serial.println("Proceed with transition");
     Serial.println("> currentState = " + String(gameStateToString(currentState)));
@@ -2455,12 +2458,14 @@ void updateFiveSecondPulse() {
         break;
       case HOME_LOOP:
         counterToScreensaver += 1;
-        if (counterToScreensaver > longWait) {
+        Serial.println(">> HOME_LOOP -> counterToScreensaver: " + String(counterToScreensaver));
+        if (counterToScreensaver > screensaverWait) {
           changeState(0, IDLE_HOME, 0);
         }
         break;
-      case IDLE_HOME:
-        if (counterToScreensaver < longWait) {
+      case IDLE_HOME: case IDLE_STATS:
+        Serial.println(">> IDLE_HOME / IDLE_STATS -> counterToScreensaver: " + String(counterToScreensaver));
+        if (counterToScreensaver < screensaverWait) {
           changeState(0, HOME_LOOP, 0);
         }
         break;
@@ -2519,6 +2524,7 @@ void manageCard() {
       }
       break;
     case IDLE_HOME:
+      characterEnabled = false;
       manageScreensaver();
       break;
     case FLOWERS_MARKET2:
