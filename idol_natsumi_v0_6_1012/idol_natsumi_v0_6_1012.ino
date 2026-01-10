@@ -342,6 +342,7 @@ int restaurantSelection = 0;
 int orderibiSelection = 0;
 int foodDeliveryCounter = 0;
 int happinessCounter = 0;
+int slideshowImage = 0;
 
 bool l0NeedsRedraw = false; // Background
 bool l1NeedsRedraw = false; // Character
@@ -2467,11 +2468,42 @@ void updateFiveSecondPulse() {
           changeState(0, IDLE_HOME, 0);
         }
         break;
-      case IDLE_HOME: case IDLE_STATS:
+      case IDLE_HOME:
         Serial.println(">> IDLE_HOME / IDLE_STATS -> counterToScreensaver: " + String(counterToScreensaver));
         if (counterToScreensaver < screensaverWait) {
           changeState(0, HOME_LOOP, 0);
         }
+        unloadImage(currentBackground);
+        if (slideshowImage == 0) {
+          preloadImage("/idolnat/screens/screensaver01.png", currentBackground);
+        } else if (slideshowImage == 1) {
+          preloadImage("/idolnat/screens/slideshow01.png", currentBackground);
+        } else if (slideshowImage == 1) {
+          preloadImage("/idolnat/screens/slideshow02.png", currentBackground);
+        } else if (slideshowImage == 1) {
+          preloadImage("/idolnat/screens/slideshow03.png", currentBackground);
+        } else if (slideshowImage == 1) {
+          preloadImage("/idolnat/screens/slideshow04.png", currentBackground);
+        } else if (slideshowImage == 1) {
+          preloadImage("/idolnat/screens/slideshow05.png", currentBackground);
+        } else if (slideshowImage == 1) {
+          preloadImage("/idolnat/screens/slideshow06.png", currentBackground);
+        } else if (slideshowImage == 1) {
+          preloadImage("/idolnat/screens/slideshow07.png", currentBackground);
+        } else if (slideshowImage == 1) {
+          preloadImage("/idolnat/screens/slideshow08.png", currentBackground);
+        } else if (slideshowImage == 1) {
+          preloadImage("/idolnat/screens/slideshow09.png", currentBackground);
+        } else if (slideshowImage == 1) {
+          preloadImage("/idolnat/screens/slideshow10.png", currentBackground);
+        }
+        drawImage(currentBackground);
+        slideshowImage += 1;
+        if (slideshowImage > 10) {
+          slideshowImage = 0;
+        }
+        break;
+      case IDLE_STATS:
         break;
     }
     if (saveRequired) {
