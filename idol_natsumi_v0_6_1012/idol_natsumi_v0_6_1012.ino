@@ -1669,9 +1669,11 @@ void drawImage(const ImageBuffer& img) {
 
 void printBatteryLevel() {
   int batteryLevel = M5Cardputer.Power.getBatteryLevel();
+  /*
   Serial.print("Battery level: ");
   Serial.print(batteryLevel);
   Serial.println("%");
+  */
   if (batteryLevel < 10) {
     Serial.print("Battery is LOW");
     showToast("[WARN] Battery is low");
@@ -1709,7 +1711,7 @@ void loop() {
   Serial.println("debugEnabled: " + String(debugEnabled) + " - menuOpened: " + String(menuOpened) + " - toastActive: " + String(toastActive));
   Serial.println("changeStateCounter: " + String(changeStateCounter) + " - l5NeedsRedraw: " + String(l5NeedsRedraw));
 */
-  Serial.println("> currentState = " + String(gameStateToString(currentState)));
+  // Serial.println("> currentState = " + String(gameStateToString(currentState)));
   switch (screenConfig) {
     case CARD:
       manageCard();
@@ -2474,27 +2476,28 @@ void updateFiveSecondPulse() {
           changeState(0, HOME_LOOP, 0);
         }
         unloadImage(currentBackground);
+        Serial.println(">> IDLE_HOME / IDLE_STATS -> slideshowImage: " + String(slideshowImage));
         if (slideshowImage == 0) {
           preloadImage("/idolnat/screens/screensaver01.png", currentBackground);
         } else if (slideshowImage == 1) {
           preloadImage("/idolnat/screens/slideshow01.png", currentBackground);
-        } else if (slideshowImage == 1) {
+        } else if (slideshowImage == 2) {
           preloadImage("/idolnat/screens/slideshow02.png", currentBackground);
-        } else if (slideshowImage == 1) {
+        } else if (slideshowImage == 3) {
           preloadImage("/idolnat/screens/slideshow03.png", currentBackground);
-        } else if (slideshowImage == 1) {
+        } else if (slideshowImage == 4) {
           preloadImage("/idolnat/screens/slideshow04.png", currentBackground);
-        } else if (slideshowImage == 1) {
+        } else if (slideshowImage == 5) {
           preloadImage("/idolnat/screens/slideshow05.png", currentBackground);
-        } else if (slideshowImage == 1) {
+        } else if (slideshowImage == 6) {
           preloadImage("/idolnat/screens/slideshow06.png", currentBackground);
-        } else if (slideshowImage == 1) {
+        } else if (slideshowImage == 7) {
           preloadImage("/idolnat/screens/slideshow07.png", currentBackground);
-        } else if (slideshowImage == 1) {
+        } else if (slideshowImage == 8) {
           preloadImage("/idolnat/screens/slideshow08.png", currentBackground);
-        } else if (slideshowImage == 1) {
+        } else if (slideshowImage == 9) {
           preloadImage("/idolnat/screens/slideshow09.png", currentBackground);
-        } else if (slideshowImage == 1) {
+        } else if (slideshowImage == 10) {
           preloadImage("/idolnat/screens/slideshow10.png", currentBackground);
         }
         drawImage(currentBackground);
@@ -2502,6 +2505,7 @@ void updateFiveSecondPulse() {
         if (slideshowImage > 10) {
           slideshowImage = 0;
         }
+        Serial.println(">> IDLE_HOME / IDLE_STATS -> slideshowImage: " + String(slideshowImage));
         break;
       case IDLE_STATS:
         break;
@@ -7139,7 +7143,7 @@ void cashier() {
 }
 
 void manageScreensaver() {
-  Serial.println("> Entering manageScreensaver()");
+  // Serial.println("> Entering manageScreensaver()");
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
