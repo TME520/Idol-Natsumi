@@ -7150,6 +7150,7 @@ void manageScreensaver() {
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       counterToScreensaver = 0;
+      changeState(0, HOME_LOOP, 0);
     }
   }
   return;
