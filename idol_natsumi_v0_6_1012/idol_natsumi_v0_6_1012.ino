@@ -66,7 +66,8 @@ enum GameState {
   HEALTH_TEMPLE5,
   HEALTH_TEMPLE6,
   HEALTH_ONSEN,
-  IDLE_SCREEN,
+  IDLE_HOME,
+  IDLE_STATS,
   REST_MENU,
   REST_MEDITATE,
   REST_SLEEP,
@@ -235,6 +236,7 @@ unsigned long sessionStart = 0;           // millis() when NEW_GAME starts
 unsigned long playtimeTotalMs = 0;        // total playtime in ms (could persist later)
 int lastAgeTick = 0;
 int spiritScore = 0;
+const unsigned long screensaverWait = 10;
 const unsigned long microWait = 60;
 const unsigned long shortWait = 200;
 const unsigned long mediumWait = 3200;
@@ -242,6 +244,7 @@ const unsigned long longWait = 6400;
 const char* saveGamePath = "/idolnat/savegame.dat";
 String saveStatusMsg = "";
 unsigned long saveStatusUntil = 0;
+unsigned long counterToScreensaver = 0;
 
 // Onsen mini-game helpers
 void resetBathGame();
@@ -339,6 +342,7 @@ int restaurantSelection = 0;
 int orderibiSelection = 0;
 int foodDeliveryCounter = 0;
 int happinessCounter = 0;
+int slideshowImage = 0;
 
 bool l0NeedsRedraw = false; // Background
 bool l1NeedsRedraw = false; // Character
@@ -541,7 +545,7 @@ bool runNeedsRedraw = false;
 bool saveRequired = false;
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "0.6.1012 Update 5";
+String versionNumber = "0.6.1012 Update 6";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -612,7 +616,8 @@ const char* gameStateToString(GameState state) {
     case HEALTH_TEMPLE5:   return "HEALTH_TEMPLE5";
     case HEALTH_TEMPLE6:   return "HEALTH_TEMPLE6";
     case HEALTH_ONSEN:     return "HEALTH_ONSEN";
-    case IDLE_SCREEN:      return "IDLE_SCREEN";
+    case IDLE_HOME:        return "IDLE_HOME";
+    case IDLE_STATS:       return "IDLE_STATS";
     case REST_MENU:        return "REST_MENU";
     case REST_MEDITATE:    return "REST_MEDITATE";
     case REST_SLEEP:       return "REST_SLEEP";
@@ -1039,6 +1044,9 @@ void preloadImages() {
       break;
     case HOME_LOOP:
       preloadImage("/idolnat/screens/lounge.png", currentBackground);
+      break;
+    case IDLE_HOME:
+      preloadImage("/idolnat/screens/screensaver01.png", currentBackground);
       break;
     case FLOWERS_MARKET: case FLOWERS_MARKET7:
       preloadImage("/idolnat/screens/flower_market_bg.png", currentBackground);
@@ -1661,9 +1669,11 @@ void drawImage(const ImageBuffer& img) {
 
 void printBatteryLevel() {
   int batteryLevel = M5Cardputer.Power.getBatteryLevel();
+  /*
   Serial.print("Battery level: ");
   Serial.print(batteryLevel);
   Serial.println("%");
+  */
   if (batteryLevel < 10) {
     Serial.print("Battery is LOW");
     showToast("[WARN] Battery is low");
@@ -1701,7 +1711,7 @@ void loop() {
   Serial.println("debugEnabled: " + String(debugEnabled) + " - menuOpened: " + String(menuOpened) + " - toastActive: " + String(toastActive));
   Serial.println("changeStateCounter: " + String(changeStateCounter) + " - l5NeedsRedraw: " + String(l5NeedsRedraw));
 */
-  Serial.println("> currentState = " + String(gameStateToString(currentState)));
+  // Serial.println("> currentState = " + String(gameStateToString(currentState)));
   switch (screenConfig) {
     case CARD:
       manageCard();
@@ -1730,6 +1740,9 @@ void loop() {
 void changeState(int baseLayer, GameState targetState, int delay) {
   // Manage state transitions
   // Serial.println("> Entering changeState() with baseLayer set to " + String(baseLayer) + " and targetState set to " + String(targetState) + " with delay set to " + String(delay));
+  if (currentState != HOME_LOOP && currentState != IDLE_HOME && currentState != IDLE_STATS) {
+    counterToScreensaver = 0;
+  }
   if (changeStateCounter == delay) {
     Serial.println("Proceed with transition");
     Serial.println("> currentState = " + String(gameStateToString(currentState)));
@@ -1897,6 +1910,10 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItems = homeMenuItems;
         currentMenuItemsCount = homeMenuItemCount;
         overlayActive = false;
+        break;
+      case IDLE_HOME: case IDLE_STATS:
+        screenConfig = CARD;
+        characterEnabled = false;
         break;
       case STATS_SCREEN:
         screenConfig = GAME;
@@ -2446,6 +2463,52 @@ void updateFiveSecondPulse() {
           }
         }
         break;
+      case HOME_LOOP:
+        counterToScreensaver += 1;
+        Serial.println(">> HOME_LOOP -> counterToScreensaver: " + String(counterToScreensaver));
+        if (counterToScreensaver > screensaverWait) {
+          changeState(0, IDLE_HOME, 0);
+        }
+        break;
+      case IDLE_HOME:
+        Serial.println(">> IDLE_HOME / IDLE_STATS -> counterToScreensaver: " + String(counterToScreensaver));
+        if (counterToScreensaver < screensaverWait) {
+          changeState(0, HOME_LOOP, 0);
+        }
+        unloadImage(currentBackground);
+        Serial.println(">> IDLE_HOME / IDLE_STATS -> slideshowImage: " + String(slideshowImage));
+        if (slideshowImage == 0) {
+          preloadImage("/idolnat/screens/screensaver01.png", currentBackground);
+        } else if (slideshowImage == 1) {
+          preloadImage("/idolnat/screens/slideshow01.png", currentBackground);
+        } else if (slideshowImage == 2) {
+          preloadImage("/idolnat/screens/slideshow02.png", currentBackground);
+        } else if (slideshowImage == 3) {
+          preloadImage("/idolnat/screens/slideshow03.png", currentBackground);
+        } else if (slideshowImage == 4) {
+          preloadImage("/idolnat/screens/slideshow04.png", currentBackground);
+        } else if (slideshowImage == 5) {
+          preloadImage("/idolnat/screens/slideshow05.png", currentBackground);
+        } else if (slideshowImage == 6) {
+          preloadImage("/idolnat/screens/slideshow06.png", currentBackground);
+        } else if (slideshowImage == 7) {
+          preloadImage("/idolnat/screens/slideshow07.png", currentBackground);
+        } else if (slideshowImage == 8) {
+          preloadImage("/idolnat/screens/slideshow08.png", currentBackground);
+        } else if (slideshowImage == 9) {
+          preloadImage("/idolnat/screens/slideshow09.png", currentBackground);
+        } else if (slideshowImage == 10) {
+          preloadImage("/idolnat/screens/slideshow10.png", currentBackground);
+        }
+        drawImage(currentBackground);
+        slideshowImage += 1;
+        if (slideshowImage > 10) {
+          slideshowImage = 0;
+        }
+        Serial.println(">> IDLE_HOME / IDLE_STATS -> slideshowImage: " + String(slideshowImage));
+        break;
+      case IDLE_STATS:
+        break;
     }
     if (saveRequired) {
       saveGameToSd();
@@ -2453,6 +2516,7 @@ void updateFiveSecondPulse() {
     }
     if (isNatsumiHappy) {
       isNatsumiHappy = false;
+      changeState(0, HOME_LOOP, 0);
     }
   } else {
     fiveSecondPulse = false;
@@ -2499,6 +2563,11 @@ void manageCard() {
       } else {
         changeState(0, HOME_LOOP, 0);
       }
+      break;
+    case IDLE_HOME:
+      characterEnabled = false;
+      menuEnabled = false;
+      manageScreensaver();
       break;
     case FLOWERS_MARKET2:
       changeState(0, FLOWERS_MARKET3, 10);
@@ -6350,7 +6419,7 @@ void drawOverlay() {
     uint8_t key = 0;
     if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
       auto keyList = M5Cardputer.Keyboard.keyList();
-      Serial.println(">>> drawOverlay: Testing for key pressed");
+      // Serial.println(">>> drawOverlay: Testing for key pressed");
       if (keyList.size() > 0) {
         key = M5Cardputer.Keyboard.getKey(keyList[0]);
         if (currentState != FOOD_COOK && currentState != FOOD_CONBINI3 &&
@@ -6367,10 +6436,10 @@ void drawOverlay() {
   if (l5NeedsRedraw && overlayActive && overlayEnabled) {
     switch (currentState) {
       case HOME_LOOP:
-        Serial.println(">>> drawOverlay: HOME_LOOP");
+        // Serial.println(">>> drawOverlay: HOME_LOOP");
         break;
       case STATS_SCREEN:
-        Serial.println(">>> drawOverlay: STATS_SCREEN");
+        // Serial.println(">>> drawOverlay: STATS_SCREEN");
         drawStats();
         break;
       case TRAIN_DANCE: case TRAIN_SING: case TRAIN_SWIM: case TRAIN_GYM: case TRAIN_RUN: case COMP_LOCAL4: case COMP_DEPT: case COMP_REG4: case COMP_NAT4:
@@ -7067,6 +7136,20 @@ void cashier() {
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       overlayActive = false;
+      changeState(0, HOME_LOOP, 0);
+    }
+  }
+  return;
+}
+
+void manageScreensaver() {
+  // Serial.println("> Entering manageScreensaver()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      counterToScreensaver = 0;
       changeState(0, HOME_LOOP, 0);
     }
   }
