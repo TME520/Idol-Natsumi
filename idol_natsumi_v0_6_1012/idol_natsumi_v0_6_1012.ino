@@ -2214,8 +2214,9 @@ void changeState(int baseLayer, GameState targetState, int delay) {
 
 void updateAging() {
   // Serial.println("> Entering updateAging()");
-  unsigned long currentMilli = millis();
-  unsigned long currentPlaytime = currentMilli - sessionStart;
+  // unsigned long currentMilli = millis();
+  // unsigned long currentPlaytime = currentMilli - sessionStart;
+  unsigned long currentPlaytime = millis();
   unsigned long totalMs = playtimeTotalMs + currentPlaytime;
   int currentAge = natsumi.age;
  
@@ -3117,57 +3118,60 @@ void drawGardenPlanter() {
   gardenActive = false;
   for (int row = 0; row < gardenRows; row++) {
     for (int col = 0; col < gardenCols; col++) {
+      int tileValue = gardenTiles[row][col];
       int topX = originX + (col - row) * (tileW / 2);
       int topY = originY + (col + row) * (tileH / 2);
-      int tileValue = gardenTiles[row][col];
       uint16_t fillColor = (tileValue == 2) ? soilWetColor : soilColor;
       uint16_t borderColor = (row == gardenCursorRow && col == gardenCursorCol) ? activeBorder : soilBorder;
 
       drawGardenTile(topX, topY, tileW, tileH, fillColor, borderColor);
-      int centerX = topX;
-      int centerY = topY + (tileH / 2);
 
-      if (tileValue > 1 && !gardenActive) {
-        gardenActive = true;
-      }
-
-      if (tileValue == 1) {
-        M5Cardputer.Display.fillCircle(centerX, centerY + 2, 3, sproutColor);
-        M5Cardputer.Display.drawFastVLine(centerX, centerY - 2, 4, sproutColor);
-      } else if (tileValue == 2) {
-        M5Cardputer.Display.fillCircle(centerX + 6, centerY + 4, 2, waterColor);
-      } else if (tileValue > 2 && tileValue < 30) {
-        preloadImage("/idolnat/sprites/flower_stage_01-22x16.png", natsumiSprite);
-        M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
-        unloadImage(natsumiSprite);
-      } else if (tileValue > 30 && tileValue <= 60) {
-        preloadImage("/idolnat/sprites/flower_stage_02-20x16.png", natsumiSprite);
-        M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
-        unloadImage(natsumiSprite);
-      } else if (tileValue > 60 && tileValue <= 90) {
-        preloadImage("/idolnat/sprites/flower_stage_03-14x16.png", natsumiSprite);
-        M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
-        unloadImage(natsumiSprite);
-      } else if (tileValue > 90 && tileValue <= 120) {
-        preloadImage("/idolnat/sprites/flower_stage_04-11x16.png", natsumiSprite);
-        M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
-        unloadImage(natsumiSprite);
-      } else if (tileValue > 120 && tileValue <= 150) {
-        preloadImage("/idolnat/sprites/flower_stage_05-10x16.png", natsumiSprite);
-        M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
-        unloadImage(natsumiSprite);
-      } else if (tileValue > 150 && tileValue <= 180) {
-        preloadImage("/idolnat/sprites/flower_stage_06-12x16.png", natsumiSprite);
-        M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
-        unloadImage(natsumiSprite);
-      } else if (tileValue > 180 && tileValue <= 210) {
-        preloadImage("/idolnat/sprites/flower_stage_07-10x16.png", natsumiSprite);
-        M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
-        unloadImage(natsumiSprite);
-      } else if (tileValue > 210) {
-        preloadImage("/idolnat/sprites/flower_stage_08-10x16.png", natsumiSprite);
-        M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
-        unloadImage(natsumiSprite);
+      if (tileValue > 0) {
+        int centerX = topX;
+        int centerY = topY + (tileH / 2);
+  
+        if (tileValue > 1 && !gardenActive) {
+          gardenActive = true;
+        }
+  
+        if (tileValue == 1) {
+          M5Cardputer.Display.fillCircle(centerX, centerY + 2, 3, sproutColor);
+          M5Cardputer.Display.drawFastVLine(centerX, centerY - 2, 4, sproutColor);
+        } else if (tileValue == 2) {
+          M5Cardputer.Display.fillCircle(centerX + 6, centerY + 4, 2, waterColor);
+        } else if (tileValue > 2 && tileValue < 30) {
+          preloadImage("/idolnat/sprites/flower_stage_01-22x16.png", natsumiSprite);
+          M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
+          unloadImage(natsumiSprite);
+        } else if (tileValue > 30 && tileValue <= 60) {
+          preloadImage("/idolnat/sprites/flower_stage_02-20x16.png", natsumiSprite);
+          M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
+          unloadImage(natsumiSprite);
+        } else if (tileValue > 60 && tileValue <= 90) {
+          preloadImage("/idolnat/sprites/flower_stage_03-14x16.png", natsumiSprite);
+          M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
+          unloadImage(natsumiSprite);
+        } else if (tileValue > 90 && tileValue <= 120) {
+          preloadImage("/idolnat/sprites/flower_stage_04-11x16.png", natsumiSprite);
+          M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
+          unloadImage(natsumiSprite);
+        } else if (tileValue > 120 && tileValue <= 150) {
+          preloadImage("/idolnat/sprites/flower_stage_05-10x16.png", natsumiSprite);
+          M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
+          unloadImage(natsumiSprite);
+        } else if (tileValue > 150 && tileValue <= 180) {
+          preloadImage("/idolnat/sprites/flower_stage_06-12x16.png", natsumiSprite);
+          M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
+          unloadImage(natsumiSprite);
+        } else if (tileValue > 180 && tileValue <= 210) {
+          preloadImage("/idolnat/sprites/flower_stage_07-10x16.png", natsumiSprite);
+          M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
+          unloadImage(natsumiSprite);
+        } else if (tileValue > 210) {
+          preloadImage("/idolnat/sprites/flower_stage_08-10x16.png", natsumiSprite);
+          M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
+          unloadImage(natsumiSprite);
+        }
       }
     }
   }
