@@ -545,7 +545,7 @@ bool runNeedsRedraw = false;
 bool saveRequired = false;
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "0.6.1012 Update 6";
+String versionNumber = "0.6.1012 Update 7";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -909,6 +909,8 @@ bool loadGameFromSd() {
 
   saveFile.close();
   Serial.println(">> loadGameFromSd: Load complete");
+  Serial.println(">>> loadGameFromSd - natsumi.ageMilliseconds: " + String(natsumi.ageMilliseconds));
+  Serial.println(">>> loadGameFromSd - playtimeTotalMs: " + String(playtimeTotalMs));
   showToast("Save file loaded");
   return true;
 }
@@ -1712,6 +1714,8 @@ void loop() {
   Serial.println("changeStateCounter: " + String(changeStateCounter) + " - l5NeedsRedraw: " + String(l5NeedsRedraw));
 */
   // Serial.println("> currentState = " + String(gameStateToString(currentState)));
+  Serial.println("loop - natsumi.ageMilliseconds: " + String(natsumi.ageMilliseconds));
+  Serial.println("loop - playtimeTotalMs: " + String(playtimeTotalMs));
   switch (screenConfig) {
     case CARD:
       manageCard();
@@ -2215,7 +2219,9 @@ void updateAging() {
   unsigned long totalMs = playtimeTotalMs + currentPlaytime;
   int currentAge = natsumi.age;
  
-  natsumi.ageMilliseconds = currentPlaytime;
+  // natsumi.ageMilliseconds = currentPlaytime;
+  natsumi.ageMilliseconds = totalMs;
+  playtimeTotalMs = totalMs;
   // Serial.print("natsumi.age: ");
   // Serial.println(natsumi.age);
   if (natsumi.ageMilliseconds < agingInterval) {
