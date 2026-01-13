@@ -1053,7 +1053,7 @@ void preloadImages() {
       preloadImage("/idolnat/screens/lounge.png", currentBackground);
       break;
     case IDLE_HOME:
-      preloadImage("/idolnat/screens/screensaver01.png", currentBackground);
+      // preloadImage("/idolnat/screens/screensaver01.png", currentBackground);
       break;
     case FLOWERS_MARKET: case FLOWERS_MARKET7:
       preloadImage("/idolnat/screens/flower_market_bg.png", currentBackground);
@@ -2486,6 +2486,7 @@ void updateFiveSecondPulse() {
         if (counterToScreensaver < screensaverWait) {
           changeState(0, HOME_LOOP, 0);
         }
+        /*
         unloadImage(currentBackground);
         Serial.println(">> IDLE_HOME / IDLE_STATS -> slideshowImage: " + String(slideshowImage));
         if (slideshowImage == 0) {
@@ -2516,6 +2517,7 @@ void updateFiveSecondPulse() {
         if (slideshowImage > 10) {
           slideshowImage = 0;
         }
+        */
         Serial.println(">> IDLE_HOME / IDLE_STATS -> slideshowImage: " + String(slideshowImage));
         break;
       case IDLE_STATS:
@@ -2579,7 +2581,14 @@ void manageCard() {
       characterEnabled = false;
       menuEnabled = false;
       manageScreensaver();
+      slideStats();
       break;
+    case IDLE_STATS:
+      characterEnabled = false;
+      menuEnabled = false;
+      // manageScreensaver();
+      slideStats();
+      return;
     case FLOWERS_MARKET2:
       changeState(0, FLOWERS_MARKET3, 10);
       break;
@@ -7172,6 +7181,86 @@ void manageScreensaver() {
 
 void slideStats() {
   // Serial.println("> Entering slideStats()");
+  struct StatSlide {
+    const char* label;
+    const char* imagePath;
+    int* valuePtr;
+  };
+
+  StatSlide slides[] = {
+    {"Hunger", "/idolnat/screens/slidestats_hunger.png", &natsumi.hunger},
+    {"Hygiene", "/idolnat/screens/slidestats_hygiene.png", &natsumi.hygiene},
+    {"Energy", "/idolnat/screens/slidestats_energy.png", &natsumi.energy},
+    {"Spirit", "/idolnat/screens/slidestats_spirit.png", &natsumi.spirit},
+    {"Popularity", "/idolnat/screens/slidestats_popularity.png", &natsumi.popularity},
+    {"Performance", "/idolnat/screens/slidestats_performance.png", &natsumi.performance},
+    {"Fitness", "/idolnat/screens/slidestats_fitness.png", &natsumi.fitness},
+    {"Culture", "/idolnat/screens/slidestats_culture.png", &natsumi.culture},
+    {"Charm", "/idolnat/screens/slidestats_charm.png", &natsumi.charm},
+    {"Flowers", "/idolnat/screens/slidestats_flowers.png", &natsumi.flowers},
+    {"Age", "/idolnat/screens/slidestats_age.png", &natsumi.age},
+    {"Money", "/idolnat/screens/slidestats_money.png", &natsumi.money}
+  };
+
+  static ImageBuffer slideImage;
+  static int currentSlideIndex = 0;
+  static int lastSlideIndex = -1;
+  static unsigned long lastSlideChange = 0;
+  static bool hasInitialized = false;
+  const int slideCount = sizeof(slides) / sizeof(slides[0]);
+  const unsigned long slideDurationMs = 5000;
+
+  unsigned long now = millis();
+  bool shouldAdvance = false;
+
+  if (!hasInitialized) {
+    currentSlideIndex = 0;
+    lastSlideChange = now;
+    hasInitialized = true;
+    shouldAdvance = true;
+  } else if (now - lastSlideChange >= slideDurationMs) {
+    currentSlideIndex = (currentSlideIndex + 1) % slideCount;
+    lastSlideChange = now;
+    shouldAdvance = true;
+  }
+
+  if (shouldAdvance && currentSlideIndex != lastSlideIndex) {
+    unloadImage(slideImage);
+    preloadImage(slides[currentSlideIndex].imagePath, slideImage);
+    lastSlideIndex = currentSlideIndex;
+  }
+
+  if (shouldAdvance) {
+    if (slideImage.data && slideImage.length > 0) {
+      drawImage(slideImage);
+    } else {
+      M5Cardputer.Display.fillScreen(BLACK);
+      drawText("Slide image missing", 120, 67, true, RED, 1);
+    }
+
+    const int screenWidth = M5Cardputer.Display.width();
+    const int screenHeight = M5Cardputer.Display.height();
+    const int panelPadding = 8;
+    const int panelHeight = 48;
+    const int panelX = panelPadding;
+    const int panelY = screenHeight - panelHeight - 6;
+    const int panelWidth = screenWidth - (panelPadding * 2);
+    uint16_t panelColor = M5Cardputer.Display.color565(10, 12, 22);
+    uint16_t panelFrame = M5Cardputer.Display.color565(160, 190, 255);
+
+    M5Cardputer.Display.fillRoundRect(panelX, panelY, panelWidth, panelHeight, 6, panelColor);
+    M5Cardputer.Display.drawRoundRect(panelX, panelY, panelWidth, panelHeight, 6, panelFrame);
+
+    M5Cardputer.Display.setTextDatum(middle_center);
+    M5Cardputer.Display.setTextColor(TFT_WHITE, panelColor);
+    M5Cardputer.Display.setTextSize(2);
+    M5Cardputer.Display.drawString(slides[currentSlideIndex].label, screenWidth / 2, panelY + 13);
+
+    M5Cardputer.Display.setTextColor(panelFrame, panelColor);
+    M5Cardputer.Display.setTextSize(3);
+    String valueText = String(*slides[currentSlideIndex].valuePtr);
+    M5Cardputer.Display.drawString(valueText, screenWidth / 2, panelY + 34);
+  }
 }
 
 void competitionHost() {
