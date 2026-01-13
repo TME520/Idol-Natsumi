@@ -707,6 +707,11 @@ bool saveGameToSd() {
     return false;
   }
 
+  unsigned long currentMilli = millis();
+  unsigned long currentPlaytime = currentMilli - sessionStart;
+  unsigned long totalMs = playtimeTotalMs + currentPlaytime;
+  playtimeTotalMs = totalMs;
+
   saveFile.println("[version]");
   saveFile.println(String(versionNumber));
   
@@ -2214,15 +2219,14 @@ void changeState(int baseLayer, GameState targetState, int delay) {
 
 void updateAging() {
   // Serial.println("> Entering updateAging()");
-  // unsigned long currentMilli = millis();
-  // unsigned long currentPlaytime = currentMilli - sessionStart;
-  unsigned long currentPlaytime = millis();
+  unsigned long currentMilli = millis();
+  unsigned long currentPlaytime = currentMilli - sessionStart;
+  // unsigned long currentPlaytime = millis();
   unsigned long totalMs = playtimeTotalMs + currentPlaytime;
   int currentAge = natsumi.age;
  
   // natsumi.ageMilliseconds = currentPlaytime;
   natsumi.ageMilliseconds = totalMs;
-  playtimeTotalMs = totalMs;
   // Serial.print("natsumi.age: ");
   // Serial.println(natsumi.age);
   if (natsumi.ageMilliseconds < agingInterval) {
