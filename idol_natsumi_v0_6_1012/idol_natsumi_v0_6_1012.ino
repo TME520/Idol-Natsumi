@@ -1053,7 +1053,7 @@ void preloadImages() {
       preloadImage("/idolnat/screens/lounge.png", currentBackground);
       break;
     case IDLE_HOME:
-      preloadImage("/idolnat/screens/screensaver01.png", currentBackground);
+      // preloadImage("/idolnat/screens/screensaver01.png", currentBackground);
       break;
     case FLOWERS_MARKET: case FLOWERS_MARKET7:
       preloadImage("/idolnat/screens/flower_market_bg.png", currentBackground);
@@ -2486,6 +2486,7 @@ void updateFiveSecondPulse() {
         if (counterToScreensaver < screensaverWait) {
           changeState(0, HOME_LOOP, 0);
         }
+        /*
         unloadImage(currentBackground);
         Serial.println(">> IDLE_HOME / IDLE_STATS -> slideshowImage: " + String(slideshowImage));
         if (slideshowImage == 0) {
@@ -2516,6 +2517,7 @@ void updateFiveSecondPulse() {
         if (slideshowImage > 10) {
           slideshowImage = 0;
         }
+        */
         Serial.println(">> IDLE_HOME / IDLE_STATS -> slideshowImage: " + String(slideshowImage));
         break;
       case IDLE_STATS:
@@ -2579,11 +2581,12 @@ void manageCard() {
       characterEnabled = false;
       menuEnabled = false;
       manageScreensaver();
+      slideStats();
       break;
     case IDLE_STATS:
       characterEnabled = false;
       menuEnabled = false;
-      manageScreensaver();
+      // manageScreensaver();
       slideStats();
       return;
     case FLOWERS_MARKET2:
