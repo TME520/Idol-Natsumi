@@ -7170,6 +7170,10 @@ void manageScreensaver() {
   return;
 }
 
+void slideStats() {
+  // Serial.println("> Entering slideStats()");
+}
+
 void competitionHost() {
   // Serial.println("> Entering competitionHost()");
   uint8_t key = 0;
