@@ -2529,7 +2529,7 @@ void updateFiveSecondPulse() {
     }
     if (isNatsumiHappy) {
       isNatsumiHappy = false;
-      changeState(0, HOME_LOOP, 0);
+      changeState(0, currentState, 0);
     }
   } else {
     fiveSecondPulse = false;
