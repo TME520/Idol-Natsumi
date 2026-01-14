@@ -2582,13 +2582,11 @@ void manageCard() {
     case IDLE_HOME:
       characterEnabled = false;
       menuEnabled = false;
-      manageScreensaver();
       slideStats();
       break;
     case IDLE_STATS:
       characterEnabled = false;
       menuEnabled = false;
-      // manageScreensaver();
       // slideStats();
       return;
     case FLOWERS_MARKET2:
@@ -7167,20 +7165,6 @@ void cashier() {
   return;
 }
 
-void manageScreensaver() {
-  // Serial.println("> Entering manageScreensaver()");
-  uint8_t key = 0;
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-    auto keyList = M5Cardputer.Keyboard.keyList();
-    if (keyList.size() > 0) {
-      key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      counterToScreensaver = 0;
-      changeState(0, HOME_LOOP, 0);
-    }
-  }
-  return;
-}
-
 void slideStats() {
   // Serial.println("> Entering slideStats()");
   struct StatSlide {
@@ -7262,6 +7246,17 @@ void slideStats() {
     M5Cardputer.Display.setTextSize(3);
     String valueText = String(*slides[currentSlideIndex].valuePtr);
     M5Cardputer.Display.drawString(valueText, screenWidth / 2, panelY + 34);
+  }
+
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      counterToScreensaver = 0;
+      unloadImage(slideImage);
+      changeState(0, HOME_LOOP, 0);
+    }
   }
 
   // Stats management
