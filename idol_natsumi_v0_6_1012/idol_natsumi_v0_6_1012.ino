@@ -711,6 +711,7 @@ bool saveGameToSd() {
   unsigned long currentPlaytime = currentMilli - sessionStart;
   unsigned long totalMs = playtimeTotalMs + currentPlaytime;
   playtimeTotalMs = totalMs;
+  sessionStart = currentMilli;
 
   saveFile.println("[version]");
   saveFile.println(String(versionNumber));
@@ -913,6 +914,7 @@ bool loadGameFromSd() {
   }
 
   saveFile.close();
+  sessionStart = millis();
   Serial.println(">> loadGameFromSd: Load complete");
   Serial.println(">>> loadGameFromSd - natsumi.ageMilliseconds: " + String(natsumi.ageMilliseconds));
   Serial.println(">>> loadGameFromSd - playtimeTotalMs: " + String(playtimeTotalMs));
