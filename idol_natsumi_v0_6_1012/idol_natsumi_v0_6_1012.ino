@@ -2587,7 +2587,7 @@ void manageCard() {
       characterEnabled = false;
       menuEnabled = false;
       // manageScreensaver();
-      slideStats();
+      // slideStats();
       return;
     case FLOWERS_MARKET2:
       changeState(0, FLOWERS_MARKET3, 10);
@@ -7261,6 +7261,10 @@ void slideStats() {
     String valueText = String(*slides[currentSlideIndex].valuePtr);
     M5Cardputer.Display.drawString(valueText, screenWidth / 2, panelY + 34);
   }
+
+  // Stats management
+  updateAging();
+  updateStats();
 }
 
 void competitionHost() {
