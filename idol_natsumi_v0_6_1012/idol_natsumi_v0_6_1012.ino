@@ -545,7 +545,7 @@ bool runNeedsRedraw = false;
 bool saveRequired = false;
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "0.6.1012 Update 7";
+String versionNumber = "0.6.1012 Update 8";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -1037,7 +1037,7 @@ void preloadImages() {
       preloadImage("/idolnat/screens/motto.png", currentBackground);
       break;
     case TITLE_SCREEN:
-      preloadImage("/idolnat/screens/title02.png", currentBackground);
+      preloadImage("/idolnat/screens/title03.png", currentBackground);
       break;
     case DEV_SCREEN:
       preloadImage("/idolnat/screens/title01.png", currentBackground);
