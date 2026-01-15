@@ -1,7 +1,7 @@
 # Idol-Natsumi
 Manage the daily life and artistic career of Natsumi Hasegawa, an aspiring Japanese idol from a small town.
 
-![cover](./itch.io/cover.png "Cover")
+![cover](./itch.io/cover2.png "Cover")
 
 ## Presentation
 
