@@ -546,6 +546,8 @@ bool runNeedsRedraw = false;
 
 bool saveRequired = false;
 String gardeningHelperText = "";
+String doctorHint = "";
+String priestHint = "";
 
 String copyright = "(c) 2026 - Pantzumatic";
 String versionNumber = "0.6.1012 Update 8";
@@ -6698,26 +6700,38 @@ void drawOverlay() {
         drawDialogBubble("Hello Miss Hasegawa. Thanks for coming to our medical center. I will check your health and see if everything is OK.");
         break;
       case HEALTH_DOCTOR6:
-        if (natsumi.hunger < 2) {
-          drawDialogBubble("You need to eat more...");
-          doctorState = FOOD_MENU;
-          foodMenuSelection = 0;
-        } else if (natsumi.hygiene < 2) {
-          drawDialogBubble("You need better hygiene...");
-          doctorState = HEALTH_MENU;
-          healthMenuSelection = 0;
-        } else if (natsumi.fitness < 2) {
-          drawDialogBubble("You need to exercise more...");
-          doctorState = TRAIN_MENU;
-          trainingMenuSelection = 2;
-        } else if (natsumi.energy < 2) {
-          drawDialogBubble("You need to sleep more...");
-          doctorState = REST_MENU;
-          restMenuSelection = 1;
+        doctorHint = "";
+        if (natsumi.hunger == 4) {
+          doctorHint += "You eat enough. ";
         } else {
-          drawDialogBubble("Congratulations!! You are in shape!");
-          doctorState = HOME_LOOP;
+          doctorHint += "You need to eat more. ";
+          doctorState = FOOD_MENU;
         }
+        if (natsumi.hygiene == 4) {
+          doctorHint += "You have good hygiene. ";
+        } else {
+          doctorHint += "You need better hygiene. ";
+          doctorState = HEALTH_MENU;
+        }
+        if (natsumi.energy == 4) {
+          doctorHint += "You sleep properly. ";
+        } else {
+          doctorHint += "You need to sleep more. ";
+          doctorState = REST_MENU;
+        }
+        if (natsumi.fitness == 4) {
+          doctorHint += "You do enough sport. ";
+        } else {
+          doctorHint +=  "You need to exercise more. ";
+          doctorState = TRAIN_MENU;
+        }
+        if (natsumi.performance == 4) {
+          doctorHint += "You train enough. ";
+        } else {
+          doctorHint += "You need to train more. ";
+          doctorState = TRAIN_MENU;
+        }
+        drawDialogBubble(doctorHint);
         break;
       case HEALTH_TEMPLE:
         drawDialogBubble("Hello Miss. Thanks for visiting our temple. I will pray for you and see if everything is OK.");
