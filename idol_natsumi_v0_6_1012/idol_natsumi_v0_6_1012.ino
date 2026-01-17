@@ -6737,36 +6737,36 @@ void drawOverlay() {
         drawDialogBubble("Hello Miss. Thanks for visiting our temple. I will pray for you and see if everything is OK.");
         break;
       case HEALTH_TEMPLE6:
-        if (natsumi.spirit < 2) {
-          if (natsumi.hunger < 2) {
-            drawDialogBubble("You need to eat more...");
-            priestState = FOOD_MENU;
-            foodMenuSelection = 0;
-          } else if (natsumi.hygiene < 2) {
-            drawDialogBubble("You need better hygiene...");
-            priestState = HEALTH_MENU;
-            healthMenuSelection = 0;
-          } else if (natsumi.energy < 2) {
-            drawDialogBubble("You need to exercise more...");
-            priestState = HEALTH_MENU;
-            healthMenuSelection = 2;
-          } else if (natsumi.performance < 2) {
-            drawDialogBubble("You need to train more...");
-            priestState = TRAIN_MENU;
-            trainingMenuSelection = 0;
-          } else if (natsumi.popularity < 2) {
-            drawDialogBubble("You need to compete more...");
-            priestState = COMP_MENU;
-            competitionMenuSelection = natsumi.popularity;
-          }
-        } else if (natsumi.charm < 2) {
-          drawDialogBubble("Treat yourself to some nice food, it\'s good for the soul.");
-          priestState = FOOD_MENU;
-          foodMenuSelection = 1;
+        priestHint = "";
+        if (natsumi.culture == 4) {
+          priestHint += "You read enough. ";
         } else {
-          drawDialogBubble("Congratulations!! You have a strong mind!");
-          priestState = HOME_LOOP;
+          priestHint += "You need to read more. ";
+          priestState = TRAIN_MENU;
         }
+        if (natsumi.charm == 4) {
+          priestHint += "You have good manners. ";
+        } else {
+          priestHint += "You need to go out more. ";
+          priestState = FOOD_MENU;
+        }
+        if (isCompetitionEnabled()) {
+          if (natsumi.popularity == 4) {
+            priestHint += "The public likes you. ";
+          } else {
+            priestHint += "You need to compete more. ";
+            priestState = COMP_MENU;
+          }
+          if (natsumi.spirit == 4) {
+            priestHint += "You are spiritually strong. ";
+          } else {
+            priestHint += "You need to keep working on yourself. ";
+            priestState = TRAIN_MENU;
+          }
+        } else {
+          priestHint += "Train in order to get ready for competition later. ";
+        }
+        drawDialogBubble(priestHint);
         break;
       case FOOD_COOK:
         drawFoodGrid(foodGridItems, foodSelectionIndex);
