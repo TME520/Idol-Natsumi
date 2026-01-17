@@ -545,6 +545,7 @@ bool runGameFailed = false;
 bool runNeedsRedraw = false;
 
 bool saveRequired = false;
+String gardeningHelperText = "";
 
 String copyright = "(c) 2026 - Pantzumatic";
 String versionNumber = "0.6.1012 Update 8";
@@ -2486,7 +2487,7 @@ void updateFiveSecondPulse() {
         }
         switch (currentState) {
           case GARDEN_LOOP:
-            drawGardenPlanter();
+            drawGardenPlanter(gardeningHelperText);
             break;
         }
       } else {
@@ -3144,7 +3145,7 @@ void drawGardenTile(int topX, int topY, int tileW, int tileH, uint16_t fillColor
   M5Cardputer.Display.drawLine(rightX, midY, topX, topY, borderColor);
 }
 
-void drawGardenPlanter() {
+void drawGardenPlanter(String helperText) {
   const int tileW = 48;
   const int tileH = 36;
   const int originX = 147;
@@ -3219,7 +3220,7 @@ void drawGardenPlanter() {
 
   if (!menuOpened) {
     M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-    drawText("ARROWS: Move  ENTER: Menu  ESC: Home", 120, 131, true, WHITE, 1);
+    drawText(helperText, 120, 131, true, WHITE, 1);
   }
 }
 
@@ -3229,6 +3230,7 @@ void manageGarden() {
   overlayActive = true;
   updateAging();
   updateStats();
+  gardeningHelperText = "ARROWS: Move  ENTER: Menu  ESC: Home";
 
   int &tile = gardenTiles[gardenCursorRow][gardenCursorCol];
   Serial.println(">> tile: " + String(tile));
@@ -3240,20 +3242,20 @@ void manageGarden() {
         saveRequired = true;
         isPlayerGardening = true;
       } else {
-        showToast("Tile already planted");
+        gardeningHelperText = "Tile already planted";
       }
       changeState(0, GARDEN_LOOP, 0);
       break;
     case GARDEN_WATER:
       Serial.println(">> GARDEN_WATER");
       if (tile == 0) {
-        showToast("Plant seed 1st");
+        gardeningHelperText = "Plant seed 1st";
       } else if (tile == 1) {
         tile = 2;
         saveRequired = true;
         isPlayerGardening = true;
       } else {
-        showToast("No need to water");
+        gardeningHelperText = "No need to water";
       }
       changeState(0, GARDEN_LOOP, 0);
       break;
@@ -3263,14 +3265,14 @@ void manageGarden() {
         if (natsumi.flowers < 24) {
           tile = 0;
           natsumi.flowers += 1;
-          showToast("Natsumi now has " + String(natsumi.flowers) + " flowers");
+          gardeningHelperText = "Natsumi now has " + String(natsumi.flowers) + " flowers";
           saveRequired = true;
           isPlayerGardening = true;
         } else {
-          showToast("Flowers storage full. Sell some");
+          gardeningHelperText = "Flowers storage full. Sell some";
         }
       } else {
-        showToast("Not ready yet");
+        gardeningHelperText = "Not ready yet";
       }
       changeState(0, GARDEN_LOOP, 0);
       break;
@@ -6780,7 +6782,7 @@ void drawOverlay() {
         }
         break;
       case GARDEN_LOOP: case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
-        drawGardenPlanter();
+        drawGardenPlanter(gardeningHelperText);
         break;
       case FLOWERS_MARKET7:
         drawDialogBubble("I sold all my flowers and made " + String(flowersRevenue) + "$. I have " + String(natsumi.money) + "$ in the bank.");
