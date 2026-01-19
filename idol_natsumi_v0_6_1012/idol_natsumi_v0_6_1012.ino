@@ -4849,7 +4849,9 @@ void manageCompetition() {
     unsigned long now = millis();
   
     if (competitionCompleted) {
-      if (competitionNotesCollected == targetNotes && competitionNotesCollected == competitionNotesSpawned) {
+      if (competitionNotesCollected == targetNotes) {
+        Serial.println(">> Competition - Notes collected: " + String(competitionNotesCollected));
+        Serial.println(">> Competition - Notes spawned: " + String(competitionNotesSpawned));
         switch (currentState) {
           case COMP_LOCAL5:
             if (natsumi.competition == 0) {
