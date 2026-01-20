@@ -95,6 +95,7 @@ enum GameState {
   TRAIN_RUN2,
   TRAIN_RUN3,
   TRAIN_LIBRARY,
+  COMP_EXPLAIN,
   COMP_MENU,
   COMP_LOCAL,
   COMP_LOCAL2,
@@ -231,7 +232,8 @@ bool conbimartInitialized = false;
 // 86,400,000 milliseconds in a day
 // unsigned long agingInterval = 60000;  // 1 minute for testing
 // unsigned long agingInterval = 60000;  // 10 minutes for testing
-unsigned long agingInterval = 86400000;  // 1 day
+unsigned long agingInterval = 28800000; // 1 day in-game = 8 hours IRL
+// unsigned long agingInterval = 86400000;  // 1 day
 unsigned long sessionStart = 0;           // millis() when NEW_GAME starts
 unsigned long playtimeTotalMs = 0;        // total playtime in ms (could persist later)
 int lastAgeTick = 0;
@@ -543,9 +545,12 @@ bool runGameFailed = false;
 bool runNeedsRedraw = false;
 
 bool saveRequired = false;
+String gardeningHelperText = "";
+String doctorHint = "";
+String priestHint = "";
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "0.6.1012 Update 7";
+String versionNumber = "0.6.1012 Update 8";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -645,6 +650,7 @@ const char* gameStateToString(GameState state) {
     case TRAIN_RUN2:       return "TRAIN_RUN2";
     case TRAIN_RUN3:       return "TRAIN_RUN3";
     case TRAIN_LIBRARY:    return "TRAIN_LIBRARY";
+    case COMP_EXPLAIN:     return "COMP_EXPLAIN";
     case COMP_MENU:        return "COMP_MENU";
     case COMP_LOCAL:       return "COMP_LOCAL";
     case COMP_LOCAL2:      return "COMP_LOCAL2";
@@ -693,6 +699,17 @@ void showToast(const String& msg, unsigned long ms = longWait) {
   toastMsg = msg;
   toastUntil = millis() + ms;
   l3NeedsRedraw = true;
+}
+
+bool isCompetitionEnabled() {
+  Serial.println("> isCompetitionEnabled()");
+  if (natsumi.age >= 13 && natsumi.hunger == 4 && natsumi.hygiene == 4 && natsumi.energy == 4 && natsumi.performance == 4 && natsumi.fitness == 4 && natsumi.culture == 4 && natsumi.charm == 4) {
+    Serial.println(">> isCompetitionEnabled: true");
+    return true;
+  } else {
+    Serial.println(">> isCompetitionEnabled: false");
+    return false;
+  }
 }
 
 bool saveGameToSd() {
@@ -1037,7 +1054,7 @@ void preloadImages() {
       preloadImage("/idolnat/screens/motto.png", currentBackground);
       break;
     case TITLE_SCREEN:
-      preloadImage("/idolnat/screens/title02.png", currentBackground);
+      preloadImage("/idolnat/screens/title03.png", currentBackground);
       break;
     case DEV_SCREEN:
       preloadImage("/idolnat/screens/title01.png", currentBackground);
@@ -1296,6 +1313,9 @@ void preloadImages() {
           break;
       }
       break;
+    case COMP_EXPLAIN:
+      preloadImage("/idolnat/screens/competition_booth.png", currentBackground);
+      break;
     case COMP_MENU:
       preloadImage("/idolnat/screens/competition.png", currentBackground);
       break;
@@ -1389,6 +1409,7 @@ void preloadImages() {
         case COMP_DEPT3: case COMP_DEPT6:
         case COMP_REG3: case COMP_REG6:
         case COMP_NAT3: case COMP_NAT6:
+        case COMP_EXPLAIN:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
         default:
@@ -1453,6 +1474,7 @@ void preloadImages() {
         case COMP_DEPT3: case COMP_DEPT6:
         case COMP_REG3: case COMP_REG6:
         case COMP_NAT3: case COMP_NAT6:
+        case COMP_EXPLAIN:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
         default:
@@ -1517,6 +1539,7 @@ void preloadImages() {
         case COMP_DEPT3: case COMP_DEPT6:
         case COMP_REG3: case COMP_REG6:
         case COMP_NAT3: case COMP_NAT6:
+        case COMP_EXPLAIN:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
         default:
@@ -1581,6 +1604,7 @@ void preloadImages() {
         case COMP_DEPT3: case COMP_DEPT6:
         case COMP_REG3: case COMP_REG6:
         case COMP_NAT3: case COMP_NAT6:
+        case COMP_EXPLAIN:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
         default:
@@ -1645,6 +1669,7 @@ void preloadImages() {
         case COMP_DEPT3: case COMP_DEPT6:
         case COMP_REG3: case COMP_REG6:
         case COMP_NAT3: case COMP_NAT6:
+        case COMP_EXPLAIN:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
         default:
@@ -1721,8 +1746,8 @@ void loop() {
   Serial.println("changeStateCounter: " + String(changeStateCounter) + " - l5NeedsRedraw: " + String(l5NeedsRedraw));
 */
   // Serial.println("> currentState = " + String(gameStateToString(currentState)));
-  Serial.println("loop - natsumi.ageMilliseconds: " + String(natsumi.ageMilliseconds));
-  Serial.println("loop - playtimeTotalMs: " + String(playtimeTotalMs));
+  // Serial.println("loop - natsumi.ageMilliseconds: " + String(natsumi.ageMilliseconds));
+  // Serial.println("loop - playtimeTotalMs: " + String(playtimeTotalMs));
   switch (screenConfig) {
     case CARD:
       manageCard();
@@ -2091,6 +2116,11 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         librarySegmentsFilled = 0;
         libraryStartTime = 0;
         break;
+      case COMP_EXPLAIN:
+        screenConfig = DIALOG;
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        break;
       case COMP_MENU:
         screenConfig = ROOM;
         currentMenuType = "competition";
@@ -2453,13 +2483,13 @@ void updateFiveSecondPulse() {
             int tileValue = gardenTiles[row][col];
             if (tileValue > 1) {
               gardenTiles[row][col] += 5;
-              Serial.println(">>> Gardening -> Current tile value is " + String(tileValue));  
+              // Serial.println(">>> Gardening -> Current tile value is " + String(tileValue));  
             }
           }
         }
         switch (currentState) {
           case GARDEN_LOOP:
-            drawGardenPlanter();
+            drawGardenPlanter(gardeningHelperText);
             break;
         }
       } else {
@@ -2703,6 +2733,7 @@ void manageDialog() {
     case COMP_DEPT3:
     case COMP_REG3:
     case COMP_NAT3:
+    case COMP_EXPLAIN:
       competitionHost();
       break;
     case TRAIN_DANCE3:
@@ -3116,7 +3147,7 @@ void drawGardenTile(int topX, int topY, int tileW, int tileH, uint16_t fillColor
   M5Cardputer.Display.drawLine(rightX, midY, topX, topY, borderColor);
 }
 
-void drawGardenPlanter() {
+void drawGardenPlanter(String helperText) {
   const int tileW = 48;
   const int tileH = 36;
   const int originX = 147;
@@ -3191,7 +3222,7 @@ void drawGardenPlanter() {
 
   if (!menuOpened) {
     M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-    drawText("ARROWS: Move  ENTER: Menu  ESC: Home", 120, 131, true, WHITE, 1);
+    drawText(helperText, 120, 131, true, WHITE, 1);
   }
 }
 
@@ -3201,6 +3232,7 @@ void manageGarden() {
   overlayActive = true;
   updateAging();
   updateStats();
+  gardeningHelperText = "ARROWS: Move  ENTER: Menu  ESC: Home";
 
   int &tile = gardenTiles[gardenCursorRow][gardenCursorCol];
   Serial.println(">> tile: " + String(tile));
@@ -3212,20 +3244,20 @@ void manageGarden() {
         saveRequired = true;
         isPlayerGardening = true;
       } else {
-        showToast("Tile already planted");
+        gardeningHelperText = "Tile already planted";
       }
       changeState(0, GARDEN_LOOP, 0);
       break;
     case GARDEN_WATER:
       Serial.println(">> GARDEN_WATER");
       if (tile == 0) {
-        showToast("Plant seed 1st");
+        gardeningHelperText = "Plant seed 1st";
       } else if (tile == 1) {
         tile = 2;
         saveRequired = true;
         isPlayerGardening = true;
       } else {
-        showToast("No need to water");
+        gardeningHelperText = "No need to water";
       }
       changeState(0, GARDEN_LOOP, 0);
       break;
@@ -3235,14 +3267,14 @@ void manageGarden() {
         if (natsumi.flowers < 24) {
           tile = 0;
           natsumi.flowers += 1;
-          showToast("Natsumi now has " + String(natsumi.flowers) + " flowers");
+          gardeningHelperText = "Natsumi now has " + String(natsumi.flowers) + " flowers";
           saveRequired = true;
           isPlayerGardening = true;
         } else {
-          showToast("Flowers storage full. Sell some");
+          gardeningHelperText = "Flowers storage full. Sell some";
         }
       } else {
-        showToast("Not ready yet");
+        gardeningHelperText = "Not ready yet";
       }
       changeState(0, GARDEN_LOOP, 0);
       break;
@@ -4755,200 +4787,206 @@ void manageFlowersSale() {
 }
 
 void manageCompetition() {
-  static bool competitionInitialized = false;
-  static GameState competitionState = COMP_LOCAL5;
-  static std::vector<FallingNote> competitionNotes;
-  static int competitionColumns = 3;
-  static int competitionColumnWidth = 0;
-  static int competitionPlayerColumn = 0;
-  static int competitionNotesSpawned = 0;
-  static int competitionNotesCollected = 0;
-  static unsigned long competitionLastSpawn = 0;
-  static unsigned long competitionCompletionTime = 0;
-  static bool competitionCompleted = false;
-
-  const int targetNotes = 50;
-  const int noteRadius = 5;
-  const int playerWidth = 22;
-  const int playerHeight = 20;
-  const unsigned long spawnInterval = 650;
-  const int fallSpeed = 3;
-  const uint16_t laneColor = M5Cardputer.Display.color565(40, 40, 60);
-  const uint16_t noteColor = M5Cardputer.Display.color565(255, 215, 0);
-
-  const int screenWidth = M5Cardputer.Display.width();
-  const int screenHeight = M5Cardputer.Display.height();
-  const int playerY = screenHeight - 12;
-
-  if (!competitionInitialized || competitionState != currentState) {
-    competitionState = currentState;
-    competitionNotes.clear();
-    competitionNotesSpawned = 0;
-    competitionNotesCollected = 0;
-    competitionLastSpawn = 0;
-    competitionCompletionTime = 0;
-    competitionCompleted = false;
-
-    switch (currentState) {
-      case COMP_LOCAL5:
-        Serial.println(">> COMP_LOCAL5 - 3 columns");
-        competitionColumns = 3;
-        break;
-      case COMP_DEPT5:
-        Serial.println(">> COMP_DEPT5 - 4 columns");
-        competitionColumns = 4;
-        break;
-      case COMP_REG5:
-        Serial.println(">> COMP_REG5 - 5 columns");
-        competitionColumns = 5;
-        break;
-      case COMP_NAT5:
-        Serial.println(">> COMP_NAT5 - 6 columns");
-        competitionColumns = 6;
-        break;
-    }
-
-    competitionColumnWidth = screenWidth / competitionColumns;
-    competitionPlayerColumn = competitionColumns / 2;
-    competitionInitialized = true;
-  }
-
-  unsigned long now = millis();
-
-  if (competitionCompleted) {
-    if (competitionNotesCollected == targetNotes && competitionNotesCollected == competitionNotesSpawned) {
+  if (isCompetitionEnabled()) {
+    static bool competitionInitialized = false;
+    static GameState competitionState = COMP_LOCAL5;
+    static std::vector<FallingNote> competitionNotes;
+    static int competitionColumns = 3;
+    static int competitionColumnWidth = 0;
+    static int competitionPlayerColumn = 0;
+    static int competitionNotesSpawned = 0;
+    static int competitionNotesCollected = 0;
+    static unsigned long competitionLastSpawn = 0;
+    static unsigned long competitionCompletionTime = 0;
+    static bool competitionCompleted = false;
+  
+    const int targetNotes = 50;
+    const int noteRadius = 5;
+    const int playerWidth = 22;
+    const int playerHeight = 20;
+    const unsigned long spawnInterval = 650;
+    const int fallSpeed = 3;
+    const uint16_t laneColor = M5Cardputer.Display.color565(40, 40, 60);
+    const uint16_t noteColor = M5Cardputer.Display.color565(255, 215, 0);
+  
+    const int screenWidth = M5Cardputer.Display.width();
+    const int screenHeight = M5Cardputer.Display.height();
+    const int playerY = screenHeight - 12;
+  
+    if (!competitionInitialized || competitionState != currentState) {
+      competitionState = currentState;
+      competitionNotes.clear();
+      competitionNotesSpawned = 0;
+      competitionNotesCollected = 0;
+      competitionLastSpawn = 0;
+      competitionCompletionTime = 0;
+      competitionCompleted = false;
+  
       switch (currentState) {
         case COMP_LOCAL5:
-          if (natsumi.competition == 0) {
-            natsumi.competition = 1;
-            if (natsumi.popularity < 4) {
-              natsumi.popularity += 1;
-            }
-            competitionInitialized = false;
-            changeState(0, COMP_LOCAL6, 0);
-            competitionMenuSelection = 1;
-            showToast("Departmental competition unlocked");
-          }
+          Serial.println(">> COMP_LOCAL5 - 3 columns");
+          competitionColumns = 3;
           break;
         case COMP_DEPT5:
-          if (natsumi.competition == 1) {
-            natsumi.competition = 2;
-            if (natsumi.popularity < 4) {
-              natsumi.popularity += 1;
-            }
-            competitionInitialized = false;
-            changeState(0, COMP_DEPT6, 0);
-            competitionMenuSelection = 2;
-            showToast("Regional competition unlocked");
-          }
+          Serial.println(">> COMP_DEPT5 - 4 columns");
+          competitionColumns = 4;
           break;
         case COMP_REG5:
-          if (natsumi.competition == 2) {
-            natsumi.competition = 3;
-            if (natsumi.popularity < 4) {
-              natsumi.popularity += 1;
-            }
-            competitionInitialized = false;
-            changeState(0, COMP_REG6, 0);
-            competitionMenuSelection = 3;
-            showToast("National competition unlocked");
-          }
+          Serial.println(">> COMP_REG5 - 5 columns");
+          competitionColumns = 5;
           break;
         case COMP_NAT5:
-          if (natsumi.competition == 3) {
-            natsumi.competition = 4;
-            if (natsumi.popularity < 4) {
-              natsumi.popularity += 1;
+          Serial.println(">> COMP_NAT5 - 6 columns");
+          competitionColumns = 6;
+          break;
+      }
+  
+      competitionColumnWidth = screenWidth / competitionColumns;
+      competitionPlayerColumn = competitionColumns / 2;
+      competitionInitialized = true;
+    }
+  
+    unsigned long now = millis();
+  
+    if (competitionCompleted) {
+      if (competitionNotesCollected == targetNotes) {
+        Serial.println(">> Competition - Notes collected: " + String(competitionNotesCollected));
+        Serial.println(">> Competition - Notes spawned: " + String(competitionNotesSpawned));
+        switch (currentState) {
+          case COMP_LOCAL5:
+            if (natsumi.competition == 0) {
+              natsumi.competition = 1;
+              if (natsumi.popularity < 4) {
+                natsumi.popularity += 1;
+              }
+              competitionInitialized = false;
+              changeState(0, COMP_LOCAL6, 0);
+              competitionMenuSelection = 1;
+              showToast("Departmental competition unlocked");
             }
-            competitionInitialized = false;
-            changeState(0, COMP_NAT6, 0);
-          }
-          break;
+            break;
+          case COMP_DEPT5:
+            if (natsumi.competition == 1) {
+              natsumi.competition = 2;
+              if (natsumi.popularity < 4) {
+                natsumi.popularity += 1;
+              }
+              competitionInitialized = false;
+              changeState(0, COMP_DEPT6, 0);
+              competitionMenuSelection = 2;
+              showToast("Regional competition unlocked");
+            }
+            break;
+          case COMP_REG5:
+            if (natsumi.competition == 2) {
+              natsumi.competition = 3;
+              if (natsumi.popularity < 4) {
+                natsumi.popularity += 1;
+              }
+              competitionInitialized = false;
+              changeState(0, COMP_REG6, 0);
+              competitionMenuSelection = 3;
+              showToast("National competition unlocked");
+            }
+            break;
+          case COMP_NAT5:
+            if (natsumi.competition == 3) {
+              natsumi.competition = 4;
+              if (natsumi.popularity < 4) {
+                natsumi.popularity += 1;
+              }
+              competitionInitialized = false;
+              changeState(0, COMP_NAT6, 0);
+            }
+            break;
+        }
+        unlockedNextCompetitionLevel = true;
+        return;
       }
-      unlockedNextCompetitionLevel = true;
-      return;
+    } else {
+      unlockedNextCompetitionLevel = false;
+      showToast("Too many misses, disqualified");
     }
+  
+    if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+      auto keyList = M5Cardputer.Keyboard.keyList();
+      if (!keyList.empty()) {
+        uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+        switch (key) {
+          case 180: case 44: case 'a': case 'A':  // LEFT
+            if (competitionPlayerColumn > 0) {
+              competitionPlayerColumn--;
+            } else if (competitionPlayerColumn == 0) {
+              competitionPlayerColumn = competitionColumns - 1;
+            }
+            break;
+          case 183: case 47: case 'd': case 'D':  // RIGHT
+            if (competitionPlayerColumn < competitionColumns - 1) {
+              competitionPlayerColumn++;
+            } else if (competitionPlayerColumn == competitionColumns - 1) {
+              competitionPlayerColumn = 0;
+            }
+            break;
+          default:
+            break;
+        }
+      }
+    }
+  
+    if (now - competitionLastSpawn >= spawnInterval) {
+      if (competitionNotes.size() < 14) {
+        FallingNote newNote = {static_cast<int>(random(0, competitionColumns)), 0, true};
+        competitionNotes.push_back(newNote);
+      }
+      competitionLastSpawn = now;
+    }
+  
+    for (auto &note : competitionNotes) {
+      if (!note.active) continue;
+      note.y += fallSpeed;
+      if (note.y >= playerY - noteRadius) {
+        if (note.column == competitionPlayerColumn) {
+          competitionNotesCollected++;
+          note.active = false;
+        } else if (note.y > screenHeight) {
+          note.active = false;
+        }
+      }
+    }
+  
+    competitionNotes.erase(std::remove_if(competitionNotes.begin(), competitionNotes.end(), [&](const FallingNote &note) {
+      return !note.active || note.y > screenHeight;
+    }), competitionNotes.end());
+  
+    if (competitionNotesCollected >= targetNotes) {
+      competitionCompleted = true;
+    }
+  
+    // drawImage(currentBackground);
+    M5Cardputer.Display.fillRect(0, 0, 240, 135, BLACK);
+  
+    for (int i = 1; i < competitionColumns; i++) {
+      int x = i * competitionColumnWidth;
+      M5Cardputer.Display.drawFastVLine(x, 0, screenHeight, laneColor);
+    }
+  
+    for (const auto &note : competitionNotes) {
+      if (!note.active) continue;
+      int x = note.column * competitionColumnWidth + (competitionColumnWidth / 2);
+      M5Cardputer.Display.fillCircle(x, note.y, noteRadius, noteColor);
+    }
+  
+    int playerCenterX = competitionPlayerColumn * competitionColumnWidth + (competitionColumnWidth / 2);
+    int groundY = playerY + (playerHeight / 2);
+    M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, playerCenterX - (playerWidth / 2), groundY - playerHeight);
+  
+    M5Cardputer.Display.setTextDatum(top_left);
+    M5Cardputer.Display.setTextColor(WHITE, BLACK);
+    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.drawString(String("Notes: ") + competitionNotesCollected + String("/") + targetNotes, 6, 4);
   } else {
-    unlockedNextCompetitionLevel = false;
-    showToast("Too many misses, disqualified");
+    changeState(0, COMP_EXPLAIN, 0);
   }
-
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-    auto keyList = M5Cardputer.Keyboard.keyList();
-    if (!keyList.empty()) {
-      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      switch (key) {
-        case 180: case 44: case 'a': case 'A':  // LEFT
-          if (competitionPlayerColumn > 0) {
-            competitionPlayerColumn--;
-          } else if (competitionPlayerColumn == 0) {
-            competitionPlayerColumn = competitionColumns - 1;
-          }
-          break;
-        case 183: case 47: case 'd': case 'D':  // RIGHT
-          if (competitionPlayerColumn < competitionColumns - 1) {
-            competitionPlayerColumn++;
-          } else if (competitionPlayerColumn == competitionColumns - 1) {
-            competitionPlayerColumn = 0;
-          }
-          break;
-        default:
-          break;
-      }
-    }
-  }
-
-  if (now - competitionLastSpawn >= spawnInterval) {
-    if (competitionNotes.size() < 14) {
-      FallingNote newNote = {static_cast<int>(random(0, competitionColumns)), 0, true};
-      competitionNotes.push_back(newNote);
-    }
-    competitionLastSpawn = now;
-  }
-
-  for (auto &note : competitionNotes) {
-    if (!note.active) continue;
-    note.y += fallSpeed;
-    if (note.y >= playerY - noteRadius) {
-      if (note.column == competitionPlayerColumn) {
-        competitionNotesCollected++;
-        note.active = false;
-      } else if (note.y > screenHeight) {
-        note.active = false;
-      }
-    }
-  }
-
-  competitionNotes.erase(std::remove_if(competitionNotes.begin(), competitionNotes.end(), [&](const FallingNote &note) {
-    return !note.active || note.y > screenHeight;
-  }), competitionNotes.end());
-
-  if (competitionNotesCollected >= targetNotes) {
-    competitionCompleted = true;
-  }
-
-  // drawImage(currentBackground);
-  M5Cardputer.Display.fillRect(0, 0, 240, 135, BLACK);
-
-  for (int i = 1; i < competitionColumns; i++) {
-    int x = i * competitionColumnWidth;
-    M5Cardputer.Display.drawFastVLine(x, 0, screenHeight, laneColor);
-  }
-
-  for (const auto &note : competitionNotes) {
-    if (!note.active) continue;
-    int x = note.column * competitionColumnWidth + (competitionColumnWidth / 2);
-    M5Cardputer.Display.fillCircle(x, note.y, noteRadius, noteColor);
-  }
-
-  int playerCenterX = competitionPlayerColumn * competitionColumnWidth + (competitionColumnWidth / 2);
-  int groundY = playerY + (playerHeight / 2);
-  M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, playerCenterX - (playerWidth / 2), groundY - playerHeight);
-
-  M5Cardputer.Display.setTextDatum(top_left);
-  M5Cardputer.Display.setTextColor(WHITE, BLACK);
-  M5Cardputer.Display.setTextSize(1);
-  M5Cardputer.Display.drawString(String("Notes: ") + competitionNotesCollected + String("/") + targetNotes, 6, 4);
 }
 
 void wash() {
@@ -5589,70 +5627,86 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // 0: LOCAL
           Serial.println(">> Local competition, age = " + String(natsumi.age));
           menuOpened = false;
-          if (natsumi.age > 12) {
-            if (natsumi.competition == 0) {
-              changeState(0, COMP_LOCAL, 0);
+          if (isCompetitionEnabled()) {
+            if (natsumi.age > 12) {
+              if (natsumi.competition == 0) {
+                changeState(0, COMP_LOCAL, 0);
+              } else {
+                changeState(0, HOME_LOOP, 0);
+                showToast("Already completed");
+              }
             } else {
               changeState(0, HOME_LOOP, 0);
-              showToast("Already completed");
+              showToast("Too young to compete");
             }
           } else {
-            changeState(0, HOME_LOOP, 0);
-            showToast("Too young to compete");
+            changeState(0, COMP_EXPLAIN, 0);
           }
           break;
         case 49:
           // 1: DEPARTMENTAL
           menuOpened = false;
-          if (natsumi.age > 14) {
-            if (natsumi.competition == 1) {
-              changeState(0, COMP_DEPT, 0);
-            } else if (natsumi.competition < 1) {
-              changeState(0, HOME_LOOP, 0);
-              showToast("Complete local comp. 1st");
+          if (isCompetitionEnabled()) {
+            if (natsumi.age > 14) {
+              if (natsumi.competition == 1) {
+                changeState(0, COMP_DEPT, 0);
+              } else if (natsumi.competition < 1) {
+                changeState(0, HOME_LOOP, 0);
+                showToast("Complete local comp. 1st");
+              } else {
+                changeState(0, HOME_LOOP, 0);
+                showToast("Already completed");
+              }
             } else {
               changeState(0, HOME_LOOP, 0);
-              showToast("Already completed");
+              showToast("Too young to compete departmentally");
             }
           } else {
-            changeState(0, HOME_LOOP, 0);
-            showToast("Too young to compete");
+            changeState(0, COMP_EXPLAIN, 0);
           }
           break;
         case 50:
           // 2: REGIONAL
           menuOpened = false;
-          if (natsumi.age > 15) {
-            if (natsumi.competition == 2) {
-              changeState(0, COMP_REG, 0);
-            } else if (natsumi.competition < 2) {
-              changeState(0, HOME_LOOP, 0);
-              showToast("Complete lower comp. 1st");
+          if (isCompetitionEnabled()) {
+            if (natsumi.age > 15) {
+              if (natsumi.competition == 2) {
+                changeState(0, COMP_REG, 0);
+              } else if (natsumi.competition < 2) {
+                changeState(0, HOME_LOOP, 0);
+                showToast("Complete lower comp. 1st");
+              } else {
+                changeState(0, HOME_LOOP, 0);
+                showToast("Already completed");
+              }
             } else {
               changeState(0, HOME_LOOP, 0);
-              showToast("Already completed");
+              showToast("Too young to compete regionally");
             }
           } else {
-            changeState(0, HOME_LOOP, 0);
-            showToast("Too young to compete");
+            changeState(0, COMP_EXPLAIN, 0);
           }
           break;
         case 51:
           // 3: NATIONAL
           menuOpened = false;
-          if (natsumi.age > 16) {
-            if (natsumi.competition == 3) {
-              changeState(0, COMP_NAT, 0);
-            } else if (natsumi.competition < 3) {
-              changeState(0, HOME_LOOP, 0);
-              showToast("Complete lower comp. 1st");
+          if (isCompetitionEnabled()) {
+            if (natsumi.age > 16) {
+              if (natsumi.competition == 3) {
+                changeState(0, COMP_NAT, 0);
+              } else if (natsumi.competition < 3) {
+                changeState(0, HOME_LOOP, 0);
+                showToast("Complete lower comp. 1st");
+              } else {
+                changeState(0, HOME_LOOP, 0);
+                showToast("Already completed");
+              }
             } else {
               changeState(0, HOME_LOOP, 0);
-              showToast("Already completed");
+              showToast("Too young to compete nationally");
             }
           } else {
-            changeState(0, HOME_LOOP, 0);
-            showToast("Too young to compete");
+            changeState(0, COMP_EXPLAIN, 0);
           }
           break;
         case 55:
@@ -5698,59 +5752,75 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         case 13: case 40: case ' ':
           // VALIDATE
           if (selection == 0) {
-            if (natsumi.age > 12) {
-              if (natsumi.competition == 0) {
-                changeState(0, COMP_LOCAL, 0);
+            if (isCompetitionEnabled()) {
+              if (natsumi.age > 12) {
+                if (natsumi.competition == 0) {
+                  changeState(0, COMP_LOCAL, 0);
+                } else {
+                  showToast("Already completed");
+                }
               } else {
-                showToast("Already completed");
+                showToast("Too young to compete");
               }
             } else {
-              showToast("Too young to compete");
+              changeState(0, COMP_EXPLAIN, 0);
             }
           } else if (selection == 1) {
-            if (natsumi.age > 14) {
-              if (natsumi.competition == 1) {
-                changeState(0, COMP_DEPT, 0);
-              } else if (natsumi.competition < 1) {
-                changeState(0, HOME_LOOP, 0);
-                showToast("Complete local comp. 1st");
+            if (isCompetitionEnabled()) {
+              if (natsumi.age > 14) {
+                if (natsumi.competition == 1) {
+                  changeState(0, COMP_DEPT, 0);
+                } else if (natsumi.competition < 1) {
+                  changeState(0, HOME_LOOP, 0);
+                  showToast("Complete local comp. 1st");
+                } else {
+                  changeState(0, HOME_LOOP, 0);
+                  showToast("Already completed");
+                }
               } else {
                 changeState(0, HOME_LOOP, 0);
-                showToast("Already completed");
+                showToast("Too young to compete departmentally");
               }
             } else {
-              changeState(0, HOME_LOOP, 0);
-              showToast("Too young to compete");
+              changeState(0, COMP_EXPLAIN, 0);
             }
           } else if (selection == 2) {
-            if (natsumi.age > 15) {
-              if (natsumi.competition == 2) {
-                changeState(0, COMP_REG, 0);
-              } else if (natsumi.competition < 2) {
-                changeState(0, HOME_LOOP, 0);
-                showToast("Complete lower comp. 1st");
+            if (isCompetitionEnabled()) {
+              if (natsumi.age > 15) {
+                if (natsumi.competition == 2) {
+                  changeState(0, COMP_REG, 0);
+                } else if (natsumi.competition < 2) {
+                  changeState(0, HOME_LOOP, 0);
+                  showToast("Complete lower comp. 1st");
+                } else {
+                  changeState(0, HOME_LOOP, 0);
+                  showToast("Already completed regionally");
+                }
               } else {
                 changeState(0, HOME_LOOP, 0);
-                showToast("Already completed");
+                showToast("Too young to compete regionally");
               }
             } else {
-              changeState(0, HOME_LOOP, 0);
-              showToast("Too young to compete");
+              changeState(0, COMP_EXPLAIN, 0);
             }
           } else if (selection == 3) {
-            if (natsumi.age > 16) {
-              if (natsumi.competition == 3) {
-                changeState(0, COMP_NAT, 0);
-              } else if (natsumi.competition < 3) {
-                changeState(0, HOME_LOOP, 0);
-                showToast("Complete lower comp. 1st");
+            if (isCompetitionEnabled()) {
+              if (natsumi.age > 16) {
+                if (natsumi.competition == 3) {
+                  changeState(0, COMP_NAT, 0);
+                } else if (natsumi.competition < 3) {
+                  changeState(0, HOME_LOOP, 0);
+                  showToast("Complete lower comp. 1st");
+                } else {
+                  changeState(0, HOME_LOOP, 0);
+                  showToast("Already completed");
+                }
               } else {
                 changeState(0, HOME_LOOP, 0);
-                showToast("Already completed");
+                showToast("Too young to compete nationally");
               }
             } else {
-              changeState(0, HOME_LOOP, 0);
-              showToast("Too young to compete");
+              changeState(0, COMP_EXPLAIN, 0);
             }
           } else if (selection == 7) {
             if (debugActive) {
@@ -6632,61 +6702,73 @@ void drawOverlay() {
         drawDialogBubble("Hello Miss Hasegawa. Thanks for coming to our medical center. I will check your health and see if everything is OK.");
         break;
       case HEALTH_DOCTOR6:
-        if (natsumi.hunger < 2) {
-          drawDialogBubble("You need to eat more...");
-          doctorState = FOOD_MENU;
-          foodMenuSelection = 0;
-        } else if (natsumi.hygiene < 2) {
-          drawDialogBubble("You need better hygiene...");
-          doctorState = HEALTH_MENU;
-          healthMenuSelection = 0;
-        } else if (natsumi.fitness < 2) {
-          drawDialogBubble("You need to exercise more...");
-          doctorState = TRAIN_MENU;
-          trainingMenuSelection = 2;
-        } else if (natsumi.energy < 2) {
-          drawDialogBubble("You need to sleep more...");
-          doctorState = REST_MENU;
-          restMenuSelection = 1;
+        doctorHint = "";
+        if (natsumi.hunger == 4) {
+          doctorHint += "You eat enough. ";
         } else {
-          drawDialogBubble("Congratulations!! You are in shape!");
-          doctorState = HOME_LOOP;
+          doctorHint += "You need to eat more. ";
+          doctorState = FOOD_MENU;
         }
+        if (natsumi.hygiene == 4) {
+          doctorHint += "You have good hygiene. ";
+        } else {
+          doctorHint += "You need better hygiene. ";
+          doctorState = HEALTH_MENU;
+        }
+        if (natsumi.energy == 4) {
+          doctorHint += "You sleep properly. ";
+        } else {
+          doctorHint += "You need to sleep more. ";
+          doctorState = REST_MENU;
+        }
+        if (natsumi.fitness == 4) {
+          doctorHint += "You do enough sport. ";
+        } else {
+          doctorHint +=  "You need to exercise more. ";
+          doctorState = TRAIN_MENU;
+        }
+        if (natsumi.performance == 4) {
+          doctorHint += "You train enough. ";
+        } else {
+          doctorHint += "You need to train more. ";
+          doctorState = TRAIN_MENU;
+        }
+        drawDialogBubble(doctorHint);
         break;
       case HEALTH_TEMPLE:
         drawDialogBubble("Hello Miss. Thanks for visiting our temple. I will pray for you and see if everything is OK.");
         break;
       case HEALTH_TEMPLE6:
-        if (natsumi.spirit < 2) {
-          if (natsumi.hunger < 2) {
-            drawDialogBubble("You need to eat more...");
-            priestState = FOOD_MENU;
-            foodMenuSelection = 0;
-          } else if (natsumi.hygiene < 2) {
-            drawDialogBubble("You need better hygiene...");
-            priestState = HEALTH_MENU;
-            healthMenuSelection = 0;
-          } else if (natsumi.energy < 2) {
-            drawDialogBubble("You need to exercise more...");
-            priestState = HEALTH_MENU;
-            healthMenuSelection = 2;
-          } else if (natsumi.performance < 2) {
-            drawDialogBubble("You need to train more...");
-            priestState = TRAIN_MENU;
-            trainingMenuSelection = 0;
-          } else if (natsumi.popularity < 2) {
-            drawDialogBubble("You need to compete more...");
-            priestState = COMP_MENU;
-            competitionMenuSelection = natsumi.popularity;
-          }
-        } else if (natsumi.charm < 2) {
-          drawDialogBubble("Treat yourself to some nice food, it\'s good for the soul.");
-          priestState = FOOD_MENU;
-          foodMenuSelection = 1;
+        priestHint = "";
+        if (natsumi.culture == 4) {
+          priestHint += "You read enough. ";
         } else {
-          drawDialogBubble("Congratulations!! You have a strong mind!");
-          priestState = HOME_LOOP;
+          priestHint += "You need to read more. ";
+          priestState = TRAIN_MENU;
         }
+        if (natsumi.charm == 4) {
+          priestHint += "You have good manners. ";
+        } else {
+          priestHint += "You need to go out more. ";
+          priestState = FOOD_MENU;
+        }
+        if (isCompetitionEnabled()) {
+          if (natsumi.popularity == 4) {
+            priestHint += "The public likes you. ";
+          } else {
+            priestHint += "You need to compete more. ";
+            priestState = COMP_MENU;
+          }
+          if (natsumi.spirit == 4) {
+            priestHint += "You are spiritually strong. ";
+          } else {
+            priestHint += "You need to keep working on yourself. ";
+            priestState = TRAIN_MENU;
+          }
+        } else {
+          priestHint += "Train in order to get ready for competition later. ";
+        }
+        drawDialogBubble(priestHint);
         break;
       case FOOD_COOK:
         drawFoodGrid(foodGridItems, foodSelectionIndex);
@@ -6716,10 +6798,13 @@ void drawOverlay() {
         }
         break;
       case GARDEN_LOOP: case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
-        drawGardenPlanter();
+        drawGardenPlanter(gardeningHelperText);
         break;
       case FLOWERS_MARKET7:
         drawDialogBubble("I sold all my flowers and made " + String(flowersRevenue) + "$. I have " + String(natsumi.money) + "$ in the bank.");
+        break;
+      case COMP_EXPLAIN:
+        drawDialogBubble("In order to enter Competition, you must be at least 13 and have Hunger, Hygiene, Energy, Performance, Fitness, Culture and Charm to 4, their maximum.");
         break;
       case COMP_LOCAL3:
         drawDialogBubble("Welcome to the Shiodome Ward Community Center! Get ready for a nice singing competition! Sore dewa, hajimemasho !");
@@ -7273,6 +7358,9 @@ void competitionHost() {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       overlayActive = false;
       switch(currentState) {
+        case COMP_EXPLAIN:
+          changeState(0, HOME_LOOP, 0);
+          break;
         case COMP_LOCAL3:
           changeState(0, COMP_LOCAL4, 0);
           break;
