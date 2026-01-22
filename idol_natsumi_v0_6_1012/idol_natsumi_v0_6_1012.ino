@@ -550,7 +550,7 @@ String doctorHint = "";
 String priestHint = "";
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "0.6.1012 Update 8";
+String versionNumber = "0.6.1012 Update 9";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -2591,7 +2591,7 @@ void manageCard() {
       changeState(0, MOTTO_SCREEN, microWait);
       break;
     case MOTTO_SCREEN:
-      changeState(0, TITLE_SCREEN, 10);
+      changeState(0, TITLE_SCREEN, microWait);
       break;
     case TITLE_SCREEN:
       changeState(0, TITLE_SCREEN2, microWait);
