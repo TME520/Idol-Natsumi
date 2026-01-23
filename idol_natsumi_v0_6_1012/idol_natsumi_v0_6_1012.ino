@@ -121,7 +121,10 @@ enum GameState {
   COMP_NAT4,
   COMP_NAT5,
   COMP_NAT6,
-  COMP_NAT7
+  COMP_NAT7,
+  TICKETS_ALLOC,
+  TICKETS_GET,
+  TICKETS_INV
 };
 
 GameState currentState = VERSION_SCREEN;
@@ -158,6 +161,7 @@ struct NatsumiStats {
   int money;
   int flowers;
   int competition;
+  int tickets;
   unsigned long lastHungerUpdate = 0;
   unsigned long lastHygieneUpdate = 0;
   unsigned long lastEnergyUpdate = 0;
@@ -677,6 +681,9 @@ const char* gameStateToString(GameState state) {
     case COMP_NAT5:        return "COMP_NAT5";
     case COMP_NAT6:        return "COMP_NAT6";
     case COMP_NAT7:        return "COMP_NAT7";
+    case TICKETS_ALLOC:    return "TICKETS_ALLOC";
+    case TICKETS_GET:      return "TICKETS_GET";
+    case TICKETS_INV:      return "TICKETS_INV";
     default:               return "UNKNOWN";
   }
 }
@@ -748,6 +755,7 @@ bool saveGameToSd() {
   saveFile.println("money=" + String(natsumi.money));
   saveFile.println("flowers=" + String(natsumi.flowers));
   saveFile.println("competition=" + String(natsumi.competition));
+  saveFile.println("tickets=" + String(natsumi.tickets));
   saveFile.println("last_hunger_update=" + String(natsumi.lastHungerUpdate));
   saveFile.println("last_hygiene_update=" + String(natsumi.lastHygieneUpdate));
   saveFile.println("last_energy_update=" + String(natsumi.lastEnergyUpdate));
@@ -858,6 +866,7 @@ bool loadGameFromSd() {
       else if (key == "money") natsumi.money = value.toInt();
       else if (key == "flowers") natsumi.flowers = value.toInt();
       else if (key == "competition") natsumi.competition = value.toInt();
+      else if (key == "tickets") natsumi.tickets = value.toInt();
       /*
       else if (key == "last_hunger_update") natsumi.lastHungerUpdate = strtoul(value.c_str(), nullptr, 10);
       else if (key == "last_hygiene_update") natsumi.lastHygieneUpdate = strtoul(value.c_str(), nullptr, 10);
@@ -1360,6 +1369,9 @@ void preloadImages() {
       break;
     case REST_MENU:
       preloadImage("/idolnat/screens/bedroom.png", currentBackground);
+      break;
+    case TICKETS_ALLOC: case TICKETS_GET: case TICKETS_INV:
+      preloadImage("/idolnat/screens/matsuri_ticket2.png", currentBackground);
       break;
   }
   // Load portraits
@@ -2240,6 +2252,9 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         screenConfig = ROOM;
         menuOpened = false;
         break;
+      case TICKETS_ALLOC: case TICKETS_GET: case TICKETS_INV:
+        screenConfig = CARD;
+        break;
       default:
         break;
     }
@@ -2674,6 +2689,12 @@ void manageCard() {
       changeState(0, HEALTH_WASH5, 20);
       break;
     case DEV_SCREEN:
+      break;
+    case TICKETS_ALLOC:
+      break;
+    case TICKETS_GET:
+      break;
+    case TICKETS_INV:
       break;
     default:
       break;
