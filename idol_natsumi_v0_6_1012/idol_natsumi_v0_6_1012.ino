@@ -2691,10 +2691,13 @@ void manageCard() {
     case DEV_SCREEN:
       break;
     case TICKETS_ALLOC:
+      allocateTickets();
       break;
     case TICKETS_GET:
+      getTickets();
       break;
     case TICKETS_INV:
+      ticketsInventory();
       break;
     default:
       break;
@@ -6878,6 +6881,21 @@ void playGame() {
   // Play one of the mini-games
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
   drawText("Mini-game", 120, 131, true, WHITE, 1);
+}
+
+void allocateTickets() {
+  // Serial.println("> Entering allocateTickets()");
+  return;
+}
+
+void getTickets() {
+  // Serial.println("> Entering getTickets()");
+  return;
+}
+
+void ticketsInventory() {
+  // Serial.println("> Entering ticketsInventory()");
+  return;
 }
 
 void drawStats() {
