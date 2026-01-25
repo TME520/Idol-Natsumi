@@ -124,7 +124,8 @@ enum GameState {
   COMP_NAT7,
   TICKETS_ALLOC,
   TICKETS_GET,
-  TICKETS_INV
+  TICKETS_INV,
+  ACTION_OUTCOME
 };
 
 GameState currentState = VERSION_SCREEN;
@@ -684,6 +685,7 @@ const char* gameStateToString(GameState state) {
     case TICKETS_ALLOC:    return "TICKETS_ALLOC";
     case TICKETS_GET:      return "TICKETS_GET";
     case TICKETS_INV:      return "TICKETS_INV";
+    case ACTION_OUTCOME:   return "ACTION_OUTCOME";
     default:               return "UNKNOWN";
   }
 }
@@ -1372,6 +1374,9 @@ void preloadImages() {
       break;
     case TICKETS_ALLOC: case TICKETS_GET: case TICKETS_INV:
       preloadImage("/idolnat/screens/matsuri_ticket2.png", currentBackground);
+      break;
+    case ACTION_OUTCOME:
+      preloadImage("/idolnat/screens/lounge.png", currentBackground);
       break;
   }
   // Load portraits
@@ -2255,6 +2260,9 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case TICKETS_ALLOC: case TICKETS_GET: case TICKETS_INV:
         screenConfig = CARD;
         break;
+      case ACTION_OUTCOME:
+        screenConfig = CARD;
+        break;
       default:
         break;
     }
@@ -2698,6 +2706,8 @@ void manageCard() {
       break;
     case TICKETS_INV:
       ticketsInventory();
+      break;
+    case ACTION_OUTCOME:
       break;
     default:
       break;
