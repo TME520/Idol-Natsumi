@@ -122,9 +122,9 @@ enum GameState {
   COMP_NAT5,
   COMP_NAT6,
   COMP_NAT7,
-  TICKETS_ALLOC,
-  TICKETS_GET,
-  TICKETS_INV,
+  MATSURI_TICKETS,
+  MATSURI_TICKETS2,
+  MATSURI_TICKETS3,
   ACTION_OUTCOME
 };
 
@@ -682,9 +682,9 @@ const char* gameStateToString(GameState state) {
     case COMP_NAT5:        return "COMP_NAT5";
     case COMP_NAT6:        return "COMP_NAT6";
     case COMP_NAT7:        return "COMP_NAT7";
-    case TICKETS_ALLOC:    return "TICKETS_ALLOC";
-    case TICKETS_GET:      return "TICKETS_GET";
-    case TICKETS_INV:      return "TICKETS_INV";
+    case MATSURI_TICKETS:    return "MATSURI_TICKETS";
+    case MATSURI_TICKETS2:      return "MATSURI_TICKETS2";
+    case MATSURI_TICKETS3:      return "MATSURI_TICKETS3";
     case ACTION_OUTCOME:   return "ACTION_OUTCOME";
     default:               return "UNKNOWN";
   }
@@ -1372,7 +1372,7 @@ void preloadImages() {
     case REST_MENU:
       preloadImage("/idolnat/screens/bedroom.png", currentBackground);
       break;
-    case TICKETS_ALLOC: case TICKETS_GET: case TICKETS_INV:
+    case MATSURI_TICKETS: case MATSURI_TICKETS2: case MATSURI_TICKETS3:
       preloadImage("/idolnat/screens/matsuri_ticket2.png", currentBackground);
       break;
     case ACTION_OUTCOME:
@@ -2257,7 +2257,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         screenConfig = ROOM;
         menuOpened = false;
         break;
-      case TICKETS_ALLOC: case TICKETS_GET: case TICKETS_INV:
+      case MATSURI_TICKETS: case MATSURI_TICKETS2: case MATSURI_TICKETS3:
         screenConfig = CARD;
         break;
       case ACTION_OUTCOME:
@@ -2698,16 +2698,17 @@ void manageCard() {
       break;
     case DEV_SCREEN:
       break;
-    case TICKETS_ALLOC:
+    case MATSURI_TICKETS:
       allocateTickets();
       break;
-    case TICKETS_GET:
+    case MATSURI_TICKETS2:
       getTickets();
       break;
-    case TICKETS_INV:
+    case MATSURI_TICKETS3:
       ticketsInventory();
       break;
     case ACTION_OUTCOME:
+      actionOutcome();
       break;
     default:
       break;
@@ -4623,7 +4624,8 @@ void manageLibrary() {
       libraryRewardApplied = true;
       overlayActive = false;
       characterEnabled = true;
-      changeState(0, HOME_LOOP, 0);
+      // changeState(0, HOME_LOOP, 0);
+      changeState(0, ACTION_OUTCOME, 0);
     }
   }
   return;
@@ -7243,6 +7245,35 @@ void gotoRestaurant() {
   return;
 }
 
+void actionOutcome() {
+  // Determine if player is entitled to Matsuri tickets
+  Serial.println("> Entering actionOutcome()");
+  switch(currentState) {
+    case TRAIN_SING3: case TRAIN_DANCE3:
+      if (natsumi.performance < 4) {
+        //
+      } else {
+        changeState(0, MATSURI_TICKETS, 0);
+      }
+      break;
+    case TRAIN_SWIM3: case TRAIN_GYM3: case TRAIN_RUN3:
+      if (natsumi.fitness < 4) {
+        //
+      } else {
+        changeState(0, MATSURI_TICKETS, 0);
+      }
+      break;
+    case TRAIN_LIBRARY:
+      if (natsumi.culture < 4) {
+        //
+      } else {
+        changeState(0, MATSURI_TICKETS, 0);
+      }
+      break;
+  }
+  return;
+}
+
 void doctor() {
   // Serial.println("> Entering doctor()");
   uint8_t key = 0;
@@ -7461,27 +7492,32 @@ void miniGameDebrief() {
         case TRAIN_SING3:
           saveRequired = true;
           isNatsumiHappy = true;
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          changeState(0, ACTION_OUTCOME, 0);
           break;
         case TRAIN_DANCE3:
           saveRequired = true;
           isNatsumiHappy = true;
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          changeState(0, ACTION_OUTCOME, 0);
           break;
         case TRAIN_SWIM3:
           saveRequired = true;
           isNatsumiHappy = true;
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          changeState(0, ACTION_OUTCOME, 0);
           break;
         case TRAIN_GYM3:
           saveRequired = true;
           isNatsumiHappy = true;
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          changeState(0, ACTION_OUTCOME, 0);
           break;
         case TRAIN_RUN3:
           saveRequired = true;
           isNatsumiHappy = true;
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          changeState(0, ACTION_OUTCOME, 0);
           break;
         case COMP_LOCAL6: case COMP_DEPT6: case COMP_REG6:
           saveRequired = true;
