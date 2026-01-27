@@ -7251,7 +7251,7 @@ void actionOutcome() {
   switch(currentState) {
     case TRAIN_SING3: case TRAIN_DANCE3:
       if (natsumi.performance < 4) {
-        //
+        drawOutcome("+1", "Performance");
       } else {
         changeState(0, MATSURI_TICKETS, 0);
         return;
@@ -7259,7 +7259,7 @@ void actionOutcome() {
       break;
     case TRAIN_SWIM3: case TRAIN_GYM3: case TRAIN_RUN3:
       if (natsumi.fitness < 4) {
-        //
+        drawOutcome("+1", "Fitness");
       } else {
         changeState(0, MATSURI_TICKETS, 0);
         return;
@@ -7267,13 +7267,18 @@ void actionOutcome() {
       break;
     case TRAIN_LIBRARY:
       if (natsumi.culture < 4) {
-        //
+        drawOutcome("+1", "Culture");
       } else {
         changeState(0, MATSURI_TICKETS, 0);
         return;
       }
       break;
   }
+  return;
+}
+
+void drawOutcome(String amount, String stat) {
+  Serial.println("> Entering drawOutcome()");
   return;
 }
 
