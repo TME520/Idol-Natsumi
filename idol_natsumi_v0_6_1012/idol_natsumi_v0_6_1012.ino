@@ -7254,6 +7254,7 @@ void actionOutcome() {
         //
       } else {
         changeState(0, MATSURI_TICKETS, 0);
+        return;
       }
       break;
     case TRAIN_SWIM3: case TRAIN_GYM3: case TRAIN_RUN3:
@@ -7261,6 +7262,7 @@ void actionOutcome() {
         //
       } else {
         changeState(0, MATSURI_TICKETS, 0);
+        return;
       }
       break;
     case TRAIN_LIBRARY:
@@ -7268,6 +7270,7 @@ void actionOutcome() {
         //
       } else {
         changeState(0, MATSURI_TICKETS, 0);
+        return;
       }
       break;
   }
