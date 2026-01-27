@@ -7279,6 +7279,37 @@ void actionOutcome() {
 
 void drawOutcome(String amount, String stat) {
   Serial.println("> Entering drawOutcome()");
+  const int screenWidth = M5Cardputer.Display.width();
+  const int screenHeight = M5Cardputer.Display.height();
+  const int frameInset = 6;
+  const int frameX = (screenWidth / 2) + frameInset;
+  const int frameY = 12;
+  const int frameW = (screenWidth / 2) - (frameInset * 2);
+  const int frameH = screenHeight - (frameY * 2);
+  const int lineSpacing = 6;
+  const uint16_t frameColor = WHITE;
+  const uint16_t panelColor = BLACK;
+  const uint16_t textColor = WHITE;
+
+  M5Cardputer.Display.fillRect(frameX, frameY, frameW, frameH, panelColor);
+  M5Cardputer.Display.drawRect(frameX, frameY, frameW, frameH, frameColor);
+
+  const int centerX = frameX + (frameW / 2);
+  const int amountTextSize = 4;
+  const int statTextSize = 2;
+
+  M5Cardputer.Display.setTextSize(amountTextSize);
+  const int amountHeight = M5Cardputer.Display.fontHeight();
+  M5Cardputer.Display.setTextSize(statTextSize);
+  const int statHeight = M5Cardputer.Display.fontHeight();
+  const int totalTextHeight = amountHeight + lineSpacing + statHeight;
+  const int startY = frameY + (frameH - totalTextHeight) / 2;
+
+  drawText(amount, centerX, startY + (amountHeight / 2), true, textColor, amountTextSize, panelColor);
+
+  String statLabel = stat;
+  statLabel.toUpperCase();
+  drawText(statLabel, centerX, startY + amountHeight + lineSpacing + (statHeight / 2), true, textColor, statTextSize, panelColor);
   return;
 }
 
