@@ -125,10 +125,12 @@ enum GameState {
   MATSURI_TICKETS,
   MATSURI_TICKETS2,
   MATSURI_TICKETS3,
-  ACTION_OUTCOME
+  ACTION_OUTCOME,
+  EVENTS_MENU
 };
 
 GameState currentState = VERSION_SCREEN;
+GameState previousState = VERSION_SCREEN;
 GameState doctorState = HOME_LOOP;
 GameState priestState = HOME_LOOP;
 GameState loadedContinueState = HOME_LOOP;
@@ -307,7 +309,7 @@ unsigned long libraryStartTime = 0;
 
 String currentMenuType = "main";
 const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: DEV SCREEN"};
-const char* homeMenuItems[] = {"0: STATS", "1: FOOD", "2: TRAINING", "3: COMPETITION", "4: HEALTH", "5: REST", "6: GARDEN", "7: DEBUG"};
+const char* homeMenuItems[] = {"0: STATS", "1: FOOD", "2: TRAINING", "3: COMPETITION", "4: HEALTH", "5: REST", "6: GARDEN", "7: EVENTS"};
 const char* devMenuItems[] = {"0: CALIB1", "1: CALIB2", "2: CALIB3", "3: EXIT"};
 const char* foodMenuItems[] = {"0: FRIDGE", "1: RESTAURANT", "2: ORDER", "3: CONBINI"};
 const char* trainingMenuItems[] = {"0: SING", "1: DANCE", "2: SWIM", "3: GYM", "4: RUN", "5: LIBRARY", "6: MARKET"};
@@ -315,6 +317,7 @@ const char* competitionMenuItems[] = {"0: LOCAL", "1: DEPARTMENTAL", "2: REGIONA
 const char* healthMenuItems[] = {"0: WASH", "1: DOCTOR", "2: TEMPLE", "3: ONSEN"};
 const char* restMenuItems[] = {"0: MEDITATE", "1: SLEEP"};
 const char* gardenMenuItems[] = {"0: PLANT", "1: WATER", "2: PICK", "3: CLEANUP"};
+const char* eventsMenuItems[] = {"0: MATSURI", "1: GIGS"};
 const char** currentMenuItems = nullptr;
 const int mainMenuItemCount = 3;
 const int homeMenuItemCount = 8;
@@ -325,6 +328,7 @@ const int competitionMenuItemCount = 4;
 const int healthMenuItemCount = 4;
 const int restMenuItemCount = 2;
 const int gardenMenuItemCount = 4;
+const int eventsMenuItemCount = 2;
 int currentMenuItemsCount = 0;
 int homeMenuSelection = 0;
 int mainMenuSelection = 0;
@@ -335,6 +339,8 @@ int competitionMenuSelection = 0;
 int healthMenuSelection = 0;
 int restMenuSelection = 0;
 int gardenMenuSelection = 0;
+int eventsMenuSelection = 0;
+
 const int gardenRows = 3;
 const int gardenCols = 3;
 int gardenTiles[gardenRows][gardenCols] = {};
@@ -682,10 +688,11 @@ const char* gameStateToString(GameState state) {
     case COMP_NAT5:        return "COMP_NAT5";
     case COMP_NAT6:        return "COMP_NAT6";
     case COMP_NAT7:        return "COMP_NAT7";
-    case MATSURI_TICKETS:    return "MATSURI_TICKETS";
-    case MATSURI_TICKETS2:      return "MATSURI_TICKETS2";
-    case MATSURI_TICKETS3:      return "MATSURI_TICKETS3";
+    case MATSURI_TICKETS:  return "MATSURI_TICKETS";
+    case MATSURI_TICKETS2: return "MATSURI_TICKETS2";
+    case MATSURI_TICKETS3: return "MATSURI_TICKETS3";
     case ACTION_OUTCOME:   return "ACTION_OUTCOME";
+    case EVENTS_MENU:      return "EVENTS_MENU";
     default:               return "UNKNOWN";
   }
 }
@@ -1378,6 +1385,9 @@ void preloadImages() {
     case ACTION_OUTCOME:
       preloadImage("/idolnat/screens/lounge.png", currentBackground);
       break;
+    case EVENTS_MENU:
+      preloadImage("/idolnat/screens/cityscape_bg.png", currentBackground);
+      break;
   }
   // Load portraits
   switch(natsumi.age) {
@@ -1800,6 +1810,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
     Serial.println("Proceed with transition");
     Serial.println("> currentState = " + String(gameStateToString(currentState)));
     changeStateCounter = 0;
+    previousState = currentState;
     currentState = targetState;
     preloadImages();
     switch (baseLayer) {
@@ -2261,8 +2272,15 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         screenConfig = CARD;
         break;
       case ACTION_OUTCOME:
-        screenConfig = CARD;
+        screenConfig = DIALOG;
+        overlayActive = true;
+        l5NeedsRedraw = true;
         break;
+      case EVENTS_MENU:
+        screenConfig = ROOM;
+        currentMenuType = "events";
+        currentMenuItems = eventsMenuItems;
+        currentMenuItemsCount = eventsMenuItemCount;
       default:
         break;
     }
@@ -2707,9 +2725,6 @@ void manageCard() {
     case MATSURI_TICKETS3:
       ticketsInventory();
       break;
-    case ACTION_OUTCOME:
-      actionOutcome();
-      break;
     default:
       break;
   }
@@ -2791,6 +2806,9 @@ void manageDialog() {
     case COMP_REG6:
     case COMP_NAT6:
       miniGameDebrief();
+      break;
+    case ACTION_OUTCOME:
+      actionOutcome();
       break;
     default:
       break;
@@ -3078,6 +3096,9 @@ void manageRoom() {
       menuOpened = true;
       break;
     case REST_MENU:
+      menuOpened = true;
+      break;
+    case EVENTS_MENU:
       menuOpened = true;
       break;
     default:
@@ -5351,7 +5372,16 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           changeState(0, GARDEN_LOOP, 0);
           break;
         case 55:
-          // 7: DEBUG
+          // 7: EVENTS
+          if (!waitingForFoodDelivery) {
+            menuOpened = true;
+            changeState(0, EVENTS_MENU, 0);
+          } else {
+            showToast("Wait for food delivery");
+          }
+          break;
+        case 56:
+          // 8: DEBUG
           if (debugActive) {
             debugActive = false;
             l0NeedsRedraw = true;
@@ -5420,6 +5450,12 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           } else if (selection == 6) {
             changeState(0, GARDEN_LOOP, 0);
           } else if (selection == 7) {
+            if (!waitingForFoodDelivery) {
+              changeState(0, EVENTS_MENU, 0);
+            } else {
+              showToast("Wait for food delivery");
+            }
+          } else if (selection == 8) {
             if (debugActive) {
               debugActive = false;
               l0NeedsRedraw = true;
@@ -5588,8 +5624,8 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           menuOpened = false;
           changeState(0, FLOWERS_MARKET, 0);
           break;
-        case 55:
-          // 7: DEBUG
+        case 56:
+          // 8: DEBUG
           if (debugActive) {
             debugActive = false;
             l0NeedsRedraw = true;
@@ -5644,7 +5680,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             changeState(0, TRAIN_LIBRARY, 0);
           } else if (selection == 6) {
             changeState(0, FLOWERS_MARKET, 0);
-          } else if (selection == 7) {
+          } else if (selection == 8) {
             if (debugActive) {
               debugActive = false;
               l0NeedsRedraw = true;
@@ -5745,8 +5781,8 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             changeState(0, COMP_EXPLAIN, 0);
           }
           break;
-        case 55:
-          // 7: DEBUG
+        case 56:
+          // 8: DEBUG
           if (debugActive) {
             debugActive = false;
             l0NeedsRedraw = true;
@@ -5858,7 +5894,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             } else {
               changeState(0, COMP_EXPLAIN, 0);
             }
-          } else if (selection == 7) {
+          } else if (selection == 8) {
             if (debugActive) {
               debugActive = false;
               l0NeedsRedraw = true;
@@ -5893,8 +5929,8 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           menuOpened = false;
           changeState(0, HEALTH_ONSEN, 0);
           break;
-        case 55:
-          // 7: DEBUG
+        case 56:
+          // 8: DEBUG
           if (debugActive) {
             debugActive = false;
             l0NeedsRedraw = true;
@@ -5943,7 +5979,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             changeState(0, HEALTH_TEMPLE, 0);
           } else if (selection == 3) {
             changeState(0, HEALTH_ONSEN, 0);
-          } else if (selection == 7) {
+          } else if (selection == 8) {
             if (debugActive) {
               debugActive = false;
               l0NeedsRedraw = true;
@@ -5968,8 +6004,8 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           menuOpened = false;
           changeState(0, REST_SLEEP, 0);
           break;
-        case 55:
-          // 7: DEBUG
+        case 56:
+          // 8: DEBUG
           if (debugActive) {
             debugActive = false;
             l0NeedsRedraw = true;
@@ -6014,7 +6050,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             changeState(0, REST_MEDITATE, 0);
           } else if (selection == 1) {
             changeState(0, REST_SLEEP, 0);
-          } else if (selection == 7) {
+          } else if (selection == 8) {
             if (debugActive) {
               debugActive = false;
               l0NeedsRedraw = true;
@@ -6161,8 +6197,8 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           menuOpened = false;
           changeState(0, GARDEN_CLEANUP, 0);
           break;
-        case 55:
-          // 7: DEBUG
+        case 56:
+          // 8: DEBUG
           if (debugActive) {
             debugActive = false;
             l0NeedsRedraw = true;
@@ -6213,7 +6249,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             changeState(0, GARDEN_PICK, 0);
           } else if (selection == 3) {
             changeState(0, GARDEN_CLEANUP, 0);
-          } else if (selection == 7) {
+          } else if (selection == 8) {
             if (debugActive) {
               debugActive = false;
               l0NeedsRedraw = true;
@@ -6226,6 +6262,8 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           menuOpened = false;
           break;
       }
+    } else if (menuType == "events") {
+      //
     }
     if (!menuOpened) {
       l4NeedsRedraw = false;
@@ -7248,37 +7286,83 @@ void gotoRestaurant() {
 void actionOutcome() {
   // Determine if player is entitled to Matsuri tickets
   Serial.println("> Entering actionOutcome()");
-  switch(currentState) {
+  isNatsumiHappy = true;
+  switch(previousState) {
     case TRAIN_SING3: case TRAIN_DANCE3:
       if (natsumi.performance < 4) {
+        Serial.println(">> actionOutcome() - natsumi.performance < 4");
         drawOutcome("+1", "Performance");
+        return;
       } else {
+        Serial.println(">> actionOutcome() - natsumi.performance = 4");
         changeState(0, MATSURI_TICKETS, 0);
         return;
       }
       break;
     case TRAIN_SWIM3: case TRAIN_GYM3: case TRAIN_RUN3:
       if (natsumi.fitness < 4) {
+        Serial.println(">> actionOutcome() - natsumi.fitness < 4");
         drawOutcome("+1", "Fitness");
+        return;
       } else {
+        Serial.println(">> actionOutcome() - natsumi.fitness = 4");
         changeState(0, MATSURI_TICKETS, 0);
         return;
       }
       break;
     case TRAIN_LIBRARY:
       if (natsumi.culture < 4) {
+        Serial.println(">> actionOutcome() - natsumi.culture < 4");
         drawOutcome("+1", "Culture");
+        return;
       } else {
+        Serial.println(">> actionOutcome() - natsumi.culture = 4");
         changeState(0, MATSURI_TICKETS, 0);
         return;
       }
       break;
+  }
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    changeState(0, HOME_LOOP, 0);
   }
   return;
 }
 
 void drawOutcome(String amount, String stat) {
   Serial.println("> Entering drawOutcome()");
+  const int screenWidth = M5Cardputer.Display.width();
+  const int screenHeight = M5Cardputer.Display.height();
+  const int frameInset = 6;
+  const int frameX = (screenWidth / 2) + frameInset;
+  const int frameY = 12;
+  const int frameW = (screenWidth / 2) - (frameInset * 2);
+  const int frameH = screenHeight - (frameY * 2);
+  const int lineSpacing = 6;
+  const uint16_t frameColor = WHITE;
+  const uint16_t panelColor = BLACK;
+  const uint16_t textColor = WHITE;
+
+  M5Cardputer.Display.fillRect(frameX, frameY, frameW, frameH, panelColor);
+  M5Cardputer.Display.drawRect(frameX, frameY, frameW, frameH, frameColor);
+
+  const int centerX = frameX + (frameW / 2);
+  const int amountTextSize = 4;
+  const int statTextSize = 2;
+
+  M5Cardputer.Display.setTextSize(amountTextSize);
+  const int amountHeight = M5Cardputer.Display.fontHeight();
+  M5Cardputer.Display.setTextSize(statTextSize);
+  const int statHeight = M5Cardputer.Display.fontHeight();
+  const int totalTextHeight = amountHeight + lineSpacing + statHeight;
+  const int startY = frameY + (frameH - totalTextHeight) / 2;
+
+  drawText(amount, centerX, startY + (amountHeight / 2), true, textColor, amountTextSize, panelColor);
+
+  String statLabel = stat;
+  statLabel.toUpperCase();
+  drawText(statLabel, centerX, startY + amountHeight + lineSpacing + (statHeight / 2), true, textColor, statTextSize, panelColor);
   return;
 }
 
