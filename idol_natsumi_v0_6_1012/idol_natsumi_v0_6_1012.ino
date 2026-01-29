@@ -1871,6 +1871,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         natsumi.charm = 0;
         natsumi.money = 1800;
         natsumi.flowers = 0;
+        natsumi.tickets = 0;
         natsumi.competition = 0;
         natsumi.lastHungerUpdate = 0;
         natsumi.lastHygieneUpdate = 0;
@@ -1926,6 +1927,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           natsumi.money = 1800;
           natsumi.flowers = 0;
           natsumi.competition = 0;
+          natsumi.tickets = 0;
           natsumi.lastHungerUpdate = 0;
           natsumi.lastHygieneUpdate = 0;
           natsumi.lastEnergyUpdate = 0;
@@ -2602,6 +2604,7 @@ void updateFiveSecondPulse() {
     }
     if (isNatsumiHappy) {
       isNatsumiHappy = false;
+      l5NeedsRedraw = true;
       changeState(0, currentState, 0);
     }
   } else {
@@ -6926,33 +6929,27 @@ void drawOverlay() {
             if (natsumi.performance < 4) {
               Serial.println(">> actionOutcome() - natsumi.performance < 4");
               drawOutcome("+1", "Performance");
-              return;
             } else {
               Serial.println(">> actionOutcome() - natsumi.performance = 4");
               changeState(0, MATSURI_TICKETS, 0);
-              return;
             }
             break;
           case TRAIN_SWIM3: case TRAIN_GYM3: case TRAIN_RUN3:
             if (natsumi.fitness < 4) {
               Serial.println(">> actionOutcome() - natsumi.fitness < 4");
               drawOutcome("+1", "Fitness");
-              return;
             } else {
               Serial.println(">> actionOutcome() - natsumi.fitness = 4");
               changeState(0, MATSURI_TICKETS, 0);
-              return;
             }
             break;
           case TRAIN_LIBRARY:
             if (natsumi.culture < 4) {
               Serial.println(">> actionOutcome() - natsumi.culture < 4");
               drawOutcome("+1", "Culture");
-              return;
             } else {
               Serial.println(">> actionOutcome() - natsumi.culture = 4");
               changeState(0, MATSURI_TICKETS, 0);
-              return;
             }
             break;
         }
@@ -7323,12 +7320,6 @@ void gotoRestaurant() {
 void actionOutcome() {
   // Determine if player is entitled to Matsuri tickets
   Serial.println("> Entering actionOutcome()");
-  isNatsumiHappy = true;
-  uint8_t key = 0;
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-    auto keyList = M5Cardputer.Keyboard.keyList();
-    changeState(0, HOME_LOOP, 0);
-  }
   return;
 }
 
@@ -7343,15 +7334,16 @@ void drawOutcome(String amount, String stat) {
   const int frameH = screenHeight - (frameY * 2);
   const int lineSpacing = 6;
   const uint16_t frameColor = WHITE;
-  const uint16_t panelColor = BLACK;
-  const uint16_t textColor = WHITE;
+  const uint16_t panelColor = TFT_NAVY;
+  const uint16_t smallTextColor = WHITE;
+  const uint16_t bigTextColor = YELLOW;
 
   M5Cardputer.Display.fillRect(frameX, frameY, frameW, frameH, panelColor);
   M5Cardputer.Display.drawRect(frameX, frameY, frameW, frameH, frameColor);
 
   const int centerX = frameX + (frameW / 2);
-  const int amountTextSize = 4;
-  const int statTextSize = 2;
+  const int amountTextSize = 5;
+  const int statTextSize = 1;
 
   M5Cardputer.Display.setTextSize(amountTextSize);
   const int amountHeight = M5Cardputer.Display.fontHeight();
@@ -7360,11 +7352,15 @@ void drawOutcome(String amount, String stat) {
   const int totalTextHeight = amountHeight + lineSpacing + statHeight;
   const int startY = frameY + (frameH - totalTextHeight) / 2;
 
-  drawText(amount, centerX, startY + (amountHeight / 2), true, textColor, amountTextSize, panelColor);
+  drawText(amount, centerX, startY + (amountHeight / 2), true, bigTextColor, amountTextSize, panelColor);
 
   String statLabel = stat;
   statLabel.toUpperCase();
-  drawText(statLabel, centerX, startY + amountHeight + lineSpacing + (statHeight / 2), true, textColor, statTextSize, panelColor);
+  drawText(statLabel, centerX, startY + amountHeight + lineSpacing + (statHeight / 2), true, smallTextColor, statTextSize, panelColor);
+
+  // Helper text at the bottom
+  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  drawText("Press any key to continue", 120, 131, true, WHITE, 1);
   return;
 }
 
@@ -7585,31 +7581,31 @@ void miniGameDebrief() {
           break;
         case TRAIN_SING3:
           saveRequired = true;
-          isNatsumiHappy = true;
+          // isNatsumiHappy = true;
           // changeState(0, HOME_LOOP, 0);
           changeState(0, ACTION_OUTCOME, 0);
           break;
         case TRAIN_DANCE3:
           saveRequired = true;
-          isNatsumiHappy = true;
+          // isNatsumiHappy = true;
           // changeState(0, HOME_LOOP, 0);
           changeState(0, ACTION_OUTCOME, 0);
           break;
         case TRAIN_SWIM3:
           saveRequired = true;
-          isNatsumiHappy = true;
+          // isNatsumiHappy = true;
           // changeState(0, HOME_LOOP, 0);
           changeState(0, ACTION_OUTCOME, 0);
           break;
         case TRAIN_GYM3:
           saveRequired = true;
-          isNatsumiHappy = true;
+          // isNatsumiHappy = true;
           // changeState(0, HOME_LOOP, 0);
           changeState(0, ACTION_OUTCOME, 0);
           break;
         case TRAIN_RUN3:
           saveRequired = true;
-          isNatsumiHappy = true;
+          // isNatsumiHappy = true;
           // changeState(0, HOME_LOOP, 0);
           changeState(0, ACTION_OUTCOME, 0);
           break;
