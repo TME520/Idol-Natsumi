@@ -6920,6 +6920,43 @@ void drawOverlay() {
           drawDialogBubble("You did not win that National competition, but thanks for participating!");
         }
         break;
+      case ACTION_OUTCOME:
+        switch(previousState) {
+          case TRAIN_SING3: case TRAIN_DANCE3:
+            if (natsumi.performance < 4) {
+              Serial.println(">> actionOutcome() - natsumi.performance < 4");
+              drawOutcome("+1", "Performance");
+              return;
+            } else {
+              Serial.println(">> actionOutcome() - natsumi.performance = 4");
+              changeState(0, MATSURI_TICKETS, 0);
+              return;
+            }
+            break;
+          case TRAIN_SWIM3: case TRAIN_GYM3: case TRAIN_RUN3:
+            if (natsumi.fitness < 4) {
+              Serial.println(">> actionOutcome() - natsumi.fitness < 4");
+              drawOutcome("+1", "Fitness");
+              return;
+            } else {
+              Serial.println(">> actionOutcome() - natsumi.fitness = 4");
+              changeState(0, MATSURI_TICKETS, 0);
+              return;
+            }
+            break;
+          case TRAIN_LIBRARY:
+            if (natsumi.culture < 4) {
+              Serial.println(">> actionOutcome() - natsumi.culture < 4");
+              drawOutcome("+1", "Culture");
+              return;
+            } else {
+              Serial.println(">> actionOutcome() - natsumi.culture = 4");
+              changeState(0, MATSURI_TICKETS, 0);
+              return;
+            }
+            break;
+        }
+        break;
       default:
         break;
     }
@@ -7287,41 +7324,6 @@ void actionOutcome() {
   // Determine if player is entitled to Matsuri tickets
   Serial.println("> Entering actionOutcome()");
   isNatsumiHappy = true;
-  switch(previousState) {
-    case TRAIN_SING3: case TRAIN_DANCE3:
-      if (natsumi.performance < 4) {
-        Serial.println(">> actionOutcome() - natsumi.performance < 4");
-        drawOutcome("+1", "Performance");
-        return;
-      } else {
-        Serial.println(">> actionOutcome() - natsumi.performance = 4");
-        changeState(0, MATSURI_TICKETS, 0);
-        return;
-      }
-      break;
-    case TRAIN_SWIM3: case TRAIN_GYM3: case TRAIN_RUN3:
-      if (natsumi.fitness < 4) {
-        Serial.println(">> actionOutcome() - natsumi.fitness < 4");
-        drawOutcome("+1", "Fitness");
-        return;
-      } else {
-        Serial.println(">> actionOutcome() - natsumi.fitness = 4");
-        changeState(0, MATSURI_TICKETS, 0);
-        return;
-      }
-      break;
-    case TRAIN_LIBRARY:
-      if (natsumi.culture < 4) {
-        Serial.println(">> actionOutcome() - natsumi.culture < 4");
-        drawOutcome("+1", "Culture");
-        return;
-      } else {
-        Serial.println(">> actionOutcome() - natsumi.culture = 4");
-        changeState(0, MATSURI_TICKETS, 0);
-        return;
-      }
-      break;
-  }
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
