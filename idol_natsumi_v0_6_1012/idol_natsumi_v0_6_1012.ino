@@ -223,6 +223,7 @@ String selectedFood = "None";
 std::vector<FoodDisplayItem> foodGridItems;
 int foodSelectionIndex = 0;
 bool foodGridInitialized = false;
+int inventoryPageIndex = 0;
 
 struct ConbimartItem {
   const char* label;
@@ -1996,6 +1997,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         overlayActive = true;
         l5NeedsRedraw = true;
         toastEnabled = false;
+        inventoryPageIndex = 0;
         break;
       case FLOWERS_MARKET:
         screenConfig = IDLE;
@@ -7113,8 +7115,118 @@ void drawStats() {
   drawText(footerText, cardX + cardW / 2, cardY + cardH - 7, true, accentColor, 1, panelColor);
 }
 
+struct InventoryEntry {
+  const char* label;
+  int value;
+};
+
+std::vector<InventoryEntry> buildInventoryEntries() {
+  std::vector<InventoryEntry> entries;
+  entries.reserve(32);
+  entries.push_back({"Money", natsumi.money});
+  entries.push_back({"Flowers", natsumi.flowers});
+  entries.push_back({"Tickets", natsumi.tickets});
+
+  struct FoodInventoryItem {
+    const char* label;
+    int* quantityPtr;
+  };
+
+  FoodInventoryItem foodItems[] = {
+    {"Red apple", &fridge.redApple},
+    {"Green apple", &fridge.greenApple},
+    {"Avocado", &fridge.avocado},
+    {"Bread", &fridge.bread},
+    {"Banana", &fridge.banana},
+    {"Broccoli", &fridge.broccoli},
+    {"Sweets", &fridge.sweets},
+    {"Carrot", &fridge.carrot},
+    {"Meat", &fridge.meat},
+    {"Coconut", &fridge.coconut},
+    {"Coconut juice", &fridge.coconutJuice},
+    {"Coffee", &fridge.coffee},
+    {"Biscuit", &fridge.biscuits},
+    {"Corn", &fridge.corn},
+    {"Croissant", &fridge.croissant},
+    {"Fried egg", &fridge.friedEgg},
+    {"Grape", &fridge.grapes},
+    {"Kiwi", &fridge.kiwi},
+    {"Milk", &fridge.milk},
+    {"Orange", &fridge.orange},
+    {"Peach", &fridge.peach},
+    {"Pear", &fridge.pear},
+    {"Strawberries", &fridge.strawberries},
+    {"Maki", &fridge.maki},
+    {"Sushi", &fridge.sushi},
+    {"Watermelon", &fridge.watermelon}
+  };
+
+  for (const auto &item : foodItems) {
+    if (*(item.quantityPtr) > 0) {
+      entries.push_back({item.label, *(item.quantityPtr)});
+    }
+  }
+
+  return entries;
+}
+
 void drawInventory() {
-  // Update this
+  const int itemsPerPage = 6;
+  std::vector<InventoryEntry> entries = buildInventoryEntries();
+
+  int pageCount = (entries.size() + itemsPerPage - 1) / itemsPerPage;
+  if (pageCount < 1) {
+    pageCount = 1;
+  }
+  if (inventoryPageIndex >= pageCount) {
+    inventoryPageIndex = pageCount - 1;
+  }
+  if (inventoryPageIndex < 0) {
+    inventoryPageIndex = 0;
+  }
+
+  const int cardX = 8;
+  const int cardY = 8;
+  const int cardW = 224;
+  const int cardH = 119;
+  const uint16_t shadowColor = M5Cardputer.Display.color565(10, 14, 32);
+  const uint16_t panelColor = M5Cardputer.Display.color565(20, 28, 64);
+  const uint16_t accentColor = M5Cardputer.Display.color565(120, 170, 255);
+  const uint16_t valueColor = M5Cardputer.Display.color565(180, 220, 255);
+
+  M5Cardputer.Display.fillRoundRect(cardX + 3, cardY + 4, cardW, cardH, 12, shadowColor);
+  M5Cardputer.Display.fillRoundRect(cardX, cardY, cardW, cardH, 12, panelColor);
+  M5Cardputer.Display.drawRoundRect(cardX, cardY, cardW, cardH, 12, accentColor);
+
+  M5Cardputer.Display.setTextColor(TFT_WHITE, panelColor);
+  M5Cardputer.Display.setTextDatum(middle_center);
+  M5Cardputer.Display.setTextSize(2);
+  M5Cardputer.Display.drawString("Inventory", cardX + cardW / 2, cardY + 16);
+
+  M5Cardputer.Display.setTextSize(1);
+  M5Cardputer.Display.setTextDatum(top_right);
+  M5Cardputer.Display.setTextColor(valueColor, panelColor);
+  String pageText = "Pg " + String(inventoryPageIndex + 1) + "/" + String(pageCount);
+  M5Cardputer.Display.drawString(pageText, cardX + cardW - 10, cardY + 6);
+
+  const int startY = cardY + 32;
+  const int lineHeight = 13;
+  int startIndex = inventoryPageIndex * itemsPerPage;
+  int endIndex = std::min<int>(entries.size(), startIndex + itemsPerPage);
+
+  for (int i = startIndex; i < endIndex; ++i) {
+    int rowY = startY + (i - startIndex) * lineHeight;
+    M5Cardputer.Display.setTextDatum(top_left);
+    M5Cardputer.Display.setTextColor(TFT_WHITE, panelColor);
+    M5Cardputer.Display.drawString(entries[i].label, cardX + 12, rowY);
+
+    M5Cardputer.Display.setTextDatum(top_right);
+    M5Cardputer.Display.setTextColor(valueColor, panelColor);
+    M5Cardputer.Display.drawString(String(entries[i].value), cardX + cardW - 12, rowY);
+  }
+
+  String footerText = pageCount > 1 ? "LEFT/RIGHT: Scroll  Any key: Back" : "Any key: Back";
+  drawText(footerText, cardX + cardW / 2, cardY + cardH - 7, true, accentColor, 1, panelColor);
 }
 
 void drawStatBar(const String &label, int value, int maxValue, int x, int y, int width, int barHeight, uint16_t barColor, uint16_t bgColor, uint16_t frameColor) {
@@ -7273,6 +7385,37 @@ void manageInventory() {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      bool pageChanged = false;
+      const int itemsPerPage = 6;
+      int pageCount = (buildInventoryEntries().size() + itemsPerPage - 1) / itemsPerPage;
+      if (pageCount < 1) {
+        pageCount = 1;
+      }
+
+      switch (key) {
+        // LEFT
+        case 180: case 44: case 'a': case 'A':
+          if (inventoryPageIndex > 0) {
+            inventoryPageIndex--;
+            pageChanged = true;
+          }
+          break;
+        // RIGHT
+        case 183: case 47: case 'd': case 'D':
+          if (inventoryPageIndex + 1 < pageCount) {
+            inventoryPageIndex++;
+            pageChanged = true;
+          }
+          break;
+        default:
+          break;
+      }
+
+      if (pageChanged) {
+        l5NeedsRedraw = true;
+        return;
+      }
+
       overlayActive = false;
       changeState(0, HOME_LOOP, 0);
       return;
