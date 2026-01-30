@@ -317,7 +317,7 @@ const char* competitionMenuItems[] = {"0: LOCAL", "1: DEPARTMENTAL", "2: REGIONA
 const char* healthMenuItems[] = {"0: WASH", "1: DOCTOR", "2: TEMPLE", "3: ONSEN"};
 const char* restMenuItems[] = {"0: MEDITATE", "1: SLEEP"};
 const char* gardenMenuItems[] = {"0: PLANT", "1: WATER", "2: PICK", "3: CLEANUP"};
-const char* eventsMenuItems[] = {"0: MATSURI", "1: GIGS"};
+const char* eventsMenuItems[] = {"0: MATSURI", "1: GIGS", "2: JOBS", "3: FESTIVALS"};
 const char** currentMenuItems = nullptr;
 const int mainMenuItemCount = 3;
 const int homeMenuItemCount = 8;
@@ -328,7 +328,7 @@ const int competitionMenuItemCount = 4;
 const int healthMenuItemCount = 4;
 const int restMenuItemCount = 2;
 const int gardenMenuItemCount = 4;
-const int eventsMenuItemCount = 2;
+const int eventsMenuItemCount = 4;
 int currentMenuItemsCount = 0;
 int homeMenuSelection = 0;
 int mainMenuSelection = 0;
@@ -6266,7 +6266,97 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           break;
       }
     } else if (menuType == "events") {
-      //
+      Serial.println(">> drawMenu - events menuType");
+      switch (key) {
+        case 48:
+          // 0: MATSURI
+          Serial.println(">>> drawMenu - 0: MATSURI");
+          menuOpened = false;
+          changeState(0, HOME_LOOP, 0);
+          break;
+        case 49:
+          // 1: GIGS
+          Serial.println(">>> drawMenu - 1: GIGS");
+          menuOpened = false;
+          changeState(0, HOME_LOOP, 0);
+          break;
+        case 50:
+          // 2: JOBS
+          Serial.println(">>> drawMenu - 2: JOBS");
+          menuOpened = false;
+          changeState(0, HOME_LOOP, 0);
+          break;
+        case 51:
+          // 3: FESTIVALS
+          Serial.println(">>> drawMenu - 3: FESTIVALS");
+          menuOpened = false;
+          changeState(0, HOME_LOOP, 0);
+          break;
+        case 56:
+          // 8: DEBUG
+          if (debugActive) {
+            debugActive = false;
+            l0NeedsRedraw = true;
+            l2NeedsRedraw = false;
+          } else {
+            debugActive = true;
+            l2NeedsRedraw = true;
+          }
+          break;
+        case 43:
+          // TAB
+          if (menuOpened) {
+            menuOpened = false;
+            l0NeedsRedraw = true;
+            changeState(0, HOME_LOOP, 0);
+          } else {
+            menuOpened = true;
+            l4NeedsRedraw = true;
+          }
+          break;
+        case 96:
+          // ESC
+          if (menuOpened) {
+            menuOpened = false;
+            l0NeedsRedraw = true;
+          }
+          changeState(0, HOME_LOOP, 0);
+          break;
+        case 181: case 'w': case 'W': case 59:
+          // UP
+          Serial.println(">>> drawMenu - UP");
+          selection = (selection - 1 + gardenMenuItemCount) % gardenMenuItemCount;
+          l4NeedsRedraw = true;
+          break;
+        case 182: case 's': case 'S': case 46:
+          // DOWN
+          Serial.println(">>> drawMenu - DOWN");
+          selection = (selection + 1) % gardenMenuItemCount;
+          l4NeedsRedraw = true;
+          break;
+        case 13: case 40: case ' ':
+          // VALIDATE
+          if (selection == 0) {
+            changeState(0, HOME_LOOP, 0);
+          } else if (selection == 1) {
+            changeState(0, HOME_LOOP, 0);
+          } else if (selection == 2) {
+            changeState(0, HOME_LOOP, 0);
+          } else if (selection == 3) {
+            changeState(0, HOME_LOOP, 0);
+          } else if (selection == 8) {
+            if (debugActive) {
+              debugActive = false;
+              l0NeedsRedraw = true;
+              l2NeedsRedraw = false;
+            } else {
+              debugActive = true;
+              l2NeedsRedraw = true;
+            }
+          }
+          menuOpened = false;
+          break;
+      }
     }
     if (!menuOpened) {
       l4NeedsRedraw = false;
