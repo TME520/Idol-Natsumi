@@ -392,6 +392,7 @@ bool gardenActive = false;
 bool isPlayerGardening = false;
 bool flowersSaleInProgress = false;
 bool unlockedNextCompetitionLevel = false;
+bool isLatestTrainingPerfect = false;
 
 int librarySegmentsFilled = 0;
 int flowersSaleHandicap = 0;
@@ -2719,8 +2720,6 @@ void manageCard() {
     case HEALTH_WASH4:
       changeState(0, HEALTH_WASH5, 20);
       break;
-    case DEV_SCREEN:
-      break;
     case MATSURI_TICKETS:
       allocateTickets();
       break;
@@ -2738,8 +2737,6 @@ void manageCard() {
   int *selectionPtr;
   if (currentMenuType == "home") {
     selectionPtr = &homeMenuSelection;
-  } else if (currentMenuType == "dev") {
-    selectionPtr = &devMenuSelection;
   } else {
     selectionPtr = &mainMenuSelection;
   }
@@ -3126,8 +3123,6 @@ void manageRoom() {
   int *selectionPtr;
   if (currentMenuType == "home") {
     selectionPtr = &homeMenuSelection;
-  } else if (currentMenuType == "dev") {
-    selectionPtr = &devMenuSelection;
   } else if (currentMenuType == "garden") {
     selectionPtr = &gardenMenuSelection;
   } else {
@@ -6047,72 +6042,6 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           menuOpened = false;
           break;
       }
-    } else if (menuType == "dev") {
-      switch (key) {
-        case 48:
-          // 0: CALIB1
-          menuOpened = false;
-          changeState(0, CALIBRATION_1, 0);
-          break;
-        case 49:
-          // 1: CALIB2
-          menuOpened = false;
-          changeState(0, CALIBRATION_2, 0);
-          break;
-        case 50:
-          // 2: CALIB3
-          menuOpened = false;
-          changeState(0, CALIBRATION_3, 0);
-          break;
-        case 51:
-          // 3: EXIT
-          menuOpened = true;
-          changeState(0, TITLE_SCREEN, 0);
-          break;
-        case 43:
-          // TAB
-          if (menuOpened) {
-            menuOpened = false;
-            l0NeedsRedraw = true;
-          } else {
-            menuOpened = true;
-            l4NeedsRedraw = true;
-          }
-          break;
-        case 96:
-          // ESC
-          if (menuOpened) {
-            menuOpened = true;
-          }
-          changeState(0, TITLE_SCREEN, 0);
-          break;
-        case 181: case 'w': case 'W': case 59:
-          // UP
-          selection = (selection - 1 + devMenuItemCount) % devMenuItemCount;
-          l4NeedsRedraw = true;
-          break;
-        case 182: case 's': case 'S': case 46:
-          // DOWN
-          selection = (selection + 1) % devMenuItemCount;
-          l4NeedsRedraw = true;
-          break;
-        case 13: case 40: case ' ':
-          // VALIDATE
-          if (selection == 0) {
-            menuOpened = false;
-            changeState(0, CALIBRATION_1, 0);
-          } else if (selection == 1) {
-            menuOpened = false;
-            changeState(0, CALIBRATION_2, 0);
-          } else if (selection == 2) {
-            menuOpened = false;
-            changeState(4, CALIBRATION_3, 0);
-          } else if (selection == 3) {
-            menuOpened = true;
-            changeState(0, TITLE_SCREEN, 0);
-          }
-          break;
-      }
     } else if (menuType == "main") {
       switch (key) {
         case 48:
@@ -6126,9 +6055,9 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           changeState(0, CONTINUE_GAME, 0);
           break;
         case 50:
-          // 2: DEV SCREEN
+          // 2: INTRO
           menuOpened = true;
-          changeState(4, DEV_SCREEN, 0);
+          changeState(4, INTRO, 0);
           return;
         case 181: case 'w': case 'W': case 59:
           // UP
@@ -6150,7 +6079,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             changeState(0, CONTINUE_GAME, 0);
           } else {
             menuOpened = true;
-            changeState(4, DEV_SCREEN, 0);
+            changeState(4, INTRO, 0);
             return;
           }
       }
@@ -6677,9 +6606,11 @@ void drawOverlay() {
       case TRAIN_DANCE3: {
         int missedDanceCues = danceCuesShown - danceScore;
         String danceTeacherFeedback = "";
+        isLatestTrainingPerfect = false;
         switch(missedDanceCues) {
           case 0:
             danceTeacherFeedback = "excellent!!";
+            isLatestTrainingPerfect = true;
             break;
           case 1: case 2: case 3:
             danceTeacherFeedback = "very good!!";
@@ -6700,9 +6631,11 @@ void drawOverlay() {
       case TRAIN_SING3: {
         int missedMusicCoins = singNotesSpawned - singNotesCollected;
         String musicTeacherFeedback = "";
+        isLatestTrainingPerfect = false;
         switch(missedMusicCoins) {
           case 0:
             musicTeacherFeedback = "excellent!!";
+            isLatestTrainingPerfect = true;
             break;
           case 1: case 2: case 3:
             musicTeacherFeedback = "very good!!";
@@ -6722,8 +6655,10 @@ void drawOverlay() {
       }
       case TRAIN_SWIM3: {
         String swimFeedback = "";
+        isLatestTrainingPerfect = false;
         if (swimCollisions == 0 && swimAvoidedSharks >= swimTargetSharks) {
           swimFeedback = "You were unstoppable!!";
+          isLatestTrainingPerfect = true;
         } else if (swimCollisions <= 2) {
           swimFeedback = "Great reflexes!";
         } else if (swimCollisions <= 5) {
@@ -6736,8 +6671,10 @@ void drawOverlay() {
       }
       case TRAIN_GYM3: {
         String gymFeedback = "";
+        isLatestTrainingPerfect = false;
         if (gymMisses < 1) {
           gymFeedback = "You are excellent!!";
+          isLatestTrainingPerfect = true;
         } else if (gymMisses > 0 && gymMisses < 3) {
           gymFeedback = "Great reflexes!";
         } else if (gymMisses > 2 && gymMisses < 6) {
@@ -6750,6 +6687,7 @@ void drawOverlay() {
       }
       case TRAIN_RUN3:
         drawDialogBubble("Running is very good for your health, see you again very soon!!");
+        isLatestTrainingPerfect = true;
         break;
       case FOOD_CONBINI2:
         drawConbimartOverlay();
@@ -7000,6 +6938,7 @@ void drawOverlay() {
             }
             break;
           case TRAIN_LIBRARY:
+            isLatestTrainingPerfect = false;
             if (natsumi.culture < 4) {
               Serial.println(">> actionOutcome() - natsumi.culture < 4");
               drawOutcome("+1", "Culture");
@@ -7623,6 +7562,20 @@ void priest() {
 
 void cashier() {
   // Serial.println("> Entering cashier()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      overlayActive = false;
+      changeState(0, HOME_LOOP, 0);
+    }
+  }
+  return;
+}
+
+void introduction() {
+  // Serial.println("> Entering introduction()");
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
