@@ -19,6 +19,7 @@ enum GameState {
   INTRO4,
   INTRO5,
   INTRO6,
+  INTRO7,
   HOME_LOOP,
   FLOWERS_MARKET,
   FLOWERS_MARKET2,
@@ -314,7 +315,6 @@ unsigned long libraryStartTime = 0;
 String currentMenuType = "main";
 const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: INTRO"};
 const char* homeMenuItems[] = {"0: STATS", "1: INVENTORY", "2: FOOD", "3: TRAINING", "4: COMPETITION", "5: HEALTH", "6: REST", "7: GARDEN", "8: EVENTS"};
-// const char* devMenuItems[] = {"0: CALIB1", "1: CALIB2", "2: CALIB3", "3: EXIT"};
 const char* foodMenuItems[] = {"0: FRIDGE", "1: RESTAURANT", "2: ORDER", "3: CONBINI"};
 const char* trainingMenuItems[] = {"0: SING", "1: DANCE", "2: SWIM", "3: GYM", "4: RUN", "5: LIBRARY", "6: MARKET"};
 const char* competitionMenuItems[] = {"0: LOCAL", "1: DEPARTMENTAL", "2: REGIONAL", "3: NATIONAL"};
@@ -325,7 +325,6 @@ const char* eventsMenuItems[] = {"0: MATSURI", "1: GIGS", "2: JOBS", "3: FESTIVA
 const char** currentMenuItems = nullptr;
 const int mainMenuItemCount = 3;
 const int homeMenuItemCount = 9;
-// const int devMenuItemCount = 4;
 const int foodMenuItemCount = 4;
 const int trainingMenuItemCount = 7;
 const int competitionMenuItemCount = 4;
@@ -336,7 +335,6 @@ const int eventsMenuItemCount = 4;
 int currentMenuItemsCount = 0;
 int homeMenuSelection = 0;
 int mainMenuSelection = 0;
-// int devMenuSelection = 0;
 int foodMenuSelection = 0;
 int trainingMenuSelection = 0;
 int competitionMenuSelection = 0;
@@ -590,6 +588,7 @@ const char* gameStateToString(GameState state) {
     case INTRO4:           return "INTRO4";
     case INTRO5:           return "INTRO5";
     case INTRO6:           return "INTRO6";
+    case INTRO7:           return "INTRO7";
     case HOME_LOOP:        return "HOME_LOOP";
     case FLOWERS_MARKET:   return "FLOWERS_MARKET";
     case FLOWERS_MARKET2:  return "FLOWERS_MARKET2";
@@ -1082,8 +1081,23 @@ void preloadImages() {
     case TITLE_SCREEN:
       preloadImage("/idolnat/screens/title03.png", currentBackground);
       break;
-    case INTRO: case INTRO2: case INTRO3: case INTRO4: case INTRO5: case INTRO6:
-      preloadImage("/idolnat/screens/title01.png", currentBackground);
+    case INTRO:
+      preloadImage("/idolnat/screens/bedroom.png", currentBackground);
+      break;
+    case INTRO2:
+      preloadImage("/idolnat/screens/countryside_plain_bg.png", currentBackground);
+      break;
+    case INTRO3:
+      preloadImage("/idolnat/screens/slidestats_popularity.png", currentBackground);
+      break;
+    case INTRO4: case INTRO5:
+      preloadImage("/idolnat/screens/lounge.png", currentBackground);
+      break;
+    case INTRO6:
+      preloadImage("/idolnat/screens/garden_bg.png", currentBackground);
+      break;
+    case INTRO7:
+      preloadImage("/idolnat/screens/good_luck.png", currentBackground);
       break;
     case HOME_LOOP:
       preloadImage("/idolnat/screens/lounge.png", currentBackground);
@@ -1438,6 +1452,12 @@ void preloadImages() {
         case COMP_EXPLAIN:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
+        case INTRO: case INTRO2: case INTRO3: case INTRO6: case INTRO7:
+          preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentCharacter);
+          break;
+        case INTRO4: case INTRO5:
+          preloadImage("/idolnat/sprites/player.png", currentCharacter);
+          break;
         default:
           if (isNatsumiHappy) {
             preloadImage("/idolnat/sprites/natsumi_11yo_happy-90x135.png", currentCharacter);
@@ -1502,6 +1522,12 @@ void preloadImages() {
         case COMP_NAT3: case COMP_NAT6:
         case COMP_EXPLAIN:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
+          break;
+        case INTRO: case INTRO2: case INTRO3: case INTRO6: case INTRO7:
+          preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentCharacter);
+          break;
+        case INTRO4: case INTRO5:
+          preloadImage("/idolnat/sprites/player.png", currentCharacter);
           break;
         default:
           if (isNatsumiHappy) {
@@ -1568,6 +1594,12 @@ void preloadImages() {
         case COMP_EXPLAIN:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
+        case INTRO: case INTRO2: case INTRO3: case INTRO6: case INTRO7:
+          preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentCharacter);
+          break;
+        case INTRO4: case INTRO5:
+          preloadImage("/idolnat/sprites/player.png", currentCharacter);
+          break;
         default:
           if (isNatsumiHappy) {
             preloadImage("/idolnat/sprites/natsumi_15yo_happy-90x135.png", currentCharacter);
@@ -1633,6 +1665,12 @@ void preloadImages() {
         case COMP_EXPLAIN:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
+        case INTRO: case INTRO2: case INTRO3: case INTRO6: case INTRO7:
+          preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentCharacter);
+          break;
+        case INTRO4: case INTRO5:
+          preloadImage("/idolnat/sprites/player.png", currentCharacter);
+          break;
         default:
           if (isNatsumiHappy) {
             preloadImage("/idolnat/sprites/natsumi_18yo_happy-90x135.png", currentCharacter);
@@ -1697,6 +1735,12 @@ void preloadImages() {
         case COMP_NAT3: case COMP_NAT6:
         case COMP_EXPLAIN:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
+          break;
+        case INTRO: case INTRO2: case INTRO3: case INTRO6: case INTRO7:
+          preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentCharacter);
+          break;
+        case INTRO4: case INTRO5:
+          preloadImage("/idolnat/sprites/player.png", currentCharacter);
           break;
         default:
           if (isNatsumiHappy) {
@@ -1771,7 +1815,7 @@ void loop() {
   Serial.println("debugEnabled: " + String(debugEnabled) + " - menuOpened: " + String(menuOpened) + " - toastActive: " + String(toastActive));
   Serial.println("changeStateCounter: " + String(changeStateCounter) + " - l5NeedsRedraw: " + String(l5NeedsRedraw));
 */
-  // Serial.println("> currentState = " + String(gameStateToString(currentState)));
+  // *Serial.println("> currentState = " + String(gameStateToString(currentState)));
   // Serial.println("loop - natsumi.ageMilliseconds: " + String(natsumi.ageMilliseconds));
   // Serial.println("loop - playtimeTotalMs: " + String(playtimeTotalMs));
   switch (screenConfig) {
@@ -1808,6 +1852,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
   if (changeStateCounter == delay) {
     Serial.println("Proceed with transition");
     Serial.println("> currentState = " + String(gameStateToString(currentState)));
+    Serial.println("> targetState = " + String(gameStateToString(targetState)));
     changeStateCounter = 0;
     previousState = currentState;
     currentState = targetState;
@@ -1965,6 +2010,13 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         screenConfig = DIALOG;
         overlayActive = true;
         l5NeedsRedraw = true;
+        menuOpened = false;
+        break;
+      case INTRO7:
+        screenConfig = DIALOG;
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        characterEnabled = false;
         break;
       case HOME_LOOP:
         screenConfig = ROOM;
@@ -2812,7 +2864,7 @@ void manageDialog() {
     case ACTION_OUTCOME:
       actionOutcome();
       break;
-    case INTRO: case INTRO2: case INTRO3: case INTRO4: case INTRO5: case INTRO6:
+    case INTRO: case INTRO2: case INTRO3: case INTRO4: case INTRO5: case INTRO6: case INTRO7:
       introduction();
       break;
     default:
@@ -6057,7 +6109,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         case 50:
           // 2: INTRO
           menuOpened = true;
-          changeState(4, INTRO, 0);
+          changeState(0, INTRO, 0);
           return;
         case 181: case 'w': case 'W': case 59:
           // UP
@@ -6917,6 +6969,24 @@ void drawOverlay() {
           drawDialogBubble("You did not win that National competition, but thanks for participating!");
         }
         break;
+      case INTRO:
+        drawDialogBubble("Yaho!! I am Natsumi Hasegawa, 11 years old!");
+        break;
+      case INTRO2:
+        drawDialogBubble("I live in Shiodome, a quiet town in rural Japan");
+        break;
+      case INTRO3:
+        drawDialogBubble("I have a big dream: I want to become an idol");
+        break;
+      case INTRO4:
+        drawDialogBubble("My parents appointed you as my manager. I trust in you to help me make it happen!");
+        break;
+      case INTRO5:
+        drawDialogBubble("Help me lead a good life, train properly and win competitions");
+        break;
+      case INTRO6:
+        drawDialogBubble("This is a quiet game about patience, passion, care and growth");
+        break;
       case ACTION_OUTCOME:
         switch(previousState) {
           case TRAIN_SING3: case TRAIN_DANCE3:
@@ -7582,7 +7652,29 @@ void introduction() {
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       overlayActive = false;
-      changeState(0, HOME_LOOP, 0);
+      switch(currentState) {
+        case INTRO:
+          changeState(0, INTRO2, 0);
+          break;
+        case INTRO2:
+          changeState(0, INTRO3, 0);
+          break;
+        case INTRO3:
+          changeState(0, INTRO4, 0);
+          break;
+        case INTRO4:
+          changeState(0, INTRO5, 0);
+          break;
+        case INTRO5:
+          changeState(0, INTRO6, 0);
+          break;
+        case INTRO6:
+          changeState(0, INTRO7, 0);
+          break;
+        case INTRO7:
+          changeState(0, TITLE_SCREEN2, 0);
+          break;
+      }
     }
   }
   return;
