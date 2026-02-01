@@ -1078,7 +1078,7 @@ void preloadImages() {
     case MOTTO_SCREEN:
       preloadImage("/idolnat/screens/motto.png", currentBackground);
       break;
-    case TITLE_SCREEN:
+    case TITLE_SCREEN: case TITLE_SCREEN2:
       preloadImage("/idolnat/screens/title03.png", currentBackground);
       break;
     case INTRO:
@@ -1452,7 +1452,7 @@ void preloadImages() {
         case COMP_EXPLAIN:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
-        case INTRO: case INTRO2: case INTRO3: case INTRO6: case INTRO7:
+        case INTRO: case INTRO2: case INTRO3: case INTRO6:
           preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentCharacter);
           break;
         case INTRO4: case INTRO5:
@@ -1523,7 +1523,7 @@ void preloadImages() {
         case COMP_EXPLAIN:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
-        case INTRO: case INTRO2: case INTRO3: case INTRO6: case INTRO7:
+        case INTRO: case INTRO2: case INTRO3: case INTRO6:
           preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentCharacter);
           break;
         case INTRO4: case INTRO5:
@@ -1594,7 +1594,7 @@ void preloadImages() {
         case COMP_EXPLAIN:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
-        case INTRO: case INTRO2: case INTRO3: case INTRO6: case INTRO7:
+        case INTRO: case INTRO2: case INTRO3: case INTRO6:
           preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentCharacter);
           break;
         case INTRO4: case INTRO5:
@@ -1665,7 +1665,7 @@ void preloadImages() {
         case COMP_EXPLAIN:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
-        case INTRO: case INTRO2: case INTRO3: case INTRO6: case INTRO7:
+        case INTRO: case INTRO2: case INTRO3: case INTRO6:
           preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentCharacter);
           break;
         case INTRO4: case INTRO5:
@@ -1736,7 +1736,7 @@ void preloadImages() {
         case COMP_EXPLAIN:
           preloadImage("/idolnat/sprites/comp_host_local-90x135.png", currentCharacter);
           break;
-        case INTRO: case INTRO2: case INTRO3: case INTRO6: case INTRO7:
+        case INTRO: case INTRO2: case INTRO3: case INTRO6:
           preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", currentCharacter);
           break;
         case INTRO4: case INTRO5:
@@ -1892,6 +1892,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case TITLE_SCREEN:
         screenConfig = CARD;
+        characterEnabled = false;
         break;
       case TITLE_SCREEN2:
         screenConfig = CARD;
@@ -1899,6 +1900,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItems = mainMenuItems;
         currentMenuItemsCount = mainMenuItemCount;
         menuOpened = true;
+        characterEnabled = false;
         break;
       case NEW_GAME:
         screenConfig = CARD;
@@ -7033,7 +7035,61 @@ void playGame() {
 }
 
 void allocateTickets() {
-  // Serial.println("> Entering allocateTickets()");
+  Serial.println("> Entering allocateTickets()");
+  int extraTickets = 0;
+  const int screenWidth = M5Cardputer.Display.width();
+  const int screenHeight = M5Cardputer.Display.height();
+  const int frameInset = 6;
+  const int frameX = (screenWidth / 2) + frameInset;
+  const int frameY = 12;
+  const int frameW = (screenWidth / 2) - (frameInset * 2);
+  const int frameH = screenHeight - (frameY * 2);
+  const int lineSpacing = 6;
+  const uint16_t frameColor = WHITE;
+  const uint16_t panelColor = TFT_NAVY;
+  const uint16_t smallTextColor = WHITE;
+  const uint16_t bigTextColor = YELLOW;
+
+  M5Cardputer.Display.fillRect(frameX, frameY, frameW, frameH, panelColor);
+  M5Cardputer.Display.drawRect(frameX, frameY, frameW, frameH, frameColor);
+
+  const int centerX = frameX + (frameW / 2);
+  const int amountTextSize = 5;
+  const int statTextSize = 1;
+
+  M5Cardputer.Display.setTextSize(amountTextSize);
+  const int amountHeight = M5Cardputer.Display.fontHeight();
+  M5Cardputer.Display.setTextSize(statTextSize);
+  const int statHeight = M5Cardputer.Display.fontHeight();
+  const int totalTextHeight = amountHeight + lineSpacing + statHeight;
+  const int startY = frameY + (frameH - totalTextHeight) / 2;
+  
+  if (isLatestTrainingPerfect) {
+    extraTickets += 1;
+  }
+  if (natsumi.charm == 4) {
+    extraTickets += 1;
+  }
+  switch(natsumi.popularity) {
+    case 0:
+      extraTickets += 0;
+      break;
+    case 1: case 2: case 3:
+      extraTickets += 1;
+      break;
+    case 4:
+      extraTickets += 2;
+      break;
+  }
+  natsumi.tickets += extraTickets;
+  Serial.println(">> allocateTickets() - extraTickets: " + String(extraTickets));
+
+  drawText(String(extraTickets), centerX, startY + (amountHeight / 2), true, bigTextColor, amountTextSize, panelColor);
+  drawText("Matsuri tickets", centerX, startY + amountHeight + lineSpacing + (statHeight / 2), true, smallTextColor, statTextSize, panelColor);
+
+  // Helper text at the bottom
+  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  drawText("Total: " + String (natsumi.tickets) + " tickets [ENTER]", 120, 131, true, WHITE, 1);
   return;
 }
 
