@@ -11,12 +11,14 @@ enum GameState {
   MOTTO_SCREEN,
   TITLE_SCREEN,
   TITLE_SCREEN2,
-  CALIBRATION_1,
-  CALIBRATION_2,
-  CALIBRATION_3,
   NEW_GAME,
   CONTINUE_GAME,
-  DEV_SCREEN,
+  INTRO,
+  INTRO2,
+  INTRO3,
+  INTRO4,
+  INTRO5,
+  INTRO6,
   HOME_LOOP,
   FLOWERS_MARKET,
   FLOWERS_MARKET2,
@@ -310,9 +312,9 @@ unsigned long lastFiveSecondTick = 0;
 unsigned long libraryStartTime = 0;
 
 String currentMenuType = "main";
-const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: DEV SCREEN"};
+const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: INTRO"};
 const char* homeMenuItems[] = {"0: STATS", "1: INVENTORY", "2: FOOD", "3: TRAINING", "4: COMPETITION", "5: HEALTH", "6: REST", "7: GARDEN", "8: EVENTS"};
-const char* devMenuItems[] = {"0: CALIB1", "1: CALIB2", "2: CALIB3", "3: EXIT"};
+// const char* devMenuItems[] = {"0: CALIB1", "1: CALIB2", "2: CALIB3", "3: EXIT"};
 const char* foodMenuItems[] = {"0: FRIDGE", "1: RESTAURANT", "2: ORDER", "3: CONBINI"};
 const char* trainingMenuItems[] = {"0: SING", "1: DANCE", "2: SWIM", "3: GYM", "4: RUN", "5: LIBRARY", "6: MARKET"};
 const char* competitionMenuItems[] = {"0: LOCAL", "1: DEPARTMENTAL", "2: REGIONAL", "3: NATIONAL"};
@@ -323,7 +325,7 @@ const char* eventsMenuItems[] = {"0: MATSURI", "1: GIGS", "2: JOBS", "3: FESTIVA
 const char** currentMenuItems = nullptr;
 const int mainMenuItemCount = 3;
 const int homeMenuItemCount = 9;
-const int devMenuItemCount = 4;
+// const int devMenuItemCount = 4;
 const int foodMenuItemCount = 4;
 const int trainingMenuItemCount = 7;
 const int competitionMenuItemCount = 4;
@@ -334,7 +336,7 @@ const int eventsMenuItemCount = 4;
 int currentMenuItemsCount = 0;
 int homeMenuSelection = 0;
 int mainMenuSelection = 0;
-int devMenuSelection = 0;
+// int devMenuSelection = 0;
 int foodMenuSelection = 0;
 int trainingMenuSelection = 0;
 int competitionMenuSelection = 0;
@@ -563,7 +565,7 @@ String doctorHint = "";
 String priestHint = "";
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "0.6.1012 Update 9";
+String versionNumber = "Update 9";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -579,12 +581,14 @@ const char* gameStateToString(GameState state) {
     case MOTTO_SCREEN:     return "MOTTO_SCREEN";
     case TITLE_SCREEN:     return "TITLE_SCREEN";
     case TITLE_SCREEN2:    return "TITLE_SCREEN2";
-    case CALIBRATION_1:    return "CALIBRATION_1";
-    case CALIBRATION_2:    return "CALIBRATION_2";
-    case CALIBRATION_3:    return "CALIBRATION_3";
     case NEW_GAME:         return "NEW_GAME";
     case CONTINUE_GAME:    return "CONTINUE_GAME";
-    case DEV_SCREEN:       return "DEV_SCREEN";
+    case INTRO:            return "INTRO";
+    case INTRO2:           return "INTRO2";
+    case INTRO3:           return "INTRO3";
+    case INTRO4:           return "INTRO4";
+    case INTRO5:           return "INTRO5";
+    case INTRO6:           return "INTRO6";
     case HOME_LOOP:        return "HOME_LOOP";
     case FLOWERS_MARKET:   return "FLOWERS_MARKET";
     case FLOWERS_MARKET2:  return "FLOWERS_MARKET2";
@@ -1077,17 +1081,8 @@ void preloadImages() {
     case TITLE_SCREEN:
       preloadImage("/idolnat/screens/title03.png", currentBackground);
       break;
-    case DEV_SCREEN:
+    case INTRO: case INTRO2: case INTRO3: case INTRO4: case INTRO5: case INTRO6:
       preloadImage("/idolnat/screens/title01.png", currentBackground);
-      break;
-    case CALIBRATION_1:
-      preloadImage("/idolnat/screens/setup_3tiers_busybar.png", currentBackground);
-      break;
-    case CALIBRATION_2:
-      preloadImage("/idolnat/screens/setup_menubox.png", currentBackground);
-      break;
-    case CALIBRATION_3:
-      preloadImage("/idolnat/screens/setup_dialog.png", currentBackground);
       break;
     case HOME_LOOP:
       preloadImage("/idolnat/screens/lounge.png", currentBackground);
@@ -1965,13 +1960,10 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           lastAgeTick = 0;
         }
         break;
-      case DEV_SCREEN:
-        screenConfig = CARD;
-        currentMenuType = "dev";
-        currentMenuItems = devMenuItems;
-        currentMenuItemsCount = devMenuItemCount;
-        break;
-      case CALIBRATION_1: case CALIBRATION_2: case CALIBRATION_3:
+      case INTRO: case INTRO2: case INTRO3: case INTRO4: case INTRO5: case INTRO6:
+        screenConfig = DIALOG;
+        overlayActive = true;
+        l5NeedsRedraw = true;
         break;
       case HOME_LOOP:
         screenConfig = ROOM;
@@ -2822,6 +2814,9 @@ void manageDialog() {
       break;
     case ACTION_OUTCOME:
       actionOutcome();
+      break;
+    case INTRO: case INTRO2: case INTRO3: case INTRO4: case INTRO5: case INTRO6:
+      introduction();
       break;
     default:
       break;
