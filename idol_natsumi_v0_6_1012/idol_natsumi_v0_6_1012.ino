@@ -2327,8 +2327,13 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         screenConfig = ROOM;
         menuOpened = false;
         break;
-      case MATSURI_TICKETS: case MATSURI_TICKETS2: case MATSURI_TICKETS3:
+      case MATSURI_TICKETS: case MATSURI_TICKETS3:
         screenConfig = CARD;
+        break;
+      case MATSURI_TICKETS2:
+        screenConfig = DIALOG;
+        overlayActive = true;
+        l5NeedsRedraw = true;
         break;
       case ACTION_OUTCOME:
         screenConfig = DIALOG;
@@ -2775,13 +2780,11 @@ void manageCard() {
       changeState(0, HEALTH_WASH5, 20);
       break;
     case MATSURI_TICKETS:
-      allocateTickets();
-      break;
-    case MATSURI_TICKETS2:
-      getTickets();
+      characterEnabled = false;
+      changeState(0, MATSURI_TICKETS2, microWait);
       break;
     case MATSURI_TICKETS3:
-      ticketsInventory();
+      changeState(0, HOME_LOOP, 0);
       break;
     default:
       break;
@@ -2868,6 +2871,10 @@ void manageDialog() {
       break;
     case INTRO: case INTRO2: case INTRO3: case INTRO4: case INTRO5: case INTRO6: case INTRO7:
       introduction();
+      break;
+    case MATSURI_TICKETS2:
+      // characterEnabled = false;
+      changeState(0, HOME_LOOP, microWait);
       break;
     default:
       break;
@@ -6988,6 +6995,9 @@ void drawOverlay() {
         break;
       case INTRO6:
         drawDialogBubble("This is a quiet game about patience, passion, care and growth");
+        break;
+      case MATSURI_TICKETS2:
+        allocateTickets();
         break;
       case ACTION_OUTCOME:
         switch(previousState) {
