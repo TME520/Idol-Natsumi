@@ -3087,6 +3087,7 @@ void manageIdle() {
       changeState(0, HOME_LOOP, microWait);
       break;
     case MATSURI_MENU: case MATSURI_MENU2: case MATSURI_MENU3:
+      characterEnabled = false;
       matsuriMainMenu();
       break;
     default:
