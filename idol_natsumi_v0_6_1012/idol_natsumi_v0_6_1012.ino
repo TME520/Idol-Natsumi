@@ -128,6 +128,18 @@ enum GameState {
   MATSURI_TICKETS,
   MATSURI_TICKETS2,
   MATSURI_TICKETS3,
+  MATSURI_MENU,
+  MATSURI_MENU2,
+  MATSURI_MENU3,
+  MATSURI_SAVORY,
+  MATSURI_SAVORY2,
+  MATSURI_SAVORY3,
+  MATSURI_SUGARY,
+  MATSURI_SUGARY2,
+  MATSURI_SUGARY3,
+  MATSURI_GARAPON,
+  MATSURI_GARAPON2,
+  MATSURI_GARAPON3,
   ACTION_OUTCOME,
   EVENTS_MENU,
   INVENTORY_SCREEN
@@ -697,6 +709,18 @@ const char* gameStateToString(GameState state) {
     case MATSURI_TICKETS:  return "MATSURI_TICKETS";
     case MATSURI_TICKETS2: return "MATSURI_TICKETS2";
     case MATSURI_TICKETS3: return "MATSURI_TICKETS3";
+    case MATSURI_MENU:     return "MATSURI_MENU";
+    case MATSURI_MENU2:    return "MATSURI_MENU2";
+    case MATSURI_MENU3:    return "MATSURI_MENU3";
+    case MATSURI_SAVORY:   return "MATSURI_SAVORY";
+    case MATSURI_SAVORY2:  return "MATSURI_SAVORY2";
+    case MATSURI_SAVORY3:  return "MATSURI_SAVORY3";
+    case MATSURI_SUGARY:   return "MATSURI_SUGARY";
+    case MATSURI_SUGARY2:  return "MATSURI_SUGARY2";
+    case MATSURI_SUGARY3:  return "MATSURI_SUGARY3";
+    case MATSURI_GARAPON:  return "MATSURI_GARAPON";
+    case MATSURI_GARAPON2: return "MATSURI_GARAPON2";
+    case MATSURI_GARAPON3: return "MATSURI_GARAPON3";
     case ACTION_OUTCOME:   return "ACTION_OUTCOME";
     case EVENTS_MENU:      return "EVENTS_MENU";
     case INVENTORY_SCREEN: return "INVENTORY_SCREEN";
@@ -1394,6 +1418,15 @@ void preloadImages() {
       break;
     case MATSURI_TICKETS: case MATSURI_TICKETS2: case MATSURI_TICKETS3:
       preloadImage("/idolnat/screens/matsuri_ticket2.png", currentBackground);
+      break;
+    case MATSURI_MENU:
+      preloadImage("/idolnat/screens/matsuri_menu01.png", currentBackground);
+      break;
+    case MATSURI_MENU2:
+      preloadImage("/idolnat/screens/matsuri_menu02.png", currentBackground);
+      break;
+    case MATSURI_MENU3:
+      preloadImage("/idolnat/screens/matsuri_menu03.png", currentBackground);
       break;
     case ACTION_OUTCOME:
       preloadImage("/idolnat/screens/lounge.png", currentBackground);
@@ -2345,6 +2378,11 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuType = "events";
         currentMenuItems = eventsMenuItems;
         currentMenuItemsCount = eventsMenuItemCount;
+        break;
+      case MATSURI_MENU: case MATSURI_MENU2: case MATSURI_MENU3:
+        screenConfig = IDLE;
+        characterEnabled = false;
+        break;
       default:
         break;
     }
@@ -3047,6 +3085,9 @@ void manageIdle() {
     case COMP_NAT7:
       characterEnabled = false;
       changeState(0, HOME_LOOP, microWait);
+      break;
+    case MATSURI_MENU: case MATSURI_MENU2: case MATSURI_MENU3:
+      matsuriMainMenu();
       break;
     default:
       break;
@@ -6234,7 +6275,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // 0: MATSURI
           Serial.println(">>> drawMenu - 0: MATSURI");
           menuOpened = false;
-          changeState(0, HOME_LOOP, 0);
+          changeState(0, MATSURI_MENU, 0);
           break;
         case 49:
           // 1: GIGS
@@ -6299,7 +6340,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         case 13: case 40: case ' ':
           // VALIDATE
           if (selection == 0) {
-            changeState(0, HOME_LOOP, 0);
+            changeState(0, MATSURI_MENU, 0);
           } else if (selection == 1) {
             changeState(0, HOME_LOOP, 0);
           } else if (selection == 2) {
@@ -8170,6 +8211,72 @@ void restaurantFoodSelection() {
   updateAging();
   updateStats();
   */
+  return;
+}
+
+void matsuriMainMenu() {
+  Serial.println("> Entering matsuriMainMenu()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      Serial.println(">> matsuriMainMenu() Key pressed");
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (currentState) {
+        case MATSURI_MENU:
+          switch (key) {
+            // LEFT
+            case 44: case 'a': case 'A':
+              changeState(0, MATSURI_MENU3, 0);
+              break;
+            // RIGHT
+            case 47: case 'd': case 'D':
+              changeState(0, MATSURI_MENU2, 0);
+              break;
+            // ENTER
+            case 13: case 40: case ' ':
+              changeState(0, MATSURI_SAVORY, 0);
+              break;
+          }
+          break;
+        case MATSURI_MENU2:
+          switch (key) {
+            // LEFT
+            case 44: case 'a': case 'A':
+              changeState(0, MATSURI_MENU, 0);
+              break;
+            // RIGHT
+            case 47: case 'd': case 'D':
+              changeState(0, MATSURI_MENU3, 0);
+              break;
+            // ENTER
+            case 13: case 40: case ' ':
+              changeState(0, MATSURI_SUGARY, 0);
+              break;
+          }
+          break;
+        case MATSURI_MENU3:
+          switch (key) {
+            // LEFT
+            case 44: case 'a': case 'A':
+              changeState(0, MATSURI_MENU2, 0);
+              break;
+            // RIGHT
+            case 47: case 'd': case 'D':
+              changeState(0, MATSURI_MENU, 0);
+              break;
+            // ENTER
+            case 13: case 40: case ' ':
+              changeState(0, MATSURI_GARAPON, 0);
+              break;
+          }
+          break;
+        default:
+          changeState(0, HOME_LOOP, 0);
+          break;
+      }
+    }
+  }
   return;
 }
 
