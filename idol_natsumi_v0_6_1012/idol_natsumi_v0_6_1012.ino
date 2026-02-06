@@ -1443,7 +1443,7 @@ void preloadImages() {
       preloadImage("/idolnat/screens/matsuri_yakisoba.png", currentBackground);
       break;
     case MATSURI_SAVORY3: case MATSURI_SAVORY4: case MATSURI_SAVORY5:
-    case MATSURI_SUGARY2: case MATSURI_SUGARY3:
+    case MATSURI_SUGARY2: case MATSURI_SUGARY3: case MATSURI_SUGARY4:
     case MATSURI_GARAPON2: case MATSURI_GARAPON4:
       preloadImage("/idolnat/screens/matsuri_bg.png", currentBackground);
       break;
@@ -2459,7 +2459,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         screenConfig = GAME;
         overlayActive = false;
         menuOpened = false;
-        // resetGaraponGame();
+        resetGaraponGame();
         break;
       case ACTION_OUTCOME:
         screenConfig = DIALOG;
@@ -3734,6 +3734,11 @@ void resetTrainDanceGame() {
   danceGameRunning = false;
   danceGameCompleted = false;
   danceNeedsRedraw = true;
+}
+
+void resetGaraponGame() {
+  // Placeholder
+  return;
 }
 
 void spawnDanceCue() {
@@ -8285,6 +8290,10 @@ void restaurantFoodSelection() {
               }
               changeState(0, FOOD_REST5, 0);
               break;
+            // ESC
+            case 96:
+              changeState(0, HOME_LOOP, 0);
+              return;
           }
           break;
         case FOOD_REST3:
@@ -8313,6 +8322,10 @@ void restaurantFoodSelection() {
               }
               changeState(0, FOOD_REST5, 0);
               break;
+            // ESC
+            case 96:
+              changeState(0, HOME_LOOP, 0);
+              return;
           }
           break;
         case FOOD_REST4:
@@ -8341,6 +8354,10 @@ void restaurantFoodSelection() {
               }
               changeState(0, FOOD_REST5, 0);
               break;
+            // ESC
+            case 96:
+              changeState(0, HOME_LOOP, 0);
+              return;
           }
           break;
         default:
@@ -8390,6 +8407,10 @@ void matsuriFoodSelection() {
               }
               changeState(0, MATSURI_SAVORY3, 0);
               break;
+            // ESC
+            case 96:
+              changeState(0, HOME_LOOP, 0);
+              return;
           }
           break;
         case MATSURI_SAVORY2:
@@ -8415,6 +8436,10 @@ void matsuriFoodSelection() {
               }
               changeState(0, MATSURI_SAVORY3, 0);
               break;
+            // ESC
+            case 96:
+              changeState(0, HOME_LOOP, 0);
+              return;
           }
           break;
         case MATSURI_SUGARY:
@@ -8430,8 +8455,12 @@ void matsuriFoodSelection() {
                 // showToast("Not enough tickets :(");
                 changeState(0, MATSURI_SUGARY3, 0);
               }
-              changeState(0, MATSURI_SUGARY4, 0);
+              changeState(0, MATSURI_SUGARY2, 0);
               break;
+            // ESC
+            case 96:
+              changeState(0, HOME_LOOP, 0);
+              return;
           }
           break;
         default:
@@ -8540,6 +8569,10 @@ void orderibiFoodSelection() {
               }
               changeState(0, FOOD_ORDER5, 0);
               break;
+            // ESC
+            case 96:
+              changeState(0, HOME_LOOP, 0);
+              return;
           }
           break;
         case FOOD_ORDER3:
@@ -8562,6 +8595,10 @@ void orderibiFoodSelection() {
               }
               changeState(0, FOOD_ORDER5, 0);
               break;
+            // ESC
+            case 96:
+              changeState(0, HOME_LOOP, 0);
+              return;
           }
           break;
         case FOOD_ORDER4:
@@ -8584,6 +8621,10 @@ void orderibiFoodSelection() {
               }
               changeState(0, FOOD_ORDER5, 0);
               break;
+            // ESC
+            case 96:
+              changeState(0, HOME_LOOP, 0);
+              return;
           }
           break;
         default:
