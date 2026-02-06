@@ -1596,6 +1596,15 @@ void preloadImages() {
         case INTRO4: case INTRO5:
           preloadImage("/idolnat/sprites/player.png", currentCharacter);
           break;
+        case MATSURI_SAVORY3: case MATSURI_SAVORY4:
+          preloadImage("/idolnat/sprites/matsuri_cashier01.png", currentCharacter);
+          break;
+        case MATSURI_SUGARY2: case MATSURI_SUGARY3:
+          preloadImage("/idolnat/sprites/matsuri_cashier02.png", currentCharacter);
+          break;
+        case MATSURI_GARAPON: case MATSURI_GARAPON2:
+          preloadImage("/idolnat/sprites/matsuri_cashier03.png", currentCharacter);
+          break;
         default:
           if (isNatsumiHappy) {
             preloadImage("/idolnat/sprites/natsumi_13yo_happy-90x135.png", currentCharacter);
@@ -1666,6 +1675,15 @@ void preloadImages() {
           break;
         case INTRO4: case INTRO5:
           preloadImage("/idolnat/sprites/player.png", currentCharacter);
+          break;
+        case MATSURI_SAVORY3: case MATSURI_SAVORY4:
+          preloadImage("/idolnat/sprites/matsuri_cashier01.png", currentCharacter);
+          break;
+        case MATSURI_SUGARY2: case MATSURI_SUGARY3:
+          preloadImage("/idolnat/sprites/matsuri_cashier02.png", currentCharacter);
+          break;
+        case MATSURI_GARAPON: case MATSURI_GARAPON2:
+          preloadImage("/idolnat/sprites/matsuri_cashier03.png", currentCharacter);
           break;
         default:
           if (isNatsumiHappy) {
@@ -1738,6 +1756,15 @@ void preloadImages() {
         case INTRO4: case INTRO5:
           preloadImage("/idolnat/sprites/player.png", currentCharacter);
           break;
+        case MATSURI_SAVORY3: case MATSURI_SAVORY4:
+          preloadImage("/idolnat/sprites/matsuri_cashier01.png", currentCharacter);
+          break;
+        case MATSURI_SUGARY2: case MATSURI_SUGARY3:
+          preloadImage("/idolnat/sprites/matsuri_cashier02.png", currentCharacter);
+          break;
+        case MATSURI_GARAPON: case MATSURI_GARAPON2:
+          preloadImage("/idolnat/sprites/matsuri_cashier03.png", currentCharacter);
+          break;
         default:
           if (isNatsumiHappy) {
             preloadImage("/idolnat/sprites/natsumi_18yo_happy-90x135.png", currentCharacter);
@@ -1808,6 +1835,15 @@ void preloadImages() {
           break;
         case INTRO4: case INTRO5:
           preloadImage("/idolnat/sprites/player.png", currentCharacter);
+          break;
+        case MATSURI_SAVORY3: case MATSURI_SAVORY4:
+          preloadImage("/idolnat/sprites/matsuri_cashier01.png", currentCharacter);
+          break;
+        case MATSURI_SUGARY2: case MATSURI_SUGARY3:
+          preloadImage("/idolnat/sprites/matsuri_cashier02.png", currentCharacter);
+          break;
+        case MATSURI_GARAPON: case MATSURI_GARAPON2:
+          preloadImage("/idolnat/sprites/matsuri_cashier03.png", currentCharacter);
           break;
         default:
           if (isNatsumiHappy) {
@@ -8404,6 +8440,9 @@ void matsuriFoodSelection() {
       }
     }
   }
+  // Helper text at the bottom
+  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  drawText("LEFT/RIGHT: Navigate, ENTER: Validate", 120, 131, true, WHITE, 1);
   return;
 }
 
