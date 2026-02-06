@@ -134,12 +134,16 @@ enum GameState {
   MATSURI_SAVORY,
   MATSURI_SAVORY2,
   MATSURI_SAVORY3,
+  MATSURI_SAVORY4,
+  MATSURI_SAVORY5,
   MATSURI_SUGARY,
   MATSURI_SUGARY2,
   MATSURI_SUGARY3,
+  MATSURI_SUGARY4,
   MATSURI_GARAPON,
   MATSURI_GARAPON2,
   MATSURI_GARAPON3,
+  MATSURI_GARAPON4,
   ACTION_OUTCOME,
   EVENTS_MENU,
   INVENTORY_SCREEN
@@ -715,12 +719,16 @@ const char* gameStateToString(GameState state) {
     case MATSURI_SAVORY:   return "MATSURI_SAVORY";
     case MATSURI_SAVORY2:  return "MATSURI_SAVORY2";
     case MATSURI_SAVORY3:  return "MATSURI_SAVORY3";
+    case MATSURI_SAVORY4:  return "MATSURI_SAVORY4";
+    case MATSURI_SAVORY5:  return "MATSURI_SAVORY5";
     case MATSURI_SUGARY:   return "MATSURI_SUGARY";
     case MATSURI_SUGARY2:  return "MATSURI_SUGARY2";
     case MATSURI_SUGARY3:  return "MATSURI_SUGARY3";
+    case MATSURI_SUGARY4:  return "MATSURI_SUGARY4";
     case MATSURI_GARAPON:  return "MATSURI_GARAPON";
     case MATSURI_GARAPON2: return "MATSURI_GARAPON2";
     case MATSURI_GARAPON3: return "MATSURI_GARAPON3";
+    case MATSURI_GARAPON4: return "MATSURI_GARAPON4";
     case ACTION_OUTCOME:   return "ACTION_OUTCOME";
     case EVENTS_MENU:      return "EVENTS_MENU";
     case INVENTORY_SCREEN: return "INVENTORY_SCREEN";
@@ -1428,6 +1436,23 @@ void preloadImages() {
     case MATSURI_MENU3:
       preloadImage("/idolnat/screens/matsuri_menu03.png", currentBackground);
       break;
+    case MATSURI_SAVORY:
+      preloadImage("/idolnat/screens/matsuri_takoyaki.png", currentBackground);
+      break;
+    case MATSURI_SAVORY2:
+      preloadImage("/idolnat/screens/matsuri_yakisoba.png", currentBackground);
+      break;
+    case MATSURI_SAVORY3: case MATSURI_SAVORY4: case MATSURI_SAVORY5:
+    case MATSURI_SUGARY2: case MATSURI_SUGARY3:
+    case MATSURI_GARAPON2: case MATSURI_GARAPON4:
+      preloadImage("/idolnat/screens/matsuri_bg.png", currentBackground);
+      break;
+    case MATSURI_SUGARY:
+      preloadImage("/idolnat/screens/matsuri_kakigori.png", currentBackground);
+      break;
+    case MATSURI_GARAPON:
+      preloadImage("/idolnat/screens/matsuri_garapon.png", currentBackground);
+      break;
     case ACTION_OUTCOME:
       preloadImage("/idolnat/screens/lounge.png", currentBackground);
       break;
@@ -1490,6 +1515,15 @@ void preloadImages() {
           break;
         case INTRO4: case INTRO5:
           preloadImage("/idolnat/sprites/player.png", currentCharacter);
+          break;
+        case MATSURI_SAVORY3: case MATSURI_SAVORY4:
+          preloadImage("/idolnat/sprites/matsuri_cashier01.png", currentCharacter);
+          break;
+        case MATSURI_SUGARY2: case MATSURI_SUGARY3:
+          preloadImage("/idolnat/sprites/matsuri_cashier02.png", currentCharacter);
+          break;
+        case MATSURI_GARAPON: case MATSURI_GARAPON2:
+          preloadImage("/idolnat/sprites/matsuri_cashier03.png", currentCharacter);
           break;
         default:
           if (isNatsumiHappy) {
@@ -2368,6 +2402,29 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
+      case MATSURI_SAVORY: case MATSURI_SAVORY2:
+      case MATSURI_SUGARY:
+        screenConfig = IDLE;
+        characterEnabled = false;
+        break;
+      case MATSURI_SAVORY3: case MATSURI_SAVORY4:
+      case MATSURI_SUGARY2: case MATSURI_SUGARY3:
+      case MATSURI_GARAPON: case MATSURI_GARAPON2:
+        screenConfig = DIALOG;
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        break;
+      case MATSURI_SAVORY5:
+      case MATSURI_SUGARY4:
+      case MATSURI_GARAPON4:
+        screenConfig = CARD;
+        break;
+      case MATSURI_GARAPON3:
+        screenConfig = GAME;
+        overlayActive = false;
+        menuOpened = false;
+        // resetGaraponGame();
+        break;
       case ACTION_OUTCOME:
         screenConfig = DIALOG;
         overlayActive = true;
@@ -2914,6 +2971,11 @@ void manageDialog() {
       // characterEnabled = false;
       changeState(0, HOME_LOOP, microWait);
       break;
+    case MATSURI_SAVORY3: case MATSURI_SAVORY4:
+    case MATSURI_SUGARY2: case MATSURI_SUGARY3:
+    case MATSURI_GARAPON: case MATSURI_GARAPON2:
+      matsuriDialogs();
+      break;
     default:
       break;
   }
@@ -3043,6 +3105,10 @@ void manageIdle() {
       break;
     case FOOD_REST2: case FOOD_REST3: case FOOD_REST4:
       restaurantFoodSelection();
+      break;
+    case MATSURI_SAVORY: case MATSURI_SAVORY2:
+    case MATSURI_SUGARY:
+      matsuriFoodSelection();
       break;
     case REST_MEDITATE:
       meditate();
@@ -7041,6 +7107,15 @@ void drawOverlay() {
       case MATSURI_TICKETS2:
         allocateTickets();
         break;
+      case MATSURI_SAVORY3: case MATSURI_SUGARY2:
+        drawDialogBubble("Enjoy your food!!");
+        break;
+      case MATSURI_SAVORY4: case MATSURI_SUGARY3: case MATSURI_GARAPON2:
+        drawDialogBubble("You do not have enough Matsuri tickets...");
+        break;
+      case MATSURI_GARAPON:
+        drawDialogBubble("Spin the handle and let fate decide! Every ticket hides a surprise, are you feeling lucky?");
+        break;
       case ACTION_OUTCOME:
         switch(previousState) {
           case TRAIN_SING3: case TRAIN_DANCE3:
@@ -7655,6 +7730,38 @@ void actionOutcome() {
   return;
 }
 
+void matsuriDialogs() {
+  Serial.println("> Entering matsuriDialogs()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (currentState) {
+        case MATSURI_SAVORY3:
+          changeState(0, MATSURI_SAVORY5, 0);
+          break;
+        case MATSURI_SAVORY4:
+          changeState(0, HOME_LOOP, 0);
+          break;
+        case MATSURI_SUGARY2:
+          changeState(0, MATSURI_SUGARY4, 0);
+          break;
+        case MATSURI_SUGARY3:
+          changeState(0, HOME_LOOP, 0);
+          break;
+        case MATSURI_GARAPON:
+          changeState(0, MATSURI_GARAPON3, 0);
+          break;
+        case MATSURI_GARAPON2:
+          changeState(0, HOME_LOOP, 0);
+          break;
+      }
+    }
+  }
+  return;
+}
+
 void drawOutcome(String amount, String stat) {
   Serial.println("> Entering drawOutcome()");
   const int screenWidth = M5Cardputer.Display.width();
@@ -8212,6 +8319,91 @@ void restaurantFoodSelection() {
   updateAging();
   updateStats();
   */
+  return;
+}
+
+void matsuriFoodSelection() {
+  Serial.println("> Entering matsuriFoodSelection()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      Serial.println(">> matsuriFoodSelection() Key pressed");
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (currentState) {
+        case MATSURI_SAVORY:
+          switch (key) {
+            // LEFT
+            case 44: case 'a': case 'A':
+              changeState(0, MATSURI_SAVORY2, 0);
+              break;
+            // RIGHT
+            case 47: case 'd': case 'D':
+              changeState(0, MATSURI_SAVORY2, 0);
+              break;
+            // ENTER
+            case 13: case 40: case ' ':
+              if (natsumi.tickets >= 1) {
+                natsumi.tickets -= 1;
+                natsumi.hunger = 4;
+                saveRequired = true;
+                isNatsumiHappy = true;
+              } else {
+                // showToast("Not enough tickets :(");
+                changeState(0, MATSURI_SAVORY4, 0);
+              }
+              changeState(0, MATSURI_SAVORY3, 0);
+              break;
+          }
+          break;
+        case MATSURI_SAVORY2:
+          switch (key) {
+            // LEFT
+            case 44: case 'a': case 'A':
+              changeState(0, MATSURI_SAVORY, 0);
+              break;
+            // RIGHT
+            case 47: case 'd': case 'D':
+              changeState(0, MATSURI_SAVORY, 0);
+              break;
+            // ENTER
+            case 13: case 40: case ' ':
+              if (natsumi.tickets >= 1) {
+                natsumi.tickets -= 1;
+                natsumi.hunger = 4;
+                saveRequired = true;
+                isNatsumiHappy = true;
+              } else {
+                // showToast("Not enough tickets :(");
+                changeState(0, MATSURI_SAVORY4, 0);
+              }
+              changeState(0, MATSURI_SAVORY3, 0);
+              break;
+          }
+          break;
+        case MATSURI_SUGARY:
+          switch (key) {
+            // ENTER
+            case 13: case 40: case ' ':
+              if (natsumi.tickets >= 1) {
+                natsumi.tickets -= 1;
+                natsumi.hunger = 4;
+                saveRequired = true;
+                isNatsumiHappy = true;
+              } else {
+                // showToast("Not enough tickets :(");
+                changeState(0, MATSURI_SUGARY3, 0);
+              }
+              changeState(0, MATSURI_SUGARY4, 0);
+              break;
+          }
+          break;
+        default:
+          changeState(0, HOME_LOOP, 0);
+          break;
+      }
+    }
+  }
   return;
 }
 
