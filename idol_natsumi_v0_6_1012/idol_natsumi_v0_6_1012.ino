@@ -1918,7 +1918,7 @@ void loop() {
   Serial.println("debugEnabled: " + String(debugEnabled) + " - menuOpened: " + String(menuOpened) + " - toastActive: " + String(toastActive));
   Serial.println("changeStateCounter: " + String(changeStateCounter) + " - l5NeedsRedraw: " + String(l5NeedsRedraw));
 */
-  Serial.println("> currentState = " + String(gameStateToString(currentState)));
+  // Serial.println("> currentState = " + String(gameStateToString(currentState)));
   // Serial.println("loop - natsumi.ageMilliseconds: " + String(natsumi.ageMilliseconds));
   // Serial.println("loop - playtimeTotalMs: " + String(playtimeTotalMs));
   switch (screenConfig) {
@@ -2602,7 +2602,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case MATSURI_SUGARY4:
       case MATSURI_GARAPON4:
         // screenConfig = CARD;
-        setScreenConfig(CARD);
+        setScreenConfig(IDLE);
         break;
       case MATSURI_GARAPON3:
         // screenConfig = GAME;
@@ -3073,12 +3073,6 @@ void manageCard() {
     case MATSURI_TICKETS3:
       changeState(0, HOME_LOOP, 0);
       break;
-    case MATSURI_SAVORY5:
-      isNatsumiHappy = true;
-      changeState(0, MATSURI_MENU, 0);
-      break;
-    default:
-      break;
   }
   drawBackground(currentBackground);
   drawDebug();
@@ -3166,7 +3160,6 @@ void manageDialog() {
       introduction();
       break;
     case MATSURI_TICKETS2:
-      // characterEnabled = false;
       changeState(0, HOME_LOOP, microWait);
       break;
     case MATSURI_SAVORY3: case MATSURI_SAVORY4:
@@ -3357,6 +3350,9 @@ void manageIdle() {
     case MATSURI_MENU: case MATSURI_MENU2: case MATSURI_MENU3:
       characterEnabled = false;
       matsuriMainMenu();
+      break;
+    case MATSURI_SAVORY5: case MATSURI_SUGARY4: case MATSURI_GARAPON4:
+      changeState(0, ACTION_OUTCOME, 0);
       break;
     default:
       break;
@@ -7324,7 +7320,7 @@ void drawOverlay() {
         drawDialogBubble("Enjoy your food!!");
         break;
       case MATSURI_SAVORY4: case MATSURI_SUGARY3: case MATSURI_GARAPON2:
-        drawDialogBubble("You do not have enough Matsuri tickets...");
+        drawDialogBubble("You do not have enough Matsuri tickets. Train intensively to have a chance to win some.");
         break;
       case MATSURI_GARAPON:
         drawDialogBubble("Spin the handle and let fate decide! Every ticket hides a surprise, are you feeling lucky?");
@@ -7358,6 +7354,11 @@ void drawOverlay() {
               Serial.println(">> actionOutcome() - natsumi.culture = 4");
               changeState(0, MATSURI_TICKETS, 0);
             }
+            break;
+          case MATSURI_SAVORY5: case MATSURI_SUGARY4: case MATSURI_GARAPON4:
+            isLatestTrainingPerfect = false;
+            drawOutcome("-1", "Ticket");
+            isNatsumiHappy = true;
             break;
         }
         break;
@@ -7952,22 +7953,24 @@ void matsuriDialogs() {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       switch (currentState) {
         case MATSURI_SAVORY3:
-          isNatsumiHappy = true;
           changeState(0, MATSURI_SAVORY5, 0);
           break;
         case MATSURI_SAVORY4:
+          // Not enough tickets
           changeState(0, HOME_LOOP, 0);
           break;
         case MATSURI_SUGARY2:
           changeState(0, MATSURI_SUGARY4, 0);
           break;
         case MATSURI_SUGARY3:
+          // Not enough tickets
           changeState(0, HOME_LOOP, 0);
           break;
         case MATSURI_GARAPON:
           changeState(0, MATSURI_GARAPON3, 0);
           break;
         case MATSURI_GARAPON2:
+          // Not enough tickets
           changeState(0, HOME_LOOP, 0);
           break;
       }
@@ -8573,12 +8576,12 @@ void matsuriFoodSelection() {
                 natsumi.tickets -= 1;
                 natsumi.hunger = 4;
                 saveRequired = true;
-                isNatsumiHappy = true;
+                // isNatsumiHappy = true;
+                changeState(0, MATSURI_SAVORY3, 0);
               } else {
                 // showToast("Not enough tickets :(");
                 changeState(0, MATSURI_SAVORY4, 0);
               }
-              changeState(0, MATSURI_SAVORY3, 0);
               break;
             // ESC
             case 96:
@@ -8602,11 +8605,11 @@ void matsuriFoodSelection() {
                 natsumi.tickets -= 1;
                 natsumi.hunger = 4;
                 saveRequired = true;
+                changeState(0, MATSURI_SAVORY3, 0);
               } else {
                 // showToast("Not enough tickets :(");
                 changeState(0, MATSURI_SAVORY4, 0);
               }
-              changeState(0, MATSURI_SAVORY3, 0);
               break;
             // ESC
             case 96:
@@ -8622,12 +8625,12 @@ void matsuriFoodSelection() {
                 natsumi.tickets -= 1;
                 natsumi.hunger = 4;
                 saveRequired = true;
-                isNatsumiHappy = true;
+                // isNatsumiHappy = true;
+                changeState(0, MATSURI_SUGARY2, 0);
               } else {
                 // showToast("Not enough tickets :(");
                 changeState(0, MATSURI_SUGARY3, 0);
               }
-              changeState(0, MATSURI_SUGARY2, 0);
               break;
             // ESC
             case 96:
@@ -8708,7 +8711,12 @@ void matsuriMainMenu() {
               break;
             // ENTER
             case 13: case 40: case ' ':
-              changeState(0, MATSURI_GARAPON, 0);
+              if (natsumi.tickets >= 1) {
+                natsumi.tickets -= 1;
+                changeState(0, MATSURI_GARAPON, 0);
+              } else {
+                changeState(0, MATSURI_GARAPON2, 0);
+              }
               break;
             // ESC
             case 96:
