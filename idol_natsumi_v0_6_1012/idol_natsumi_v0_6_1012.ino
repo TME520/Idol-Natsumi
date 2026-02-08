@@ -7967,7 +7967,97 @@ void cookFood() {
 }
 
 void transactionPriceScreen(String itemName, int itemCost, GameState confirmState, GameState cancelState) {
-  // Update this
+  static bool initialized = false;
+  static bool needsRedraw = true;
+  static int selection = 0;
+  static GameState lastPreviousState = HOME_LOOP;
+  static String lastItemName = "";
+  static int lastItemCost = -1;
+
+  if (!initialized || lastPreviousState != previousState || lastItemName != itemName || lastItemCost != itemCost) {
+    initialized = true;
+    needsRedraw = true;
+    selection = 0;
+    lastPreviousState = previousState;
+    lastItemName = itemName;
+    lastItemCost = itemCost;
+  }
+
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (!keyList.empty()) {
+      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (key) {
+        // LEFT
+        case 180: case 44: case 'a': case 'A':
+          if (selection > 0) {
+            selection = 0;
+            needsRedraw = true;
+          }
+          break;
+        // RIGHT
+        case 183: case 47: case 'd': case 'D':
+          if (selection < 1) {
+            selection = 1;
+            needsRedraw = true;
+          }
+          break;
+        // ENTER
+        case 13: case 40: case ' ':
+          if (selection == 0) {
+            changeState(0, confirmState, 0);
+          } else {
+            changeState(0, cancelState, 0);
+          }
+          return;
+      }
+    }
+  }
+
+  if (!needsRedraw) {
+    return;
+  }
+
+  const int screenWidth = M5Cardputer.Display.width();
+  const int screenHeight = M5Cardputer.Display.height();
+  const int dialogW = 200;
+  const int dialogH = 90;
+  const int dialogX = (screenWidth - dialogW) / 2;
+  const int dialogY = (screenHeight - dialogH) / 2;
+
+  const uint16_t panelColor = TFT_NAVY;
+  const uint16_t borderColor = WHITE;
+  const uint16_t buttonFill = M5Cardputer.Display.color565(18, 26, 48);
+  const uint16_t buttonBorder = M5Cardputer.Display.color565(120, 170, 255);
+  const uint16_t buttonActive = M5Cardputer.Display.color565(255, 200, 40);
+  const uint16_t buttonActiveFill = M5Cardputer.Display.color565(60, 48, 12);
+
+  M5Cardputer.Display.fillRect(dialogX, dialogY, dialogW, dialogH, panelColor);
+  M5Cardputer.Display.drawRect(dialogX, dialogY, dialogW, dialogH, borderColor);
+
+  drawText(itemName, dialogX + (dialogW / 2), dialogY + 14, true, WHITE, 1);
+  drawText(String(itemCost) + " tickets", dialogX + (dialogW / 2), dialogY + 32, true, WHITE, 1);
+
+  const int buttonW = 70;
+  const int buttonH = 22;
+  const int buttonGap = 12;
+  const int buttonTotalW = (buttonW * 2) + buttonGap;
+  const int buttonStartX = dialogX + (dialogW - buttonTotalW) / 2;
+  const int buttonY = dialogY + dialogH - buttonH - 12;
+  const char* buttonLabels[2] = {"Buy", "Cancel"};
+
+  for (int i = 0; i < 2; ++i) {
+    int x = buttonStartX + i * (buttonW + buttonGap);
+    uint16_t fillColor = (i == selection) ? buttonActiveFill : buttonFill;
+    uint16_t outlineColor = (i == selection) ? buttonActive : buttonBorder;
+    uint16_t textColor = (i == selection) ? buttonActive : WHITE;
+
+    M5Cardputer.Display.fillRoundRect(x, buttonY, buttonW, buttonH, 6, fillColor);
+    M5Cardputer.Display.drawRoundRect(x, buttonY, buttonW, buttonH, 6, outlineColor);
+    drawText(buttonLabels[i], x + (buttonW / 2), buttonY + 7, true, textColor, 1);
+  }
+
+  needsRedraw = false;
 }
 
 void matsuriSale() {
