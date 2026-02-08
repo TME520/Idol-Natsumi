@@ -132,6 +132,7 @@ enum GameState {
   MATSURI_MENU,
   MATSURI_MENU2,
   MATSURI_MENU3,
+  MATSURI_COST,
   MATSURI_SAVORY,
   MATSURI_SAVORY2,
   MATSURI_SAVORY3,
@@ -715,6 +716,7 @@ const char* gameStateToString(GameState state) {
     case MATSURI_TICKETS:  return "MATSURI_TICKETS";
     case MATSURI_TICKETS2: return "MATSURI_TICKETS2";
     case MATSURI_TICKETS3: return "MATSURI_TICKETS3";
+    case MATSURI_COST:     return "MATSURI_COST";
     case MATSURI_MENU:     return "MATSURI_MENU";
     case MATSURI_MENU2:    return "MATSURI_MENU2";
     case MATSURI_MENU3:    return "MATSURI_MENU3";
@@ -1440,6 +1442,8 @@ void preloadImages() {
       break;
     case MATSURI_MENU3:
       preloadImage("/idolnat/screens/matsuri_menu03.png", currentBackground);
+      break;
+    case MATSURI_COST:
       break;
     case MATSURI_SAVORY:
       preloadImage("/idolnat/screens/matsuri_takoyaki.png", currentBackground);
@@ -2595,11 +2599,18 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
+      case MATSURI_COST:
+        // screenConfig = ROOM;
+        setScreenConfig(ROOM);
+        characterEnabled = false;
+        break;
       case MATSURI_SAVORY: case MATSURI_SAVORY2:
       case MATSURI_SUGARY:
         // screenConfig = IDLE;
         setScreenConfig(IDLE);
         characterEnabled = false;
+        overlayActive = true;
+        l5NeedsRedraw = true;
         break;
       case MATSURI_SAVORY3: case MATSURI_SAVORY4:
       case MATSURI_SUGARY2: case MATSURI_SUGARY3:
@@ -3491,6 +3502,9 @@ void manageRoom() {
       break;
     case EVENTS_MENU:
       menuOpened = true;
+      break;
+    case MATSURI_COST:
+      matsuriSale();
       break;
     default:
       break;
@@ -7330,6 +7344,11 @@ void drawOverlay() {
       case MATSURI_TICKETS2:
         allocateTickets();
         break;
+      case MATSURI_SAVORY: case MATSURI_SAVORY2:
+        // Helper text at the bottom
+        M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+        drawText("LEFT/RIGHT: Browse, ENTER: Pick", 120, 131, true, WHITE, 1);
+        break;
       case MATSURI_SAVORY3: case MATSURI_SUGARY2:
         drawDialogBubble("Enjoy your food!!");
         break;
@@ -7929,6 +7948,25 @@ void cookFood() {
     overlayActive = false;
     changeState(0, HOME_LOOP, 0);
   }
+}
+
+void matsuriSale() {
+  Serial.println("> Entering matsuriSale()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (key) {
+        // ESC
+        case 96: case 43:
+          changeState(0, MATSURI_MENU, 0);
+          return;
+          break;
+      }
+    }
+  }
+  return;
 }
 
 void gotoRestaurant() {
@@ -8658,9 +8696,6 @@ void matsuriFoodSelection() {
       }
     }
   }
-  // Helper text at the bottom
-  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("LEFT/RIGHT: Navigate, ENTER: Validate", 120, 131, true, WHITE, 1);
   return;
 }
 
