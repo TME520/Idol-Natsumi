@@ -125,6 +125,7 @@ enum GameState {
   COMP_NAT5,
   COMP_NAT6,
   COMP_NAT7,
+  MATSURI_TITLE,
   MATSURI_TICKETS,
   MATSURI_TICKETS2,
   MATSURI_TICKETS3,
@@ -710,6 +711,7 @@ const char* gameStateToString(GameState state) {
     case COMP_NAT5:        return "COMP_NAT5";
     case COMP_NAT6:        return "COMP_NAT6";
     case COMP_NAT7:        return "COMP_NAT7";
+    case MATSURI_TITLE:    return "MATSURI_TITLE";
     case MATSURI_TICKETS:  return "MATSURI_TICKETS";
     case MATSURI_TICKETS2: return "MATSURI_TICKETS2";
     case MATSURI_TICKETS3: return "MATSURI_TICKETS3";
@@ -1426,6 +1428,9 @@ void preloadImages() {
       break;
     case MATSURI_TICKETS: case MATSURI_TICKETS2: case MATSURI_TICKETS3:
       preloadImage("/idolnat/screens/matsuri_ticket2.png", currentBackground);
+      break;
+    case MATSURI_TITLE:
+      preloadImage("/idolnat/screens/matsuri_banner01.png", currentBackground);
       break;
     case MATSURI_MENU:
       preloadImage("/idolnat/screens/matsuri_menu01.png", currentBackground);
@@ -2237,6 +2242,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         l5NeedsRedraw = true;
         toastEnabled = false;
         inventoryPageIndex = 0;
+        menuOpened = false;
         break;
       case FLOWERS_MARKET:
         // screenConfig = IDLE;
@@ -2573,6 +2579,11 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         // screenConfig = ROOM;
         setScreenConfig(ROOM);
         menuOpened = false;
+        break;
+      case MATSURI_TITLE:
+        // screenConfig = CARD;
+        setScreenConfig(CARD);
+        characterEnabled = false;
         break;
       case MATSURI_TICKETS: case MATSURI_TICKETS3:
         // screenConfig = CARD;
@@ -3065,6 +3076,9 @@ void manageCard() {
       break;
     case HEALTH_WASH4:
       changeState(0, HEALTH_WASH5, 20);
+      break;
+    case MATSURI_TITLE:
+      changeState(0, MATSURI_MENU, microWait);
       break;
     case MATSURI_TICKETS:
       characterEnabled = false;
@@ -6551,7 +6565,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // 0: MATSURI
           // Serial.println(">>> drawMenu - 0: MATSURI");
           menuOpened = false;
-          changeState(0, MATSURI_MENU, 0);
+          changeState(0, MATSURI_TITLE, 0);
           break;
         case 49:
           // 1: GIGS
@@ -6616,7 +6630,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         case 13: case 40: case ' ':
           // VALIDATE
           if (selection == 0) {
-            changeState(0, MATSURI_MENU, 0);
+            changeState(0, MATSURI_TITLE, 0);
           } else if (selection == 1) {
             changeState(0, HOME_LOOP, 0);
           } else if (selection == 2) {
@@ -6994,7 +7008,7 @@ void drawOverlay() {
             danceTeacherFeedback = "very good!!";
             break;
           case 4: case 5:
-            danceTeacherFeedback = "good enough.";
+            danceTeacherFeedback = "good!";
             break;
           case 6: case 7: case 8:
             danceTeacherFeedback = "quite poor...";
@@ -7019,7 +7033,7 @@ void drawOverlay() {
             musicTeacherFeedback = "very good!!";
             break;
           case 4: case 5:
-            musicTeacherFeedback = "good enough.";
+            musicTeacherFeedback = "good!";
             break;
           case 6: case 7: case 8:
             musicTeacherFeedback = "not good...";
@@ -7356,9 +7370,9 @@ void drawOverlay() {
             }
             break;
           case MATSURI_SAVORY5: case MATSURI_SUGARY4: case MATSURI_GARAPON4:
-            isLatestTrainingPerfect = false;
+            // isLatestTrainingPerfect = false;
             drawOutcome("-1", "Ticket");
-            isNatsumiHappy = true;
+            // isNatsumiHappy = true;
             break;
         }
         break;
