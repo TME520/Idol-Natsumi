@@ -360,6 +360,7 @@ int healthMenuSelection = 0;
 int restMenuSelection = 0;
 int gardenMenuSelection = 0;
 int eventsMenuSelection = 0;
+int matsuriSelection = 0;
 
 const int gardenRows = 3;
 const int gardenCols = 3;
@@ -5643,7 +5644,7 @@ void drawBackground(const ImageBuffer& bg) {
 
 void drawCharacter() {
   // Draw the character(s) on the screen (layer 1)
-  Serial.println("> Entering drawCharacter() L1 with characterEnabled set to " + String(characterEnabled));
+  // Serial.println("> Entering drawCharacter() L1 with characterEnabled set to " + String(characterEnabled));
   if (l1NeedsRedraw) {
     Serial.println(">> drawCharacter() - l1NeedsRedraw TRUE");
     if (characterEnabled) {
@@ -7361,16 +7362,16 @@ void drawOverlay() {
       case MATSURI_COST:
         switch(previousState) {
           case MATSURI_SAVORY:
-            transactionPriceScreen("Takoyaki", 1, MATSURI_SAVORY3, MATSURI_MENU);
+            transactionPriceScreen("Takoyaki", 1, 0);
             break;
           case MATSURI_SAVORY2:
-            transactionPriceScreen("Yakisoba", 1, MATSURI_SAVORY3, MATSURI_MENU);
+            transactionPriceScreen("Yakisoba", 1, 0);
             break;
           case MATSURI_SUGARY:
-            transactionPriceScreen("Kakigori", 1, MATSURI_SUGARY2, MATSURI_MENU);
+            transactionPriceScreen("Kakigori", 1, 0);
             break;
           case MATSURI_GARAPON:
-            transactionPriceScreen("Garapon", 1, MATSURI_GARAPON3, MATSURI_MENU);
+            transactionPriceScreen("Garapon", 1,  0);
             break;
         }
         break;
@@ -7966,58 +7967,8 @@ void cookFood() {
   }
 }
 
-void transactionPriceScreen(String itemName, int itemCost, GameState confirmState, GameState cancelState) {
-  static bool initialized = false;
-  static bool needsRedraw = true;
-  static int selection = 0;
-  static GameState lastPreviousState = HOME_LOOP;
-  static String lastItemName = "";
-  static int lastItemCost = -1;
-
-  if (!initialized || lastPreviousState != previousState || lastItemName != itemName || lastItemCost != itemCost) {
-    initialized = true;
-    needsRedraw = true;
-    selection = 0;
-    lastPreviousState = previousState;
-    lastItemName = itemName;
-    lastItemCost = itemCost;
-  }
-
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-    auto keyList = M5Cardputer.Keyboard.keyList();
-    if (!keyList.empty()) {
-      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      switch (key) {
-        // LEFT
-        case 180: case 44: case 'a': case 'A':
-          if (selection > 0) {
-            selection = 0;
-            needsRedraw = true;
-          }
-          break;
-        // RIGHT
-        case 183: case 47: case 'd': case 'D':
-          if (selection < 1) {
-            selection = 1;
-            needsRedraw = true;
-          }
-          break;
-        // ENTER
-        case 13: case 40: case ' ':
-          if (selection == 0) {
-            changeState(0, confirmState, 0);
-          } else {
-            changeState(0, cancelState, 0);
-          }
-          return;
-      }
-    }
-  }
-
-  if (!needsRedraw) {
-    return;
-  }
-
+void transactionPriceScreen(String itemName, int itemCost, int selectedButton) {
+  Serial.println("> Entering transactionPriceScreen()");
   const int screenWidth = M5Cardputer.Display.width();
   const int screenHeight = M5Cardputer.Display.height();
   const int dialogW = 200;
@@ -8048,31 +7999,91 @@ void transactionPriceScreen(String itemName, int itemCost, GameState confirmStat
 
   for (int i = 0; i < 2; ++i) {
     int x = buttonStartX + i * (buttonW + buttonGap);
-    uint16_t fillColor = (i == selection) ? buttonActiveFill : buttonFill;
-    uint16_t outlineColor = (i == selection) ? buttonActive : buttonBorder;
-    uint16_t textColor = (i == selection) ? buttonActive : WHITE;
+    uint16_t fillColor = (i == selectedButton) ? buttonActiveFill : buttonFill;
+    uint16_t outlineColor = (i == selectedButton) ? buttonActive : buttonBorder;
+    uint16_t textColor = (i == selectedButton) ? buttonActive : WHITE;
 
     M5Cardputer.Display.fillRoundRect(x, buttonY, buttonW, buttonH, 6, fillColor);
     M5Cardputer.Display.drawRoundRect(x, buttonY, buttonW, buttonH, 6, outlineColor);
     drawText(buttonLabels[i], x + (buttonW / 2), buttonY + 7, true, textColor, 1);
   }
-
-  needsRedraw = false;
+  return;
 }
 
 void matsuriSale() {
-  Serial.println("> Entering matsuriSale()");
+  // Serial.println("> Entering matsuriSale()");
   uint8_t key = 0;
+  bool needsRedraw = false;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       switch (key) {
+        // LEFT
+        case 44: case 'a': case 'A':
+          matsuriSelection = 0;
+          needsRedraw = true;
+          Serial.println(">> matsuriSale() - LEFT - selection: 0");
+          break;
+        // RIGHT
+        case 47: case 'd': case 'D':
+          matsuriSelection = 1;
+          needsRedraw = true;
+          Serial.println(">> matsuriSale() - RIGHT - selection: 1");
+          break;
+        // ENTER
+        case 13: case 40: case ' ':
+          Serial.println(">> matsuriSale() - ENTER");
+          switch(previousState) {
+            case MATSURI_SAVORY: case MATSURI_SAVORY2:
+              if (matsuriSelection == 0) {
+                changeState(0, MATSURI_SAVORY3, 0);
+              } else {
+                changeState(0, MATSURI_MENU, 0);
+              }
+              break;
+            case MATSURI_SUGARY:
+              if (matsuriSelection == 0) {
+                changeState(0, MATSURI_SUGARY2, 0);
+              } else {
+                changeState(0, MATSURI_MENU, 0);
+              }
+              break;
+            case MATSURI_GARAPON:
+              if (matsuriSelection == 0) {
+                changeState(0, MATSURI_GARAPON3, 0);
+              } else {
+                changeState(0, MATSURI_MENU, 0);
+              }
+              break;
+          }
+          break;
         // ESC
         case 96: case 43:
           changeState(0, MATSURI_MENU, 0);
           return;
           break;
+      }
+      if (needsRedraw) {
+        Serial.println(">> matsuriSale() - needsRedraw  ");
+        Serial.println("> currentState = " + String(gameStateToString(currentState)));
+        Serial.println("> previousState = " + String(gameStateToString(previousState)));
+        switch(previousState) {
+          case MATSURI_SAVORY:
+            Serial.println(">> matsuriSale() - transactionPriceScreen MATSURI_SAVORY");
+            transactionPriceScreen("Takoyaki", 1, matsuriSelection);
+            break;
+          case MATSURI_SAVORY2:
+            Serial.println(">> matsuriSale() - transactionPriceScreen MATSURI_SAVORY2");
+            transactionPriceScreen("Yakisoba", 1, matsuriSelection);
+            break;
+          case MATSURI_SUGARY:
+            transactionPriceScreen("Kakigori", 1, matsuriSelection);
+            break;
+          case MATSURI_GARAPON:
+            transactionPriceScreen("Garapon", 1, matsuriSelection);
+            break;
+        }
       }
     }
   }
@@ -8739,7 +8750,7 @@ void matsuriFoodSelection() {
                 natsumi.hunger = 4;
                 saveRequired = true;
                 // isNatsumiHappy = true;
-                changeState(0, MATSURI_SAVORY3, 0);
+                changeState(0, MATSURI_COST, 0);
               } else {
                 // showToast("Not enough tickets :(");
                 changeState(0, MATSURI_SAVORY4, 0);
@@ -8767,7 +8778,7 @@ void matsuriFoodSelection() {
                 natsumi.tickets -= 1;
                 natsumi.hunger = 4;
                 saveRequired = true;
-                changeState(0, MATSURI_SAVORY3, 0);
+                changeState(0, MATSURI_COST, 0);
               } else {
                 // showToast("Not enough tickets :(");
                 changeState(0, MATSURI_SAVORY4, 0);
@@ -8788,7 +8799,7 @@ void matsuriFoodSelection() {
                 natsumi.hunger = 4;
                 saveRequired = true;
                 // isNatsumiHappy = true;
-                changeState(0, MATSURI_SUGARY2, 0);
+                changeState(0, MATSURI_COST, 0);
               } else {
                 // showToast("Not enough tickets :(");
                 changeState(0, MATSURI_SUGARY3, 0);
