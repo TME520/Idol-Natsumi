@@ -1454,17 +1454,14 @@ void preloadImages() {
       break;
     case MATSURI_SAVORY3: case MATSURI_SAVORY4: case MATSURI_SAVORY5:
     case MATSURI_SUGARY2: case MATSURI_SUGARY3: case MATSURI_SUGARY4:
-    case MATSURI_GARAPON2: case MATSURI_GARAPON4:
+    case MATSURI_GARAPON: case MATSURI_GARAPON2: case MATSURI_GARAPON4:
       preloadImage("/idolnat/screens/matsuri_bg.png", currentBackground);
       break;
     case MATSURI_SUGARY:
       preloadImage("/idolnat/screens/matsuri_kakigori.png", currentBackground);
       break;
-    case MATSURI_GARAPON:
-      preloadImage("/idolnat/screens/matsuri_garapon.png", currentBackground);
-      break;
     case ACTION_OUTCOME:
-      preloadImage("/idolnat/screens/lounge.png", currentBackground);
+      // preloadImage("/idolnat/screens/lounge.png", currentBackground);
       break;
     case EVENTS_MENU:
       preloadImage("/idolnat/screens/cityscape_bg.png", currentBackground);
@@ -2604,6 +2601,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         // screenConfig = ROOM;
         setScreenConfig(ROOM);
         characterEnabled = false;
+        matsuriSelection = 0;
         break;
       case MATSURI_SAVORY: case MATSURI_SAVORY2:
       case MATSURI_SUGARY:
@@ -3265,6 +3263,9 @@ void manageGame() {
     case COMP_REG5:
     case COMP_NAT5:
       manageCompetition();
+      break;
+    case MATSURI_GARAPON3:
+      manageGaraponGame();
       break;
     default:
       playGame();
@@ -4397,6 +4398,12 @@ void manageTrainSwimGame() {
     drawTrainSwimPlayfield(false, showHitEffect);
     swimNeedsRedraw = false;
   }
+}
+
+void manageGaraponGame() {
+  // Placeholder
+  changeState(0, MATSURI_MENU, 0);
+  return;
 }
 
 char getRandomGymLetter() {
@@ -7406,9 +7413,7 @@ void drawOverlay() {
             }
             break;
           case MATSURI_SAVORY5: case MATSURI_SUGARY4: case MATSURI_GARAPON4:
-            // isLatestTrainingPerfect = false;
-            drawOutcome("-1", "Ticket");
-            // isNatsumiHappy = true;
+            isNatsumiHappy = true;
             break;
         }
         break;
@@ -8140,7 +8145,7 @@ void matsuriDialogs() {
           changeState(0, HOME_LOOP, 0);
           break;
         case MATSURI_GARAPON:
-          changeState(0, MATSURI_GARAPON3, 0);
+          changeState(0, MATSURI_COST, 0);
           break;
         case MATSURI_GARAPON2:
           // Not enough tickets
