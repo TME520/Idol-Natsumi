@@ -7358,6 +7358,22 @@ void drawOverlay() {
       case MATSURI_GARAPON:
         drawDialogBubble("Spin the handle and let fate decide! Every ticket hides a surprise, are you feeling lucky?");
         break;
+      case MATSURI_COST:
+        switch(previousState) {
+          case MATSURI_SAVORY:
+            transactionPriceScreen("Takoyaki", 1, MATSURI_SAVORY3, MATSURI_MENU);
+            break;
+          case MATSURI_SAVORY2:
+            transactionPriceScreen("Yakisoba", 1, MATSURI_SAVORY3, MATSURI_MENU);
+            break;
+          case MATSURI_SUGARY:
+            transactionPriceScreen("Kakigori", 1, MATSURI_SUGARY2, MATSURI_MENU);
+            break;
+          case MATSURI_GARAPON:
+            transactionPriceScreen("Garapon", 1, MATSURI_GARAPON3, MATSURI_MENU);
+            break;
+        }
+        break;
       case ACTION_OUTCOME:
         switch(previousState) {
           case TRAIN_SING3: case TRAIN_DANCE3:
@@ -7948,6 +7964,10 @@ void cookFood() {
     overlayActive = false;
     changeState(0, HOME_LOOP, 0);
   }
+}
+
+void transactionPriceScreen(String itemName, int itemCost, GameState confirmState, GameState cancelState) {
+  // Update this
 }
 
 void matsuriSale() {
