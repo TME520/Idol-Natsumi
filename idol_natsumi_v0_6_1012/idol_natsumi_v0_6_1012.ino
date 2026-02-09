@@ -595,6 +595,8 @@ bool garaponGameStopped = false;
 bool garaponRewardApplied = false;
 bool garaponNeedsRedraw = false;
 int garaponResultIndex = -1;
+String garaponResultQty = "";
+String garaponResultLabel = "";
 String garaponResultText = "";
 
 bool saveRequired = false;
@@ -3963,6 +3965,8 @@ void resetGaraponGame() {
   garaponLastUpdate = 0;
   garaponStopTime = 0;
   garaponResultIndex = -1;
+  garaponResultQty = "";
+  garaponResultLabel = "";
   garaponResultText = "";
   garaponNeedsRedraw = true;
   M5Cardputer.Display.fillScreen(BLACK);
@@ -3998,34 +4002,60 @@ void applyGaraponReward(int index) {
   switch (index) {
     case 0:
       natsumi.tickets += 1;
+      garaponResultQty = "+1";
+      garaponResultLabel = "Tickets";
       garaponResultText = "Tickets +1";
       break;
     case 1:
       natsumi.tickets += 2;
+      garaponResultQty = "+2";
+      garaponResultLabel = "Tickets";
       garaponResultText = "Tickets +2";
       break;
     case 2:
       natsumi.money += 300;
+      garaponResultQty = "+300";
+      garaponResultLabel = "Money";
       garaponResultText = "Money +300¥";
       break;
     case 3:
       natsumi.money += 600;
+      garaponResultQty = "+600";
+      garaponResultLabel = "Money";
       garaponResultText = "Money +600¥";
       break;
     case 4:
-      applyGaraponStatReward(natsumi.charm, "Charm", 200);
+      // applyGaraponStatReward(natsumi.charm, "Charm", 200);
+      fridge.sweets += 10;
+      garaponResultQty = "+10";
+      garaponResultLabel = "Sweets";
+      garaponResultText = "Sweets +10";
       return;
     case 5:
-      applyGaraponStatReward(natsumi.spirit, "Spirit", 200);
+      // applyGaraponStatReward(natsumi.spirit, "Spirit", 200);
+      fridge.coconutJuice += 1;
+      garaponResultQty = "+1";
+      garaponResultLabel = "Coco Juice";
+      garaponResultText = "Coco Juice +1";
       return;
     case 6:
-      applyGaraponStatReward(natsumi.popularity, "Popularity", 200);
+      // applyGaraponStatReward(natsumi.popularity, "Popularity", 200);
+      // No win
+      garaponResultQty = "0";
+      garaponResultLabel = "Nothing";
+      garaponResultText = "Nothing :(";
       return;
     case 7:
-      applyGaraponStatReward(natsumi.performance, "Performance", 200);
+      // applyGaraponStatReward(natsumi.performance, "Performance", 200);
+      // card
+      garaponResultQty = "+1";
+      garaponResultLabel = "Card";
+      garaponResultText = "Card +1";
       return;
     default:
       natsumi.money += 100;
+      garaponResultQty = "+100";
+      garaponResultLabel = "Money";
       garaponResultText = "Money +100¥";
       break;
   }
@@ -4073,10 +4103,10 @@ void drawGaraponPlayfield() {
     "Tickets +2",
     "Money +300",
     "Money +600",
-    "Charm +1",
-    "Spirit +1",
-    "Popularity +1",
-    "Performance +1"
+    "Sweets +10",
+    "Coco Juice +1",
+    "Nothing",
+    "Card +1"
   };
 
   const int listX = 130;
@@ -7642,8 +7672,11 @@ void drawOverlay() {
               changeState(0, MATSURI_TICKETS, 0);
             }
             break;
-          case MATSURI_SAVORY5: case MATSURI_SUGARY4: case MATSURI_GARAPON4:
-            isNatsumiHappy = true;
+          case MATSURI_SAVORY5: case MATSURI_SUGARY4:
+            drawOutcome("Max", "Hunger");
+            break;
+          case MATSURI_GARAPON4:
+            drawOutcome(garaponResultQty, garaponResultLabel);
             break;
         }
         break;
@@ -8349,6 +8382,29 @@ void gotoRestaurant() {
 void actionOutcome() {
   // Determine if player is entitled to Matsuri tickets
   Serial.println("> Entering actionOutcome()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      switch(previousState) {
+        case TRAIN_SING3: case TRAIN_DANCE3:
+          changeState(0, HOME_LOOP, 0);
+          break;
+        case TRAIN_SWIM3: case TRAIN_GYM3: case TRAIN_RUN3:
+          changeState(0, HOME_LOOP, 0);
+          break;
+        case TRAIN_LIBRARY:
+          changeState(0, HOME_LOOP, 0);
+          break;
+        case MATSURI_SAVORY5: case MATSURI_SUGARY4:
+          changeState(0, MATSURI_MENU, 0);
+          break;
+        case MATSURI_GARAPON4:
+          changeState(0, MATSURI_MENU, 0);
+          break;
+      }
+    }
+  }
   return;
 }
 
