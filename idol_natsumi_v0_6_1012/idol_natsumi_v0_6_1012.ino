@@ -1,6 +1,7 @@
 #include <M5Cardputer.h>
 #include <SD.h>
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <vector>
 
@@ -576,6 +577,25 @@ bool runGameRunning = false;
 bool runGameCompleted = false;
 bool runGameFailed = false;
 bool runNeedsRedraw = false;
+
+// Garapon mini-game state
+const int garaponSegmentCount = 8;
+const float garaponStartSpeed = 0.68f;          // degrees per ms
+const float garaponSlowDecel = 0.00045f;        // degrees per ms^2
+const float garaponStopThreshold = 0.05f;       // degrees per ms
+const unsigned long garaponResultDelay = 1400;  // milliseconds before exit
+float garaponAngle = 0.0f;
+float garaponSpeed = 0.0f;
+float garaponDecel = 0.0f;
+unsigned long garaponLastUpdate = 0;
+unsigned long garaponStopTime = 0;
+bool garaponGameRunning = false;
+bool garaponGameSlowing = false;
+bool garaponGameStopped = false;
+bool garaponRewardApplied = false;
+bool garaponNeedsRedraw = false;
+int garaponResultIndex = -1;
+String garaponResultText = "";
 
 bool saveRequired = false;
 String gardeningHelperText = "";
@@ -3933,8 +3953,154 @@ void resetTrainDanceGame() {
 }
 
 void resetGaraponGame() {
-  // Placeholder
+  garaponGameRunning = false;
+  garaponGameSlowing = false;
+  garaponGameStopped = false;
+  garaponRewardApplied = false;
+  garaponAngle = random(0, 360);
+  garaponSpeed = 0.0f;
+  garaponDecel = 0.0f;
+  garaponLastUpdate = 0;
+  garaponStopTime = 0;
+  garaponResultIndex = -1;
+  garaponResultText = "";
+  garaponNeedsRedraw = true;
+  M5Cardputer.Display.fillScreen(BLACK);
   return;
+}
+
+int getGaraponSegmentIndex(float angle) {
+  const float segmentAngle = 360.0f / garaponSegmentCount;
+  float pointerAngle = -90.0f;
+  float normalized = pointerAngle - angle;
+  while (normalized < 0.0f) {
+    normalized += 360.0f;
+  }
+  while (normalized >= 360.0f) {
+    normalized -= 360.0f;
+  }
+  return static_cast<int>(normalized / segmentAngle);
+}
+
+void applyGaraponStatReward(int &statValue, const char* statLabel, int fallbackMoney) {
+  if (statValue < 4) {
+    statValue += 1;
+    garaponResultText = String(statLabel) + " +1";
+  } else {
+    natsumi.money += fallbackMoney;
+    garaponResultText = String(statLabel) + " max! +" + String(fallbackMoney) + "¥";
+  }
+  saveRequired = true;
+  isNatsumiHappy = true;
+}
+
+void applyGaraponReward(int index) {
+  switch (index) {
+    case 0:
+      natsumi.tickets += 1;
+      garaponResultText = "Tickets +1";
+      break;
+    case 1:
+      natsumi.tickets += 2;
+      garaponResultText = "Tickets +2";
+      break;
+    case 2:
+      natsumi.money += 300;
+      garaponResultText = "Money +300¥";
+      break;
+    case 3:
+      natsumi.money += 600;
+      garaponResultText = "Money +600¥";
+      break;
+    case 4:
+      applyGaraponStatReward(natsumi.charm, "Charm", 200);
+      return;
+    case 5:
+      applyGaraponStatReward(natsumi.spirit, "Spirit", 200);
+      return;
+    case 6:
+      applyGaraponStatReward(natsumi.popularity, "Popularity", 200);
+      return;
+    case 7:
+      applyGaraponStatReward(natsumi.performance, "Performance", 200);
+      return;
+    default:
+      natsumi.money += 100;
+      garaponResultText = "Money +100¥";
+      break;
+  }
+  saveRequired = true;
+  isNatsumiHappy = true;
+}
+
+void drawGaraponPlayfield() {
+  const int screenWidth = M5Cardputer.Display.width();
+  const int screenHeight = M5Cardputer.Display.height();
+  const int wheelCenterX = 70;
+  const int wheelCenterY = screenHeight / 2;
+  const int wheelRadius = 44;
+  const int ballRadius = 5;
+  const uint16_t wheelColor = M5Cardputer.Display.color565(30, 40, 60);
+  const uint16_t wheelLine = M5Cardputer.Display.color565(120, 160, 220);
+  const uint16_t ballColor = M5Cardputer.Display.color565(255, 210, 80);
+  const uint16_t pointerColor = M5Cardputer.Display.color565(255, 120, 120);
+
+  M5Cardputer.Display.fillScreen(BLACK);
+  M5Cardputer.Display.fillCircle(wheelCenterX, wheelCenterY, wheelRadius, wheelColor);
+  M5Cardputer.Display.drawCircle(wheelCenterX, wheelCenterY, wheelRadius, WHITE);
+
+  const float segmentAngle = 360.0f / garaponSegmentCount;
+  for (int i = 0; i < garaponSegmentCount; ++i) {
+    float angleDeg = garaponAngle + segmentAngle * static_cast<float>(i);
+    float angleRad = angleDeg * DEG_TO_RAD;
+    int x = wheelCenterX + static_cast<int>(cos(angleRad) * wheelRadius);
+    int y = wheelCenterY + static_cast<int>(sin(angleRad) * wheelRadius);
+    M5Cardputer.Display.drawLine(wheelCenterX, wheelCenterY, x, y, wheelLine);
+  }
+
+  float ballAngleRad = garaponAngle * DEG_TO_RAD;
+  int ballX = wheelCenterX + static_cast<int>(cos(ballAngleRad) * (wheelRadius - 8));
+  int ballY = wheelCenterY + static_cast<int>(sin(ballAngleRad) * (wheelRadius - 8));
+  M5Cardputer.Display.fillCircle(ballX, ballY, ballRadius, ballColor);
+
+  int pointerTipX = wheelCenterX;
+  int pointerTipY = wheelCenterY - wheelRadius - 4;
+  M5Cardputer.Display.fillTriangle(pointerTipX, pointerTipY, pointerTipX - 6, pointerTipY + 10, pointerTipX + 6, pointerTipY + 10, pointerColor);
+
+  int currentIndex = getGaraponSegmentIndex(garaponAngle);
+  const char* prizeLabels[garaponSegmentCount] = {
+    "Tickets +1",
+    "Tickets +2",
+    "Money +300",
+    "Money +600",
+    "Charm +1",
+    "Spirit +1",
+    "Popularity +1",
+    "Performance +1"
+  };
+
+  const int listX = 130;
+  const int listY = 24;
+  const int lineHeight = 12;
+  for (int i = 0; i < garaponSegmentCount; ++i) {
+    uint16_t textColor = (i == currentIndex) ? YELLOW : WHITE;
+    M5Cardputer.Display.setTextSize(1);
+    M5Cardputer.Display.setTextDatum(top_left);
+    M5Cardputer.Display.setTextColor(textColor, BLACK);
+    M5Cardputer.Display.drawString(prizeLabels[i], listX, listY + i * lineHeight);
+  }
+
+  if (!garaponGameRunning && !garaponGameStopped) {
+    drawText("Press any key to start", screenWidth / 2, 12, true, WHITE, 1);
+  } else if (garaponGameRunning && !garaponGameSlowing) {
+    drawText("Press any key to slow down", screenWidth / 2, 12, true, WHITE, 1);
+  } else if (garaponGameSlowing && !garaponGameStopped) {
+    drawText("Slowing down...", screenWidth / 2, 12, true, WHITE, 1);
+  }
+
+  if (garaponGameStopped) {
+    drawText("Result: " + garaponResultText, screenWidth / 2, screenHeight - 10, true, YELLOW, 1);
+  }
 }
 
 void spawnDanceCue() {
@@ -4401,9 +4567,68 @@ void manageTrainSwimGame() {
 }
 
 void manageGaraponGame() {
-  // Placeholder
-  changeState(0, MATSURI_MENU, 0);
-  return;
+  unsigned long now = millis();
+  if (garaponLastUpdate == 0) {
+    garaponLastUpdate = now;
+  }
+
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (!keyList.empty()) {
+      if (!garaponGameRunning && !garaponGameStopped) {
+        garaponGameRunning = true;
+        garaponGameSlowing = false;
+        garaponSpeed = garaponStartSpeed;
+        garaponDecel = garaponSlowDecel;
+        garaponLastUpdate = now;
+        garaponNeedsRedraw = true;
+      } else if (garaponGameRunning && !garaponGameSlowing) {
+        garaponGameSlowing = true;
+      } else if (garaponGameStopped) {
+        changeState(0, MATSURI_GARAPON4, 0);
+        return;
+      }
+    }
+  }
+
+  if (garaponGameRunning) {
+    unsigned long delta = now - garaponLastUpdate;
+    if (delta > 0) {
+      garaponAngle += garaponSpeed * static_cast<float>(delta);
+      if (garaponAngle >= 360.0f) {
+        garaponAngle = fmod(garaponAngle, 360.0f);
+      }
+      if (garaponGameSlowing) {
+        garaponSpeed = max(0.0f, garaponSpeed - garaponDecel * static_cast<float>(delta));
+      }
+      garaponLastUpdate = now;
+      garaponNeedsRedraw = true;
+    }
+
+    if (garaponGameSlowing && garaponSpeed <= garaponStopThreshold) {
+      garaponGameRunning = false;
+      garaponGameStopped = true;
+      garaponStopTime = now;
+      garaponNeedsRedraw = true;
+    }
+  }
+
+  if (garaponGameStopped && !garaponRewardApplied) {
+    garaponResultIndex = getGaraponSegmentIndex(garaponAngle);
+    applyGaraponReward(garaponResultIndex);
+    garaponRewardApplied = true;
+    garaponNeedsRedraw = true;
+  }
+
+  if (garaponGameStopped && garaponRewardApplied && (now - garaponStopTime >= garaponResultDelay)) {
+    changeState(0, MATSURI_GARAPON4, 0);
+    return;
+  }
+
+  if (garaponNeedsRedraw) {
+    drawGaraponPlayfield();
+    garaponNeedsRedraw = false;
+  }
 }
 
 char getRandomGymLetter() {
