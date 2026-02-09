@@ -226,6 +226,43 @@ struct FridgeStock {
 
 FridgeStock fridge;
 
+struct CollectibleCards {
+  int blueOne;
+  int blueTwo;
+  int blueThree;
+  int blueFour;
+  int blueFive;
+  int blueSix;
+  int greenOne;
+  int greenTwo;
+  int greenThree;
+  int greenFour;
+  int greenFive;
+  int greenSix;
+  int greenSeven;
+  int redOne;
+  int redTwo;
+  int redThree;
+  int redFour;
+  int redFive;
+  int redSix;
+  int redSeven;
+  int redEight;
+  int redNine;
+  int redTen;
+  int redEleven;
+  int redTwelve;
+  int redThirteen;
+  int redFourteen;
+  int redFifteen;
+  int redSixteen;
+  int silverOne;
+  int goldOne;
+  int platinumOne;
+};
+
+CollectibleCards cards;
+
 // === Image preload system ===
 struct ImageBuffer {
   uint8_t* data = nullptr;
