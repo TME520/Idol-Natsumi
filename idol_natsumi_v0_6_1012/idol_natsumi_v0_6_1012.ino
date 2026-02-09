@@ -3067,7 +3067,7 @@ void manageCard() {
       changeState(0, TITLE_SCREEN, microWait);
       break;
     case TITLE_SCREEN:
-      changeState(0, TITLE_SCREEN2, microWait);
+      changeState(0, TITLE_SCREEN2, 10);
       break;
     case TITLE_SCREEN2:
       break;
@@ -4084,11 +4084,49 @@ void applyGaraponReward(int index) {
       return;
     case 7:
       // applyGaraponStatReward(natsumi.performance, "Performance", 200);
-      // card
+      {
+        int* cardPool[] = {
+          &cards.blueOne,
+          &cards.blueTwo,
+          &cards.blueThree,
+          &cards.blueFour,
+          &cards.blueFive,
+          &cards.blueSix,
+          &cards.greenOne,
+          &cards.greenTwo,
+          &cards.greenThree,
+          &cards.greenFour,
+          &cards.greenFive,
+          &cards.greenSix,
+          &cards.greenSeven,
+          &cards.redOne,
+          &cards.redTwo,
+          &cards.redThree,
+          &cards.redFour,
+          &cards.redFive,
+          &cards.redSix,
+          &cards.redSeven,
+          &cards.redEight,
+          &cards.redNine,
+          &cards.redTen,
+          &cards.redEleven,
+          &cards.redTwelve,
+          &cards.redThirteen,
+          &cards.redFourteen,
+          &cards.redFifteen,
+          &cards.redSixteen,
+          &cards.silverOne,
+          &cards.goldOne,
+          &cards.platinumOne
+        };
+        const int cardCount = sizeof(cardPool) / sizeof(cardPool[0]);
+        int randomCardIndex = random(0, cardCount);
+        *cardPool[randomCardIndex] += 1;
+      }
       garaponResultQty = "+1";
       garaponResultLabel = "Card";
       garaponResultText = "Card +1";
-      return;
+      break;
     default:
       natsumi.money += 100;
       garaponResultQty = "+100";
@@ -4097,7 +4135,7 @@ void applyGaraponReward(int index) {
       break;
   }
   saveRequired = true;
-  isNatsumiHappy = true;
+  // isNatsumiHappy = true;
 }
 
 void drawGaraponPlayfield() {
