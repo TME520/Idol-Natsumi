@@ -642,7 +642,7 @@ String doctorHint = "";
 String priestHint = "";
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "Update 9";
+String versionNumber = "Update 9.1";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -1520,7 +1520,7 @@ void preloadImages() {
       preloadImage("/idolnat/screens/matsuri_kakigori.png", currentBackground);
       break;
     case ACTION_OUTCOME:
-      // preloadImage("/idolnat/screens/lounge.png", currentBackground);
+      preloadImage("/idolnat/screens/outcome_bg.png", currentBackground);
       break;
     case EVENTS_MENU:
       preloadImage("/idolnat/screens/cityscape_bg.png", currentBackground);
@@ -2833,7 +2833,7 @@ void updateSpirit() {
       natsumi.spirit = 4;
     }
     saveRequired = true;
-    isNatsumiHappy = true;
+    // isNatsumiHappy = true;
     Serial.println(">> updateSpirit: spiritScore=" + String(spiritScore));
     Serial.println(">> updateSpirit: natsumi.spirit=" + String(natsumi.spirit));
   } else {
@@ -2972,7 +2972,7 @@ void updateFiveSecondPulse() {
           if ( random(300) > (((natsumi.hunger + natsumi.hygiene + natsumi.spirit + natsumi.fitness)*10)+10)) {
             natsumi.energy++;
             saveRequired = true;
-            isNatsumiHappy = true;
+            // isNatsumiHappy = true;
           }
         }
         break;
@@ -4032,7 +4032,7 @@ void applyGaraponStatReward(int &statValue, const char* statLabel, int fallbackM
     garaponResultText = String(statLabel) + " max! +" + String(fallbackMoney) + "¥";
   }
   saveRequired = true;
-  isNatsumiHappy = true;
+  // isNatsumiHappy = true;
 }
 
 void applyGaraponReward(int index) {
@@ -5389,7 +5389,7 @@ void manageLibrary() {
         natsumi.culture += 1;
       }
       saveRequired = true;
-      isNatsumiHappy = true;
+      // isNatsumiHappy = true;
       libraryRewardApplied = true;
       overlayActive = false;
       characterEnabled = true;
@@ -5800,7 +5800,7 @@ void wash() {
       natsumi.hygiene = 4;
       showToast("Washed feels better");
       saveRequired = true;
-      isNatsumiHappy = true;
+      // isNatsumiHappy = true;
     } else {
       showToast("Natsumi is clean");
     }
@@ -5911,7 +5911,7 @@ void drawMeditationOverlay() {
       if (natsumi.spirit < 4 ) {
         natsumi.spirit += 1;
         saveRequired = true;
-        isNatsumiHappy = true;
+        // isNatsumiHappy = true;
       }
       meditationRewardApplied = true;
     }
@@ -5937,7 +5937,7 @@ void sleep() {
   }
   if (natsumi.energy >= 4) {
     saveRequired = true;
-    isNatsumiHappy = true;
+    // isNatsumiHappy = true;
     showToast("Natsumi is well rested");
     changeState(0, HOME_LOOP, 0);
     return;
@@ -5955,7 +5955,7 @@ void meditate() {
 
   if (meditationFinished) {
     saveRequired = true;
-    isNatsumiHappy = true;
+    // isNatsumiHappy = true;
     showToast("Natsumi feels relaxed");
     changeState(0, HOME_LOOP, 0);
     return;
@@ -7474,7 +7474,7 @@ void drawOverlay() {
           natsumi.charm += 1;
         }
         saveRequired = true;
-        isNatsumiHappy = true;
+        // isNatsumiHappy = true;
         drawDialogBubble("Hello, here is the food you ordered.");
         break;
       case FOOD_REST:
@@ -8280,12 +8280,12 @@ void cookFood() {
                 if (natsumi.hunger < 4) {
                   natsumi.hunger += 1;
                   saveRequired = true;
-                  isNatsumiHappy = true;
+                  // isNatsumiHappy = true;
                 }
                 if (natsumi.charm < 4) {
                   natsumi.charm += 1;
                   saveRequired = true;
-                  isNatsumiHappy = true;
+                  // isNatsumiHappy = true;
                 }
                 showToast("Having " + String(choice.label));
                 clearFoodGrid();
@@ -8461,6 +8461,7 @@ void actionOutcome() {
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
+      Serial.println(">> actionOutcome() - key pressed");
       switch(previousState) {
         case TRAIN_SING3: case TRAIN_DANCE3:
           changeState(0, HOME_LOOP, 0);
@@ -8476,6 +8477,9 @@ void actionOutcome() {
           break;
         case MATSURI_GARAPON4:
           changeState(0, MATSURI_MENU, 0);
+          break;
+        default:
+          changeState(0, HOME_LOOP, 0);
           break;
       }
     }
@@ -8807,7 +8811,7 @@ void miniGameDebrief() {
       switch (currentState) {
         case FLOWERS_MARKET7:
           saveRequired = true;
-          isNatsumiHappy = true;
+          // isNatsumiHappy = true;
           changeState(0, HOME_LOOP, 0);
           break;
         case TRAIN_SING3:
@@ -8842,12 +8846,12 @@ void miniGameDebrief() {
           break;
         case COMP_LOCAL6: case COMP_DEPT6: case COMP_REG6:
           saveRequired = true;
-          isNatsumiHappy = true;
+          // isNatsumiHappy = true;
           changeState(0, HOME_LOOP, 0);
           break;
         case COMP_NAT6:
           saveRequired = true;
-          isNatsumiHappy = true;
+          // isNatsumiHappy = true;
           changeState(0, COMP_NAT7, 0);
           break;
       }
@@ -8999,7 +9003,7 @@ void restaurantFoodSelection() {
                   natsumi.charm += 1;
                 }
                 saveRequired = true;
-                isNatsumiHappy = true;
+                // isNatsumiHappy = true;
               } else {
                 showToast("Not enough money :(");
               }
@@ -9031,7 +9035,7 @@ void restaurantFoodSelection() {
                   natsumi.charm += 1;
                 }
                 saveRequired = true;
-                isNatsumiHappy = true;
+                // isNatsumiHappy = true;
               } else {
                 showToast("Not enough money :(");
               }
@@ -9063,7 +9067,7 @@ void restaurantFoodSelection() {
                   natsumi.charm += 1;
                 }
                 saveRequired = true;
-                isNatsumiHappy = true;
+                // isNatsumiHappy = true;
               } else {
                 showToast("Not enough money :(");
               }
