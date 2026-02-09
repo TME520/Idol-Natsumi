@@ -9,7 +9,7 @@ Manage the daily life and artistic career of Natsumi Hasegawa, an aspiring Japan
 
 In *Idol Natsumi*, the player takes care of and raises a Japanese girl named Natsumi Hasegawa from age 11 to age 21. Her goal in life is to become a popular singer in Japan.
 
-![Title screen](./screens/title03.png "Title screen")
+![Title screen](./itch.io/upd9-title_screen.png "Title screen")
 
 ## Core mechanics
 
@@ -65,7 +65,7 @@ Stat caps: 0 is the lowest while 4 is the highest.
 
 ### Inventory
 
-![Statistics](./screenshots/stats.png "Statistics")
+![Statistics](./itch.io/upd9-inventory.png "Inventory")
 
 The inventory screen will show you:
 
