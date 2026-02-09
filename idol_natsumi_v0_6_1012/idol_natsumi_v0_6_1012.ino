@@ -6668,8 +6668,8 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       l4NeedsRedraw = false;
       return;
     } else if (l4NeedsRedraw && menuOpened) {
-      const int x = 60;
-      const int w = 120;
+      int x = 60;
+      int w = 120;
       const int padding = 8;
       const int lineSpacing = 10;
       const int h = padding * 2 + ((itemCount - 1) * lineSpacing);
@@ -6677,7 +6677,12 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       const int topMargin = 8;
       const int bottomMargin = 6;
       int y = (screenHeight - h) / 2;
-  
+
+      if (menuType == "main") {
+        x = 110;
+        y = 68;
+      }
+      
       if (y < topMargin) {
         y = topMargin;
       }
