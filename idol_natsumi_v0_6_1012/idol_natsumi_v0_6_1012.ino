@@ -3067,7 +3067,7 @@ void manageCard() {
       changeState(0, TITLE_SCREEN, microWait);
       break;
     case TITLE_SCREEN:
-      changeState(0, TITLE_SCREEN2, microWait);
+      changeState(0, TITLE_SCREEN2, 10);
       break;
     case TITLE_SCREEN2:
       break;
@@ -4135,7 +4135,7 @@ void applyGaraponReward(int index) {
       break;
   }
   saveRequired = true;
-  isNatsumiHappy = true;
+  // isNatsumiHappy = true;
 }
 
 void drawGaraponPlayfield() {
