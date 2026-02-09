@@ -1,7 +1,7 @@
 # Idol-Natsumi
 Manage the daily life and artistic career of Natsumi Hasegawa, an aspiring Japanese idol from a small town.
 
-![cover](./itch.io/cover.png "Cover")
+![cover](./itch.io/cover2.png "Cover")
 
 ## Presentation
 
@@ -9,7 +9,7 @@ Manage the daily life and artistic career of Natsumi Hasegawa, an aspiring Japan
 
 In *Idol Natsumi*, the player takes care of and raises a Japanese girl named Natsumi Hasegawa from age 11 to age 21. Her goal in life is to become a popular singer in Japan.
 
-![Title screen](./screenshots/title.png "Title screen")
+![Title screen](./screens/title03.png "Title screen")
 
 ## Core mechanics
 
@@ -62,6 +62,17 @@ Stat caps: 0 is the lowest while 4 is the highest.
 | **Fitness**    | Passive    | 0–4    | TRAINING → SWIM, GYM, RUN                                               | Decreases by 1 every time Age increases by 1 year                |
 | **Culture**    | Active     | 0–4    | TRAINING → LIBRARY, MARKET                                                      | —                                                                |
 | **Charm**      | Active     | 0–4    | FOOD → COOK, RESTAURANT, ORDER, MARKET                                           | —                                                                |
+
+### Inventory
+
+![Statistics](./screenshots/stats.png "Statistics")
+
+The inventory screen will show you:
+
+* How much money Natsumi has on her bank account
+* How many flowers she grew and picked (Gardening)
+* How many Matsuri tickets she has (these tickets are used to enter the local Matsuri, then pay for games and food once inside)
+* How many food items are in her pantry
 
 ### Keep Natsumi fed
 
