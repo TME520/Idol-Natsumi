@@ -149,7 +149,8 @@ enum GameState {
   MATSURI_GARAPON4,
   ACTION_OUTCOME,
   EVENTS_MENU,
-  INVENTORY_SCREEN
+  INVENTORY_SCREEN,
+  CARDS_SCREEN
 };
 
 GameState currentState = VERSION_SCREEN;
@@ -370,7 +371,7 @@ unsigned long libraryStartTime = 0;
 
 String currentMenuType = "main";
 const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: INTRO"};
-const char* homeMenuItems[] = {"0: STATS", "1: INVENTORY", "2: FOOD", "3: TRAINING", "4: COMPETITION", "5: HEALTH", "6: REST", "7: GARDEN", "8: EVENTS"};
+const char* homeMenuItems[] = {"0: STATS", "1: INVENTORY", "2: FOOD", "3: TRAINING", "4: COMPETITION", "5: HEALTH", "6: REST", "7: GARDEN", "8: EVENTS", "9: CARDS"};
 const char* foodMenuItems[] = {"0: FRIDGE", "1: RESTAURANT", "2: ORDER", "3: CONBINI"};
 const char* trainingMenuItems[] = {"0: SING", "1: DANCE", "2: SWIM", "3: GYM", "4: RUN", "5: LIBRARY", "6: MARKET"};
 const char* competitionMenuItems[] = {"0: LOCAL", "1: DEPARTMENTAL", "2: REGIONAL", "3: NATIONAL"};
@@ -380,7 +381,7 @@ const char* gardenMenuItems[] = {"0: PLANT", "1: WATER", "2: PICK", "3: CLEANUP"
 const char* eventsMenuItems[] = {"0: MATSURI", "1: GIGS", "2: JOBS", "3: FESTIVALS"};
 const char** currentMenuItems = nullptr;
 const int mainMenuItemCount = 3;
-const int homeMenuItemCount = 9;
+const int homeMenuItemCount = 10;
 const int foodMenuItemCount = 4;
 const int trainingMenuItemCount = 7;
 const int competitionMenuItemCount = 4;
@@ -642,7 +643,7 @@ String doctorHint = "";
 String priestHint = "";
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "Update 9.1";
+String versionNumber = "Update 10";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -796,6 +797,7 @@ const char* gameStateToString(GameState state) {
     case ACTION_OUTCOME:   return "ACTION_OUTCOME";
     case EVENTS_MENU:      return "EVENTS_MENU";
     case INVENTORY_SCREEN: return "INVENTORY_SCREEN";
+    case CARDS_SCREEN:     return "CARDS_SCREEN";
     default:               return "UNKNOWN";
   }
 }
@@ -1524,6 +1526,8 @@ void preloadImages() {
       break;
     case EVENTS_MENU:
       preloadImage("/idolnat/screens/cityscape_bg.png", currentBackground);
+      break;
+    case CARDS_SCREEN:
       break;
   }
   // Load portraits
@@ -2709,6 +2713,9 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         setScreenConfig(IDLE);
         characterEnabled = false;
         break;
+      case CARDS_SCREEN:
+        setScreenConfig(GAME);
+        break;
       default:
         break;
     }
@@ -3325,6 +3332,10 @@ void manageGame() {
       break;
     case MATSURI_GARAPON3:
       manageGaraponGame();
+      break;
+    case CARDS_SCREEN:
+      browseCards();
+      // changeState(0, HOME_LOOP, 0);
       break;
     default:
       playGame();
@@ -6136,16 +6147,9 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           }
           break;
         case 57:
-          // 9: DEBUG
-          if (debugActive) {
-            debugActive = false;
-            l0NeedsRedraw = true;
-            l2NeedsRedraw = false;
-            l5NeedsRedraw = true;
-          } else {
-            debugActive = true;
-            l2NeedsRedraw = true;
-          }
+          // 9: CARDS
+          menuOpened = false;
+          changeState(0, CARDS_SCREEN, 0);
           break;
         case 43:
           // TAB
@@ -6213,14 +6217,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
               showToast("Wait for food delivery");
             }
           } else if (selection == 9) {
-            if (debugActive) {
-              debugActive = false;
-              l0NeedsRedraw = true;
-              l2NeedsRedraw = false;
-            } else {
-              debugActive = true;
-              l2NeedsRedraw = true;
-            }
+            changeState(0, CARDS_SCREEN, 0);
           }
           l5NeedsRedraw = true;
           menuOpened = false;
@@ -9365,5 +9362,10 @@ void orderibiFoodSelection() {
       }
     }
   }
+  return;
+}
+
+void browseCards() {
+  // Placeholder
   return;
 }
