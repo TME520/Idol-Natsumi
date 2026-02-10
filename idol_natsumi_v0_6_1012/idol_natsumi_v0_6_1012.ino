@@ -9366,6 +9366,136 @@ void orderibiFoodSelection() {
 }
 
 void browseCards() {
-  // Placeholder
+  struct CardEntry {
+    int* amount;
+    const char* path;
+    const char* label;
+  };
+
+  static const CardEntry allCards[] = {
+    {&cards.blueOne, "/idolnat/cards/blue_kyoto.png", "Blue Kyoto"},
+    {&cards.blueTwo, "/idolnat/cards/blue_nagoya.png", "Blue Nagoya"},
+    {&cards.blueThree, "/idolnat/cards/blue_osaka.png", "Blue Osaka"},
+    {&cards.blueFour, "/idolnat/cards/blue_sapporo.png", "Blue Sapporo"},
+    {&cards.blueFive, "/idolnat/cards/blue_tokyo.png", "Blue Tokyo"},
+    {&cards.blueSix, "/idolnat/cards/blue_yokohama.png", "Blue Yokohama"},
+    {&cards.greenOne, "/idolnat/cards/green_cleaning.png", "Green Cleaning"},
+    {&cards.greenTwo, "/idolnat/cards/green_cooking.png", "Green Cooking"},
+    {&cards.greenThree, "/idolnat/cards/green_homework.png", "Green Homework"},
+    {&cards.greenFour, "/idolnat/cards/green_morning.png", "Green Morning"},
+    {&cards.greenFive, "/idolnat/cards/green_relaxing.png", "Green Relaxing"},
+    {&cards.greenSix, "/idolnat/cards/green_walk.png", "Green Walk"},
+    {&cards.greenSeven, "/idolnat/cards/green_watering.png", "Green Watering"},
+    {&cards.redOne, "/idolnat/cards/red_cashier.png", "Red Cashier"},
+    {&cards.redTwo, "/idolnat/cards/red_dance_teacher.png", "Red Dance Teacher"},
+    {&cards.redThree, "/idolnat/cards/red_delivery_girl.png", "Red Delivery Girl"},
+    {&cards.redFour, "/idolnat/cards/red_doctor01.png", "Red Doctor 01"},
+    {&cards.redFive, "/idolnat/cards/red_doctor02.png", "Red Doctor 02"},
+    {&cards.redSix, "/idolnat/cards/red_gym_teacher.png", "Red Gym Teacher"},
+    {&cards.redSeven, "/idolnat/cards/red_host01.png", "Red Host 01"},
+    {&cards.redEight, "/idolnat/cards/red_host02.png", "Red Host 02"},
+    {&cards.redNine, "/idolnat/cards/red_host03.png", "Red Host 03"},
+    {&cards.redTen, "/idolnat/cards/red_host04.png", "Red Host 04"},
+    {&cards.redEleven, "/idolnat/cards/red_music_teacher.png", "Red Music Teacher"},
+    {&cards.redTwelve, "/idolnat/cards/red_priest01.png", "Red Priest 01"},
+    {&cards.redThirteen, "/idolnat/cards/red_priest02.png", "Red Priest 02"},
+    {&cards.redFourteen, "/idolnat/cards/red_swim_teacher.png", "Red Swim Teacher"},
+    {&cards.redFifteen, "/idolnat/cards/red_teacher.png", "Red Teacher"},
+    {&cards.redSixteen, "/idolnat/cards/red_waitress.png", "Red Waitress"},
+    {&cards.silverOne, "/idolnat/cards/silver_card.png", "Silver Card"},
+    {&cards.goldOne, "/idolnat/cards/gold_card.png", "Gold Card"},
+    {&cards.platinumOne, "/idolnat/cards/platinum_card.png", "Platinum Card"}
+  };
+
+  static ImageBuffer currentCardImage;
+  static int selectedOwnedIndex = 0;
+  static int loadedCardIndex = -1;
+  static bool needsRedraw = true;
+
+  const int allCardsCount = sizeof(allCards) / sizeof(allCards[0]);
+  int ownedIndices[allCardsCount];
+  int ownedCount = 0;
+
+  for (int i = 0; i < allCardsCount; ++i) {
+    if (*(allCards[i].amount) > 0) {
+      ownedIndices[ownedCount] = i;
+      ownedCount += 1;
+    }
+  }
+
+  if (ownedCount == 0) {
+    if (loadedCardIndex != -1) {
+      unloadImage(currentCardImage);
+      loadedCardIndex = -1;
+    }
+    selectedOwnedIndex = 0;
+    needsRedraw = true;
+  } else {
+    if (selectedOwnedIndex >= ownedCount) {
+      selectedOwnedIndex = ownedCount - 1;
+      needsRedraw = true;
+    }
+    if (selectedOwnedIndex < 0) {
+      selectedOwnedIndex = 0;
+      needsRedraw = true;
+    }
+  }
+
+  if (needsRedraw) {
+    M5Cardputer.Display.fillScreen(BLACK);
+    if (ownedCount == 0) {
+      drawText("No collectible cards yet", 120, 52, true, WHITE, 1);
+      drawText("Play garapon to collect", 120, 70, true, WHITE, 1);
+      drawText("ESC: Home", 120, 120, true, WHITE, 1);
+    } else {
+      int cardIndex = ownedIndices[selectedOwnedIndex];
+      if (loadedCardIndex != cardIndex) {
+        unloadImage(currentCardImage);
+        preloadImage(allCards[cardIndex].path, currentCardImage);
+        loadedCardIndex = cardIndex;
+      }
+
+      if (currentCardImage.data && currentCardImage.length > 0) {
+        M5Cardputer.Display.drawPng(currentCardImage.data, currentCardImage.length, 0, 0);
+      }
+
+      drawText(String(allCards[cardIndex].label) + " x" + String(*(allCards[cardIndex].amount)), 4, 5, false, WHITE, 1);
+      drawText(String(selectedOwnedIndex + 1) + "/" + String(ownedCount), 236, 5, true, WHITE, 1);
+      drawText("LEFT/RIGHT: Browse  ESC: Home", 120, 130, true, WHITE, 1);
+    }
+    needsRedraw = false;
+  }
+
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (key) {
+        // ESC
+        case 96: case 43:
+          unloadImage(currentCardImage);
+          loadedCardIndex = -1;
+          selectedOwnedIndex = 0;
+          needsRedraw = true;
+          changeState(0, HOME_LOOP, 0);
+          return;
+        // LEFT
+        case 180: case 44: case 'a': case 'A':
+          if (ownedCount > 0) {
+            selectedOwnedIndex = (selectedOwnedIndex - 1 + ownedCount) % ownedCount;
+            needsRedraw = true;
+          }
+          break;
+        // RIGHT
+        case 183: case 47: case 'd': case 'D':
+          if (ownedCount > 0) {
+            selectedOwnedIndex = (selectedOwnedIndex + 1) % ownedCount;
+            needsRedraw = true;
+          }
+          break;
+      }
+    }
+  }
+
   return;
 }
