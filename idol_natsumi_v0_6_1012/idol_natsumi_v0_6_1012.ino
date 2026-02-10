@@ -3335,7 +3335,6 @@ void manageGame() {
       break;
     case CARDS_SCREEN:
       browseCards();
-      // changeState(0, HOME_LOOP, 0);
       break;
     default:
       playGame();
