@@ -912,6 +912,41 @@ bool saveGameToSd() {
       saveFile.print(gardenTiles[row][col]);
     }
   }
+
+  saveFile.println("[cards]");
+  saveFile.println("blueOne=" + String(cards.blueOne));
+  saveFile.println("blueTwo=" + String(cards.blueTwo));
+  saveFile.println("blueThree=" + String(cards.blueThree));
+  saveFile.println("blueFour=" + String(cards.blueFour));
+  saveFile.println("blueFive=" + String(cards.blueFive));
+  saveFile.println("blueSix=" + String(cards.blueSix));
+  saveFile.println("greenOne=" + String(cards.greenOne));
+  saveFile.println("greenTwo=" + String(cards.greenTwo));
+  saveFile.println("greenThree=" + String(cards.greenThree));
+  saveFile.println("greenFour=" + String(cards.greenFour));
+  saveFile.println("greenFive=" + String(cards.greenFive));
+  saveFile.println("greenSix=" + String(cards.greenSix));
+  saveFile.println("greenSeven=" + String(cards.greenSeven));
+  saveFile.println("redOne=" + String(cards.redOne));
+  saveFile.println("redTwo=" + String(cards.redTwo));
+  saveFile.println("redThree=" + String(cards.redThree));
+  saveFile.println("redFour=" + String(cards.redFour));
+  saveFile.println("redFive=" + String(cards.redFive));
+  saveFile.println("redSix=" + String(cards.redSix));
+  saveFile.println("redSeven=" + String(cards.redSeven));
+  saveFile.println("redEight=" + String(cards.redEight));
+  saveFile.println("redNine=" + String(cards.redNine));
+  saveFile.println("redTen=" + String(cards.redTen));
+  saveFile.println("redEleven=" + String(cards.redEleven));
+  saveFile.println("redTwelve=" + String(cards.redTwelve));
+  saveFile.println("redThirteen=" + String(cards.redThirteen));
+  saveFile.println("redFourteen=" + String(cards.redFourteen));
+  saveFile.println("redFifteen=" + String(cards.redFifteen));
+  saveFile.println("redSixteen=" + String(cards.redSixteen));
+  saveFile.println("silverOne=" + String(cards.silverOne));
+  saveFile.println("goldOne=" + String(cards.goldOne));
+  saveFile.println("platinumOne=" + String(cards.platinumOne));
+  
   saveFile.println();
   saveFile.println("garden_active=" + String(gardenActive));
   
@@ -981,11 +1016,6 @@ bool loadGameFromSd() {
       else if (key == "flowers") natsumi.flowers = value.toInt();
       else if (key == "competition") natsumi.competition = value.toInt();
       else if (key == "tickets") natsumi.tickets = value.toInt();
-      /*
-      else if (key == "last_hunger_update") natsumi.lastHungerUpdate = strtoul(value.c_str(), nullptr, 10);
-      else if (key == "last_hygiene_update") natsumi.lastHygieneUpdate = strtoul(value.c_str(), nullptr, 10);
-      else if (key == "last_energy_update") natsumi.lastEnergyUpdate = strtoul(value.c_str(), nullptr, 10);
-      */
     } else if (section == "[fridge]") {
       Serial.println(">>>  loadGameFromSd - fridge: key=" + key);
       if (key == "red_apple") fridge.redApple = value.toInt();
@@ -1045,6 +1075,39 @@ bool loadGameFromSd() {
       } else if (key == "garden_active") {
         gardenActive = (value.toInt() != 0);
       }
+    } else if (section == "[cards]") {
+      if (key == "blueOne") cards.blueOne = value.toInt();
+      else if (key == "blueTwo") cards.blueTwo = value.toInt();
+      else if (key == "blueThree") cards.blueThree = value.toInt();
+      else if (key == "blueFour") cards.blueFour = value.toInt();
+      else if (key == "blueFive") cards.blueFive = value.toInt();
+      else if (key == "blueSix") cards.blueSix = value.toInt();
+      else if (key == "greenOne") cards.greenOne = value.toInt();
+      else if (key == "greenTwo") cards.greenTwo = value.toInt();
+      else if (key == "greenThree") cards.greenThree = value.toInt();
+      else if (key == "greenFour") cards.greenFour = value.toInt();
+      else if (key == "greenFive") cards.greenFive = value.toInt();
+      else if (key == "greenSix") cards.greenSix = value.toInt();
+      else if (key == "greenSeven") cards.greenSeven = value.toInt();
+      else if (key == "redOne") cards.redOne = value.toInt();
+      else if (key == "redTwo") cards.redTwo = value.toInt();
+      else if (key == "redThree") cards.redThree = value.toInt();
+      else if (key == "redFour") cards.redFour = value.toInt();
+      else if (key == "redFive") cards.redFive = value.toInt();
+      else if (key == "redSix") cards.redSix = value.toInt();
+      else if (key == "redSeven") cards.redSeven = value.toInt();
+      else if (key == "redEight") cards.redEight = value.toInt();
+      else if (key == "redNine") cards.redNine = value.toInt();
+      else if (key == "redTen") cards.redTen = value.toInt();
+      else if (key == "redEleven") cards.redEleven = value.toInt();
+      else if (key == "redTwelve") cards.redTwelve = value.toInt();
+      else if (key == "redThirteen") cards.redThirteen = value.toInt();
+      else if (key == "redFourteen") cards.redFourteen = value.toInt();
+      else if (key == "redFifteen") cards.redFifteen = value.toInt();
+      else if (key == "redSixteen") cards.redSixteen = value.toInt();
+      else if (key == "silverOne") cards.silverOne = value.toInt();
+      else if (key == "goldOne") cards.goldOne = value.toInt();
+      else if (key == "platinumOne") cards.platinumOne = value.toInt();
     } else if (section == "[meta]") {
       if (key == "current_state") loadedContinueState = gameStateFromString(value);
       else if (key == "playtime_total_ms") playtimeTotalMs = strtoul(value.c_str(), nullptr, 10);
@@ -2203,6 +2266,38 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         fridge.maki = 0;
         fridge.sushi = 0;
         fridge.watermelon = 0;
+        cards.blueOne = 0;
+        cards.blueTwo = 0;
+        cards.blueThree = 0;
+        cards.blueFour = 0;
+        cards.blueFive = 0;
+        cards.blueSix = 0;
+        cards.greenOne = 0;
+        cards.greenTwo = 0;
+        cards.greenThree = 0;
+        cards.greenFour = 0;
+        cards.greenFive = 0;
+        cards.greenSix = 0;
+        cards.greenSeven = 0;
+        cards.redOne = 0;
+        cards.redTwo = 0;
+        cards.redThree = 0;
+        cards.redFour = 0;
+        cards.redFive = 0;
+        cards.redSix = 0;
+        cards.redSeven = 0;
+        cards.redEight = 0;
+        cards.redNine = 0;
+        cards.redTen = 0;
+        cards.redEleven = 0;
+        cards.redTwelve = 0;
+        cards.redThirteen = 0;
+        cards.redFourteen = 0;
+        cards.redFifteen = 0;
+        cards.redSixteen = 0;
+        cards.silverOne = 0;
+        cards.goldOne = 0;
+        cards.platinumOne = 0;
         playtimeTotalMs = 0;
         sessionStart = millis();
         lastAgeTick = 0;
@@ -2259,6 +2354,38 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           fridge.maki = 0;
           fridge.sushi = 0;
           fridge.watermelon = 0;
+          cards.blueOne = 0;
+          cards.blueTwo = 0;
+          cards.blueThree = 0;
+          cards.blueFour = 0;
+          cards.blueFive = 0;
+          cards.blueSix = 0;
+          cards.greenOne = 0;
+          cards.greenTwo = 0;
+          cards.greenThree = 0;
+          cards.greenFour = 0;
+          cards.greenFive = 0;
+          cards.greenSix = 0;
+          cards.greenSeven = 0;
+          cards.redOne = 0;
+          cards.redTwo = 0;
+          cards.redThree = 0;
+          cards.redFour = 0;
+          cards.redFive = 0;
+          cards.redSix = 0;
+          cards.redSeven = 0;
+          cards.redEight = 0;
+          cards.redNine = 0;
+          cards.redTen = 0;
+          cards.redEleven = 0;
+          cards.redTwelve = 0;
+          cards.redThirteen = 0;
+          cards.redFourteen = 0;
+          cards.redFifteen = 0;
+          cards.redSixteen = 0;
+          cards.silverOne = 0;
+          cards.goldOne = 0;
+          cards.platinumOne = 0;
           playtimeTotalMs = 0;
           sessionStart = millis();
           lastAgeTick = 0;
