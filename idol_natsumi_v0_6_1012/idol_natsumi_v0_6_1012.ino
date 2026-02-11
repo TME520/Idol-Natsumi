@@ -912,6 +912,8 @@ bool saveGameToSd() {
       saveFile.print(gardenTiles[row][col]);
     }
   }
+  saveFile.println();
+  saveFile.println("garden_active=" + String(gardenActive));
 
   saveFile.println("[cards]");
   saveFile.println("blueOne=" + String(cards.blueOne));
@@ -946,9 +948,6 @@ bool saveGameToSd() {
   saveFile.println("silverOne=" + String(cards.silverOne));
   saveFile.println("goldOne=" + String(cards.goldOne));
   saveFile.println("platinumOne=" + String(cards.platinumOne));
-  
-  saveFile.println();
-  saveFile.println("garden_active=" + String(gardenActive));
   
   saveFile.println("[meta]");
   saveFile.println("current_state=" + String(gameStateToString(currentState)));
