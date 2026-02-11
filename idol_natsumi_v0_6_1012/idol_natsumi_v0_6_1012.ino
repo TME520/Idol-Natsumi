@@ -149,7 +149,8 @@ enum GameState {
   MATSURI_GARAPON4,
   ACTION_OUTCOME,
   EVENTS_MENU,
-  INVENTORY_SCREEN
+  INVENTORY_SCREEN,
+  CARDS_SCREEN
 };
 
 GameState currentState = VERSION_SCREEN;
@@ -370,7 +371,7 @@ unsigned long libraryStartTime = 0;
 
 String currentMenuType = "main";
 const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: INTRO"};
-const char* homeMenuItems[] = {"0: STATS", "1: INVENTORY", "2: FOOD", "3: TRAINING", "4: COMPETITION", "5: HEALTH", "6: REST", "7: GARDEN", "8: EVENTS"};
+const char* homeMenuItems[] = {"0: STATS", "1: INVENTORY", "2: FOOD", "3: TRAINING", "4: COMPETITION", "5: HEALTH", "6: REST", "7: GARDEN", "8: EVENTS", "9: CARDS"};
 const char* foodMenuItems[] = {"0: FRIDGE", "1: RESTAURANT", "2: ORDER", "3: CONBINI"};
 const char* trainingMenuItems[] = {"0: SING", "1: DANCE", "2: SWIM", "3: GYM", "4: RUN", "5: LIBRARY", "6: MARKET"};
 const char* competitionMenuItems[] = {"0: LOCAL", "1: DEPARTMENTAL", "2: REGIONAL", "3: NATIONAL"};
@@ -380,7 +381,7 @@ const char* gardenMenuItems[] = {"0: PLANT", "1: WATER", "2: PICK", "3: CLEANUP"
 const char* eventsMenuItems[] = {"0: MATSURI", "1: GIGS", "2: JOBS", "3: FESTIVALS"};
 const char** currentMenuItems = nullptr;
 const int mainMenuItemCount = 3;
-const int homeMenuItemCount = 9;
+const int homeMenuItemCount = 10;
 const int foodMenuItemCount = 4;
 const int trainingMenuItemCount = 7;
 const int competitionMenuItemCount = 4;
@@ -448,6 +449,7 @@ bool isPlayerGardening = false;
 bool flowersSaleInProgress = false;
 bool unlockedNextCompetitionLevel = false;
 bool isLatestTrainingPerfect = false;
+bool showCardsLabels = true;
 
 int librarySegmentsFilled = 0;
 int flowersSaleHandicap = 0;
@@ -642,7 +644,7 @@ String doctorHint = "";
 String priestHint = "";
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "Update 9.1";
+String versionNumber = "Update 10";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -796,6 +798,7 @@ const char* gameStateToString(GameState state) {
     case ACTION_OUTCOME:   return "ACTION_OUTCOME";
     case EVENTS_MENU:      return "EVENTS_MENU";
     case INVENTORY_SCREEN: return "INVENTORY_SCREEN";
+    case CARDS_SCREEN:     return "CARDS_SCREEN";
     default:               return "UNKNOWN";
   }
 }
@@ -912,6 +915,40 @@ bool saveGameToSd() {
   }
   saveFile.println();
   saveFile.println("garden_active=" + String(gardenActive));
+
+  saveFile.println("[cards]");
+  saveFile.println("blueOne=" + String(cards.blueOne));
+  saveFile.println("blueTwo=" + String(cards.blueTwo));
+  saveFile.println("blueThree=" + String(cards.blueThree));
+  saveFile.println("blueFour=" + String(cards.blueFour));
+  saveFile.println("blueFive=" + String(cards.blueFive));
+  saveFile.println("blueSix=" + String(cards.blueSix));
+  saveFile.println("greenOne=" + String(cards.greenOne));
+  saveFile.println("greenTwo=" + String(cards.greenTwo));
+  saveFile.println("greenThree=" + String(cards.greenThree));
+  saveFile.println("greenFour=" + String(cards.greenFour));
+  saveFile.println("greenFive=" + String(cards.greenFive));
+  saveFile.println("greenSix=" + String(cards.greenSix));
+  saveFile.println("greenSeven=" + String(cards.greenSeven));
+  saveFile.println("redOne=" + String(cards.redOne));
+  saveFile.println("redTwo=" + String(cards.redTwo));
+  saveFile.println("redThree=" + String(cards.redThree));
+  saveFile.println("redFour=" + String(cards.redFour));
+  saveFile.println("redFive=" + String(cards.redFive));
+  saveFile.println("redSix=" + String(cards.redSix));
+  saveFile.println("redSeven=" + String(cards.redSeven));
+  saveFile.println("redEight=" + String(cards.redEight));
+  saveFile.println("redNine=" + String(cards.redNine));
+  saveFile.println("redTen=" + String(cards.redTen));
+  saveFile.println("redEleven=" + String(cards.redEleven));
+  saveFile.println("redTwelve=" + String(cards.redTwelve));
+  saveFile.println("redThirteen=" + String(cards.redThirteen));
+  saveFile.println("redFourteen=" + String(cards.redFourteen));
+  saveFile.println("redFifteen=" + String(cards.redFifteen));
+  saveFile.println("redSixteen=" + String(cards.redSixteen));
+  saveFile.println("silverOne=" + String(cards.silverOne));
+  saveFile.println("goldOne=" + String(cards.goldOne));
+  saveFile.println("platinumOne=" + String(cards.platinumOne));
   
   saveFile.println("[meta]");
   saveFile.println("current_state=" + String(gameStateToString(currentState)));
@@ -979,11 +1016,6 @@ bool loadGameFromSd() {
       else if (key == "flowers") natsumi.flowers = value.toInt();
       else if (key == "competition") natsumi.competition = value.toInt();
       else if (key == "tickets") natsumi.tickets = value.toInt();
-      /*
-      else if (key == "last_hunger_update") natsumi.lastHungerUpdate = strtoul(value.c_str(), nullptr, 10);
-      else if (key == "last_hygiene_update") natsumi.lastHygieneUpdate = strtoul(value.c_str(), nullptr, 10);
-      else if (key == "last_energy_update") natsumi.lastEnergyUpdate = strtoul(value.c_str(), nullptr, 10);
-      */
     } else if (section == "[fridge]") {
       Serial.println(">>>  loadGameFromSd - fridge: key=" + key);
       if (key == "red_apple") fridge.redApple = value.toInt();
@@ -1043,6 +1075,39 @@ bool loadGameFromSd() {
       } else if (key == "garden_active") {
         gardenActive = (value.toInt() != 0);
       }
+    } else if (section == "[cards]") {
+      if (key == "blueOne") cards.blueOne = value.toInt();
+      else if (key == "blueTwo") cards.blueTwo = value.toInt();
+      else if (key == "blueThree") cards.blueThree = value.toInt();
+      else if (key == "blueFour") cards.blueFour = value.toInt();
+      else if (key == "blueFive") cards.blueFive = value.toInt();
+      else if (key == "blueSix") cards.blueSix = value.toInt();
+      else if (key == "greenOne") cards.greenOne = value.toInt();
+      else if (key == "greenTwo") cards.greenTwo = value.toInt();
+      else if (key == "greenThree") cards.greenThree = value.toInt();
+      else if (key == "greenFour") cards.greenFour = value.toInt();
+      else if (key == "greenFive") cards.greenFive = value.toInt();
+      else if (key == "greenSix") cards.greenSix = value.toInt();
+      else if (key == "greenSeven") cards.greenSeven = value.toInt();
+      else if (key == "redOne") cards.redOne = value.toInt();
+      else if (key == "redTwo") cards.redTwo = value.toInt();
+      else if (key == "redThree") cards.redThree = value.toInt();
+      else if (key == "redFour") cards.redFour = value.toInt();
+      else if (key == "redFive") cards.redFive = value.toInt();
+      else if (key == "redSix") cards.redSix = value.toInt();
+      else if (key == "redSeven") cards.redSeven = value.toInt();
+      else if (key == "redEight") cards.redEight = value.toInt();
+      else if (key == "redNine") cards.redNine = value.toInt();
+      else if (key == "redTen") cards.redTen = value.toInt();
+      else if (key == "redEleven") cards.redEleven = value.toInt();
+      else if (key == "redTwelve") cards.redTwelve = value.toInt();
+      else if (key == "redThirteen") cards.redThirteen = value.toInt();
+      else if (key == "redFourteen") cards.redFourteen = value.toInt();
+      else if (key == "redFifteen") cards.redFifteen = value.toInt();
+      else if (key == "redSixteen") cards.redSixteen = value.toInt();
+      else if (key == "silverOne") cards.silverOne = value.toInt();
+      else if (key == "goldOne") cards.goldOne = value.toInt();
+      else if (key == "platinumOne") cards.platinumOne = value.toInt();
     } else if (section == "[meta]") {
       if (key == "current_state") loadedContinueState = gameStateFromString(value);
       else if (key == "playtime_total_ms") playtimeTotalMs = strtoul(value.c_str(), nullptr, 10);
@@ -1524,6 +1589,8 @@ void preloadImages() {
       break;
     case EVENTS_MENU:
       preloadImage("/idolnat/screens/cityscape_bg.png", currentBackground);
+      break;
+    case CARDS_SCREEN:
       break;
   }
   // Load portraits
@@ -2199,6 +2266,38 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         fridge.maki = 0;
         fridge.sushi = 0;
         fridge.watermelon = 0;
+        cards.blueOne = 0;
+        cards.blueTwo = 0;
+        cards.blueThree = 0;
+        cards.blueFour = 0;
+        cards.blueFive = 0;
+        cards.blueSix = 0;
+        cards.greenOne = 0;
+        cards.greenTwo = 0;
+        cards.greenThree = 0;
+        cards.greenFour = 0;
+        cards.greenFive = 0;
+        cards.greenSix = 0;
+        cards.greenSeven = 0;
+        cards.redOne = 0;
+        cards.redTwo = 0;
+        cards.redThree = 0;
+        cards.redFour = 0;
+        cards.redFive = 0;
+        cards.redSix = 0;
+        cards.redSeven = 0;
+        cards.redEight = 0;
+        cards.redNine = 0;
+        cards.redTen = 0;
+        cards.redEleven = 0;
+        cards.redTwelve = 0;
+        cards.redThirteen = 0;
+        cards.redFourteen = 0;
+        cards.redFifteen = 0;
+        cards.redSixteen = 0;
+        cards.silverOne = 0;
+        cards.goldOne = 0;
+        cards.platinumOne = 0;
         playtimeTotalMs = 0;
         sessionStart = millis();
         lastAgeTick = 0;
@@ -2255,6 +2354,38 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           fridge.maki = 0;
           fridge.sushi = 0;
           fridge.watermelon = 0;
+          cards.blueOne = 0;
+          cards.blueTwo = 0;
+          cards.blueThree = 0;
+          cards.blueFour = 0;
+          cards.blueFive = 0;
+          cards.blueSix = 0;
+          cards.greenOne = 0;
+          cards.greenTwo = 0;
+          cards.greenThree = 0;
+          cards.greenFour = 0;
+          cards.greenFive = 0;
+          cards.greenSix = 0;
+          cards.greenSeven = 0;
+          cards.redOne = 0;
+          cards.redTwo = 0;
+          cards.redThree = 0;
+          cards.redFour = 0;
+          cards.redFive = 0;
+          cards.redSix = 0;
+          cards.redSeven = 0;
+          cards.redEight = 0;
+          cards.redNine = 0;
+          cards.redTen = 0;
+          cards.redEleven = 0;
+          cards.redTwelve = 0;
+          cards.redThirteen = 0;
+          cards.redFourteen = 0;
+          cards.redFifteen = 0;
+          cards.redSixteen = 0;
+          cards.silverOne = 0;
+          cards.goldOne = 0;
+          cards.platinumOne = 0;
           playtimeTotalMs = 0;
           sessionStart = millis();
           lastAgeTick = 0;
@@ -2708,6 +2839,9 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         // screenConfig = IDLE;
         setScreenConfig(IDLE);
         characterEnabled = false;
+        break;
+      case CARDS_SCREEN:
+        setScreenConfig(GAME);
         break;
       default:
         break;
@@ -3325,6 +3459,9 @@ void manageGame() {
       break;
     case MATSURI_GARAPON3:
       manageGaraponGame();
+      break;
+    case CARDS_SCREEN:
+      browseCards();
       break;
     default:
       playGame();
@@ -6136,16 +6273,9 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           }
           break;
         case 57:
-          // 9: DEBUG
-          if (debugActive) {
-            debugActive = false;
-            l0NeedsRedraw = true;
-            l2NeedsRedraw = false;
-            l5NeedsRedraw = true;
-          } else {
-            debugActive = true;
-            l2NeedsRedraw = true;
-          }
+          // 9: CARDS
+          menuOpened = false;
+          changeState(0, CARDS_SCREEN, 0);
           break;
         case 43:
           // TAB
@@ -6213,14 +6343,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
               showToast("Wait for food delivery");
             }
           } else if (selection == 9) {
-            if (debugActive) {
-              debugActive = false;
-              l0NeedsRedraw = true;
-              l2NeedsRedraw = false;
-            } else {
-              debugActive = true;
-              l2NeedsRedraw = true;
-            }
+            changeState(0, CARDS_SCREEN, 0);
           }
           l5NeedsRedraw = true;
           menuOpened = false;
@@ -9365,5 +9488,151 @@ void orderibiFoodSelection() {
       }
     }
   }
+  return;
+}
+
+void browseCards() {
+  struct CardEntry {
+    int* amount;
+    const char* path;
+    const char* label;
+  };
+
+  static const CardEntry allCards[] = {
+    {&cards.blueOne, "/idolnat/cards/blue_kyoto.png", "Blue Kyoto"},
+    {&cards.blueTwo, "/idolnat/cards/blue_nagoya.png", "Blue Nagoya"},
+    {&cards.blueThree, "/idolnat/cards/blue_osaka.png", "Blue Osaka"},
+    {&cards.blueFour, "/idolnat/cards/blue_sapporo.png", "Blue Sapporo"},
+    {&cards.blueFive, "/idolnat/cards/blue_tokyo.png", "Blue Tokyo"},
+    {&cards.blueSix, "/idolnat/cards/blue_yokohama.png", "Blue Yokohama"},
+    {&cards.greenOne, "/idolnat/cards/green_cleaning.png", "Green Cleaning"},
+    {&cards.greenTwo, "/idolnat/cards/green_cooking.png", "Green Cooking"},
+    {&cards.greenThree, "/idolnat/cards/green_homework.png", "Green Homework"},
+    {&cards.greenFour, "/idolnat/cards/green_morning.png", "Green Morning"},
+    {&cards.greenFive, "/idolnat/cards/green_relaxing.png", "Green Relaxing"},
+    {&cards.greenSix, "/idolnat/cards/green_walk.png", "Green Walk"},
+    {&cards.greenSeven, "/idolnat/cards/green_watering.png", "Green Watering"},
+    {&cards.redOne, "/idolnat/cards/red_cashier.png", "Red Cashier"},
+    {&cards.redTwo, "/idolnat/cards/red_dance_teacher.png", "Red Dance Teacher"},
+    {&cards.redThree, "/idolnat/cards/red_delivery_girl.png", "Red Delivery Girl"},
+    {&cards.redFour, "/idolnat/cards/red_doctor01.png", "Red Doctor 01"},
+    {&cards.redFive, "/idolnat/cards/red_doctor02.png", "Red Doctor 02"},
+    {&cards.redSix, "/idolnat/cards/red_gym_teacher.png", "Red Gym Teacher"},
+    {&cards.redSeven, "/idolnat/cards/red_host01.png", "Red Host 01"},
+    {&cards.redEight, "/idolnat/cards/red_host02.png", "Red Host 02"},
+    {&cards.redNine, "/idolnat/cards/red_host03.png", "Red Host 03"},
+    {&cards.redTen, "/idolnat/cards/red_host04.png", "Red Host 04"},
+    {&cards.redEleven, "/idolnat/cards/red_music_teacher.png", "Red Music Teacher"},
+    {&cards.redTwelve, "/idolnat/cards/red_priest01.png", "Red Priest 01"},
+    {&cards.redThirteen, "/idolnat/cards/red_priest02.png", "Red Priest 02"},
+    {&cards.redFourteen, "/idolnat/cards/red_swim_teacher.png", "Red Swim Teacher"},
+    {&cards.redFifteen, "/idolnat/cards/red_teacher.png", "Red Teacher"},
+    {&cards.redSixteen, "/idolnat/cards/red_waitress.png", "Red Waitress"},
+    {&cards.silverOne, "/idolnat/cards/silver_card.png", "Silver Card"},
+    {&cards.goldOne, "/idolnat/cards/gold_card.png", "Gold Card"},
+    {&cards.platinumOne, "/idolnat/cards/platinum_card.png", "Platinum Card"}
+  };
+
+  static ImageBuffer currentCardImage;
+  static int selectedOwnedIndex = 0;
+  static int loadedCardIndex = -1;
+  static bool needsRedraw = true;
+
+  const int allCardsCount = sizeof(allCards) / sizeof(allCards[0]);
+  int ownedIndices[allCardsCount];
+  int ownedCount = 0;
+
+  for (int i = 0; i < allCardsCount; ++i) {
+    if (*(allCards[i].amount) > 0) {
+      ownedIndices[ownedCount] = i;
+      ownedCount += 1;
+    }
+  }
+
+  if (ownedCount == 0) {
+    if (loadedCardIndex != -1) {
+      unloadImage(currentCardImage);
+      loadedCardIndex = -1;
+    }
+    selectedOwnedIndex = 0;
+    needsRedraw = true;
+  } else {
+    if (selectedOwnedIndex >= ownedCount) {
+      selectedOwnedIndex = ownedCount - 1;
+      needsRedraw = true;
+    }
+    if (selectedOwnedIndex < 0) {
+      selectedOwnedIndex = 0;
+      needsRedraw = true;
+    }
+  }
+
+  if (needsRedraw) {
+    M5Cardputer.Display.fillScreen(BLACK);
+    if (ownedCount == 0) {
+      drawText("No collectible cards yet", 120, 52, true, WHITE, 1);
+      drawText("Play garapon to collect", 120, 70, true, WHITE, 1);
+      drawText("ESC: Home", 120, 120, true, WHITE, 1);
+    } else {
+      int cardIndex = ownedIndices[selectedOwnedIndex];
+      if (loadedCardIndex != cardIndex) {
+        unloadImage(currentCardImage);
+        preloadImage(allCards[cardIndex].path, currentCardImage);
+        loadedCardIndex = cardIndex;
+      }
+
+      if (currentCardImage.data && currentCardImage.length > 0) {
+        M5Cardputer.Display.drawPng(currentCardImage.data, currentCardImage.length, 0, 0);
+      }
+
+      if (showCardsLabels) {
+        drawText(String(allCards[cardIndex].label) + " x" + String(*(allCards[cardIndex].amount)), 4, 5, false, WHITE, 1);
+        drawText(String(selectedOwnedIndex + 1) + "/" + String(ownedCount), 236, 5, true, WHITE, 1);
+        drawText("< / >: Browse SPC: Label ESC: Home", 120, 130, true, WHITE, 1);
+      }
+    }
+    needsRedraw = false;
+  }
+
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (key) {
+        // ESC
+        case 96: case 43:
+          unloadImage(currentCardImage);
+          loadedCardIndex = -1;
+          selectedOwnedIndex = 0;
+          needsRedraw = true;
+          changeState(0, HOME_LOOP, 0);
+          return;
+        // LEFT
+        case 180: case 44: case 'a': case 'A':
+          if (ownedCount > 0) {
+            selectedOwnedIndex = (selectedOwnedIndex - 1 + ownedCount) % ownedCount;
+            needsRedraw = true;
+          }
+          break;
+        // RIGHT
+        case 183: case 47: case 'd': case 'D':
+          if (ownedCount > 0) {
+            selectedOwnedIndex = (selectedOwnedIndex + 1) % ownedCount;
+            needsRedraw = true;
+          }
+          break;
+        // SPACE
+        case ' ':
+          if (showCardsLabels) {
+            showCardsLabels = false;
+          } else {
+            showCardsLabels = true;
+          }
+          needsRedraw = true;
+          break;
+      }
+    }
+  }
+
   return;
 }
