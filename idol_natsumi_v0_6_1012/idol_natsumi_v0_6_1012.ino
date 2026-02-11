@@ -449,6 +449,7 @@ bool isPlayerGardening = false;
 bool flowersSaleInProgress = false;
 bool unlockedNextCompetitionLevel = false;
 bool isLatestTrainingPerfect = false;
+bool showCardsLabels = true;
 
 int librarySegmentsFilled = 0;
 int flowersSaleHandicap = 0;
@@ -9584,9 +9585,11 @@ void browseCards() {
         M5Cardputer.Display.drawPng(currentCardImage.data, currentCardImage.length, 0, 0);
       }
 
-      drawText(String(allCards[cardIndex].label) + " x" + String(*(allCards[cardIndex].amount)), 4, 5, false, WHITE, 1);
-      drawText(String(selectedOwnedIndex + 1) + "/" + String(ownedCount), 236, 5, true, WHITE, 1);
-      drawText("LEFT/RIGHT: Browse  ESC: Home", 120, 130, true, WHITE, 1);
+      if (showCardsLabels) {
+        drawText(String(allCards[cardIndex].label) + " x" + String(*(allCards[cardIndex].amount)), 4, 5, false, WHITE, 1);
+        drawText(String(selectedOwnedIndex + 1) + "/" + String(ownedCount), 236, 5, true, WHITE, 1);
+        drawText("< / >: Browse SPC: Label ESC: Home", 120, 130, true, WHITE, 1);
+      }
     }
     needsRedraw = false;
   }
@@ -9617,6 +9620,15 @@ void browseCards() {
             selectedOwnedIndex = (selectedOwnedIndex + 1) % ownedCount;
             needsRedraw = true;
           }
+          break;
+        // SPACE
+        case ' ':
+          if (showCardsLabels) {
+            showCardsLabels = false;
+          } else {
+            showCardsLabels = true;
+          }
+          needsRedraw = true;
           break;
       }
     }
