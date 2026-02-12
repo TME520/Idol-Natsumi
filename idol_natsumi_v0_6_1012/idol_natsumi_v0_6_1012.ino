@@ -644,7 +644,7 @@ String doctorHint = "";
 String priestHint = "";
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "Update 10";
+String versionNumber = "Update 11";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
