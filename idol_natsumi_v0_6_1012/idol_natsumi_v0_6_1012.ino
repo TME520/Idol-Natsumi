@@ -955,6 +955,7 @@ bool saveGameToSd() {
   saveFile.println("playtime_total_ms=" + String(playtimeTotalMs));
   saveFile.println("session_start_ms=" + String(sessionStart));
   saveFile.println("last_age_tick=" + String(lastAgeTick));
+  saveFile.println("waiting_for_food_delivery=" + String(waitingForFoodDelivery));
 
   saveFile.close();
   Serial.println(">> saveGameToSd: Save complete");
@@ -1113,6 +1114,7 @@ bool loadGameFromSd() {
       else if (key == "playtime_total_ms") playtimeTotalMs = strtoul(value.c_str(), nullptr, 10);
       else if (key == "session_start_ms") sessionStart = strtoul(value.c_str(), nullptr, 10);
       else if (key == "last_age_tick") lastAgeTick = strtoul(value.c_str(), nullptr, 10);
+      else if (key == "waiting_for_food_delivery") waitingForFoodDelivery = (value.toInt() != 0);
     }
   }
 
