@@ -644,7 +644,7 @@ String doctorHint = "";
 String priestHint = "";
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "Update 10";
+String versionNumber = "Update 11";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -955,6 +955,7 @@ bool saveGameToSd() {
   saveFile.println("playtime_total_ms=" + String(playtimeTotalMs));
   saveFile.println("session_start_ms=" + String(sessionStart));
   saveFile.println("last_age_tick=" + String(lastAgeTick));
+  saveFile.println("waiting_for_food_delivery=" + String(waitingForFoodDelivery));
 
   saveFile.close();
   Serial.println(">> saveGameToSd: Save complete");
@@ -1113,6 +1114,7 @@ bool loadGameFromSd() {
       else if (key == "playtime_total_ms") playtimeTotalMs = strtoul(value.c_str(), nullptr, 10);
       else if (key == "session_start_ms") sessionStart = strtoul(value.c_str(), nullptr, 10);
       else if (key == "last_age_tick") lastAgeTick = strtoul(value.c_str(), nullptr, 10);
+      else if (key == "waiting_for_food_delivery") waitingForFoodDelivery = (value.toInt() != 0);
     }
   }
 
@@ -3078,6 +3080,8 @@ void updateFiveSecondPulse() {
         Serial.println(">>> Switching to FOOD_ORDER7");
         changeState(0, FOOD_ORDER7, 0);
       }
+    } else {
+      // Friends visits check
     }
     if (gardenActive) {
       if (!isPlayerGardening) {
@@ -7646,6 +7650,7 @@ void drawOverlay() {
         break;
       case HEALTH_DOCTOR6:
         doctorHint = "";
+        doctorState = HOME_LOOP;
         if (natsumi.hunger == 4) {
           doctorHint += "You eat enough. ";
         } else {
@@ -7683,6 +7688,7 @@ void drawOverlay() {
         break;
       case HEALTH_TEMPLE6:
         priestHint = "";
+        priestState = HOME_LOOP;
         if (natsumi.culture == 4) {
           priestHint += "You read enough. ";
         } else {
@@ -8855,7 +8861,15 @@ void slideStats() {
     M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.drawString(slides[currentSlideIndex].label, screenWidth / 2, panelY + 13);
 
-    M5Cardputer.Display.setTextColor(panelFrame, panelColor);
+    if (*slides[currentSlideIndex].valuePtr == 0) {
+      M5Cardputer.Display.setTextColor(RED, panelColor);
+    } else if (*slides[currentSlideIndex].valuePtr >= 1 && *slides[currentSlideIndex].valuePtr <= 2) {
+      M5Cardputer.Display.setTextColor(YELLOW, panelColor);
+    } else if (*slides[currentSlideIndex].valuePtr >= 3 && *slides[currentSlideIndex].valuePtr <= 4) {
+      M5Cardputer.Display.setTextColor(GREEN, panelColor);
+    } else {
+      M5Cardputer.Display.setTextColor(panelFrame, panelColor);
+    }
     M5Cardputer.Display.setTextSize(3);
     String valueText = String(*slides[currentSlideIndex].valuePtr);
     M5Cardputer.Display.drawString(valueText, screenWidth / 2, panelY + 34);
