@@ -1614,6 +1614,12 @@ void preloadImages() {
       break;
     case CARDS_SCREEN:
       break;
+    case DOOR_KNOCK: case DOOR_KNOCK2: case DOOR_KNOCK3: case DOOR_KNOCK4: case DOOR_KNOCK10:
+      preloadImage("/idolnat/screens/entrance_door2.png", currentBackground);
+      break;
+    case DOOR_KNOCK5: case DOOR_KNOCK6: case DOOR_KNOCK7: case DOOR_KNOCK8: case DOOR_KNOCK9:
+      preloadImage("/idolnat/screens/lounge.png", currentBackground);
+      break;
   }
   // Load portraits
   switch(natsumi.age) {
@@ -2864,6 +2870,17 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case CARDS_SCREEN:
         setScreenConfig(GAME);
+        break;
+      case DOOR_KNOCK: case DOOR_KNOCK7: case DOOR_KNOCK9:
+        // screenConfig = IDLE;
+        setScreenConfig(IDLE);
+        characterEnabled = false;
+        break;
+      case DOOR_KNOCK2: case DOOR_KNOCK3: case DOOR_KNOCK4: case DOOR_KNOCK5: case DOOR_KNOCK6: case DOOR_KNOCK8: case DOOR_KNOCK10:
+        // screenConfig = DIALOG;
+        setScreenConfig(DIALOG);
+        overlayActive = true;
+        l5NeedsRedraw = true;
         break;
       default:
         break;
