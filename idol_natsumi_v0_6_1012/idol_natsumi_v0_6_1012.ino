@@ -150,7 +150,17 @@ enum GameState {
   ACTION_OUTCOME,
   EVENTS_MENU,
   INVENTORY_SCREEN,
-  CARDS_SCREEN
+  CARDS_SCREEN,
+  DOOR_KNOCK,
+  DOOR_KNOCK2,
+  DOOR_KNOCK3,
+  DOOR_KNOCK4,
+  DOOR_KNOCK5,
+  DOOR_KNOCK6,
+  DOOR_KNOCK7,
+  DOOR_KNOCK8,
+  DOOR_KNOCK9,
+  DOOR_KNOCK10
 };
 
 GameState currentState = VERSION_SCREEN;
@@ -378,7 +388,7 @@ const char* competitionMenuItems[] = {"0: LOCAL", "1: DEPARTMENTAL", "2: REGIONA
 const char* healthMenuItems[] = {"0: WASH", "1: DOCTOR", "2: TEMPLE", "3: ONSEN"};
 const char* restMenuItems[] = {"0: MEDITATE", "1: SLEEP"};
 const char* gardenMenuItems[] = {"0: PLANT", "1: WATER", "2: PICK", "3: CLEANUP"};
-const char* eventsMenuItems[] = {"0: MATSURI", "1: GIGS", "2: JOBS", "3: FESTIVALS"};
+const char* eventsMenuItems[] = {"0: MATSURI", "1: JOBS", "2: QUESTS", "3: FESTIVALS"};
 const char** currentMenuItems = nullptr;
 const int mainMenuItemCount = 3;
 const int homeMenuItemCount = 10;
@@ -644,7 +654,7 @@ String doctorHint = "";
 String priestHint = "";
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "Update 11";
+String versionNumber = "Update 12";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -799,6 +809,16 @@ const char* gameStateToString(GameState state) {
     case EVENTS_MENU:      return "EVENTS_MENU";
     case INVENTORY_SCREEN: return "INVENTORY_SCREEN";
     case CARDS_SCREEN:     return "CARDS_SCREEN";
+    case DOOR_KNOCK:       return "DOOR_KNOCK";
+    case DOOR_KNOCK2:      return "DOOR_KNOCK2";
+    case DOOR_KNOCK3:      return "DOOR_KNOCK3";
+    case DOOR_KNOCK4:      return "DOOR_KNOCK4";
+    case DOOR_KNOCK5:      return "DOOR_KNOCK5";
+    case DOOR_KNOCK6:      return "DOOR_KNOCK6";
+    case DOOR_KNOCK7:      return "DOOR_KNOCK7";
+    case DOOR_KNOCK8:      return "DOOR_KNOCK8";
+    case DOOR_KNOCK9:      return "DOOR_KNOCK9";
+    case DOOR_KNOCK10:     return "DOOR_KNOCK10";
     default:               return "UNKNOWN";
   }
 }
