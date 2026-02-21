@@ -655,7 +655,7 @@ String doctorHint = "";
 String priestHint = "";
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "Update 12";
+String versionNumber = "Update 12 (FRIENDS)";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -1615,8 +1615,11 @@ void preloadImages() {
       break;
     case CARDS_SCREEN:
       break;
-    case DOOR_KNOCK: case DOOR_KNOCK2: case DOOR_KNOCK3: case DOOR_KNOCK4: case DOOR_KNOCK10:
+    case DOOR_KNOCK:
       preloadImage("/idolnat/screens/entrance_door2.png", currentBackground);
+      break;
+    case DOOR_KNOCK2: case DOOR_KNOCK3: case DOOR_KNOCK4: case DOOR_KNOCK10:
+      preloadImage("/idolnat/screens/entrance_door.png", currentBackground);
       break;
     case DOOR_KNOCK5: case DOOR_KNOCK6: case DOOR_KNOCK7: case DOOR_KNOCK8: case DOOR_KNOCK9:
       preloadImage("/idolnat/screens/lounge.png", currentBackground);
@@ -3222,24 +3225,6 @@ void updateFiveSecondPulse() {
 
 void manageCard() {
   // Manage CARD screens
-  /*
-  Transition bitmap (loading screen, narration, debug...)
-  Background: 1 x bitmap
-  Character: None
-  Debug: Available
-  Toast: None
-  Menu: None
-  Interactive (timer + keypress)
-  */
-  /*
-  backgroundEnabled = true;
-  characterEnabled = false;
-  debugEnabled = true;
-  toastEnabled = false;
-  menuEnabled = true;
-  overlayEnabled = false;
-  helperEnabled = false;
-  */
   switch (currentState) {
     case M5_SCREEN:
       changeState(0, MOTTO_SCREEN, microWait);
@@ -3352,24 +3337,6 @@ void manageCard() {
 
 void manageDialog() {
   // Manage DIALOG screens
-  /*
-      Dialog between Natsumi and NPC
-      Background: 1 x bitmap
-      Character: Natsumi + NPC
-      Debug: Available
-      Toast: None
-      Menu: None
-      Interactive (timer + keypress + escape)
-  */
-  /*
-  backgroundEnabled = true;
-  characterEnabled = true;
-  debugEnabled = true;
-  toastEnabled = false;
-  menuEnabled = false;
-  overlayEnabled = true;
-  helperEnabled = false;
-  */
   switch (currentState) {
     case FLOWERS_MARKET7:
       miniGameDebrief();
@@ -3431,6 +3398,9 @@ void manageDialog() {
     case MATSURI_GARAPON: case MATSURI_GARAPON2:
       matsuriDialogs();
       break;
+    case DOOR_KNOCK2: case DOOR_KNOCK3: case DOOR_KNOCK4: case DOOR_KNOCK5: case DOOR_KNOCK6: case DOOR_KNOCK8: case DOOR_KNOCK10:
+      manageFriendsVisits();
+      break;
     default:
       break;
   }
@@ -3449,24 +3419,6 @@ void manageDialog() {
 
 void manageGame() {
   // Manage GAME screens
-  /*
-      Mini-games
-      Background: None
-      Character: None
-      Debug: Available
-      Toast: None
-      Menu: None
-      Interactive (timer + keypress + escape)
-  */
-  /*
-  backgroundEnabled = false;
-  characterEnabled = false;
-  debugEnabled = true;
-  toastEnabled = false;
-  menuEnabled = false;
-  overlayEnabled = true;
-  helperEnabled = false;
-  */
   switch (currentState) {
     case HEALTH_WASH:
       manageBathGame();
@@ -3527,24 +3479,6 @@ void manageGame() {
 
 void manageIdle() {
   // Manage IDLE screens
-  /*
-      Idle mode, minimal screen activity
-      Background: Yes, Always black
-      Character: Natsumi
-      Debug: Available
-      Toast: Yes
-      Menu: None
-      Interactive (escape)
-  */
-  /*
-  backgroundEnabled = true;
-  characterEnabled = true;
-  debugEnabled = true;
-  toastEnabled = true;
-  menuEnabled = false;
-  overlayEnabled = true;
-  helperEnabled = false;
-  */
   switch (currentState) {
     case FLOWERS_MARKET:
       if (natsumi.flowers > 0) {
@@ -3623,6 +3557,9 @@ void manageIdle() {
       break;
     case MATSURI_SAVORY5: case MATSURI_SUGARY4: case MATSURI_GARAPON4:
       changeState(0, ACTION_OUTCOME, 0);
+      break;
+    case DOOR_KNOCK: case DOOR_KNOCK7: case DOOR_KNOCK9:
+      manageFriendsVisits();
       break;
     default:
       break;
@@ -8733,6 +8670,47 @@ void drawOutcome(String amount, String stat) {
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
   drawText("Press any key to continue", 120, 131, true, WHITE, 1);
   return;
+}
+
+void manageFriendsVisits() {
+  // Serial.println("> Entering manageFriendsVisits()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (currentState) {
+        case DOOR_KNOCK:
+          changeState(0, DOOR_KNOCK2, 0);
+          break;
+        case DOOR_KNOCK2:
+          changeState(0, DOOR_KNOCK3, 0);
+          break;
+        case DOOR_KNOCK3:
+          changeState(0, DOOR_KNOCK4, 0);
+          break;
+        case DOOR_KNOCK4:
+          changeState(0, DOOR_KNOCK5, 0);
+          break;
+        case DOOR_KNOCK5:
+          changeState(0, DOOR_KNOCK6, 0);
+          break;
+        case DOOR_KNOCK6:
+          changeState(0, DOOR_KNOCK7, 0);
+          break;
+        case DOOR_KNOCK7:
+          changeState(0, DOOR_KNOCK8, 0);
+          break;
+        case DOOR_KNOCK8:
+          changeState(0, DOOR_KNOCK9, 0);
+          break;
+        case DOOR_KNOCK10:
+          changeState(0, HOME_LOOP, 0);
+          break;
+      }
+      return;
+    }
+  }
 }
 
 void doctor() {
