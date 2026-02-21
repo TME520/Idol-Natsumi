@@ -441,6 +441,7 @@ bool toastEnabled = false;
 bool menuEnabled = false;
 bool overlayEnabled = false;
 bool helperEnabled = false;
+bool friendsVisitEnabled = false;
 
 bool menuOpened = false;
 bool debugActive = false;
@@ -3117,8 +3118,9 @@ void updateFiveSecondPulse() {
         Serial.println(">>> Switching to FOOD_ORDER7");
         changeState(0, FOOD_ORDER7, 0);
       }
+      friendsVisitEnabled = false;
     } else {
-      // Friends visits check
+      friendsVisitEnabled = true;
     }
     if (gardenActive) {
       if (!isPlayerGardening) {
@@ -3155,7 +3157,11 @@ void updateFiveSecondPulse() {
         counterToScreensaver += 1;
         Serial.println(">> HOME_LOOP -> counterToScreensaver: " + String(counterToScreensaver));
         if (counterToScreensaver > screensaverWait) {
-          changeState(0, IDLE_HOME, 0);
+          if (friendsVisitEnabled) {
+            changeState(0, DOOR_KNOCK, 0);
+          } else {
+            changeState(0, IDLE_HOME, 0);
+          }
         }
         break;
       case IDLE_HOME:
