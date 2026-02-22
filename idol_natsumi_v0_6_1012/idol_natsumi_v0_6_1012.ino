@@ -1690,6 +1690,12 @@ void preloadImages() {
         case MATSURI_GARAPON: case MATSURI_GARAPON2:
           preloadImage("/idolnat/sprites/matsuri_cashier03.png", currentCharacter);
           break;
+        case DOOR_KNOCK5:
+          preloadImage("/idolnat/sprites/dad.png", currentCharacter);
+          break;
+        case DOOR_KNOCK6:
+          preloadImage("/idolnat/sprites/mum.png", currentCharacter);
+          break;
         default:
           if (isNatsumiHappy) {
             preloadImage("/idolnat/sprites/natsumi_11yo_happy-90x135.png", currentCharacter);
@@ -1769,6 +1775,12 @@ void preloadImages() {
           break;
         case MATSURI_GARAPON: case MATSURI_GARAPON2:
           preloadImage("/idolnat/sprites/matsuri_cashier03.png", currentCharacter);
+          break;
+        case DOOR_KNOCK5:
+          preloadImage("/idolnat/sprites/dad.png", currentCharacter);
+          break;
+        case DOOR_KNOCK6:
+          preloadImage("/idolnat/sprites/mum.png", currentCharacter);
           break;
         default:
           if (isNatsumiHappy) {
@@ -1850,6 +1862,12 @@ void preloadImages() {
         case MATSURI_GARAPON: case MATSURI_GARAPON2:
           preloadImage("/idolnat/sprites/matsuri_cashier03.png", currentCharacter);
           break;
+        case DOOR_KNOCK5:
+          preloadImage("/idolnat/sprites/dad.png", currentCharacter);
+          break;
+        case DOOR_KNOCK6:
+          preloadImage("/idolnat/sprites/mum.png", currentCharacter);
+          break;
         default:
           if (isNatsumiHappy) {
             preloadImage("/idolnat/sprites/natsumi_15yo_happy-90x135.png", currentCharacter);
@@ -1930,6 +1948,12 @@ void preloadImages() {
         case MATSURI_GARAPON: case MATSURI_GARAPON2:
           preloadImage("/idolnat/sprites/matsuri_cashier03.png", currentCharacter);
           break;
+        case DOOR_KNOCK5:
+          preloadImage("/idolnat/sprites/dad.png", currentCharacter);
+          break;
+        case DOOR_KNOCK6:
+          preloadImage("/idolnat/sprites/mum.png", currentCharacter);
+          break;
         default:
           if (isNatsumiHappy) {
             preloadImage("/idolnat/sprites/natsumi_18yo_happy-90x135.png", currentCharacter);
@@ -2009,6 +2033,12 @@ void preloadImages() {
           break;
         case MATSURI_GARAPON: case MATSURI_GARAPON2:
           preloadImage("/idolnat/sprites/matsuri_cashier03.png", currentCharacter);
+          break;
+        case DOOR_KNOCK5:
+          preloadImage("/idolnat/sprites/dad.png", currentCharacter);
+          break;
+        case DOOR_KNOCK6:
+          preloadImage("/idolnat/sprites/mum.png", currentCharacter);
           break;
         default:
           if (isNatsumiHappy) {
