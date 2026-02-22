@@ -1618,7 +1618,10 @@ void preloadImages() {
     case DOOR_KNOCK:
       preloadImage("/idolnat/screens/entrance_door2.png", currentBackground);
       break;
-    case DOOR_KNOCK2: case DOOR_KNOCK3: case DOOR_KNOCK4: case DOOR_KNOCK10:
+    case DOOR_KNOCK4: case DOOR_KNOCK10:
+      preloadImage("/idolnat/screens/entrance_door_mum_dad.png", currentBackground);
+      break;
+    case DOOR_KNOCK2: case DOOR_KNOCK3: 
       preloadImage("/idolnat/screens/entrance_door.png", currentBackground);
       break;
     case DOOR_KNOCK5: case DOOR_KNOCK6: case DOOR_KNOCK7: case DOOR_KNOCK8: case DOOR_KNOCK9:
@@ -2910,7 +2913,15 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         setScreenConfig(IDLE);
         characterEnabled = false;
         break;
-      case DOOR_KNOCK2: case DOOR_KNOCK3: case DOOR_KNOCK4: case DOOR_KNOCK5: case DOOR_KNOCK6: case DOOR_KNOCK8: case DOOR_KNOCK10:
+      case DOOR_KNOCK4: case DOOR_KNOCK10:
+        // screenConfig = DIALOG;
+        setScreenConfig(DIALOG);
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        characterEnabled = false;
+        break;
+        break;
+      case DOOR_KNOCK2: case DOOR_KNOCK3:  case DOOR_KNOCK5: case DOOR_KNOCK6: case DOOR_KNOCK8:
         // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
@@ -7899,6 +7910,9 @@ void drawOverlay() {
         break;
       case DOOR_KNOCK3:
         drawDialogBubble("Irasshai!");
+        break;
+      case DOOR_KNOCK4:
+        drawDialogBubble("Hi!");
         break;
       case DOOR_KNOCK5:
         drawDialogBubble("Otanjobi omedeto!");
