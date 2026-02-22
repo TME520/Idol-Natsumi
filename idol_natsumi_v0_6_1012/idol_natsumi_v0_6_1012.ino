@@ -7864,6 +7864,24 @@ void drawOverlay() {
             break;
         }
         break;
+      case DOOR_KNOCK2:
+        drawDialogBubble("Someone is at the door!!");
+        break;
+      case DOOR_KNOCK3:
+        drawDialogBubble("Irasshai!");
+        break;
+      case DOOR_KNOCK5:
+        drawDialogBubble("Otanjobi omedeto!");
+        break;
+      case DOOR_KNOCK6:
+        drawDialogBubble("Dad and I wish you a happy birthday!");
+        break;
+      case DOOR_KNOCK8:
+        drawDialogBubble("Arigato!");
+        break;
+      case DOOR_KNOCK10:
+        drawDialogBubble("Mata ne! See you later!");
+        break;
       default:
         break;
     }
@@ -8703,6 +8721,9 @@ void manageFriendsVisits() {
           break;
         case DOOR_KNOCK8:
           changeState(0, DOOR_KNOCK9, 0);
+          break;
+        case DOOR_KNOCK9:
+          changeState(0, DOOR_KNOCK10, 0);
           break;
         case DOOR_KNOCK10:
           changeState(0, HOME_LOOP, 0);
