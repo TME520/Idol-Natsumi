@@ -3606,7 +3606,8 @@ void manageIdle() {
       manageFriendsVisits();
       break;
     case DOOR_KNOCK7:
-      changeState(0, ACTION_OUTCOME, 0);
+      changeState(0, ACTION_OUTCOME, microWait);
+      
       break;
     default:
       break;
@@ -7910,7 +7911,7 @@ void drawOverlay() {
             drawOutcome(garaponResultQty, garaponResultLabel);
             break;
           case DOOR_KNOCK7:
-            drawOutcome("+10000", "Money");
+            drawOutcome("+10k", "Money");
             break;
         }
         break;
@@ -7918,19 +7919,19 @@ void drawOverlay() {
         drawDialogBubble("Someone is at the door!!");
         break;
       case DOOR_KNOCK3:
-        drawDialogBubble("Irasshai!");
+        drawDialogBubble("Irasshai! Hello!");
         break;
       case DOOR_KNOCK4:
         drawDialogBubble("Hi!");
         break;
       case DOOR_KNOCK5:
-        drawDialogBubble("Otanjobi omedeto!");
+        drawDialogBubble("Otanjobi omedeto! Happy birthday!");
         break;
       case DOOR_KNOCK6:
         drawDialogBubble("Dad and I wish you a happy birthday!");
         break;
       case DOOR_KNOCK8:
-        drawDialogBubble("Arigato!");
+        drawDialogBubble("Arigato! Thank you very much!");
         break;
       case DOOR_KNOCK10:
         drawDialogBubble("Mata ne! See you later!");
