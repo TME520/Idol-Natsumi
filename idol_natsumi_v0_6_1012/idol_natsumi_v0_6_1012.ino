@@ -1624,8 +1624,11 @@ void preloadImages() {
     case DOOR_KNOCK2: case DOOR_KNOCK3: 
       preloadImage("/idolnat/screens/entrance_door.png", currentBackground);
       break;
-    case DOOR_KNOCK5: case DOOR_KNOCK6: case DOOR_KNOCK7: case DOOR_KNOCK8: case DOOR_KNOCK9:
+    case DOOR_KNOCK5: case DOOR_KNOCK6: case DOOR_KNOCK8: case DOOR_KNOCK9:
       preloadImage("/idolnat/screens/lounge.png", currentBackground);
+      break;
+    case DOOR_KNOCK7:
+      preloadImage("/idolnat/screens/noshibukuro.png", currentBackground);
       break;
   }
   // Load portraits
@@ -3599,8 +3602,10 @@ void manageIdle() {
     case MATSURI_SAVORY5: case MATSURI_SUGARY4: case MATSURI_GARAPON4:
       changeState(0, ACTION_OUTCOME, 0);
       break;
-    case DOOR_KNOCK: case DOOR_KNOCK7: case DOOR_KNOCK9:
+    case DOOR_KNOCK: case DOOR_KNOCK9:
       manageFriendsVisits();
+      break;
+    case DOOR_KNOCK7:
       break;
     default:
       break;
@@ -7903,6 +7908,9 @@ void drawOverlay() {
           case MATSURI_GARAPON4:
             drawOutcome(garaponResultQty, garaponResultLabel);
             break;
+          case DOOR_KNOCK7:
+            drawOutcome("+10000", "Money");
+            break;
         }
         break;
       case DOOR_KNOCK2:
@@ -8648,6 +8656,9 @@ void actionOutcome() {
           break;
         case MATSURI_GARAPON4:
           changeState(0, MATSURI_MENU, 0);
+          break;
+        case DOOR_KNOCK7:
+          changeState(0, DOOR_KNOCK8, 0);
           break;
         default:
           changeState(0, HOME_LOOP, 0);
