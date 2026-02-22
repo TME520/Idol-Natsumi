@@ -3606,6 +3606,7 @@ void manageIdle() {
       manageFriendsVisits();
       break;
     case DOOR_KNOCK7:
+      changeState(0, ACTION_OUTCOME, 0);
       break;
     default:
       break;
