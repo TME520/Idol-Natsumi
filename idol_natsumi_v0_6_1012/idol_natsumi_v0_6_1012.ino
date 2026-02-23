@@ -1628,11 +1628,14 @@ void preloadImages() {
     case DOOR_KNOCK2: case DOOR_KNOCK3: 
       preloadImage("/idolnat/screens/entrance_door.png", currentBackground);
       break;
-    case DOOR_KNOCK5: case DOOR_KNOCK6: case DOOR_KNOCK8: case DOOR_KNOCK9:
+    case DOOR_KNOCK5: case DOOR_KNOCK6: case DOOR_KNOCK8:
       preloadImage("/idolnat/screens/lounge.png", currentBackground);
       break;
     case DOOR_KNOCK7:
       preloadImage("/idolnat/screens/noshibukuro.png", currentBackground);
+      break;
+    case DOOR_KNOCK9:
+      preloadImage("/idolnat/screens/teatime_mum_dad.png", currentBackground);
       break;
     case VISITOR_PORTRAIT:
       switch(visitor) {
@@ -7932,6 +7935,7 @@ void drawOverlay() {
             drawOutcome(garaponResultQty, garaponResultLabel);
             break;
           case DOOR_KNOCK7:
+            natsumi.money += 10000;
             drawOutcome("+10k", "Money");
             break;
         }
