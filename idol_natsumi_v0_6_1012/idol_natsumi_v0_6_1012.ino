@@ -160,7 +160,8 @@ enum GameState {
   DOOR_KNOCK7,
   DOOR_KNOCK8,
   DOOR_KNOCK9,
-  DOOR_KNOCK10
+  DOOR_KNOCK10,
+  VISITOR_PORTRAIT
 };
 
 GameState currentState = VERSION_SCREEN;
@@ -539,6 +540,8 @@ bool danceGameRunning = false;
 bool danceGameCompleted = false;
 bool danceNeedsRedraw = false;
 
+unsigned int visitor = 0;
+
 // Training SWIM mini-game state
 struct SwimShark {
   float x;
@@ -820,6 +823,7 @@ const char* gameStateToString(GameState state) {
     case DOOR_KNOCK8:      return "DOOR_KNOCK8";
     case DOOR_KNOCK9:      return "DOOR_KNOCK9";
     case DOOR_KNOCK10:     return "DOOR_KNOCK10";
+    case VISITOR_PORTRAIT: return "VISITOR_PORTRAIT";
     default:               return "UNKNOWN";
   }
 }
@@ -1629,6 +1633,15 @@ void preloadImages() {
       break;
     case DOOR_KNOCK7:
       preloadImage("/idolnat/screens/noshibukuro.png", currentBackground);
+      break;
+    case VISITOR_PORTRAIT:
+      switch(visitor) {
+        case 0:
+          preloadImage("/idolnat/screens/portrait_frame_mum_dad.png", currentBackground);
+          break;
+        default:
+          break;
+      }
       break;
   }
   // Load portraits
@@ -2930,6 +2943,11 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
+      case VISITOR_PORTRAIT:
+        // screenConfig = IDLE;
+        setScreenConfig(IDLE);
+        characterEnabled = false;
+        break;
       default:
         break;
     }
@@ -3205,6 +3223,7 @@ void updateFiveSecondPulse() {
         Serial.println(">> HOME_LOOP -> counterToScreensaver: " + String(counterToScreensaver));
         if (counterToScreensaver > screensaverWait) {
           if (friendsVisitEnabled) {
+            visitor = 0;
             changeState(0, DOOR_KNOCK, 0);
           } else {
             changeState(0, IDLE_HOME, 0);
@@ -3607,7 +3626,9 @@ void manageIdle() {
       break;
     case DOOR_KNOCK7:
       changeState(0, ACTION_OUTCOME, microWait);
-      
+      break;
+    case VISITOR_PORTRAIT:
+      manageFriendsVisits();
       break;
     default:
       break;
@@ -8711,9 +8732,9 @@ void drawOutcome(String amount, String stat) {
   const int screenWidth = M5Cardputer.Display.width();
   const int screenHeight = M5Cardputer.Display.height();
   const int frameInset = 6;
-  const int frameX = (screenWidth / 2) + frameInset;
+  const int frameX = ((screenWidth / 2) + frameInset) - 20;
   const int frameY = 12;
-  const int frameW = (screenWidth / 2) - (frameInset * 2);
+  const int frameW = ((screenWidth / 2) - (frameInset * 2) + 20);
   const int frameH = screenHeight - (frameY * 2);
   const int lineSpacing = 6;
   const uint16_t frameColor = WHITE;
@@ -8759,7 +8780,7 @@ void manageFriendsVisits() {
           changeState(0, DOOR_KNOCK2, 0);
           break;
         case DOOR_KNOCK2:
-          changeState(0, DOOR_KNOCK3, 0);
+          changeState(0, VISITOR_PORTRAIT, 0);
           break;
         case DOOR_KNOCK3:
           changeState(0, DOOR_KNOCK4, 0);
@@ -8784,6 +8805,9 @@ void manageFriendsVisits() {
           break;
         case DOOR_KNOCK10:
           changeState(0, HOME_LOOP, 0);
+          break;
+        case VISITOR_PORTRAIT:
+          changeState(0, DOOR_KNOCK3, 0);
           break;
       }
       return;
