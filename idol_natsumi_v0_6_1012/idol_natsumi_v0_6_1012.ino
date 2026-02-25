@@ -541,6 +541,7 @@ bool danceGameCompleted = false;
 bool danceNeedsRedraw = false;
 
 unsigned int visitor = 0;
+int bathOutcomeCode = 0;
 
 // Training SWIM mini-game state
 struct SwimShark {
@@ -1419,7 +1420,7 @@ void preloadImages() {
     case FOOD_ORDER7: case FOOD_ORDER8:
       preloadImage("/idolnat/screens/orderibi_food_delivered.png", currentBackground);
       break;
-    case HEALTH_WASH: case HEALTH_WASH5:
+    case HEALTH_WASH:
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
       break;
     case HEALTH_WASH2:
@@ -1430,6 +1431,54 @@ void preloadImages() {
       break;
     case HEALTH_WASH4:
       preloadImage("/idolnat/screens/bathroom_step3.png", currentBackground);
+      break;
+    case HEALTH_WASH5:
+      Serial.println(">> preloadImages() - bathOutcomeCode: " + String(bathOutcomeCode));
+      if (bathOutcomeCode == 2) {
+        switch(natsumi.age) {
+          case 11: case 12:
+            preloadImage("/idolnat/screens/wash_11yo_too_cold.png", currentBackground);
+            break;
+          case 13: case 14:
+            preloadImage("/idolnat/screens/wash_13yo_too_cold.png", currentBackground);
+            break;
+          case 15: case 16: case 17:
+            preloadImage("/idolnat/screens/wash_15yo_too_cold.png", currentBackground);
+            break;
+          case 18: case 19: case 20:
+            preloadImage("/idolnat/screens/wash_18yo_too_cold.png", currentBackground);
+            break;
+          case 21: case 22:
+            preloadImage("/idolnat/screens/wash_21yo_too_cold.png", currentBackground);
+            break;
+          default:
+            preloadImage("/idolnat/screens/wash_21yo_too_cold.png", currentBackground);
+            break;
+        }
+      } else if (bathOutcomeCode == 1) {
+        switch(natsumi.age) {
+          case 11: case 12:
+            preloadImage("/idolnat/screens/wash_11yo_too_hot.png", currentBackground);
+            break;
+          case 13: case 14:
+            preloadImage("/idolnat/screens/wash_13yo_too_hot.png", currentBackground);
+            break;
+          case 15: case 16: case 17:
+            preloadImage("/idolnat/screens/wash_15yo_too_hot.png", currentBackground);
+            break;
+          case 18: case 19: case 20:
+            preloadImage("/idolnat/screens/wash_18yo_too_hot.png", currentBackground);
+            break;
+          case 21: case 22:
+            preloadImage("/idolnat/screens/wash_21yo_too_hot.png", currentBackground);
+            break;
+          default:
+            preloadImage("/idolnat/screens/wash_21yo_too_hot.png", currentBackground);
+            break;
+        }
+      } else {
+        preloadImage("/idolnat/screens/bathroom.png", currentBackground);
+      }
       break;
     case HEALTH_DOCTOR: case HEALTH_DOCTOR2: case HEALTH_DOCTOR6:
       preloadImage("/idolnat/screens/doctors_office_bg.png", currentBackground);
@@ -3674,6 +3723,7 @@ void manageRoom() {
       manageHomeScreen();
       break;
     case HEALTH_WASH5:
+      characterEnabled = false;
       wash();
       break;
     case GARDEN_MENU:
@@ -5332,6 +5382,8 @@ void finalizeBathOutcome(String outcomeText) {
       natsumi.hygiene = 4;
     }
     changeState(0, HEALTH_WASH2, 0);
+  } else {
+    changeState(0, HEALTH_WASH5, 0);
   }
   return;
 }
@@ -5368,10 +5420,13 @@ void manageBathGame() {
     int zoneBottom = idealZoneY + idealZoneHeight;
     int sliderCenter = sliderYPosition + (sliderHeight / 2);
     if (sliderCenter < zoneTop) {
+      bathOutcomeCode = 1;
       finalizeBathOutcome("too hot!");
     } else if (sliderCenter > zoneBottom) {
+      bathOutcomeCode = 2;
       finalizeBathOutcome("too cold!");
     } else {
+      bathOutcomeCode = 0;
       finalizeBathOutcome("perfect!");
     }
     return;
@@ -5396,10 +5451,13 @@ void manageBathGame() {
     int zoneBottom = idealZoneY + idealZoneHeight;
     int sliderCenter = sliderYPosition + (sliderHeight / 2);
     if (sliderCenter < zoneTop) {
+      bathOutcomeCode = 1;
       finalizeBathOutcome("too hot!");
     } else if (sliderCenter > zoneBottom) {
+      bathOutcomeCode = 2;
       finalizeBathOutcome("too cold!");
     } else {
+      bathOutcomeCode = 0;
       finalizeBathOutcome("perfect!");
     }
     return;
@@ -5995,10 +6053,10 @@ void wash() {
       saveRequired = true;
       // isNatsumiHappy = true;
     } else {
-      showToast("Natsumi is clean");
+      // showToast("Natsumi is clean");
     }
   }
-  changeState(0, HOME_LOOP, 20);
+  changeState(0, HOME_LOOP, microWait);
 }
 
 void drawSleepEnergyOverlay() {
