@@ -462,6 +462,7 @@ bool flowersSaleInProgress = false;
 bool unlockedNextCompetitionLevel = false;
 bool isLatestTrainingPerfect = false;
 bool showCardsLabels = true;
+bool birthdayVisitEnabled = false;
 
 int librarySegmentsFilled = 0;
 int flowersSaleHandicap = 0;
@@ -982,6 +983,7 @@ bool saveGameToSd() {
   saveFile.println("session_start_ms=" + String(sessionStart));
   saveFile.println("last_age_tick=" + String(lastAgeTick));
   saveFile.println("waiting_for_food_delivery=" + String(waitingForFoodDelivery));
+  saveFile.println("bday_visit_enabled=" + String(birthdayVisitEnabled));
 
   saveFile.close();
   Serial.println(">> saveGameToSd: Save complete");
@@ -1141,6 +1143,7 @@ bool loadGameFromSd() {
       else if (key == "session_start_ms") sessionStart = strtoul(value.c_str(), nullptr, 10);
       else if (key == "last_age_tick") lastAgeTick = strtoul(value.c_str(), nullptr, 10);
       else if (key == "waiting_for_food_delivery") waitingForFoodDelivery = (value.toInt() != 0);
+      else if (key == "bday_visit_enabled") birthdayVisitEnabled = (value.toInt() != 0);
     }
   }
 
@@ -1672,7 +1675,16 @@ void preloadImages() {
       preloadImage("/idolnat/screens/entrance_door2.png", currentBackground);
       break;
     case DOOR_KNOCK4: case DOOR_KNOCK10:
-      preloadImage("/idolnat/screens/entrance_door_mum_dad.png", currentBackground);
+      switch(visitor) {
+        case 0:
+          preloadImage("/idolnat/screens/entrance_door_mum_dad.png", currentBackground);
+          break;
+        case 1:
+          preloadImage("/idolnat/screens/entrance_door_grandma_tomo.png", currentBackground);
+          break;
+        default:
+          break;
+      }
       break;
     case DOOR_KNOCK2: case DOOR_KNOCK3: 
       preloadImage("/idolnat/screens/entrance_door.png", currentBackground);
@@ -1681,15 +1693,36 @@ void preloadImages() {
       preloadImage("/idolnat/screens/lounge.png", currentBackground);
       break;
     case DOOR_KNOCK7:
-      preloadImage("/idolnat/screens/noshibukuro.png", currentBackground);
+      switch(visitor) {
+        case 0:
+          preloadImage("/idolnat/screens/noshibukuro.png", currentBackground);
+          break;
+        case 1:
+          preloadImage("/idolnat/screens/gift_pear.png", currentBackground);
+          break;
+        default:
+          break;
+      }
       break;
     case DOOR_KNOCK9:
-      preloadImage("/idolnat/screens/teatime_mum_dad.png", currentBackground);
+      switch(visitor) {
+        case 0:
+          preloadImage("/idolnat/screens/teatime_mum_dad.png", currentBackground);
+          break;
+        case 1:
+          preloadImage("/idolnat/screens/teatime_grandma_tomo.png", currentBackground);
+          break;
+        default:
+          break;
+      }
       break;
     case VISITOR_PORTRAIT:
       switch(visitor) {
         case 0:
           preloadImage("/idolnat/screens/portrait_frame_mum_dad.png", currentBackground);
+          break;
+        case 1:
+          preloadImage("/idolnat/screens/portrait_frame_grandma_tomo.png", currentBackground);
           break;
         default:
           break;
@@ -3069,6 +3102,7 @@ void updateAging() {
     natsumi.money += 10000;
     saveRequired = true;
     l5NeedsRedraw=true;
+    birthdayVisitEnabled = true;
   }
 }
 
@@ -3275,7 +3309,12 @@ void updateFiveSecondPulse() {
         Serial.println(">> HOME_LOOP -> counterToScreensaver: " + String(counterToScreensaver));
         if (counterToScreensaver > screensaverWait) {
           if (friendsVisitEnabled) {
-            visitor = 0;
+            if (birthdayVisitEnabled) {
+              visitor = 0;
+              birthdayVisitEnabled = false;
+            } else {
+              visitor = 1;
+            }
             changeState(0, DOOR_KNOCK, 0);
           } else {
             changeState(0, IDLE_HOME, 0);
