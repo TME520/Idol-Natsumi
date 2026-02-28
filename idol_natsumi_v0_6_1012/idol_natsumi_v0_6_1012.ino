@@ -150,7 +150,18 @@ enum GameState {
   ACTION_OUTCOME,
   EVENTS_MENU,
   INVENTORY_SCREEN,
-  CARDS_SCREEN
+  CARDS_SCREEN,
+  DOOR_KNOCK,
+  DOOR_KNOCK2,
+  DOOR_KNOCK3,
+  DOOR_KNOCK4,
+  DOOR_KNOCK5,
+  DOOR_KNOCK6,
+  DOOR_KNOCK7,
+  DOOR_KNOCK8,
+  DOOR_KNOCK9,
+  DOOR_KNOCK10,
+  VISITOR_PORTRAIT
 };
 
 GameState currentState = VERSION_SCREEN;
@@ -378,7 +389,7 @@ const char* competitionMenuItems[] = {"0: LOCAL", "1: DEPARTMENTAL", "2: REGIONA
 const char* healthMenuItems[] = {"0: WASH", "1: DOCTOR", "2: TEMPLE", "3: ONSEN"};
 const char* restMenuItems[] = {"0: MEDITATE", "1: SLEEP"};
 const char* gardenMenuItems[] = {"0: PLANT", "1: WATER", "2: PICK", "3: CLEANUP"};
-const char* eventsMenuItems[] = {"0: MATSURI", "1: GIGS", "2: JOBS", "3: FESTIVALS"};
+const char* eventsMenuItems[] = {"0: MATSURI", "1: JOBS", "2: QUESTS", "3: FESTIVALS"};
 const char** currentMenuItems = nullptr;
 const int mainMenuItemCount = 3;
 const int homeMenuItemCount = 10;
@@ -431,6 +442,7 @@ bool toastEnabled = false;
 bool menuEnabled = false;
 bool overlayEnabled = false;
 bool helperEnabled = false;
+bool friendsVisitEnabled = false;
 
 bool menuOpened = false;
 bool debugActive = false;
@@ -450,6 +462,7 @@ bool flowersSaleInProgress = false;
 bool unlockedNextCompetitionLevel = false;
 bool isLatestTrainingPerfect = false;
 bool showCardsLabels = true;
+bool birthdayVisitEnabled = false;
 
 int librarySegmentsFilled = 0;
 int flowersSaleHandicap = 0;
@@ -527,6 +540,9 @@ unsigned long danceCompletionTime = 0;
 bool danceGameRunning = false;
 bool danceGameCompleted = false;
 bool danceNeedsRedraw = false;
+
+unsigned int visitor = 0;
+int bathOutcomeCode = 0;
 
 // Training SWIM mini-game state
 struct SwimShark {
@@ -644,7 +660,7 @@ String doctorHint = "";
 String priestHint = "";
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "Update 11";
+String versionNumber = "Update 12";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -799,6 +815,17 @@ const char* gameStateToString(GameState state) {
     case EVENTS_MENU:      return "EVENTS_MENU";
     case INVENTORY_SCREEN: return "INVENTORY_SCREEN";
     case CARDS_SCREEN:     return "CARDS_SCREEN";
+    case DOOR_KNOCK:       return "DOOR_KNOCK";
+    case DOOR_KNOCK2:      return "DOOR_KNOCK2";
+    case DOOR_KNOCK3:      return "DOOR_KNOCK3";
+    case DOOR_KNOCK4:      return "DOOR_KNOCK4";
+    case DOOR_KNOCK5:      return "DOOR_KNOCK5";
+    case DOOR_KNOCK6:      return "DOOR_KNOCK6";
+    case DOOR_KNOCK7:      return "DOOR_KNOCK7";
+    case DOOR_KNOCK8:      return "DOOR_KNOCK8";
+    case DOOR_KNOCK9:      return "DOOR_KNOCK9";
+    case DOOR_KNOCK10:     return "DOOR_KNOCK10";
+    case VISITOR_PORTRAIT: return "VISITOR_PORTRAIT";
     default:               return "UNKNOWN";
   }
 }
@@ -956,6 +983,7 @@ bool saveGameToSd() {
   saveFile.println("session_start_ms=" + String(sessionStart));
   saveFile.println("last_age_tick=" + String(lastAgeTick));
   saveFile.println("waiting_for_food_delivery=" + String(waitingForFoodDelivery));
+  saveFile.println("bday_visit_enabled=" + String(birthdayVisitEnabled));
 
   saveFile.close();
   Serial.println(">> saveGameToSd: Save complete");
@@ -1115,6 +1143,7 @@ bool loadGameFromSd() {
       else if (key == "session_start_ms") sessionStart = strtoul(value.c_str(), nullptr, 10);
       else if (key == "last_age_tick") lastAgeTick = strtoul(value.c_str(), nullptr, 10);
       else if (key == "waiting_for_food_delivery") waitingForFoodDelivery = (value.toInt() != 0);
+      else if (key == "bday_visit_enabled") birthdayVisitEnabled = (value.toInt() != 0);
     }
   }
 
@@ -1394,7 +1423,7 @@ void preloadImages() {
     case FOOD_ORDER7: case FOOD_ORDER8:
       preloadImage("/idolnat/screens/orderibi_food_delivered.png", currentBackground);
       break;
-    case HEALTH_WASH: case HEALTH_WASH5:
+    case HEALTH_WASH:
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
       break;
     case HEALTH_WASH2:
@@ -1405,6 +1434,54 @@ void preloadImages() {
       break;
     case HEALTH_WASH4:
       preloadImage("/idolnat/screens/bathroom_step3.png", currentBackground);
+      break;
+    case HEALTH_WASH5:
+      Serial.println(">> preloadImages() - bathOutcomeCode: " + String(bathOutcomeCode));
+      if (bathOutcomeCode == 2) {
+        switch(natsumi.age) {
+          case 11: case 12:
+            preloadImage("/idolnat/screens/wash_11yo_too_cold.png", currentBackground);
+            break;
+          case 13: case 14:
+            preloadImage("/idolnat/screens/wash_13yo_too_cold.png", currentBackground);
+            break;
+          case 15: case 16: case 17:
+            preloadImage("/idolnat/screens/wash_15yo_too_cold.png", currentBackground);
+            break;
+          case 18: case 19: case 20:
+            preloadImage("/idolnat/screens/wash_18yo_too_cold.png", currentBackground);
+            break;
+          case 21: case 22:
+            preloadImage("/idolnat/screens/wash_21yo_too_cold.png", currentBackground);
+            break;
+          default:
+            preloadImage("/idolnat/screens/wash_21yo_too_cold.png", currentBackground);
+            break;
+        }
+      } else if (bathOutcomeCode == 1) {
+        switch(natsumi.age) {
+          case 11: case 12:
+            preloadImage("/idolnat/screens/wash_11yo_too_hot.png", currentBackground);
+            break;
+          case 13: case 14:
+            preloadImage("/idolnat/screens/wash_13yo_too_hot.png", currentBackground);
+            break;
+          case 15: case 16: case 17:
+            preloadImage("/idolnat/screens/wash_15yo_too_hot.png", currentBackground);
+            break;
+          case 18: case 19: case 20:
+            preloadImage("/idolnat/screens/wash_18yo_too_hot.png", currentBackground);
+            break;
+          case 21: case 22:
+            preloadImage("/idolnat/screens/wash_21yo_too_hot.png", currentBackground);
+            break;
+          default:
+            preloadImage("/idolnat/screens/wash_21yo_too_hot.png", currentBackground);
+            break;
+        }
+      } else {
+        preloadImage("/idolnat/screens/bathroom.png", currentBackground);
+      }
       break;
     case HEALTH_DOCTOR: case HEALTH_DOCTOR2: case HEALTH_DOCTOR6:
       preloadImage("/idolnat/screens/doctors_office_bg.png", currentBackground);
@@ -1594,6 +1671,63 @@ void preloadImages() {
       break;
     case CARDS_SCREEN:
       break;
+    case DOOR_KNOCK:
+      preloadImage("/idolnat/screens/entrance_door2.png", currentBackground);
+      break;
+    case DOOR_KNOCK4: case DOOR_KNOCK10:
+      switch(visitor) {
+        case 0:
+          preloadImage("/idolnat/screens/entrance_door_mum_dad.png", currentBackground);
+          break;
+        case 1:
+          preloadImage("/idolnat/screens/entrance_door_grandma_tomo.png", currentBackground);
+          break;
+        default:
+          break;
+      }
+      break;
+    case DOOR_KNOCK2: case DOOR_KNOCK3: 
+      preloadImage("/idolnat/screens/entrance_door.png", currentBackground);
+      break;
+    case DOOR_KNOCK5: case DOOR_KNOCK6: case DOOR_KNOCK8:
+      preloadImage("/idolnat/screens/lounge.png", currentBackground);
+      break;
+    case DOOR_KNOCK7:
+      switch(visitor) {
+        case 0:
+          preloadImage("/idolnat/screens/noshibukuro.png", currentBackground);
+          break;
+        case 1:
+          preloadImage("/idolnat/screens/gift_pear.png", currentBackground);
+          break;
+        default:
+          break;
+      }
+      break;
+    case DOOR_KNOCK9:
+      switch(visitor) {
+        case 0:
+          preloadImage("/idolnat/screens/teatime_mum_dad.png", currentBackground);
+          break;
+        case 1:
+          preloadImage("/idolnat/screens/teatime_grandma_tomo.png", currentBackground);
+          break;
+        default:
+          break;
+      }
+      break;
+    case VISITOR_PORTRAIT:
+      switch(visitor) {
+        case 0:
+          preloadImage("/idolnat/screens/portrait_frame_mum_dad.png", currentBackground);
+          break;
+        case 1:
+          preloadImage("/idolnat/screens/portrait_frame_grandma_tomo.png", currentBackground);
+          break;
+        default:
+          break;
+      }
+      break;
   }
   // Load portraits
   switch(natsumi.age) {
@@ -1659,6 +1793,30 @@ void preloadImages() {
           break;
         case MATSURI_GARAPON: case MATSURI_GARAPON2:
           preloadImage("/idolnat/sprites/matsuri_cashier03.png", currentCharacter);
+          break;
+        case DOOR_KNOCK5:
+          switch(visitor) {
+            case 0:
+              preloadImage("/idolnat/sprites/dad.png", currentCharacter);
+              break;
+            case 1:
+              preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            default:
+              break;
+          }
+          break;
+        case DOOR_KNOCK6:
+          switch(visitor) {
+            case 0:
+              preloadImage("/idolnat/sprites/mum.png", currentCharacter);
+              break;
+            case 1:
+              preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            default:
+              break;
+          }
           break;
         default:
           if (isNatsumiHappy) {
@@ -1740,6 +1898,30 @@ void preloadImages() {
         case MATSURI_GARAPON: case MATSURI_GARAPON2:
           preloadImage("/idolnat/sprites/matsuri_cashier03.png", currentCharacter);
           break;
+        case DOOR_KNOCK5:
+          switch(visitor) {
+            case 0:
+              preloadImage("/idolnat/sprites/dad.png", currentCharacter);
+              break;
+            case 1:
+              preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            default:
+              break;
+          }
+          break;
+        case DOOR_KNOCK6:
+          switch(visitor) {
+            case 0:
+              preloadImage("/idolnat/sprites/mum.png", currentCharacter);
+              break;
+            case 1:
+              preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            default:
+              break;
+          }
+          break;
         default:
           if (isNatsumiHappy) {
             preloadImage("/idolnat/sprites/natsumi_13yo_happy-90x135.png", currentCharacter);
@@ -1819,6 +2001,30 @@ void preloadImages() {
           break;
         case MATSURI_GARAPON: case MATSURI_GARAPON2:
           preloadImage("/idolnat/sprites/matsuri_cashier03.png", currentCharacter);
+          break;
+        case DOOR_KNOCK5:
+          switch(visitor) {
+            case 0:
+              preloadImage("/idolnat/sprites/dad.png", currentCharacter);
+              break;
+            case 1:
+              preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            default:
+              break;
+          }
+          break;
+        case DOOR_KNOCK6:
+          switch(visitor) {
+            case 0:
+              preloadImage("/idolnat/sprites/mum.png", currentCharacter);
+              break;
+            case 1:
+              preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            default:
+              break;
+          }
           break;
         default:
           if (isNatsumiHappy) {
@@ -1900,6 +2106,30 @@ void preloadImages() {
         case MATSURI_GARAPON: case MATSURI_GARAPON2:
           preloadImage("/idolnat/sprites/matsuri_cashier03.png", currentCharacter);
           break;
+        case DOOR_KNOCK5:
+          switch(visitor) {
+            case 0:
+              preloadImage("/idolnat/sprites/dad.png", currentCharacter);
+              break;
+            case 1:
+              preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            default:
+              break;
+          }
+          break;
+        case DOOR_KNOCK6:
+          switch(visitor) {
+            case 0:
+              preloadImage("/idolnat/sprites/mum.png", currentCharacter);
+              break;
+            case 1:
+              preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            default:
+              break;
+          }
+          break;
         default:
           if (isNatsumiHappy) {
             preloadImage("/idolnat/sprites/natsumi_18yo_happy-90x135.png", currentCharacter);
@@ -1979,6 +2209,30 @@ void preloadImages() {
           break;
         case MATSURI_GARAPON: case MATSURI_GARAPON2:
           preloadImage("/idolnat/sprites/matsuri_cashier03.png", currentCharacter);
+          break;
+        case DOOR_KNOCK5:
+          switch(visitor) {
+            case 0:
+              preloadImage("/idolnat/sprites/dad.png", currentCharacter);
+              break;
+            case 1:
+              preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            default:
+              break;
+          }
+          break;
+        case DOOR_KNOCK6:
+          switch(visitor) {
+            case 0:
+              preloadImage("/idolnat/sprites/mum.png", currentCharacter);
+              break;
+            case 1:
+              preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            default:
+              break;
+          }
           break;
         default:
           if (isNatsumiHappy) {
@@ -2845,6 +3099,30 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case CARDS_SCREEN:
         setScreenConfig(GAME);
         break;
+      case DOOR_KNOCK: case DOOR_KNOCK7: case DOOR_KNOCK9:
+        // screenConfig = IDLE;
+        setScreenConfig(IDLE);
+        characterEnabled = false;
+        break;
+      case DOOR_KNOCK4: case DOOR_KNOCK10:
+        // screenConfig = DIALOG;
+        setScreenConfig(DIALOG);
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        characterEnabled = false;
+        break;
+        break;
+      case DOOR_KNOCK2: case DOOR_KNOCK3:  case DOOR_KNOCK5: case DOOR_KNOCK6: case DOOR_KNOCK8:
+        // screenConfig = DIALOG;
+        setScreenConfig(DIALOG);
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        break;
+      case VISITOR_PORTRAIT:
+        // screenConfig = IDLE;
+        setScreenConfig(IDLE);
+        characterEnabled = false;
+        break;
       default:
         break;
     }
@@ -2914,6 +3192,7 @@ void updateAging() {
     natsumi.money += 10000;
     saveRequired = true;
     l5NeedsRedraw=true;
+    birthdayVisitEnabled = true;
   }
 }
 
@@ -3080,8 +3359,9 @@ void updateFiveSecondPulse() {
         Serial.println(">>> Switching to FOOD_ORDER7");
         changeState(0, FOOD_ORDER7, 0);
       }
+      friendsVisitEnabled = false;
     } else {
-      // Friends visits check
+      friendsVisitEnabled = true;
     }
     if (gardenActive) {
       if (!isPlayerGardening) {
@@ -3118,7 +3398,22 @@ void updateFiveSecondPulse() {
         counterToScreensaver += 1;
         Serial.println(">> HOME_LOOP -> counterToScreensaver: " + String(counterToScreensaver));
         if (counterToScreensaver > screensaverWait) {
-          changeState(0, IDLE_HOME, 0);
+          if (friendsVisitEnabled) {
+            if (birthdayVisitEnabled) {
+              visitor = 0;
+              birthdayVisitEnabled = false;
+              changeState(0, DOOR_KNOCK, 0);
+            } else {
+              visitor = 1;
+              if (natsumi.hunger < 1) {
+                changeState(0, DOOR_KNOCK, 0);
+              } else {
+                changeState(0, IDLE_HOME, 0);
+              }
+            }
+          } else {
+            changeState(0, IDLE_HOME, 0);
+          }
         }
         break;
       case IDLE_HOME:
@@ -3179,24 +3474,6 @@ void updateFiveSecondPulse() {
 
 void manageCard() {
   // Manage CARD screens
-  /*
-  Transition bitmap (loading screen, narration, debug...)
-  Background: 1 x bitmap
-  Character: None
-  Debug: Available
-  Toast: None
-  Menu: None
-  Interactive (timer + keypress)
-  */
-  /*
-  backgroundEnabled = true;
-  characterEnabled = false;
-  debugEnabled = true;
-  toastEnabled = false;
-  menuEnabled = true;
-  overlayEnabled = false;
-  helperEnabled = false;
-  */
   switch (currentState) {
     case M5_SCREEN:
       changeState(0, MOTTO_SCREEN, microWait);
@@ -3309,24 +3586,6 @@ void manageCard() {
 
 void manageDialog() {
   // Manage DIALOG screens
-  /*
-      Dialog between Natsumi and NPC
-      Background: 1 x bitmap
-      Character: Natsumi + NPC
-      Debug: Available
-      Toast: None
-      Menu: None
-      Interactive (timer + keypress + escape)
-  */
-  /*
-  backgroundEnabled = true;
-  characterEnabled = true;
-  debugEnabled = true;
-  toastEnabled = false;
-  menuEnabled = false;
-  overlayEnabled = true;
-  helperEnabled = false;
-  */
   switch (currentState) {
     case FLOWERS_MARKET7:
       miniGameDebrief();
@@ -3388,6 +3647,9 @@ void manageDialog() {
     case MATSURI_GARAPON: case MATSURI_GARAPON2:
       matsuriDialogs();
       break;
+    case DOOR_KNOCK2: case DOOR_KNOCK3: case DOOR_KNOCK4: case DOOR_KNOCK5: case DOOR_KNOCK6: case DOOR_KNOCK8: case DOOR_KNOCK10:
+      manageFriendsVisits();
+      break;
     default:
       break;
   }
@@ -3406,24 +3668,6 @@ void manageDialog() {
 
 void manageGame() {
   // Manage GAME screens
-  /*
-      Mini-games
-      Background: None
-      Character: None
-      Debug: Available
-      Toast: None
-      Menu: None
-      Interactive (timer + keypress + escape)
-  */
-  /*
-  backgroundEnabled = false;
-  characterEnabled = false;
-  debugEnabled = true;
-  toastEnabled = false;
-  menuEnabled = false;
-  overlayEnabled = true;
-  helperEnabled = false;
-  */
   switch (currentState) {
     case HEALTH_WASH:
       manageBathGame();
@@ -3484,24 +3728,6 @@ void manageGame() {
 
 void manageIdle() {
   // Manage IDLE screens
-  /*
-      Idle mode, minimal screen activity
-      Background: Yes, Always black
-      Character: Natsumi
-      Debug: Available
-      Toast: Yes
-      Menu: None
-      Interactive (escape)
-  */
-  /*
-  backgroundEnabled = true;
-  characterEnabled = true;
-  debugEnabled = true;
-  toastEnabled = true;
-  menuEnabled = false;
-  overlayEnabled = true;
-  helperEnabled = false;
-  */
   switch (currentState) {
     case FLOWERS_MARKET:
       if (natsumi.flowers > 0) {
@@ -3581,6 +3807,15 @@ void manageIdle() {
     case MATSURI_SAVORY5: case MATSURI_SUGARY4: case MATSURI_GARAPON4:
       changeState(0, ACTION_OUTCOME, 0);
       break;
+    case DOOR_KNOCK: case DOOR_KNOCK9:
+      manageFriendsVisits();
+      break;
+    case DOOR_KNOCK7:
+      changeState(0, ACTION_OUTCOME, microWait);
+      break;
+    case VISITOR_PORTRAIT:
+      manageFriendsVisits();
+      break;
     default:
       break;
   }
@@ -3622,6 +3857,7 @@ void manageRoom() {
       manageHomeScreen();
       break;
     case HEALTH_WASH5:
+      characterEnabled = false;
       wash();
       break;
     case GARDEN_MENU:
@@ -5280,6 +5516,8 @@ void finalizeBathOutcome(String outcomeText) {
       natsumi.hygiene = 4;
     }
     changeState(0, HEALTH_WASH2, 0);
+  } else {
+    changeState(0, HEALTH_WASH5, 0);
   }
   return;
 }
@@ -5316,10 +5554,13 @@ void manageBathGame() {
     int zoneBottom = idealZoneY + idealZoneHeight;
     int sliderCenter = sliderYPosition + (sliderHeight / 2);
     if (sliderCenter < zoneTop) {
+      bathOutcomeCode = 1;
       finalizeBathOutcome("too hot!");
     } else if (sliderCenter > zoneBottom) {
+      bathOutcomeCode = 2;
       finalizeBathOutcome("too cold!");
     } else {
+      bathOutcomeCode = 0;
       finalizeBathOutcome("perfect!");
     }
     return;
@@ -5344,10 +5585,13 @@ void manageBathGame() {
     int zoneBottom = idealZoneY + idealZoneHeight;
     int sliderCenter = sliderYPosition + (sliderHeight / 2);
     if (sliderCenter < zoneTop) {
+      bathOutcomeCode = 1;
       finalizeBathOutcome("too hot!");
     } else if (sliderCenter > zoneBottom) {
+      bathOutcomeCode = 2;
       finalizeBathOutcome("too cold!");
     } else {
+      bathOutcomeCode = 0;
       finalizeBathOutcome("perfect!");
     }
     return;
@@ -5943,10 +6187,10 @@ void wash() {
       saveRequired = true;
       // isNatsumiHappy = true;
     } else {
-      showToast("Natsumi is clean");
+      // showToast("Natsumi is clean");
     }
   }
-  changeState(0, HOME_LOOP, 20);
+  changeState(0, HOME_LOOP, microWait);
 }
 
 void drawSleepEnergyOverlay() {
@@ -7882,7 +8126,60 @@ void drawOverlay() {
           case MATSURI_GARAPON4:
             drawOutcome(garaponResultQty, garaponResultLabel);
             break;
+          case DOOR_KNOCK7:
+            switch(visitor) {
+              case 0:
+                natsumi.money += 10000;
+                drawOutcome("+10k", "Money");
+                break;
+              case 1:
+                fridge.pear += 1;
+                drawOutcome("+1", "Pear");
+                break;
+              default:
+                break;
+            }
+            break;
         }
+        break;
+      case DOOR_KNOCK2:
+        drawDialogBubble("Someone is at the door!!");
+        break;
+      case DOOR_KNOCK3:
+        drawDialogBubble("Irasshai! Hello!");
+        break;
+      case DOOR_KNOCK4:
+        drawDialogBubble("Hi!");
+        break;
+      case DOOR_KNOCK5:
+        switch(visitor) {
+          case 0:
+            drawDialogBubble("Otanjobi omedeto! Happy birthday!");
+            break;
+          case 1:
+            drawDialogBubble("Hello sweetie!!");
+            break;
+          default:
+            break;
+        }
+        break;
+      case DOOR_KNOCK6:
+        switch(visitor) {
+          case 0:
+            drawDialogBubble("Dad and I wish you a happy birthday!");
+            break;
+          case 1:
+            drawDialogBubble("I brought you a juicy pear! Fruits are good for health!");
+            break;
+          default:
+            break;
+        }
+        break;
+      case DOOR_KNOCK8:
+        drawDialogBubble("Arigato! Thank you very much!");
+        break;
+      case DOOR_KNOCK10:
+        drawDialogBubble("Mata ne! See you later!");
         break;
       default:
         break;
@@ -8607,6 +8904,9 @@ void actionOutcome() {
         case MATSURI_GARAPON4:
           changeState(0, MATSURI_MENU, 0);
           break;
+        case DOOR_KNOCK7:
+          changeState(0, DOOR_KNOCK8, 0);
+          break;
         default:
           changeState(0, HOME_LOOP, 0);
           break;
@@ -8656,9 +8956,9 @@ void drawOutcome(String amount, String stat) {
   const int screenWidth = M5Cardputer.Display.width();
   const int screenHeight = M5Cardputer.Display.height();
   const int frameInset = 6;
-  const int frameX = (screenWidth / 2) + frameInset;
+  const int frameX = ((screenWidth / 2) + frameInset) - 20;
   const int frameY = 12;
-  const int frameW = (screenWidth / 2) - (frameInset * 2);
+  const int frameW = ((screenWidth / 2) - (frameInset * 2) + 20);
   const int frameH = screenHeight - (frameY * 2);
   const int lineSpacing = 6;
   const uint16_t frameColor = WHITE;
@@ -8690,6 +8990,53 @@ void drawOutcome(String amount, String stat) {
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
   drawText("Press any key to continue", 120, 131, true, WHITE, 1);
   return;
+}
+
+void manageFriendsVisits() {
+  // Serial.println("> Entering manageFriendsVisits()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (currentState) {
+        case DOOR_KNOCK:
+          changeState(0, DOOR_KNOCK2, 0);
+          break;
+        case DOOR_KNOCK2:
+          changeState(0, VISITOR_PORTRAIT, 0);
+          break;
+        case DOOR_KNOCK3:
+          changeState(0, DOOR_KNOCK4, 0);
+          break;
+        case DOOR_KNOCK4:
+          changeState(0, DOOR_KNOCK5, 0);
+          break;
+        case DOOR_KNOCK5:
+          changeState(0, DOOR_KNOCK6, 0);
+          break;
+        case DOOR_KNOCK6:
+          changeState(0, DOOR_KNOCK7, 0);
+          break;
+        case DOOR_KNOCK7:
+          changeState(0, DOOR_KNOCK8, 0);
+          break;
+        case DOOR_KNOCK8:
+          changeState(0, DOOR_KNOCK9, 0);
+          break;
+        case DOOR_KNOCK9:
+          changeState(0, DOOR_KNOCK10, 0);
+          break;
+        case DOOR_KNOCK10:
+          changeState(0, HOME_LOOP, 0);
+          break;
+        case VISITOR_PORTRAIT:
+          changeState(0, DOOR_KNOCK3, 0);
+          break;
+      }
+      return;
+    }
+  }
 }
 
 void doctor() {
