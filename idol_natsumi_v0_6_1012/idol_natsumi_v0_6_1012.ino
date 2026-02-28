@@ -660,7 +660,7 @@ String doctorHint = "";
 String priestHint = "";
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "Update 12 (FRIENDS)";
+String versionNumber = "Update 12";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -1795,10 +1795,28 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/matsuri_cashier03.png", currentCharacter);
           break;
         case DOOR_KNOCK5:
-          preloadImage("/idolnat/sprites/dad.png", currentCharacter);
+          switch(visitor) {
+            case 0:
+              preloadImage("/idolnat/sprites/dad.png", currentCharacter);
+              break;
+            case 1:
+              preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            default:
+              break;
+          }
           break;
         case DOOR_KNOCK6:
-          preloadImage("/idolnat/sprites/mum.png", currentCharacter);
+          switch(visitor) {
+            case 0:
+              preloadImage("/idolnat/sprites/mum.png", currentCharacter);
+              break;
+            case 1:
+              preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            default:
+              break;
+          }
           break;
         default:
           if (isNatsumiHappy) {
@@ -1881,10 +1899,28 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/matsuri_cashier03.png", currentCharacter);
           break;
         case DOOR_KNOCK5:
-          preloadImage("/idolnat/sprites/dad.png", currentCharacter);
+          switch(visitor) {
+            case 0:
+              preloadImage("/idolnat/sprites/dad.png", currentCharacter);
+              break;
+            case 1:
+              preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            default:
+              break;
+          }
           break;
         case DOOR_KNOCK6:
-          preloadImage("/idolnat/sprites/mum.png", currentCharacter);
+          switch(visitor) {
+            case 0:
+              preloadImage("/idolnat/sprites/mum.png", currentCharacter);
+              break;
+            case 1:
+              preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            default:
+              break;
+          }
           break;
         default:
           if (isNatsumiHappy) {
@@ -1967,10 +2003,28 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/matsuri_cashier03.png", currentCharacter);
           break;
         case DOOR_KNOCK5:
-          preloadImage("/idolnat/sprites/dad.png", currentCharacter);
+          switch(visitor) {
+            case 0:
+              preloadImage("/idolnat/sprites/dad.png", currentCharacter);
+              break;
+            case 1:
+              preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            default:
+              break;
+          }
           break;
         case DOOR_KNOCK6:
-          preloadImage("/idolnat/sprites/mum.png", currentCharacter);
+          switch(visitor) {
+            case 0:
+              preloadImage("/idolnat/sprites/mum.png", currentCharacter);
+              break;
+            case 1:
+              preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            default:
+              break;
+          }
           break;
         default:
           if (isNatsumiHappy) {
@@ -2053,10 +2107,28 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/matsuri_cashier03.png", currentCharacter);
           break;
         case DOOR_KNOCK5:
-          preloadImage("/idolnat/sprites/dad.png", currentCharacter);
+          switch(visitor) {
+            case 0:
+              preloadImage("/idolnat/sprites/dad.png", currentCharacter);
+              break;
+            case 1:
+              preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            default:
+              break;
+          }
           break;
         case DOOR_KNOCK6:
-          preloadImage("/idolnat/sprites/mum.png", currentCharacter);
+          switch(visitor) {
+            case 0:
+              preloadImage("/idolnat/sprites/mum.png", currentCharacter);
+              break;
+            case 1:
+              preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            default:
+              break;
+          }
           break;
         default:
           if (isNatsumiHappy) {
@@ -2139,10 +2211,28 @@ void preloadImages() {
           preloadImage("/idolnat/sprites/matsuri_cashier03.png", currentCharacter);
           break;
         case DOOR_KNOCK5:
-          preloadImage("/idolnat/sprites/dad.png", currentCharacter);
+          switch(visitor) {
+            case 0:
+              preloadImage("/idolnat/sprites/dad.png", currentCharacter);
+              break;
+            case 1:
+              preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            default:
+              break;
+          }
           break;
         case DOOR_KNOCK6:
-          preloadImage("/idolnat/sprites/mum.png", currentCharacter);
+          switch(visitor) {
+            case 0:
+              preloadImage("/idolnat/sprites/mum.png", currentCharacter);
+              break;
+            case 1:
+              preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            default:
+              break;
+          }
           break;
         default:
           if (isNatsumiHappy) {
@@ -3312,10 +3402,15 @@ void updateFiveSecondPulse() {
             if (birthdayVisitEnabled) {
               visitor = 0;
               birthdayVisitEnabled = false;
+              changeState(0, DOOR_KNOCK, 0);
             } else {
               visitor = 1;
+              if (natsumi.hunger < 1) {
+                changeState(0, DOOR_KNOCK, 0);
+              } else {
+                changeState(0, IDLE_HOME, 0);
+              }
             }
-            changeState(0, DOOR_KNOCK, 0);
           } else {
             changeState(0, IDLE_HOME, 0);
           }
@@ -8032,8 +8127,18 @@ void drawOverlay() {
             drawOutcome(garaponResultQty, garaponResultLabel);
             break;
           case DOOR_KNOCK7:
-            natsumi.money += 10000;
-            drawOutcome("+10k", "Money");
+            switch(visitor) {
+              case 0:
+                natsumi.money += 10000;
+                drawOutcome("+10k", "Money");
+                break;
+              case 1:
+                fridge.pear += 1;
+                drawOutcome("+1", "Pear");
+                break;
+              default:
+                break;
+            }
             break;
         }
         break;
@@ -8047,10 +8152,28 @@ void drawOverlay() {
         drawDialogBubble("Hi!");
         break;
       case DOOR_KNOCK5:
-        drawDialogBubble("Otanjobi omedeto! Happy birthday!");
+        switch(visitor) {
+          case 0:
+            drawDialogBubble("Otanjobi omedeto! Happy birthday!");
+            break;
+          case 1:
+            drawDialogBubble("Hello sweetie!!");
+            break;
+          default:
+            break;
+        }
         break;
       case DOOR_KNOCK6:
-        drawDialogBubble("Dad and I wish you a happy birthday!");
+        switch(visitor) {
+          case 0:
+            drawDialogBubble("Dad and I wish you a happy birthday!");
+            break;
+          case 1:
+            drawDialogBubble("I brought you a juicy pear! Fruits are good for health!");
+            break;
+          default:
+            break;
+        }
         break;
       case DOOR_KNOCK8:
         drawDialogBubble("Arigato! Thank you very much!");
