@@ -660,7 +660,7 @@ String doctorHint = "";
 String priestHint = "";
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "Update 12";
+String versionNumber = "Update 13";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -4137,7 +4137,7 @@ void manageGarden() {
   Serial.println(">> tile: " + String(tile));
   switch (currentState) {
     case GARDEN_PLANT:
-      Serial.println(">> GARDEN_PLANT");
+      // Serial.println(">> GARDEN_PLANT");
       if (tile == 0) {
         tile = 1;
         saveRequired = true;
@@ -4148,7 +4148,7 @@ void manageGarden() {
       changeState(0, GARDEN_LOOP, 0);
       break;
     case GARDEN_WATER:
-      Serial.println(">> GARDEN_WATER");
+      // Serial.println(">> GARDEN_WATER");
       if (tile == 0) {
         gardeningHelperText = "Plant seed 1st";
       } else if (tile == 1) {
@@ -4161,7 +4161,7 @@ void manageGarden() {
       changeState(0, GARDEN_LOOP, 0);
       break;
     case GARDEN_PICK:
-      Serial.println(">> GARDEN_PICK");
+      // Serial.println(">> GARDEN_PICK");
       if (tile > 209) {
         if (natsumi.flowers < 24) {
           tile = 0;
@@ -4178,14 +4178,14 @@ void manageGarden() {
       changeState(0, GARDEN_LOOP, 0);
       break;
     case GARDEN_CLEANUP:
-      Serial.println(">> GARDEN_CLEANUP");
+      // Serial.println(">> GARDEN_CLEANUP");
       tile = 0;
       changeState(0, GARDEN_LOOP, 0);
       saveRequired = true;
       isPlayerGardening = true;
       break;
     case GARDEN_LOOP: {
-      Serial.println(">> GARDEN_LOOP");
+      // Serial.println(">> GARDEN_LOOP");
       uint8_t key = 0;
       if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
         auto keyList = M5Cardputer.Keyboard.keyList();
