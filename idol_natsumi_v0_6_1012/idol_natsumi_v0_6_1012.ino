@@ -3403,7 +3403,7 @@ void updateFiveSecondPulse() {
       friendsVisitEnabled = true;
     }
     if (gardenActive) {
-      isPlayerGardening = false;
+      // isPlayerGardening = false;
       if (!isPlayerGardening) {
         // Grow the seeds
         for (int row = 0; row < gardenRows; row++) {
