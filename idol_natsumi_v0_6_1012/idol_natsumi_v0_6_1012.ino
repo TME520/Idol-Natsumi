@@ -324,6 +324,8 @@ const unsigned long shortWait = 200;
 const unsigned long mediumWait = 3200;
 const unsigned long longWait = 6400;
 const char* saveGamePath = "/idolnat/savegame.dat";
+const char* saveGameTempPath = "/idolnat/savegame.tmp";
+const char* saveGameBackupPath = "/idolnat/savegame.bak";
 String saveStatusMsg = "";
 unsigned long saveStatusUntil = 0;
 unsigned long counterToScreensaver = 0;
@@ -863,11 +865,11 @@ bool isCompetitionEnabled() {
 
 bool saveGameToSd() {
   Serial.println(">> saveGameToSd: Writing save data");
-  if (SD.exists(saveGamePath)) {
-    SD.remove(saveGamePath);
+  if (SD.exists(saveGameTempPath)) {
+    SD.remove(saveGameTempPath);
   }
 
-  File saveFile = SD.open(saveGamePath, FILE_WRITE);
+  File saveFile = SD.open(saveGameTempPath, FILE_WRITE);
   if (!saveFile) {
     Serial.println(">> saveGameToSd: Failed to open save file");
     return false;
@@ -986,6 +988,25 @@ bool saveGameToSd() {
   saveFile.println("bday_visit_enabled=" + String(birthdayVisitEnabled));
 
   saveFile.close();
+
+  if (SD.exists(saveGameBackupPath)) {
+    SD.remove(saveGameBackupPath);
+  }
+  if (SD.exists(saveGamePath) && !SD.rename(saveGamePath, saveGameBackupPath)) {
+    Serial.println(">> saveGameToSd: Failed to rotate existing save to backup");
+    SD.remove(saveGameTempPath);
+    return false;
+  }
+
+  if (!SD.rename(saveGameTempPath, saveGamePath)) {
+    Serial.println(">> saveGameToSd: Failed to promote temporary save");
+    if (SD.exists(saveGameBackupPath)) {
+      SD.rename(saveGameBackupPath, saveGamePath);
+    }
+    SD.remove(saveGameTempPath);
+    return false;
+  }
+
   Serial.println(">> saveGameToSd: Save complete");
   return true;
 }
@@ -993,13 +1014,26 @@ bool saveGameToSd() {
 bool loadGameFromSd() {
   Serial.println(">> loadGameFromSd: Loading save data");
   loadedContinueState = HOME_LOOP;
-  if (!SD.exists(saveGamePath)) {
-    Serial.println(">> loadGameFromSd: Save file not found");
-    showToast("Save file not found");
-    return false;
+
+  const char* loadPath = saveGamePath;
+  if (!SD.exists(loadPath)) {
+    if (SD.exists(saveGameBackupPath)) {
+      Serial.println(">> loadGameFromSd: Primary save missing, trying backup");
+      loadPath = saveGameBackupPath;
+    } else {
+      Serial.println(">> loadGameFromSd: Save file not found");
+      showToast("Save file not found");
+      return false;
+    }
   }
 
-  File saveFile = SD.open(saveGamePath, FILE_READ);
+  File saveFile = SD.open(loadPath, FILE_READ);
+  if (!saveFile && loadPath == saveGamePath && SD.exists(saveGameBackupPath)) {
+    Serial.println(">> loadGameFromSd: Failed to open primary save, trying backup");
+    loadPath = saveGameBackupPath;
+    saveFile = SD.open(loadPath, FILE_READ);
+  }
+
   if (!saveFile) {
     Serial.println(">> loadGameFromSd: Failed to open save file");
     showToast("Corrupted save file");
@@ -1152,7 +1186,11 @@ bool loadGameFromSd() {
   Serial.println(">> loadGameFromSd: Load complete");
   Serial.println(">>> loadGameFromSd - natsumi.ageMilliseconds: " + String(natsumi.ageMilliseconds));
   Serial.println(">>> loadGameFromSd - playtimeTotalMs: " + String(playtimeTotalMs));
-  showToast("Save file loaded");
+  if (loadPath == saveGameBackupPath) {
+    showToast("Backup save loaded");
+  } else {
+    showToast("Save file loaded");
+  }
   return true;
 }
 
