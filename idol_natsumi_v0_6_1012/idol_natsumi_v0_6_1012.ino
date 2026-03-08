@@ -324,6 +324,8 @@ const unsigned long shortWait = 200;
 const unsigned long mediumWait = 3200;
 const unsigned long longWait = 6400;
 const char* saveGamePath = "/idolnat/savegame.dat";
+const char* saveGameTempPath = "/idolnat/savegame.tmp";
+const char* saveGameBackupPath = "/idolnat/savegame.bak";
 String saveStatusMsg = "";
 unsigned long saveStatusUntil = 0;
 unsigned long counterToScreensaver = 0;
@@ -463,6 +465,7 @@ bool unlockedNextCompetitionLevel = false;
 bool isLatestTrainingPerfect = false;
 bool showCardsLabels = true;
 bool birthdayVisitEnabled = false;
+bool recentCompWin = false;
 
 int librarySegmentsFilled = 0;
 int flowersSaleHandicap = 0;
@@ -660,7 +663,7 @@ String doctorHint = "";
 String priestHint = "";
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "Update 12";
+String versionNumber = "Update 13";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -863,11 +866,11 @@ bool isCompetitionEnabled() {
 
 bool saveGameToSd() {
   Serial.println(">> saveGameToSd: Writing save data");
-  if (SD.exists(saveGamePath)) {
-    SD.remove(saveGamePath);
+  if (SD.exists(saveGameTempPath)) {
+    SD.remove(saveGameTempPath);
   }
 
-  File saveFile = SD.open(saveGamePath, FILE_WRITE);
+  File saveFile = SD.open(saveGameTempPath, FILE_WRITE);
   if (!saveFile) {
     Serial.println(">> saveGameToSd: Failed to open save file");
     return false;
@@ -986,6 +989,25 @@ bool saveGameToSd() {
   saveFile.println("bday_visit_enabled=" + String(birthdayVisitEnabled));
 
   saveFile.close();
+
+  if (SD.exists(saveGameBackupPath)) {
+    SD.remove(saveGameBackupPath);
+  }
+  if (SD.exists(saveGamePath) && !SD.rename(saveGamePath, saveGameBackupPath)) {
+    Serial.println(">> saveGameToSd: Failed to rotate existing save to backup");
+    SD.remove(saveGameTempPath);
+    return false;
+  }
+
+  if (!SD.rename(saveGameTempPath, saveGamePath)) {
+    Serial.println(">> saveGameToSd: Failed to promote temporary save");
+    if (SD.exists(saveGameBackupPath)) {
+      SD.rename(saveGameBackupPath, saveGamePath);
+    }
+    SD.remove(saveGameTempPath);
+    return false;
+  }
+
   Serial.println(">> saveGameToSd: Save complete");
   return true;
 }
@@ -993,13 +1015,26 @@ bool saveGameToSd() {
 bool loadGameFromSd() {
   Serial.println(">> loadGameFromSd: Loading save data");
   loadedContinueState = HOME_LOOP;
-  if (!SD.exists(saveGamePath)) {
-    Serial.println(">> loadGameFromSd: Save file not found");
-    showToast("Save file not found");
-    return false;
+
+  const char* loadPath = saveGamePath;
+  if (!SD.exists(loadPath)) {
+    if (SD.exists(saveGameBackupPath)) {
+      Serial.println(">> loadGameFromSd: Primary save missing, trying backup");
+      loadPath = saveGameBackupPath;
+    } else {
+      Serial.println(">> loadGameFromSd: Save file not found");
+      showToast("Save file not found");
+      return false;
+    }
   }
 
-  File saveFile = SD.open(saveGamePath, FILE_READ);
+  File saveFile = SD.open(loadPath, FILE_READ);
+  if (!saveFile && loadPath == saveGamePath && SD.exists(saveGameBackupPath)) {
+    Serial.println(">> loadGameFromSd: Failed to open primary save, trying backup");
+    loadPath = saveGameBackupPath;
+    saveFile = SD.open(loadPath, FILE_READ);
+  }
+
   if (!saveFile) {
     Serial.println(">> loadGameFromSd: Failed to open save file");
     showToast("Corrupted save file");
@@ -1152,7 +1187,11 @@ bool loadGameFromSd() {
   Serial.println(">> loadGameFromSd: Load complete");
   Serial.println(">>> loadGameFromSd - natsumi.ageMilliseconds: " + String(natsumi.ageMilliseconds));
   Serial.println(">>> loadGameFromSd - playtimeTotalMs: " + String(playtimeTotalMs));
-  showToast("Save file loaded");
+  if (loadPath == saveGameBackupPath) {
+    showToast("Backup save loaded");
+  } else {
+    showToast("Save file loaded");
+  }
   return true;
 }
 
@@ -1233,6 +1272,7 @@ void unloadAllImages() {
   unloadImage(currentCharacter);
   unloadImage(natsumiSprite);
   unloadImage(enemySprite);
+  unloadGardenFlowerSprites();
   clearFoodGrid();
 
   // currentBackground points to one of the room images, so just reset it
@@ -1682,6 +1722,15 @@ void preloadImages() {
         case 1:
           preloadImage("/idolnat/screens/entrance_door_grandma_tomo.png", currentBackground);
           break;
+        case 2:
+          preloadImage("/idolnat/screens/entrance_door_akiko.png", currentBackground);
+          break;
+        case 3:
+          preloadImage("/idolnat/screens/entrance_door_older_brother.png", currentBackground);
+          break;
+        case 4:
+          preloadImage("/idolnat/screens/entrance_door_older_sister.png", currentBackground);
+          break;
         default:
           break;
       }
@@ -1700,6 +1749,9 @@ void preloadImages() {
         case 1:
           preloadImage("/idolnat/screens/gift_pear.png", currentBackground);
           break;
+        case 2: case 3: case 4:
+          preloadImage("/idolnat/screens/celebration_shortcake.png", currentBackground);
+          break;
         default:
           break;
       }
@@ -1712,6 +1764,15 @@ void preloadImages() {
         case 1:
           preloadImage("/idolnat/screens/teatime_grandma_tomo.png", currentBackground);
           break;
+        case 2:
+          preloadImage("/idolnat/screens/teatime_akiko.png", currentBackground);
+          break;
+        case 3:
+          preloadImage("/idolnat/screens/teatime_older_brother.png", currentBackground);
+          break;
+        case 4:
+          preloadImage("/idolnat/screens/teatime_older_sister.png", currentBackground);
+          break;
         default:
           break;
       }
@@ -1723,6 +1784,15 @@ void preloadImages() {
           break;
         case 1:
           preloadImage("/idolnat/screens/portrait_frame_grandma_tomo.png", currentBackground);
+          break;
+        case 2:
+          preloadImage("/idolnat/screens/portrait_frame_akiko.png", currentBackground);
+          break;
+        case 3:
+          preloadImage("/idolnat/screens/portrait_frame_older_brother.png", currentBackground);
+          break;
+        case 4:
+          preloadImage("/idolnat/screens/portrait_frame_older_sister.png", currentBackground);
           break;
         default:
           break;
@@ -1802,6 +1872,15 @@ void preloadImages() {
             case 1:
               preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
               break;
+            case 2:
+              preloadImage("/idolnat/sprites/akiko.png", currentCharacter);
+              break;
+            case 3:
+              preloadImage("/idolnat/sprites/older_brother.png", currentCharacter);
+              break;
+            case 4:
+              preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
+              break;
             default:
               break;
           }
@@ -1813,6 +1892,15 @@ void preloadImages() {
               break;
             case 1:
               preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            case 2:
+              preloadImage("/idolnat/sprites/akiko.png", currentCharacter);
+              break;
+            case 3:
+              preloadImage("/idolnat/sprites/older_brother.png", currentCharacter);
+              break;
+            case 4:
+              preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
             default:
               break;
@@ -1906,6 +1994,15 @@ void preloadImages() {
             case 1:
               preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
               break;
+            case 2:
+              preloadImage("/idolnat/sprites/akiko.png", currentCharacter);
+              break;
+            case 3:
+              preloadImage("/idolnat/sprites/older_brother.png", currentCharacter);
+              break;
+            case 4:
+              preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
+              break;
             default:
               break;
           }
@@ -1917,6 +2014,15 @@ void preloadImages() {
               break;
             case 1:
               preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            case 2:
+              preloadImage("/idolnat/sprites/akiko.png", currentCharacter);
+              break;
+            case 3:
+              preloadImage("/idolnat/sprites/older_brother.png", currentCharacter);
+              break;
+            case 4:
+              preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
             default:
               break;
@@ -2010,6 +2116,15 @@ void preloadImages() {
             case 1:
               preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
               break;
+            case 2:
+              preloadImage("/idolnat/sprites/akiko.png", currentCharacter);
+              break;
+            case 3:
+              preloadImage("/idolnat/sprites/older_brother.png", currentCharacter);
+              break;
+            case 4:
+              preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
+              break;
             default:
               break;
           }
@@ -2021,6 +2136,15 @@ void preloadImages() {
               break;
             case 1:
               preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            case 2:
+              preloadImage("/idolnat/sprites/akiko.png", currentCharacter);
+              break;
+            case 3:
+              preloadImage("/idolnat/sprites/older_brother.png", currentCharacter);
+              break;
+            case 4:
+              preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
             default:
               break;
@@ -2114,6 +2238,15 @@ void preloadImages() {
             case 1:
               preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
               break;
+            case 2:
+              preloadImage("/idolnat/sprites/akiko.png", currentCharacter);
+              break;
+            case 3:
+              preloadImage("/idolnat/sprites/older_brother.png", currentCharacter);
+              break;
+            case 4:
+              preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
+              break;
             default:
               break;
           }
@@ -2125,6 +2258,15 @@ void preloadImages() {
               break;
             case 1:
               preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            case 2:
+              preloadImage("/idolnat/sprites/akiko.png", currentCharacter);
+              break;
+            case 3:
+              preloadImage("/idolnat/sprites/older_brother.png", currentCharacter);
+              break;
+            case 4:
+              preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
             default:
               break;
@@ -2218,6 +2360,15 @@ void preloadImages() {
             case 1:
               preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
               break;
+            case 2:
+              preloadImage("/idolnat/sprites/akiko.png", currentCharacter);
+              break;
+            case 3:
+              preloadImage("/idolnat/sprites/older_brother.png", currentCharacter);
+              break;
+            case 4:
+              preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
+              break;
             default:
               break;
           }
@@ -2229,6 +2380,15 @@ void preloadImages() {
               break;
             case 1:
               preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            case 2:
+              preloadImage("/idolnat/sprites/akiko.png", currentCharacter);
+              break;
+            case 3:
+              preloadImage("/idolnat/sprites/older_brother.png", currentCharacter);
+              break;
+            case 4:
+              preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
             default:
               break;
@@ -3364,6 +3524,7 @@ void updateFiveSecondPulse() {
       friendsVisitEnabled = true;
     }
     if (gardenActive) {
+      // isPlayerGardening = false;
       if (!isPlayerGardening) {
         // Grow the seeds
         for (int row = 0; row < gardenRows; row++) {
@@ -3402,6 +3563,12 @@ void updateFiveSecondPulse() {
             if (birthdayVisitEnabled) {
               visitor = 0;
               birthdayVisitEnabled = false;
+              changeState(0, DOOR_KNOCK, 0);
+            } else if (recentCompWin) {
+              // Akiko, older brother or older sister visit
+              visitor = random(2, 5);
+              Serial.println(">>> HOME_LOOP - visitor: " + String(visitor));
+              recentCompWin = false;
               changeState(0, DOOR_KNOCK, 0);
             } else {
               visitor = 1;
@@ -4046,6 +4213,45 @@ void drawGardenTile(int topX, int topY, int tileW, int tileH, uint16_t fillColor
   M5Cardputer.Display.drawLine(rightX, midY, topX, topY, borderColor);
 }
 
+const char* gardenFlowerSpritePaths[8] = {
+  "/idolnat/sprites/flower_stage_01-22x16.png",
+  "/idolnat/sprites/flower_stage_02-20x16.png",
+  "/idolnat/sprites/flower_stage_03-14x16.png",
+  "/idolnat/sprites/flower_stage_04-11x16.png",
+  "/idolnat/sprites/flower_stage_05-10x16.png",
+  "/idolnat/sprites/flower_stage_06-12x16.png",
+  "/idolnat/sprites/flower_stage_07-10x16.png",
+  "/idolnat/sprites/flower_stage_08-10x16.png"
+};
+
+ImageBuffer gardenFlowerSprites[8];
+
+void preloadGardenFlowerSprites() {
+  for (int i = 0; i < 8; i++) {
+    if (!gardenFlowerSprites[i].data) {
+      preloadImage(gardenFlowerSpritePaths[i], gardenFlowerSprites[i]);
+    }
+  }
+}
+
+void unloadGardenFlowerSprites() {
+  for (int i = 0; i < 8; i++) {
+    unloadImage(gardenFlowerSprites[i]);
+  }
+}
+
+int gardenFlowerStageIndex(int tileValue) {
+  if (tileValue > 2 && tileValue < 30) return 0;
+  if (tileValue > 30 && tileValue <= 60) return 1;
+  if (tileValue > 60 && tileValue <= 90) return 2;
+  if (tileValue > 90 && tileValue <= 120) return 3;
+  if (tileValue > 120 && tileValue <= 150) return 4;
+  if (tileValue > 150 && tileValue <= 180) return 5;
+  if (tileValue > 180 && tileValue <= 210) return 6;
+  if (tileValue > 210) return 7;
+  return -1;
+}
+
 void drawGardenPlanter(String helperText) {
   const int tileW = 48;
   const int tileH = 36;
@@ -4057,6 +4263,8 @@ void drawGardenPlanter(String helperText) {
   const uint16_t activeBorder = YELLOW;
   const uint16_t sproutColor = M5Cardputer.Display.color565(80, 200, 90);
   const uint16_t waterColor = M5Cardputer.Display.color565(90, 180, 255);
+
+  preloadGardenFlowerSprites();
 
   gardenActive = false;
   for (int row = 0; row < gardenRows; row++) {
@@ -4082,38 +4290,11 @@ void drawGardenPlanter(String helperText) {
           M5Cardputer.Display.drawFastVLine(centerX, centerY - 2, 4, sproutColor);
         } else if (tileValue == 2) {
           M5Cardputer.Display.fillCircle(centerX + 6, centerY + 4, 2, waterColor);
-        } else if (tileValue > 2 && tileValue < 30) {
-          preloadImage("/idolnat/sprites/flower_stage_01-22x16.png", natsumiSprite);
-          M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
-          unloadImage(natsumiSprite);
-        } else if (tileValue > 30 && tileValue <= 60) {
-          preloadImage("/idolnat/sprites/flower_stage_02-20x16.png", natsumiSprite);
-          M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
-          unloadImage(natsumiSprite);
-        } else if (tileValue > 60 && tileValue <= 90) {
-          preloadImage("/idolnat/sprites/flower_stage_03-14x16.png", natsumiSprite);
-          M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
-          unloadImage(natsumiSprite);
-        } else if (tileValue > 90 && tileValue <= 120) {
-          preloadImage("/idolnat/sprites/flower_stage_04-11x16.png", natsumiSprite);
-          M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
-          unloadImage(natsumiSprite);
-        } else if (tileValue > 120 && tileValue <= 150) {
-          preloadImage("/idolnat/sprites/flower_stage_05-10x16.png", natsumiSprite);
-          M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
-          unloadImage(natsumiSprite);
-        } else if (tileValue > 150 && tileValue <= 180) {
-          preloadImage("/idolnat/sprites/flower_stage_06-12x16.png", natsumiSprite);
-          M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
-          unloadImage(natsumiSprite);
-        } else if (tileValue > 180 && tileValue <= 210) {
-          preloadImage("/idolnat/sprites/flower_stage_07-10x16.png", natsumiSprite);
-          M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
-          unloadImage(natsumiSprite);
-        } else if (tileValue > 210) {
-          preloadImage("/idolnat/sprites/flower_stage_08-10x16.png", natsumiSprite);
-          M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, centerX - 6, centerY - 6);
-          unloadImage(natsumiSprite);
+        } else {
+          int flowerStage = gardenFlowerStageIndex(tileValue);
+          if (flowerStage >= 0 && gardenFlowerSprites[flowerStage].data) {
+            M5Cardputer.Display.drawPng(gardenFlowerSprites[flowerStage].data, gardenFlowerSprites[flowerStage].length, centerX - 6, centerY - 6);
+          }
         }
       }
     }
@@ -4137,7 +4318,7 @@ void manageGarden() {
   Serial.println(">> tile: " + String(tile));
   switch (currentState) {
     case GARDEN_PLANT:
-      Serial.println(">> GARDEN_PLANT");
+      // Serial.println(">> GARDEN_PLANT");
       if (tile == 0) {
         tile = 1;
         saveRequired = true;
@@ -4148,7 +4329,7 @@ void manageGarden() {
       changeState(0, GARDEN_LOOP, 0);
       break;
     case GARDEN_WATER:
-      Serial.println(">> GARDEN_WATER");
+      // Serial.println(">> GARDEN_WATER");
       if (tile == 0) {
         gardeningHelperText = "Plant seed 1st";
       } else if (tile == 1) {
@@ -4161,7 +4342,7 @@ void manageGarden() {
       changeState(0, GARDEN_LOOP, 0);
       break;
     case GARDEN_PICK:
-      Serial.println(">> GARDEN_PICK");
+      // Serial.println(">> GARDEN_PICK");
       if (tile > 209) {
         if (natsumi.flowers < 24) {
           tile = 0;
@@ -4178,14 +4359,14 @@ void manageGarden() {
       changeState(0, GARDEN_LOOP, 0);
       break;
     case GARDEN_CLEANUP:
-      Serial.println(">> GARDEN_CLEANUP");
+      // Serial.println(">> GARDEN_CLEANUP");
       tile = 0;
       changeState(0, GARDEN_LOOP, 0);
       saveRequired = true;
       isPlayerGardening = true;
       break;
     case GARDEN_LOOP: {
-      Serial.println(">> GARDEN_LOOP");
+      // Serial.println(">> GARDEN_LOOP");
       uint8_t key = 0;
       if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
         auto keyList = M5Cardputer.Keyboard.keyList();
@@ -6050,6 +6231,7 @@ void manageCompetition() {
                 natsumi.popularity += 1;
               }
               competitionInitialized = false;
+              recentCompWin = true;
               changeState(0, COMP_LOCAL6, 0);
               competitionMenuSelection = 1;
               showToast("Departmental competition unlocked");
@@ -6062,6 +6244,7 @@ void manageCompetition() {
                 natsumi.popularity += 1;
               }
               competitionInitialized = false;
+              recentCompWin = true;
               changeState(0, COMP_DEPT6, 0);
               competitionMenuSelection = 2;
               showToast("Regional competition unlocked");
@@ -6074,6 +6257,7 @@ void manageCompetition() {
                 natsumi.popularity += 1;
               }
               competitionInitialized = false;
+              recentCompWin = true;
               changeState(0, COMP_REG6, 0);
               competitionMenuSelection = 3;
               showToast("National competition unlocked");
@@ -6086,6 +6270,7 @@ void manageCompetition() {
                 natsumi.popularity += 1;
               }
               competitionInitialized = false;
+              recentCompWin = true;
               changeState(0, COMP_NAT6, 0);
             }
             break;
@@ -8136,6 +8321,10 @@ void drawOverlay() {
                 fridge.pear += 1;
                 drawOutcome("+1", "Pear");
                 break;
+              case 2: case 3: case 4:
+                natsumi.hunger = 4;
+                drawOutcome("4", "Hunger");
+                break;
               default:
                 break;
             }
@@ -8159,6 +8348,12 @@ void drawOverlay() {
           case 1:
             drawDialogBubble("Hello sweetie!!");
             break;
+          case 2:
+            drawDialogBubble("Hello Natsumi!!");
+            break;
+          case 3: case 4:
+            drawDialogBubble("Hello sister!!");
+            break;
           default:
             break;
         }
@@ -8170,6 +8365,9 @@ void drawOverlay() {
             break;
           case 1:
             drawDialogBubble("I brought you a juicy pear! Fruits are good for health!");
+            break;
+          case 2: case 3: case 4:
+            drawDialogBubble("Congratulations for the competition! I brought you shortcake to celebrate!");
             break;
           default:
             break;
