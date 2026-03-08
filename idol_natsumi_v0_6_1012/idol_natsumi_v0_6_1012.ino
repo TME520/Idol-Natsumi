@@ -465,6 +465,7 @@ bool unlockedNextCompetitionLevel = false;
 bool isLatestTrainingPerfect = false;
 bool showCardsLabels = true;
 bool birthdayVisitEnabled = false;
+bool recentCompWin = false;
 
 int librarySegmentsFilled = 0;
 int flowersSaleHandicap = 0;
@@ -3443,6 +3444,8 @@ void updateFiveSecondPulse() {
               visitor = 0;
               birthdayVisitEnabled = false;
               changeState(0, DOOR_KNOCK, 0);
+            } else if (recentCompWin) {
+              // Akiko, older brother or older sister visit
             } else {
               visitor = 1;
               if (natsumi.hunger < 1) {
