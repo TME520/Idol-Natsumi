@@ -3560,7 +3560,6 @@ void updateFiveSecondPulse() {
         Serial.println(">> HOME_LOOP -> counterToScreensaver: " + String(counterToScreensaver));
         if (counterToScreensaver > screensaverWait) {
           if (friendsVisitEnabled) {
-            recentCompWin = true;
             if (birthdayVisitEnabled) {
               visitor = 0;
               birthdayVisitEnabled = false;
@@ -3568,6 +3567,8 @@ void updateFiveSecondPulse() {
             } else if (recentCompWin) {
               // Akiko, older brother or older sister visit
               visitor = random(2, 5);
+              Serial.println(">>> HOME_LOOP - visitor: " + String(visitor));
+              recentCompWin = false;
               changeState(0, DOOR_KNOCK, 0);
             } else {
               visitor = 1;
@@ -6230,6 +6231,7 @@ void manageCompetition() {
                 natsumi.popularity += 1;
               }
               competitionInitialized = false;
+              recentCompWin = true;
               changeState(0, COMP_LOCAL6, 0);
               competitionMenuSelection = 1;
               showToast("Departmental competition unlocked");
@@ -6242,6 +6244,7 @@ void manageCompetition() {
                 natsumi.popularity += 1;
               }
               competitionInitialized = false;
+              recentCompWin = true;
               changeState(0, COMP_DEPT6, 0);
               competitionMenuSelection = 2;
               showToast("Regional competition unlocked");
@@ -6254,6 +6257,7 @@ void manageCompetition() {
                 natsumi.popularity += 1;
               }
               competitionInitialized = false;
+              recentCompWin = true;
               changeState(0, COMP_REG6, 0);
               competitionMenuSelection = 3;
               showToast("National competition unlocked");
@@ -6266,6 +6270,7 @@ void manageCompetition() {
                 natsumi.popularity += 1;
               }
               competitionInitialized = false;
+              recentCompWin = true;
               changeState(0, COMP_NAT6, 0);
             }
             break;
