@@ -1722,6 +1722,15 @@ void preloadImages() {
         case 1:
           preloadImage("/idolnat/screens/entrance_door_grandma_tomo.png", currentBackground);
           break;
+        case 2:
+          preloadImage("/idolnat/screens/entrance_door_akiko.png", currentBackground);
+          break;
+        case 3:
+          preloadImage("/idolnat/screens/entrance_door_older_brother.png", currentBackground);
+          break;
+        case 4:
+          preloadImage("/idolnat/screens/entrance_door_older_sister.png", currentBackground);
+          break;
         default:
           break;
       }
@@ -1740,6 +1749,9 @@ void preloadImages() {
         case 1:
           preloadImage("/idolnat/screens/gift_pear.png", currentBackground);
           break;
+        case 2: case 3: case 4:
+          preloadImage("/idolnat/screens/celebration_shortcake.png", currentBackground);
+          break;
         default:
           break;
       }
@@ -1752,6 +1764,15 @@ void preloadImages() {
         case 1:
           preloadImage("/idolnat/screens/teatime_grandma_tomo.png", currentBackground);
           break;
+        case 2:
+          preloadImage("/idolnat/screens/teatime_akiko.png", currentBackground);
+          break;
+        case 3:
+          preloadImage("/idolnat/screens/teatime_older_brother.png", currentBackground);
+          break;
+        case 4:
+          preloadImage("/idolnat/screens/teatime_older_sister.png", currentBackground);
+          break;
         default:
           break;
       }
@@ -1763,6 +1784,15 @@ void preloadImages() {
           break;
         case 1:
           preloadImage("/idolnat/screens/portrait_frame_grandma_tomo.png", currentBackground);
+          break;
+        case 2:
+          preloadImage("/idolnat/screens/portrait_frame_akiko.png", currentBackground);
+          break;
+        case 3:
+          preloadImage("/idolnat/screens/portrait_frame_older_brother.png", currentBackground);
+          break;
+        case 4:
+          preloadImage("/idolnat/screens/portrait_frame_older_sister.png", currentBackground);
           break;
         default:
           break;
@@ -1842,6 +1872,15 @@ void preloadImages() {
             case 1:
               preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
               break;
+            case 2:
+              preloadImage("/idolnat/sprites/akiko.png", currentCharacter);
+              break;
+            case 3:
+              preloadImage("/idolnat/sprites/older_brother.png", currentCharacter);
+              break;
+            case 4:
+              preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
+              break;
             default:
               break;
           }
@@ -1853,6 +1892,15 @@ void preloadImages() {
               break;
             case 1:
               preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            case 2:
+              preloadImage("/idolnat/sprites/akiko.png", currentCharacter);
+              break;
+            case 3:
+              preloadImage("/idolnat/sprites/older_brother.png", currentCharacter);
+              break;
+            case 4:
+              preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
             default:
               break;
@@ -1946,6 +1994,15 @@ void preloadImages() {
             case 1:
               preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
               break;
+            case 2:
+              preloadImage("/idolnat/sprites/akiko.png", currentCharacter);
+              break;
+            case 3:
+              preloadImage("/idolnat/sprites/older_brother.png", currentCharacter);
+              break;
+            case 4:
+              preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
+              break;
             default:
               break;
           }
@@ -1957,6 +2014,15 @@ void preloadImages() {
               break;
             case 1:
               preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            case 2:
+              preloadImage("/idolnat/sprites/akiko.png", currentCharacter);
+              break;
+            case 3:
+              preloadImage("/idolnat/sprites/older_brother.png", currentCharacter);
+              break;
+            case 4:
+              preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
             default:
               break;
@@ -2050,6 +2116,15 @@ void preloadImages() {
             case 1:
               preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
               break;
+            case 2:
+              preloadImage("/idolnat/sprites/akiko.png", currentCharacter);
+              break;
+            case 3:
+              preloadImage("/idolnat/sprites/older_brother.png", currentCharacter);
+              break;
+            case 4:
+              preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
+              break;
             default:
               break;
           }
@@ -2061,6 +2136,15 @@ void preloadImages() {
               break;
             case 1:
               preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            case 2:
+              preloadImage("/idolnat/sprites/akiko.png", currentCharacter);
+              break;
+            case 3:
+              preloadImage("/idolnat/sprites/older_brother.png", currentCharacter);
+              break;
+            case 4:
+              preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
             default:
               break;
@@ -2154,6 +2238,15 @@ void preloadImages() {
             case 1:
               preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
               break;
+            case 2:
+              preloadImage("/idolnat/sprites/akiko.png", currentCharacter);
+              break;
+            case 3:
+              preloadImage("/idolnat/sprites/older_brother.png", currentCharacter);
+              break;
+            case 4:
+              preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
+              break;
             default:
               break;
           }
@@ -2165,6 +2258,15 @@ void preloadImages() {
               break;
             case 1:
               preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            case 2:
+              preloadImage("/idolnat/sprites/akiko.png", currentCharacter);
+              break;
+            case 3:
+              preloadImage("/idolnat/sprites/older_brother.png", currentCharacter);
+              break;
+            case 4:
+              preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
             default:
               break;
@@ -2258,6 +2360,15 @@ void preloadImages() {
             case 1:
               preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
               break;
+            case 2:
+              preloadImage("/idolnat/sprites/akiko.png", currentCharacter);
+              break;
+            case 3:
+              preloadImage("/idolnat/sprites/older_brother.png", currentCharacter);
+              break;
+            case 4:
+              preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
+              break;
             default:
               break;
           }
@@ -2269,6 +2380,15 @@ void preloadImages() {
               break;
             case 1:
               preloadImage("/idolnat/sprites/grandma_tomo.png", currentCharacter);
+              break;
+            case 2:
+              preloadImage("/idolnat/sprites/akiko.png", currentCharacter);
+              break;
+            case 3:
+              preloadImage("/idolnat/sprites/older_brother.png", currentCharacter);
+              break;
+            case 4:
+              preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
             default:
               break;
@@ -3446,6 +3566,8 @@ void updateFiveSecondPulse() {
               changeState(0, DOOR_KNOCK, 0);
             } else if (recentCompWin) {
               // Akiko, older brother or older sister visit
+              visitor = random(2, 5);
+              changeState(0, DOOR_KNOCK, 0);
             } else {
               visitor = 1;
               if (natsumi.hunger < 1) {
