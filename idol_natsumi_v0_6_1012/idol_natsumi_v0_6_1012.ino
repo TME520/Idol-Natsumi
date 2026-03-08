@@ -3560,6 +3560,7 @@ void updateFiveSecondPulse() {
         Serial.println(">> HOME_LOOP -> counterToScreensaver: " + String(counterToScreensaver));
         if (counterToScreensaver > screensaverWait) {
           if (friendsVisitEnabled) {
+            recentCompWin = true;
             if (birthdayVisitEnabled) {
               visitor = 0;
               birthdayVisitEnabled = false;
@@ -8315,6 +8316,10 @@ void drawOverlay() {
                 fridge.pear += 1;
                 drawOutcome("+1", "Pear");
                 break;
+              case 2: case 3: case 4:
+                natsumi.hunger = 4;
+                drawOutcome("4", "Hunger");
+                break;
               default:
                 break;
             }
@@ -8338,6 +8343,12 @@ void drawOverlay() {
           case 1:
             drawDialogBubble("Hello sweetie!!");
             break;
+          case 2:
+            drawDialogBubble("Hello Natsumi!!");
+            break;
+          case 3: case 4:
+            drawDialogBubble("Hello sister!!");
+            break;
           default:
             break;
         }
@@ -8349,6 +8360,9 @@ void drawOverlay() {
             break;
           case 1:
             drawDialogBubble("I brought you a juicy pear! Fruits are good for health!");
+            break;
+          case 2: case 3: case 4:
+            drawDialogBubble("Congratulations for the competition! I brought you shortcake to celebrate!");
             break;
           default:
             break;
