@@ -99,6 +99,7 @@ enum GameState {
   TRAIN_RUN2,
   TRAIN_RUN3,
   TRAIN_LIBRARY,
+  TRAIN_STATUS,
   COMP_EXPLAIN,
   COMP_MENU,
   COMP_LOCAL,
@@ -126,6 +127,7 @@ enum GameState {
   COMP_NAT5,
   COMP_NAT6,
   COMP_NAT7,
+  COMP_STATUS,
   MATSURI_TITLE,
   MATSURI_TICKETS,
   MATSURI_TICKETS2,
@@ -200,6 +202,8 @@ struct NatsumiStats {
   int flowers;
   int competition;
   int tickets;
+  int trainingCntr;
+  int competitionLevel;
   unsigned long lastHungerUpdate = 0;
   unsigned long lastHygieneUpdate = 0;
   unsigned long lastEnergyUpdate = 0;
@@ -766,6 +770,7 @@ const char* gameStateToString(GameState state) {
     case TRAIN_RUN2:       return "TRAIN_RUN2";
     case TRAIN_RUN3:       return "TRAIN_RUN3";
     case TRAIN_LIBRARY:    return "TRAIN_LIBRARY";
+    case TRAIN_STATUS:     return "TRAIN_STATUS";
     case COMP_EXPLAIN:     return "COMP_EXPLAIN";
     case COMP_MENU:        return "COMP_MENU";
     case COMP_LOCAL:       return "COMP_LOCAL";
@@ -793,6 +798,7 @@ const char* gameStateToString(GameState state) {
     case COMP_NAT5:        return "COMP_NAT5";
     case COMP_NAT6:        return "COMP_NAT6";
     case COMP_NAT7:        return "COMP_NAT7";
+    case COMP_STATUS:      return "COMP_STATUS";
     case MATSURI_TITLE:    return "MATSURI_TITLE";
     case MATSURI_TICKETS:  return "MATSURI_TICKETS";
     case MATSURI_TICKETS2: return "MATSURI_TICKETS2";
@@ -901,6 +907,8 @@ bool saveGameToSd() {
   saveFile.println("flowers=" + String(natsumi.flowers));
   saveFile.println("competition=" + String(natsumi.competition));
   saveFile.println("tickets=" + String(natsumi.tickets));
+  saveFile.println("trainingCntr=" + String(natsumi.trainingCntr));
+  saveFile.println("competitionLevel=" + String(natsumi.competitionLevel));
   saveFile.println("last_hunger_update=" + String(natsumi.lastHungerUpdate));
   saveFile.println("last_hygiene_update=" + String(natsumi.lastHygieneUpdate));
   saveFile.println("last_energy_update=" + String(natsumi.lastEnergyUpdate));
@@ -1080,6 +1088,8 @@ bool loadGameFromSd() {
       else if (key == "flowers") natsumi.flowers = value.toInt();
       else if (key == "competition") natsumi.competition = value.toInt();
       else if (key == "tickets") natsumi.tickets = value.toInt();
+      else if (key == "trainingCntr") natsumi.trainingCntr = value.toInt();
+      else if (key == "competitionLevel") natsumi.competitionLevel = value.toInt();
     } else if (section == "[fridge]") {
       Serial.println(">>>  loadGameFromSd - fridge: key=" + key);
       if (key == "red_apple") fridge.redApple = value.toInt();
