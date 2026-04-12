@@ -333,6 +333,8 @@ const char* saveGameBackupPath = "/idolnat/savegame.bak";
 String saveStatusMsg = "";
 unsigned long saveStatusUntil = 0;
 unsigned long counterToScreensaver = 0;
+String trainingStatusMessage = "";
+bool trainingStatusProcessed = false;
 
 // Onsen mini-game helpers
 void resetBathGame();
@@ -366,6 +368,7 @@ void resetTrainRunGame();
 void manageTrainRunGame();
 void drawTrainRunPlayfield(bool showCompletion, bool showFailure);
 void startTrainRunGame();
+void manageTrainingStatus();
 
 unsigned long changeStateCounter = 0;
 
@@ -1633,6 +1636,9 @@ void preloadImages() {
           preloadImage("/idolnat/screens/natsumi_21_library.png", currentBackground);
           break;
       }
+      break;
+    case TRAIN_STATUS:
+      preloadImage("/idolnat/screens/map_training.png", currentBackground);
       break;
     case COMP_EXPLAIN:
       preloadImage("/idolnat/screens/competition_booth.png", currentBackground);
@@ -3053,6 +3059,12 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         librarySegmentsFilled = 0;
         libraryStartTime = 0;
         break;
+      case TRAIN_STATUS:
+        setScreenConfig(DIALOG);
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        trainingStatusProcessed = false;
+        break;
       case COMP_EXPLAIN:
         // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
@@ -3812,6 +3824,9 @@ void manageDialog() {
       break;
     case ACTION_OUTCOME:
       actionOutcome();
+      break;
+    case TRAIN_STATUS:
+      manageTrainingStatus();
       break;
     case INTRO: case INTRO2: case INTRO3: case INTRO4: case INTRO5: case INTRO6: case INTRO7:
       introduction();
@@ -8004,6 +8019,9 @@ void drawOverlay() {
         drawDialogBubble("Running is very good for your health, see you again very soon!!");
         isLatestTrainingPerfect = true;
         break;
+      case TRAIN_STATUS:
+        drawDialogBubble(trainingStatusMessage);
+        break;
       case FOOD_CONBINI2:
         drawConbimartOverlay();
         break;
@@ -9098,13 +9116,13 @@ void actionOutcome() {
       Serial.println(">> actionOutcome() - key pressed");
       switch(previousState) {
         case TRAIN_SING3: case TRAIN_DANCE3:
-          changeState(0, HOME_LOOP, 0);
+          changeState(0, TRAIN_STATUS, 0);
           break;
         case TRAIN_SWIM3: case TRAIN_GYM3: case TRAIN_RUN3:
-          changeState(0, HOME_LOOP, 0);
+          changeState(0, TRAIN_STATUS, 0);
           break;
         case TRAIN_LIBRARY:
-          changeState(0, HOME_LOOP, 0);
+          changeState(0, TRAIN_STATUS, 0);
           break;
         case MATSURI_SAVORY5: case MATSURI_SUGARY4:
           changeState(0, MATSURI_MENU, 0);
@@ -9122,6 +9140,41 @@ void actionOutcome() {
     }
   }
   return;
+}
+
+void manageTrainingStatus() {
+  if (!trainingStatusProcessed) {
+    if (isLatestTrainingPerfect) {
+      natsumi.trainingCntr += 1;
+      if (natsumi.trainingCntr >= 3) {
+        natsumi.competitionLevel += 1;
+        natsumi.trainingCntr = 0;
+        trainingStatusMessage = "Perfect training chain complete! Competition level increased by 1. New level: " + String(natsumi.competitionLevel) + ".";
+      } else {
+        int remainingPerfectTrainings = 3 - natsumi.trainingCntr;
+        trainingStatusMessage = "Perfect training recorded! Keep going: " + String(remainingPerfectTrainings) + " more perfect training session(s) to unlock the next competition level.";
+      }
+    } else {
+      int remainingPerfectTrainings = 3 - natsumi.trainingCntr;
+      if (remainingPerfectTrainings < 0) {
+        remainingPerfectTrainings = 0;
+      }
+      trainingStatusMessage = "This training was not perfect. You still need " + String(remainingPerfectTrainings) + " perfect training session(s) to unlock the next competition level.";
+    }
+    trainingStatusProcessed = true;
+    saveRequired = true;
+    l5NeedsRedraw = true;
+  }
+
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      changeState(0, HOME_LOOP, 0);
+      return;
+    }
+  }
 }
 
 void matsuriDialogs() {
