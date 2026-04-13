@@ -864,7 +864,7 @@ void showToast(const String& msg, unsigned long ms = longWait) {
 
 bool isCompetitionEnabled() {
   Serial.println("> isCompetitionEnabled()");
-  if (natsumi.age >= 13 && natsumi.hunger == 4 && natsumi.hygiene == 4 && natsumi.energy == 4 && natsumi.performance == 4 && natsumi.fitness == 4 && natsumi.culture == 4 && natsumi.charm == 4) {
+  if (natsumi.competitionLevel > 0 && natsumi.hunger == 4 && natsumi.hygiene == 4 && natsumi.energy == 4 && natsumi.performance == 4 && natsumi.fitness == 4 && natsumi.culture == 4 && natsumi.charm == 4) {
     Serial.println(">> isCompetitionEnabled: true");
     return true;
   } else {
@@ -6217,7 +6217,8 @@ void manageCompetition() {
       competitionLastSpawn = 0;
       competitionCompletionTime = 0;
       competitionCompleted = false;
-  
+
+      /*
       switch (currentState) {
         case COMP_LOCAL5:
           Serial.println(">> COMP_LOCAL5 - 3 columns");
@@ -6236,6 +6237,26 @@ void manageCompetition() {
           competitionColumns = 6;
           break;
       }
+      */
+
+      switch (natsumi.competitionLevel) {
+        case 1:
+          Serial.println(">> Competition level 1 - 3 columns");
+          competitionColumns = 3;
+          break;
+        case 2:
+          Serial.println(">> Competition level 2 - 4 columns");
+          competitionColumns = 4;
+          break;
+        case 3:
+          Serial.println(">> Competition level 3 - 5 columns");
+          competitionColumns = 5;
+          break;
+        case 4:
+          Serial.println(">> Competition level 4 - 6 columns");
+          competitionColumns = 6;
+          break;
+      }
   
       competitionColumnWidth = screenWidth / competitionColumns;
       competitionPlayerColumn = competitionColumns / 2;
@@ -6248,15 +6269,16 @@ void manageCompetition() {
       if (competitionNotesCollected == targetNotes) {
         Serial.println(">> Competition - Notes collected: " + String(competitionNotesCollected));
         Serial.println(">> Competition - Notes spawned: " + String(competitionNotesSpawned));
+        natsumi.competitionLevel += 1;
+        if (natsumi.popularity < 4) {
+          natsumi.popularity += 1;
+        }
+        competitionInitialized = false;
+        recentCompWin = true;
         switch (currentState) {
           case COMP_LOCAL5:
             if (natsumi.competition == 0) {
               natsumi.competition = 1;
-              if (natsumi.popularity < 4) {
-                natsumi.popularity += 1;
-              }
-              competitionInitialized = false;
-              recentCompWin = true;
               changeState(0, COMP_LOCAL6, 0);
               competitionMenuSelection = 1;
               showToast("Departmental competition unlocked");
@@ -6265,11 +6287,6 @@ void manageCompetition() {
           case COMP_DEPT5:
             if (natsumi.competition == 1) {
               natsumi.competition = 2;
-              if (natsumi.popularity < 4) {
-                natsumi.popularity += 1;
-              }
-              competitionInitialized = false;
-              recentCompWin = true;
               changeState(0, COMP_DEPT6, 0);
               competitionMenuSelection = 2;
               showToast("Regional competition unlocked");
@@ -6278,11 +6295,6 @@ void manageCompetition() {
           case COMP_REG5:
             if (natsumi.competition == 2) {
               natsumi.competition = 3;
-              if (natsumi.popularity < 4) {
-                natsumi.popularity += 1;
-              }
-              competitionInitialized = false;
-              recentCompWin = true;
               changeState(0, COMP_REG6, 0);
               competitionMenuSelection = 3;
               showToast("National competition unlocked");
@@ -6291,11 +6303,6 @@ void manageCompetition() {
           case COMP_NAT5:
             if (natsumi.competition == 3) {
               natsumi.competition = 4;
-              if (natsumi.popularity < 4) {
-                natsumi.popularity += 1;
-              }
-              competitionInitialized = false;
-              recentCompWin = true;
               changeState(0, COMP_NAT6, 0);
             }
             break;
@@ -8210,7 +8217,7 @@ void drawOverlay() {
         drawDialogBubble("I sold all my flowers and made " + String(flowersRevenue) + "$. I have " + String(natsumi.money) + "$ in the bank.");
         break;
       case COMP_EXPLAIN:
-        drawDialogBubble("In order to enter Competition, you must be at least 13 and have Hunger, Hygiene, Energy, Performance, Fitness, Culture and Charm to 4, their maximum.");
+        drawDialogBubble("In order to enter Competition, you must achieve 3 perfect training ssessions, plus have Hunger, Hygiene, Energy, Performance, Fitness, Culture and Charm to 4.");
         break;
       case COMP_LOCAL3:
         drawDialogBubble("Welcome to the Shiodome Ward Community Center! Get ready for a nice singing competition! Sore dewa, hajimemasho !");
