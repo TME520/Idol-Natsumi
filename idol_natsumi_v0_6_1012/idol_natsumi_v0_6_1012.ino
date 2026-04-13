@@ -530,6 +530,7 @@ int singColumnWidth = 48;
 int singPlayerY = 118;
 int singPlayerColumn = singColumnCount / 2;
 int singNotesCollected = 0;
+int singNotesMissed = 0;
 int singNotesSpawned = 0;
 unsigned long singLastSpawnTime = 0;
 unsigned long singCompletionTime = 0;
@@ -4867,6 +4868,7 @@ void drawTrainDancePlayfield() {
 void resetTrainSingGame() {
   singNotes.clear();
   singNotesCollected = 0;
+  singNotesMissed = 0;
   singNotesSpawned = 0;
   singPlayerColumn = singColumnCount / 2;
   singLastSpawnTime = 0;
@@ -4983,6 +4985,7 @@ void manageTrainSingGame() {
         singFlashColor = M5Cardputer.Display.color565(40, 220, 80);
         singFlashUntil = now + singFlashDuration;
       } else {
+        singNotesMissed++;
         note.active = false;
         singFlashColor = M5Cardputer.Display.color565(220, 40, 40);
         singFlashUntil = now + singFlashDuration;
@@ -4997,8 +5000,10 @@ void manageTrainSingGame() {
   if (singNotesCollected >= singTargetNotes) {
     singGameCompleted = true;
     singCompletionTime = now;
-    if (natsumi.performance < 4) {
-      natsumi.performance += 1;
+    if (singNotesMissed == 0) {
+      if (natsumi.performance < 4) {
+        natsumi.performance += 1;
+      }
     }
     drawTrainSingPlayfield(true);
     return;
@@ -7980,10 +7985,10 @@ void drawOverlay() {
         break;
       }
       case TRAIN_SING3: {
-        int missedMusicCoins = singNotesSpawned - singNotesCollected;
+        // int missedMusicCoins = singNotesSpawned - singNotesCollected;
         String musicTeacherFeedback = "";
         isLatestTrainingPerfect = false;
-        switch(missedMusicCoins) {
+        switch(singNotesMissed) {
           case 0:
             musicTeacherFeedback = "excellent!!";
             isLatestTrainingPerfect = true;
@@ -8001,7 +8006,7 @@ void drawOverlay() {
             musicTeacherFeedback = "very bad...";
             break;
         }
-        drawDialogBubble("You collected " + String(singNotesCollected) + " / " + String(singNotesSpawned) +" music coins (missed " + String(missedMusicCoins) +"). Your performance was " + musicTeacherFeedback);
+        drawDialogBubble("You collected " + String(singNotesCollected) + " / " + String(singNotesSpawned) +" music coins (missed " + String(singNotesMissed) +"). Your performance was " + musicTeacherFeedback);
         break;
       }
       case TRAIN_SWIM3: {
