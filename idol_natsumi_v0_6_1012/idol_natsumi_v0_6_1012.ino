@@ -333,6 +333,8 @@ const char* saveGameBackupPath = "/idolnat/savegame.bak";
 String saveStatusMsg = "";
 unsigned long saveStatusUntil = 0;
 unsigned long counterToScreensaver = 0;
+String trainingStatusMessage = "";
+bool trainingStatusProcessed = false;
 
 // Onsen mini-game helpers
 void resetBathGame();
@@ -366,6 +368,7 @@ void resetTrainRunGame();
 void manageTrainRunGame();
 void drawTrainRunPlayfield(bool showCompletion, bool showFailure);
 void startTrainRunGame();
+void manageTrainingStatus();
 
 unsigned long changeStateCounter = 0;
 
@@ -861,7 +864,7 @@ void showToast(const String& msg, unsigned long ms = longWait) {
 
 bool isCompetitionEnabled() {
   Serial.println("> isCompetitionEnabled()");
-  if (natsumi.age >= 13 && natsumi.hunger == 4 && natsumi.hygiene == 4 && natsumi.energy == 4 && natsumi.performance == 4 && natsumi.fitness == 4 && natsumi.culture == 4 && natsumi.charm == 4) {
+  if (natsumi.competitionLevel > 0 && natsumi.hunger == 4 && natsumi.hygiene == 4 && natsumi.energy == 4 && natsumi.performance == 4 && natsumi.fitness == 4 && natsumi.culture == 4 && natsumi.charm == 4) {
     Serial.println(">> isCompetitionEnabled: true");
     return true;
   } else {
@@ -1633,6 +1636,9 @@ void preloadImages() {
           preloadImage("/idolnat/screens/natsumi_21_library.png", currentBackground);
           break;
       }
+      break;
+    case TRAIN_STATUS:
+      preloadImage("/idolnat/screens/map_training.png", currentBackground);
       break;
     case COMP_EXPLAIN:
       preloadImage("/idolnat/screens/competition_booth.png", currentBackground);
@@ -3053,6 +3059,12 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         librarySegmentsFilled = 0;
         libraryStartTime = 0;
         break;
+      case TRAIN_STATUS:
+        setScreenConfig(DIALOG);
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        trainingStatusProcessed = false;
+        break;
       case COMP_EXPLAIN:
         // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
@@ -3812,6 +3824,9 @@ void manageDialog() {
       break;
     case ACTION_OUTCOME:
       actionOutcome();
+      break;
+    case TRAIN_STATUS:
+      manageTrainingStatus();
       break;
     case INTRO: case INTRO2: case INTRO3: case INTRO4: case INTRO5: case INTRO6: case INTRO7:
       introduction();
@@ -6202,7 +6217,8 @@ void manageCompetition() {
       competitionLastSpawn = 0;
       competitionCompletionTime = 0;
       competitionCompleted = false;
-  
+
+      /*
       switch (currentState) {
         case COMP_LOCAL5:
           Serial.println(">> COMP_LOCAL5 - 3 columns");
@@ -6221,6 +6237,26 @@ void manageCompetition() {
           competitionColumns = 6;
           break;
       }
+      */
+
+      switch (natsumi.competitionLevel) {
+        case 1:
+          Serial.println(">> Competition level 1 - 3 columns");
+          competitionColumns = 3;
+          break;
+        case 2:
+          Serial.println(">> Competition level 2 - 4 columns");
+          competitionColumns = 4;
+          break;
+        case 3:
+          Serial.println(">> Competition level 3 - 5 columns");
+          competitionColumns = 5;
+          break;
+        case 4:
+          Serial.println(">> Competition level 4 - 6 columns");
+          competitionColumns = 6;
+          break;
+      }
   
       competitionColumnWidth = screenWidth / competitionColumns;
       competitionPlayerColumn = competitionColumns / 2;
@@ -6233,15 +6269,16 @@ void manageCompetition() {
       if (competitionNotesCollected == targetNotes) {
         Serial.println(">> Competition - Notes collected: " + String(competitionNotesCollected));
         Serial.println(">> Competition - Notes spawned: " + String(competitionNotesSpawned));
+        natsumi.competitionLevel += 1;
+        if (natsumi.popularity < 4) {
+          natsumi.popularity += 1;
+        }
+        competitionInitialized = false;
+        recentCompWin = true;
         switch (currentState) {
           case COMP_LOCAL5:
             if (natsumi.competition == 0) {
               natsumi.competition = 1;
-              if (natsumi.popularity < 4) {
-                natsumi.popularity += 1;
-              }
-              competitionInitialized = false;
-              recentCompWin = true;
               changeState(0, COMP_LOCAL6, 0);
               competitionMenuSelection = 1;
               showToast("Departmental competition unlocked");
@@ -6250,11 +6287,6 @@ void manageCompetition() {
           case COMP_DEPT5:
             if (natsumi.competition == 1) {
               natsumi.competition = 2;
-              if (natsumi.popularity < 4) {
-                natsumi.popularity += 1;
-              }
-              competitionInitialized = false;
-              recentCompWin = true;
               changeState(0, COMP_DEPT6, 0);
               competitionMenuSelection = 2;
               showToast("Regional competition unlocked");
@@ -6263,11 +6295,6 @@ void manageCompetition() {
           case COMP_REG5:
             if (natsumi.competition == 2) {
               natsumi.competition = 3;
-              if (natsumi.popularity < 4) {
-                natsumi.popularity += 1;
-              }
-              competitionInitialized = false;
-              recentCompWin = true;
               changeState(0, COMP_REG6, 0);
               competitionMenuSelection = 3;
               showToast("National competition unlocked");
@@ -6276,11 +6303,6 @@ void manageCompetition() {
           case COMP_NAT5:
             if (natsumi.competition == 3) {
               natsumi.competition = 4;
-              if (natsumi.popularity < 4) {
-                natsumi.popularity += 1;
-              }
-              competitionInitialized = false;
-              recentCompWin = true;
               changeState(0, COMP_NAT6, 0);
             }
             break;
@@ -8004,6 +8026,9 @@ void drawOverlay() {
         drawDialogBubble("Running is very good for your health, see you again very soon!!");
         isLatestTrainingPerfect = true;
         break;
+      case TRAIN_STATUS:
+        drawDialogBubble(trainingStatusMessage);
+        break;
       case FOOD_CONBINI2:
         drawConbimartOverlay();
         break;
@@ -8192,7 +8217,7 @@ void drawOverlay() {
         drawDialogBubble("I sold all my flowers and made " + String(flowersRevenue) + "$. I have " + String(natsumi.money) + "$ in the bank.");
         break;
       case COMP_EXPLAIN:
-        drawDialogBubble("In order to enter Competition, you must be at least 13 and have Hunger, Hygiene, Energy, Performance, Fitness, Culture and Charm to 4, their maximum.");
+        drawDialogBubble("In order to enter Competition, you must achieve 3 perfect training ssessions, plus have Hunger, Hygiene, Energy, Performance, Fitness, Culture and Charm to 4.");
         break;
       case COMP_LOCAL3:
         drawDialogBubble("Welcome to the Shiodome Ward Community Center! Get ready for a nice singing competition! Sore dewa, hajimemasho !");
@@ -9098,13 +9123,13 @@ void actionOutcome() {
       Serial.println(">> actionOutcome() - key pressed");
       switch(previousState) {
         case TRAIN_SING3: case TRAIN_DANCE3:
-          changeState(0, HOME_LOOP, 0);
+          changeState(0, TRAIN_STATUS, 0);
           break;
         case TRAIN_SWIM3: case TRAIN_GYM3: case TRAIN_RUN3:
-          changeState(0, HOME_LOOP, 0);
+          changeState(0, TRAIN_STATUS, 0);
           break;
         case TRAIN_LIBRARY:
-          changeState(0, HOME_LOOP, 0);
+          changeState(0, TRAIN_STATUS, 0);
           break;
         case MATSURI_SAVORY5: case MATSURI_SUGARY4:
           changeState(0, MATSURI_MENU, 0);
@@ -9122,6 +9147,41 @@ void actionOutcome() {
     }
   }
   return;
+}
+
+void manageTrainingStatus() {
+  if (!trainingStatusProcessed) {
+    if (isLatestTrainingPerfect) {
+      natsumi.trainingCntr += 1;
+      if (natsumi.trainingCntr >= 3) {
+        natsumi.competitionLevel += 1;
+        natsumi.trainingCntr = 0;
+        trainingStatusMessage = "Perfect training chain complete! Competition level increased by 1. New level: " + String(natsumi.competitionLevel) + ".";
+      } else {
+        int remainingPerfectTrainings = 3 - natsumi.trainingCntr;
+        trainingStatusMessage = "Perfect training recorded! Keep going: " + String(remainingPerfectTrainings) + " more perfect training session(s) to unlock the next competition level.";
+      }
+    } else {
+      int remainingPerfectTrainings = 3 - natsumi.trainingCntr;
+      if (remainingPerfectTrainings < 0) {
+        remainingPerfectTrainings = 0;
+      }
+      trainingStatusMessage = "This training was not perfect. You still need " + String(remainingPerfectTrainings) + " perfect training session(s) to unlock the next competition level.";
+    }
+    trainingStatusProcessed = true;
+    saveRequired = true;
+    l5NeedsRedraw = true;
+  }
+
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      changeState(0, HOME_LOOP, 0);
+      return;
+    }
+  }
 }
 
 void matsuriDialogs() {
