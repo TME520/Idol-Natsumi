@@ -576,7 +576,7 @@ const unsigned long swimSpawnIntervalMin = 650;
 const unsigned long swimSpawnIntervalMax = 1150;
 const float swimMinSpeed = 1.4f;
 const float swimMaxSpeed = 2.6f;
-const unsigned long swimHitFlashDuration = 200;
+const unsigned long swimResultFlashDuration = 80;
 const unsigned long swimCompletionDelay = 1200;
 int swimPlayerLane = 1;
 int swimAvoidedSharks = 0;
@@ -584,8 +584,9 @@ int swimCollisions = 0;
 bool swimGameRunning = false;
 bool swimGameCompleted = false;
 bool swimNeedsRedraw = false;
-bool swimHitFlash = false;
-unsigned long swimHitFlashTime = 0;
+bool swimResultFlashActive = false;
+unsigned long swimResultFlashTime = 0;
+uint16_t swimResultFlashColor = BLACK;
 unsigned long swimCompletionTime = 0;
 unsigned long swimLastSpawnTime = 0;
 unsigned long swimNextSpawnDelay = swimSpawnIntervalMin;
@@ -5087,8 +5088,9 @@ void resetTrainSwimGame() {
   swimGameRunning = false;
   swimGameCompleted = false;
   swimNeedsRedraw = true;
-  swimHitFlash = false;
-  swimHitFlashTime = 0;
+  swimResultFlashActive = false;
+  swimResultFlashTime = 0;
+  swimResultFlashColor = BLACK;
   swimCompletionTime = 0;
   swimLastSpawnTime = 0;
   swimNextSpawnDelay = swimSpawnIntervalMin;
@@ -5176,9 +5178,9 @@ void manageTrainSwimGame() {
     return;
   }
 
-  bool showHitEffect = swimHitFlash && (now - swimHitFlashTime < swimHitFlashDuration);
-  if (swimHitFlash && !showHitEffect) {
-    swimHitFlash = false;
+  bool showResultFlash = swimResultFlashActive && (now - swimResultFlashTime < swimResultFlashDuration);
+  if (swimResultFlashActive && !showResultFlash) {
+    swimResultFlashActive = false;
     swimNeedsRedraw = true;
   }
 
@@ -5221,12 +5223,18 @@ void manageTrainSwimGame() {
     } else if (shark.x > M5Cardputer.Display.width() + swimSharkLength) {
       shark.active = false;
       swimAvoidedSharks++;
+      swimResultFlashActive = true;
+      swimResultFlashTime = now;
+      swimResultFlashColor = GREEN;
       swimNeedsRedraw = true;
     }
   }
 
   if (collision) {
     handleSwimCollision();
+    swimResultFlashActive = true;
+    swimResultFlashTime = now;
+    swimResultFlashColor = RED;
   }
 
   swimSharks.erase(std::remove_if(swimSharks.begin(), swimSharks.end(), [](const SwimShark &s) {
@@ -5249,7 +5257,10 @@ void manageTrainSwimGame() {
   }
 
   if (swimNeedsRedraw) {
-    drawTrainSwimPlayfield(false, showHitEffect);
+    drawTrainSwimPlayfield(false, false);
+    if (showResultFlash) {
+      M5Cardputer.Display.fillScreen(swimResultFlashColor);
+    }
     swimNeedsRedraw = false;
   }
 }
