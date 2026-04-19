@@ -5686,6 +5686,7 @@ void manageTrainRunGame() {
       runGameRunning = false;
       runCompletionTime = now;
       runNeedsRedraw = true;
+      isLatestTrainingPerfect = true;
       if (natsumi.fitness < 4) {
         natsumi.fitness += 1;
       }
@@ -5697,6 +5698,7 @@ void manageTrainRunGame() {
       runGameRunning = false;
       runCompletionTime = now;
       runNeedsRedraw = true;
+      isLatestTrainingPerfect = false;
       return;
     }
     runNeedsRedraw = true;
@@ -8089,7 +8091,7 @@ void drawOverlay() {
       }
       case TRAIN_RUN3:
         drawDialogBubble("Running is very good for your health, see you again very soon!!");
-        isLatestTrainingPerfect = true;
+        // isLatestTrainingPerfect = true;
         break;
       case TRAIN_STATUS:
         drawDialogBubble(trainingStatusMessage);
