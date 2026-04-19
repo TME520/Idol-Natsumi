@@ -5425,8 +5425,8 @@ void drawTrainGymPlayfield(bool showCompletion) {
   const uint16_t frameColor = WHITE;
 
   if (!showCompletion) {
-    // Clear the game area each frame so the moving cursor does not leave traces.
-    M5Cardputer.Display.fillRect(0, 0, screenWidth, gymBarY + gymBarHeight + 16, BLACK);
+    // Clear only the moving cursor lane to avoid full-screen flicker.
+    M5Cardputer.Display.fillRect(gymBarX - 4, gymBarY - 6, gymBarWidth + 8, gymBarHeight + 12, BLACK);
   }
 
   M5Cardputer.Display.setTextDatum(middle_left);
