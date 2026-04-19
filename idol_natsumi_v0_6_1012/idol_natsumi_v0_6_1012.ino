@@ -525,13 +525,17 @@ const int singPlayerWidth = 22;
 const int singPlayerHeight = 10;
 const unsigned long singNoteSpawnInterval = 700;
 const int singNoteFallSpeed = 3;
+const unsigned long singFlashDuration = 70;
 int singColumnWidth = 48;
 int singPlayerY = 118;
 int singPlayerColumn = singColumnCount / 2;
 int singNotesCollected = 0;
+int singNotesMissed = 0;
 int singNotesSpawned = 0;
 unsigned long singLastSpawnTime = 0;
 unsigned long singCompletionTime = 0;
+unsigned long singFlashUntil = 0;
+uint16_t singFlashColor = BLACK;
 bool singGameRunning = false;
 bool singGameCompleted = false;
 std::vector<FallingNote> singNotes;
@@ -4864,10 +4868,13 @@ void drawTrainDancePlayfield() {
 void resetTrainSingGame() {
   singNotes.clear();
   singNotesCollected = 0;
+  singNotesMissed = 0;
   singNotesSpawned = 0;
   singPlayerColumn = singColumnCount / 2;
   singLastSpawnTime = 0;
   singCompletionTime = 0;
+  singFlashUntil = 0;
+  singFlashColor = BLACK;
   singGameRunning = false;
   singGameCompleted = false;
 }
@@ -4975,8 +4982,13 @@ void manageTrainSingGame() {
       if (note.column == singPlayerColumn) {
         singNotesCollected++;
         note.active = false;
-      } else if (note.y > M5Cardputer.Display.height()) {
+        singFlashColor = M5Cardputer.Display.color565(40, 220, 80);
+        singFlashUntil = now + singFlashDuration;
+      } else {
+        singNotesMissed++;
         note.active = false;
+        singFlashColor = M5Cardputer.Display.color565(220, 40, 40);
+        singFlashUntil = now + singFlashDuration;
       }
     }
   }
@@ -4988,10 +5000,18 @@ void manageTrainSingGame() {
   if (singNotesCollected >= singTargetNotes) {
     singGameCompleted = true;
     singCompletionTime = now;
-    if (natsumi.performance < 4) {
-      natsumi.performance += 1;
+    if (singNotesMissed == 0) {
+      if (natsumi.performance < 4) {
+        natsumi.performance += 1;
+      }
     }
     drawTrainSingPlayfield(true);
+    return;
+  }
+
+  if (now < singFlashUntil) {
+    M5Cardputer.Display.fillScreen(singFlashColor);
+    // M5Cardputer.Display.fillRect(0, 130, 240, 5, singFlashColor);
     return;
   }
 
@@ -7966,10 +7986,10 @@ void drawOverlay() {
         break;
       }
       case TRAIN_SING3: {
-        int missedMusicCoins = singNotesSpawned - singNotesCollected;
+        // int missedMusicCoins = singNotesSpawned - singNotesCollected;
         String musicTeacherFeedback = "";
         isLatestTrainingPerfect = false;
-        switch(missedMusicCoins) {
+        switch(singNotesMissed) {
           case 0:
             musicTeacherFeedback = "excellent!!";
             isLatestTrainingPerfect = true;
@@ -7987,7 +8007,7 @@ void drawOverlay() {
             musicTeacherFeedback = "very bad...";
             break;
         }
-        drawDialogBubble("You collected " + String(singNotesCollected) + " / " + String(singNotesSpawned) +" music coins (missed " + String(missedMusicCoins) +"). Your performance was " + musicTeacherFeedback);
+        drawDialogBubble("You missed " + String(singNotesMissed) +" notes. Your performance was " + musicTeacherFeedback);
         break;
       }
       case TRAIN_SWIM3: {
