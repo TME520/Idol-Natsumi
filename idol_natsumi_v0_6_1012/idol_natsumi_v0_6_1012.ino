@@ -8386,6 +8386,7 @@ void drawOverlay() {
             } else {
               Serial.println(">> actionOutcome() - natsumi.performance = 4");
               changeState(0, MATSURI_TICKETS, 0);
+              changeState(0, TRAIN_STATUS, 0);
             }
             break;
           case TRAIN_SWIM3: case TRAIN_GYM3: case TRAIN_RUN3:
@@ -8395,6 +8396,7 @@ void drawOverlay() {
             } else {
               Serial.println(">> actionOutcome() - natsumi.fitness = 4");
               changeState(0, MATSURI_TICKETS, 0);
+              changeState(0, TRAIN_STATUS, 0);
             }
             break;
           case TRAIN_LIBRARY:
@@ -8405,6 +8407,7 @@ void drawOverlay() {
             } else {
               Serial.println(">> actionOutcome() - natsumi.culture = 4");
               changeState(0, MATSURI_TICKETS, 0);
+              changeState(0, TRAIN_STATUS, 0);
             }
             break;
           case MATSURI_SAVORY5: case MATSURI_SUGARY4:
