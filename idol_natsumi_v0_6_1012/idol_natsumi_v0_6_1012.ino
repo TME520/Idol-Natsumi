@@ -5424,7 +5424,10 @@ void drawTrainGymPlayfield(bool showCompletion) {
   const uint16_t cursorColor = M5Cardputer.Display.color565(255, 190, 90);
   const uint16_t frameColor = WHITE;
 
-  // M5Cardputer.Display.fillScreen(BLACK);
+  if (!showCompletion) {
+    // Clear the game area each frame so the moving cursor does not leave traces.
+    M5Cardputer.Display.fillRect(0, 0, screenWidth, gymBarY + gymBarHeight + 16, BLACK);
+  }
 
   M5Cardputer.Display.setTextDatum(middle_left);
   M5Cardputer.Display.setTextColor(WHITE, BLACK);
