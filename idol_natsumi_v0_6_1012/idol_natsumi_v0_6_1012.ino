@@ -1,4 +1,5 @@
 #include <M5Cardputer.h>
+#include <M5GFX.h>
 #include <SD.h>
 #include <algorithm>
 #include <cmath>
@@ -594,6 +595,8 @@ unsigned long swimCompletionTime = 0;
 unsigned long swimLastSpawnTime = 0;
 unsigned long swimNextSpawnDelay = swimSpawnIntervalMin;
 std::vector<SwimShark> swimSharks;
+M5Canvas swimCanvas(&M5Cardputer.Display);
+bool swimCanvasReady = false;
 
 // Training GYM mini-game state
 const int gymTargetStreak = 10;
@@ -5128,6 +5131,10 @@ void startTrainSwimGame() {
   overlayActive = false;
   swimGameRunning = true;
   swimNeedsRedraw = true;
+  if (!swimCanvasReady) {
+    swimCanvas.setColorDepth(16);
+    swimCanvasReady = swimCanvas.createSprite(M5Cardputer.Display.width(), M5Cardputer.Display.height());
+  }
   M5Cardputer.Display.fillScreen(M5Cardputer.Display.color565(150, 220, 255));
 }
 
@@ -5137,36 +5144,71 @@ void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect) {
   const uint16_t poolColor = M5Cardputer.Display.color565(150, 220, 255);
   const uint16_t laneColor = M5Cardputer.Display.color565(180, 235, 255);
   const uint16_t laneDividerColor = WHITE;
-  const uint16_t sharkColor = M5Cardputer.Display.color565(255, 110, 110);
-  const uint16_t sharkBelly = M5Cardputer.Display.color565(255, 210, 210);
-  const uint16_t playerColor = M5Cardputer.Display.color565(70, 140, 255);
   const uint16_t textColor = BLACK;
+  const int poolHeight = swimLaneCount * swimLaneHeight;
+  const int playerX = screenWidth - 32;
+  const int playerY = getSwimLaneCenter(swimPlayerLane) - (swimPlayerHeight / 2);
+  M5Canvas* target = swimCanvasReady ? &swimCanvas : nullptr;
 
-  for (const auto &shark : swimSharks) {
-    if (!shark.active) continue;
-    int sharkX = static_cast<int>(shark.x);
-    int sharkY = getSwimLaneCenter(shark.lane);
-    M5Cardputer.Display.fillRect((sharkX - shark.speed), sharkY, (sharkX + swimSharkLength), (sharkY + swimSharkHeight), poolColor);
-    // M5Cardputer.Display.fillRect((sharkX - shark.speed), sharkY, sharkX + 4, swimSharkHeight + 2, poolColor);
-    M5Cardputer.Display.drawPng(enemySprite.data, enemySprite.length, sharkX, sharkY);
-  }
+  if (target) {
+    target->fillScreen(poolColor);
+    target->fillRect(0, swimPoolTop, screenWidth, poolHeight, poolColor);
+    for (int lane = 0; lane < swimLaneCount; lane++) {
+      int laneY = swimPoolTop + (lane * swimLaneHeight);
+      target->fillRect(0, laneY, screenWidth, swimLaneHeight, laneColor);
+      if (lane > 0) {
+        target->drawFastHLine(0, laneY, screenWidth, laneDividerColor);
+      }
+    }
 
-  int playerX = screenWidth - 32;
-  int playerY = getSwimLaneCenter(swimPlayerLane);
+    for (const auto &shark : swimSharks) {
+      if (!shark.active) continue;
+      int sharkX = static_cast<int>(shark.x);
+      int sharkY = getSwimLaneCenter(shark.lane) - (swimSharkHeight / 2);
+      target->drawPng(enemySprite.data, enemySprite.length, sharkX, sharkY);
+    }
 
-  // M5Cardputer.Display.fillRect(playerX, 20, playerX + 22, 130, poolColor);
-  M5Cardputer.Display.fillRect(playerX, 25, playerX + 22, 125, poolColor);
-  M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, playerX, playerY);
+    target->drawPng(natsumiSprite.data, natsumiSprite.length, playerX, playerY);
 
-  M5Cardputer.Display.setTextDatum(top_left);
-  M5Cardputer.Display.setTextColor(textColor, poolColor);
-  M5Cardputer.Display.setTextSize(2);
-  M5Cardputer.Display.drawString(String("Dodged: ") + swimAvoidedSharks + String("/") + swimTargetSharks + " ", 6, 4);
+    target->setTextDatum(top_left);
+    target->setTextColor(textColor, poolColor);
+    target->setTextSize(2);
+    target->drawString(String("Dodged: ") + swimAvoidedSharks + String("/") + swimTargetSharks + " ", 6, 4);
 
-  if (showCompletion) {
-    M5Cardputer.Display.setTextDatum(middle_center);
+    if (showCompletion) {
+      target->setTextDatum(middle_center);
+      target->setTextSize(2);
+      target->drawString("Training complete!", screenWidth / 2, screenHeight / 2);
+    }
+
+    target->pushSprite(0, 0);
+  } else {
+    M5Cardputer.Display.startWrite();
+    M5Cardputer.Display.fillRect(0, swimPoolTop, screenWidth, poolHeight, poolColor);
+    for (int lane = 0; lane < swimLaneCount; lane++) {
+      int laneY = swimPoolTop + (lane * swimLaneHeight);
+      M5Cardputer.Display.fillRect(0, laneY, screenWidth, swimLaneHeight, laneColor);
+      if (lane > 0) {
+        M5Cardputer.Display.drawFastHLine(0, laneY, screenWidth, laneDividerColor);
+      }
+    }
+    for (const auto &shark : swimSharks) {
+      if (!shark.active) continue;
+      int sharkX = static_cast<int>(shark.x);
+      int sharkY = getSwimLaneCenter(shark.lane) - (swimSharkHeight / 2);
+      M5Cardputer.Display.drawPng(enemySprite.data, enemySprite.length, sharkX, sharkY);
+    }
+    M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, playerX, playerY);
+    M5Cardputer.Display.setTextDatum(top_left);
+    M5Cardputer.Display.setTextColor(textColor, poolColor);
     M5Cardputer.Display.setTextSize(2);
-    M5Cardputer.Display.drawString("Training complete!", screenWidth / 2, screenHeight / 2);
+    M5Cardputer.Display.drawString(String("Dodged: ") + swimAvoidedSharks + String("/") + swimTargetSharks + " ", 6, 4);
+    if (showCompletion) {
+      M5Cardputer.Display.setTextDatum(middle_center);
+      M5Cardputer.Display.setTextSize(2);
+      M5Cardputer.Display.drawString("Training complete!", screenWidth / 2, screenHeight / 2);
+    }
+    M5Cardputer.Display.endWrite();
   }
 }
 
