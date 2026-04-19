@@ -5713,9 +5713,6 @@ void manageTrainRunGame() {
       runCompletionTime = now;
       runNeedsRedraw = true;
       isLatestTrainingPerfect = true;
-      if (natsumi.fitness < 4) {
-        natsumi.fitness += 1;
-      }
       return;
     }
 
@@ -8409,12 +8406,16 @@ void drawOverlay() {
             if (natsumi.performance < 4) {
               Serial.println(">> actionOutcome() - natsumi.performance < 4");
               drawOutcome("+1", "Performance");
+            } else {
+              drawOutcome("MAX", "Performance");
             }
             break;
           case TRAIN_SWIM3: case TRAIN_GYM3: case TRAIN_RUN3:
             if (natsumi.fitness < 4) {
               Serial.println(">> actionOutcome() - natsumi.fitness < 4");
               drawOutcome("+1", "Fitness");
+            } else {
+              drawOutcome("MAX", "Fitness");
             }
             break;
           case TRAIN_LIBRARY:
@@ -8516,7 +8517,7 @@ void playGame() {
 
 void allocateTickets() {
   Serial.println("> Entering allocateTickets()");
-  int extraTickets = 0;
+  int extraTickets = 1;
   const int screenWidth = M5Cardputer.Display.width();
   const int screenHeight = M5Cardputer.Display.height();
   const int frameInset = 6;
