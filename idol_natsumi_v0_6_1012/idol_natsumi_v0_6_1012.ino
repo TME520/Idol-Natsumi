@@ -5137,25 +5137,30 @@ void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect) {
   const uint16_t poolColor = M5Cardputer.Display.color565(150, 220, 255);
   const uint16_t laneColor = M5Cardputer.Display.color565(180, 235, 255);
   const uint16_t laneDividerColor = WHITE;
-  const uint16_t sharkColor = M5Cardputer.Display.color565(255, 110, 110);
-  const uint16_t sharkBelly = M5Cardputer.Display.color565(255, 210, 210);
-  const uint16_t playerColor = M5Cardputer.Display.color565(70, 140, 255);
   const uint16_t textColor = BLACK;
+  const int poolHeight = swimLaneCount * swimLaneHeight;
+  const int playerX = screenWidth - 32;
+  const int playerY = getSwimLaneCenter(swimPlayerLane) - (swimPlayerHeight / 2);
+
+  M5Cardputer.Display.startWrite();
+
+  // Redraw only the pool area each frame to avoid stale pixels while preventing full-screen flicker.
+  M5Cardputer.Display.fillRect(0, swimPoolTop, screenWidth, poolHeight, poolColor);
+  for (int lane = 0; lane < swimLaneCount; lane++) {
+    int laneY = swimPoolTop + (lane * swimLaneHeight);
+    M5Cardputer.Display.fillRect(0, laneY, screenWidth, swimLaneHeight, laneColor);
+    if (lane > 0) {
+      M5Cardputer.Display.drawFastHLine(0, laneY, screenWidth, laneDividerColor);
+    }
+  }
 
   for (const auto &shark : swimSharks) {
     if (!shark.active) continue;
     int sharkX = static_cast<int>(shark.x);
-    int sharkY = getSwimLaneCenter(shark.lane);
-    M5Cardputer.Display.fillRect((sharkX - shark.speed), sharkY, (sharkX + swimSharkLength), (sharkY + swimSharkHeight), poolColor);
-    // M5Cardputer.Display.fillRect((sharkX - shark.speed), sharkY, sharkX + 4, swimSharkHeight + 2, poolColor);
+    int sharkY = getSwimLaneCenter(shark.lane) - (swimSharkHeight / 2);
     M5Cardputer.Display.drawPng(enemySprite.data, enemySprite.length, sharkX, sharkY);
   }
 
-  int playerX = screenWidth - 32;
-  int playerY = getSwimLaneCenter(swimPlayerLane);
-
-  // M5Cardputer.Display.fillRect(playerX, 20, playerX + 22, 130, poolColor);
-  M5Cardputer.Display.fillRect(playerX, 25, playerX + 22, 125, poolColor);
   M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, playerX, playerY);
 
   M5Cardputer.Display.setTextDatum(top_left);
@@ -5168,6 +5173,8 @@ void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect) {
     M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.drawString("Training complete!", screenWidth / 2, screenHeight / 2);
   }
+
+  M5Cardputer.Display.endWrite();
 }
 
 void handleSwimCollision() {
