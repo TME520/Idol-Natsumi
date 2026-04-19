@@ -474,6 +474,7 @@ bool isLatestTrainingPerfect = false;
 bool showCardsLabels = true;
 bool birthdayVisitEnabled = false;
 bool recentCompWin = false;
+bool addOneMatsuriTicket = false;
 
 int librarySegmentsFilled = 0;
 int flowersSaleHandicap = 0;
@@ -5007,6 +5008,11 @@ void manageTrainSingGame() {
       if (natsumi.performance < 4) {
         natsumi.performance += 1;
       }
+      if (natsumi.performance == 4) {
+        addOneMatsuriTicket = true;
+      } else {
+        addOneMatsuriTicket = false;
+      }
     }
     drawTrainSingPlayfield(true);
     return;
@@ -5084,6 +5090,11 @@ void manageTrainDanceGame() {
     danceCompletionTime = now;
     if (natsumi.performance < 4) {
       natsumi.performance += 1;
+    }
+    if (natsumi.performance == 4) {
+      addOneMatsuriTicket = true;
+    } else {
+      addOneMatsuriTicket = false;
     }
     danceNeedsRedraw = true;
   }
@@ -5232,6 +5243,11 @@ void manageTrainSwimGame() {
     if (now - swimCompletionTime >= swimCompletionDelay) {
       if (natsumi.fitness < 4) {
         natsumi.fitness += 1;
+      }
+      if (natsumi.fitness == 4) {
+        addOneMatsuriTicket = true;
+      } else {
+        addOneMatsuriTicket = false;
       }
       changeState(0, TRAIN_SWIM3, 0);
     }
@@ -5477,6 +5493,11 @@ void manageTrainGymGame() {
       if (natsumi.fitness < 4) {
         natsumi.fitness += 1;
       }
+      if (natsumi.fitness == 4) {
+        addOneMatsuriTicket = true;
+      } else {
+        addOneMatsuriTicket = false;
+      }
       changeState(0, TRAIN_GYM3, 0);
     }
     return;
@@ -5638,6 +5659,11 @@ void manageTrainRunGame() {
     if (now - runCompletionTime >= runCompletionDelay) {
       if (natsumi.fitness < 4) {
         natsumi.fitness += 1;
+      }
+      if (natsumi.fitness == 4) {
+        addOneMatsuriTicket = true;
+      } else {
+        addOneMatsuriTicket = false;
       }
       changeState(0, TRAIN_RUN3, 0);
     }
@@ -8383,20 +8409,12 @@ void drawOverlay() {
             if (natsumi.performance < 4) {
               Serial.println(">> actionOutcome() - natsumi.performance < 4");
               drawOutcome("+1", "Performance");
-            } else {
-              Serial.println(">> actionOutcome() - natsumi.performance = 4");
-              changeState(0, MATSURI_TICKETS, 0);
-              changeState(0, TRAIN_STATUS, 0);
             }
             break;
           case TRAIN_SWIM3: case TRAIN_GYM3: case TRAIN_RUN3:
             if (natsumi.fitness < 4) {
               Serial.println(">> actionOutcome() - natsumi.fitness < 4");
               drawOutcome("+1", "Fitness");
-            } else {
-              Serial.println(">> actionOutcome() - natsumi.fitness = 4");
-              changeState(0, MATSURI_TICKETS, 0);
-              changeState(0, TRAIN_STATUS, 0);
             }
             break;
           case TRAIN_LIBRARY:
@@ -8405,9 +8423,8 @@ void drawOverlay() {
               Serial.println(">> actionOutcome() - natsumi.culture < 4");
               drawOutcome("+1", "Culture");
             } else {
-              Serial.println(">> actionOutcome() - natsumi.culture = 4");
+              Serial.println(">> actionOutcome() - natsumi.culture = 4 - Changing state to MATSURI_TICKETS");
               changeState(0, MATSURI_TICKETS, 0);
-              changeState(0, TRAIN_STATUS, 0);
             }
             break;
           case MATSURI_SAVORY5: case MATSURI_SUGARY4:
@@ -9248,7 +9265,12 @@ void manageTrainingStatus() {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      changeState(0, HOME_LOOP, 0);
+      if (addOneMatsuriTicket) {
+        addOneMatsuriTicket = false;
+        changeState(0, MATSURI_TICKETS, 0);
+      } else {
+        changeState(0, HOME_LOOP, 0);
+      }
       return;
     }
   }
@@ -9624,7 +9646,7 @@ void foodDelivery() {
 }
 
 void miniGameDebrief() {
-  // Serial.println("> Entering miniGameDebrief()");
+  Serial.println("> Entering miniGameDebrief()");
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
@@ -9637,6 +9659,7 @@ void miniGameDebrief() {
           changeState(0, HOME_LOOP, 0);
           break;
         case TRAIN_SING3:
+          Serial.println(">> miniGameDebrief() - Changing state to ACTION_OUTCOME");
           saveRequired = true;
           // isNatsumiHappy = true;
           // changeState(0, HOME_LOOP, 0);
