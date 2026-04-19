@@ -5011,6 +5011,7 @@ void manageTrainSingGame() {
 
   if (now < singFlashUntil) {
     M5Cardputer.Display.fillScreen(singFlashColor);
+    // M5Cardputer.Display.fillRect(0, 130, 240, 5, singFlashColor);
     return;
   }
 
@@ -8006,7 +8007,7 @@ void drawOverlay() {
             musicTeacherFeedback = "very bad...";
             break;
         }
-        drawDialogBubble("You collected " + String(singNotesCollected) + " / " + String(singNotesSpawned) +" music coins (missed " + String(singNotesMissed) +"). Your performance was " + musicTeacherFeedback);
+        drawDialogBubble("You missed " + String(singNotesMissed) +" notes. Your performance was " + musicTeacherFeedback);
         break;
       }
       case TRAIN_SWIM3: {
