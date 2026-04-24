@@ -6929,7 +6929,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // 2: ORDER
           menuOpened = false;
           if (!waitingForFoodDelivery) {
-            if (natsumi.age > 13) {
+            if (natsumi.age > 10) {
               changeState(0, FOOD_ORDER, 0);
             } else {
               changeState(0, HOME_LOOP, 0);
@@ -9029,11 +9029,6 @@ void cookFood() {
                   saveRequired = true;
                   // isNatsumiHappy = true;
                 }
-                if (natsumi.charm < 4) {
-                  natsumi.charm += 1;
-                  saveRequired = true;
-                  // isNatsumiHappy = true;
-                }
                 showToast("Having " + String(choice.label));
                 clearFoodGrid();
                 overlayActive = false;
@@ -9249,7 +9244,29 @@ void manageTrainingStatus() {
       if (natsumi.trainingCntr >= 3) {
         natsumi.competitionLevel += 1;
         natsumi.trainingCntr = 0;
-        trainingStatusMessage = "Perfect training chain complete! Competition level increased by 1. New level: " + String(natsumi.competitionLevel) + ".";
+        switch(natsumi.competitionLevel) {
+          case 0:
+            trainingStatusMessage = "Perfect training chain complete! Competition level increased by 1. New level: Underground parking.";
+            break;
+          case 1:
+            trainingStatusMessage = "Perfect training chain complete! Competition level increased by 1. New level: Local.";
+            break;
+          case 2:
+            trainingStatusMessage = "Perfect training chain complete! Competition level increased by 1. New level: Departmental";
+            break;
+          case 3:
+            trainingStatusMessage = "Perfect training chain complete! Competition level increased by 1. New level: Regional.";
+            break;
+          case 4:
+            trainingStatusMessage = "Perfect training chain complete! Competition level increased by 1. New level: National.";
+            break;
+          case 5:
+            trainingStatusMessage = "Perfect training chain complete! Competition level increased by 1. New level: International.";
+            break;
+          default:
+            trainingStatusMessage = "Perfect training chain complete! Competition level increased by 1. New level: Intergalactic.";
+            break;
+        }
       } else {
         int remainingPerfectTrainings = 3 - natsumi.trainingCntr;
         trainingStatusMessage = "Perfect training recorded! Keep going: " + String(remainingPerfectTrainings) + " more perfect training session(s) to unlock the next competition level.";
