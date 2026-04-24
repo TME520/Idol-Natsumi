@@ -8424,8 +8424,8 @@ void drawOverlay() {
               Serial.println(">> actionOutcome() - natsumi.culture < 4");
               drawOutcome("+1", "Culture");
             } else {
-              Serial.println(">> actionOutcome() - natsumi.culture = 4 - Changing state to MATSURI_TICKETS");
-              changeState(0, MATSURI_TICKETS, 0);
+              addOneMatsuriTicket = true;
+              drawOutcome("MAX", "Culture");
             }
             break;
           case MATSURI_SAVORY5: case MATSURI_SUGARY4:
@@ -9217,7 +9217,12 @@ void actionOutcome() {
           changeState(0, TRAIN_STATUS, 0);
           break;
         case TRAIN_LIBRARY:
-          changeState(0, TRAIN_STATUS, 0);
+          if (addOneMatsuriTicket) {
+            addOneMatsuriTicket = false;
+            changeState(0, MATSURI_TICKETS, 0);
+          } else {
+            changeState(0, HOME_LOOP, 0);
+          }
           break;
         case MATSURI_SAVORY5: case MATSURI_SUGARY4:
           changeState(0, MATSURI_MENU, 0);
