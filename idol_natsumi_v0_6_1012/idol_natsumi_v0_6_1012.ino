@@ -9235,40 +9235,46 @@ void actionOutcome() {
 }
 
 void manageTrainingStatus() {
+  Serial.println("> Entering manageTrainingStatus()");
   if (!trainingStatusProcessed) {
+    Serial.println(">> manageTrainingStatus() - trainingStatusProcessed FALSE");
     if (isLatestTrainingPerfect) {
+      Serial.println(">> manageTrainingStatus() - Last training session was perfect");
       natsumi.trainingCntr += 1;
       if (natsumi.trainingCntr >= 3) {
+        Serial.println(">> manageTrainingStatus() - Competition level goes UP");
         natsumi.competitionLevel += 1;
         natsumi.trainingCntr = 0;
         switch(natsumi.competitionLevel) {
           case 0:
-            trainingStatusMessage = "Perfect training chain complete! Competition level increased by 1. New level: Underground parking.";
+            trainingStatusMessage = "Perfect training chain complete! Competition level increased to Underground parking.";
             break;
           case 1:
-            trainingStatusMessage = "Perfect training chain complete! Competition level increased by 1. New level: Local.";
+            trainingStatusMessage = "Perfect training chain complete! Competition level increased to Local.";
             break;
           case 2:
-            trainingStatusMessage = "Perfect training chain complete! Competition level increased by 1. New level: Departmental";
+            trainingStatusMessage = "Perfect training chain complete! Competition level increased to Departmental";
             break;
           case 3:
-            trainingStatusMessage = "Perfect training chain complete! Competition level increased by 1. New level: Regional.";
+            trainingStatusMessage = "Perfect training chain complete! Competition level increased to Regional.";
             break;
           case 4:
-            trainingStatusMessage = "Perfect training chain complete! Competition level increased by 1. New level: National.";
+            trainingStatusMessage = "Perfect training chain complete! Competition level increased to National.";
             break;
           case 5:
-            trainingStatusMessage = "Perfect training chain complete! Competition level increased by 1. New level: International.";
+            trainingStatusMessage = "Perfect training chain complete! Competition level increased to International.";
             break;
           default:
-            trainingStatusMessage = "Perfect training chain complete! Competition level increased by 1. New level: Intergalactic.";
+            trainingStatusMessage = "Perfect training chain complete! Competition level increased to Intergalactic.";
             break;
         }
       } else {
+        Serial.println(">> manageTrainingStatus() - Competition level DOES NOT go UP");
         int remainingPerfectTrainings = 3 - natsumi.trainingCntr;
         trainingStatusMessage = "Perfect training recorded! Keep going: " + String(remainingPerfectTrainings) + " more perfect training session(s) to unlock the next competition level.";
       }
     } else {
+      Serial.println(">> manageTrainingStatus() - Last training session was NOT perfect");
       int remainingPerfectTrainings = 3 - natsumi.trainingCntr;
       if (remainingPerfectTrainings < 0) {
         remainingPerfectTrainings = 0;
