@@ -5286,14 +5286,13 @@ void manageTrainSwimGame() {
   for (auto &shark : swimSharks) {
     if (!shark.active) continue;
     shark.x += shark.speed;
-    // shark.x += (shark.speed + swimSharkLength);
     int sharkLeft = static_cast<int>(shark.x);
     int sharkRight = sharkLeft + swimSharkLength;
 
     if (shark.lane == swimPlayerLane && sharkRight > playerLeft && sharkLeft < playerRight) {
       collision = true;
       shark.active = false;
-    } else if (shark.x > M5Cardputer.Display.width() + swimSharkLength) {
+    } else if (shark.x > M5Cardputer.Display.width()) {
       shark.active = false;
       swimAvoidedSharks++;
       swimNeedsRedraw = true;
@@ -5313,9 +5312,6 @@ void manageTrainSwimGame() {
     swimCompletionTime = now;
     swimSharks.clear();
     swimGameRunning = false;
-    if (natsumi.fitness < 4) {
-      natsumi.fitness += 1;
-    }
     swimNeedsRedraw = true;
   }
 
