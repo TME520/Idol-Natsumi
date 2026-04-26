@@ -5908,6 +5908,7 @@ void manageBathGame() {
 
 void drawDialogBubble(const String& dialogText) {
   // Draw a dialog bubble on the right, matching the menu style
+  Serial.println("> Entering drawDialogBubble() for text " + dialogText);
   const int x = 80;              // leave space for the character on the left
   const int w = 150;             // width of the bubble
   const int padding = 8;         // inner padding
@@ -8110,7 +8111,9 @@ void drawOverlay() {
         // isLatestTrainingPerfect = true;
         break;
       case TRAIN_STATUS:
+        Serial.println("> TRAIN_STATUS: Calling function drawDialogBubble for text " + trainingStatusMessage);
         drawDialogBubble(trainingStatusMessage);
+        trainingStatusMessage = "";
         break;
       case FOOD_CONBINI2:
         drawConbimartOverlay();
@@ -9231,7 +9234,7 @@ void actionOutcome() {
 }
 
 void manageTrainingStatus() {
-  Serial.println("> Entering manageTrainingStatus()");
+  // Serial.println("> Entering manageTrainingStatus()");
   if (!trainingStatusProcessed) {
     Serial.println(">> manageTrainingStatus() - trainingStatusProcessed FALSE");
     if (isLatestTrainingPerfect) {
