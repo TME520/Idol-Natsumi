@@ -4938,8 +4938,15 @@ void manageTrainSingGame() {
   unsigned long now = millis();
 
   if (singGameCompleted) {
-    drawTrainSingPlayfield(true);
     if (now - singCompletionTime >= 1200) {
+      if (natsumi.performance < 4) {
+        natsumi.performance += 1;
+      }
+      if (natsumi.performance == 4) {
+        addOneMatsuriTicket = true;
+      } else {
+        addOneMatsuriTicket = false;
+      }
       changeState(0, TRAIN_SING3, 0);
     }
     return;
@@ -5004,16 +5011,6 @@ void manageTrainSingGame() {
   if (singNotesCollected >= singTargetNotes) {
     singGameCompleted = true;
     singCompletionTime = now;
-    if (singNotesMissed == 0) {
-      if (natsumi.performance < 4) {
-        natsumi.performance += 1;
-      }
-      if (natsumi.performance == 4) {
-        addOneMatsuriTicket = true;
-      } else {
-        addOneMatsuriTicket = false;
-      }
-    }
     drawTrainSingPlayfield(true);
     return;
   }
