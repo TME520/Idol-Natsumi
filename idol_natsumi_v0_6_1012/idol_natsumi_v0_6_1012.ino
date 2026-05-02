@@ -6177,6 +6177,7 @@ void manageCompetition() {
     static int competitionPlayerColumn = 0;
     static int competitionNotesSpawned = 0;
     static int competitionNotesCollected = 0;
+    static int competitionNotesMissed = 0;
     static unsigned long competitionLastSpawn = 0;
     static unsigned long competitionCompletionTime = 0;
     static bool competitionCompleted = false;
@@ -6199,24 +6200,25 @@ void manageCompetition() {
       competitionNotes.clear();
       competitionNotesSpawned = 0;
       competitionNotesCollected = 0;
+      competitionNotesMissed = 0;
       competitionLastSpawn = 0;
       competitionCompletionTime = 0;
       competitionCompleted = false;
 
       switch (natsumi.competition) {
-        case 1:
+        case 3:
           Serial.println(">> Competition level 1 - 3 columns");
           competitionColumns = 3;
           break;
-        case 2:
+        case 7:
           Serial.println(">> Competition level 2 - 4 columns");
           competitionColumns = 4;
           break;
-        case 3:
+        case 11:
           Serial.println(">> Competition level 3 - 5 columns");
           competitionColumns = 5;
           break;
-        case 4:
+        case 15:
           Serial.println(">> Competition level 4 - 6 columns");
           competitionColumns = 6;
           break;
@@ -6230,9 +6232,10 @@ void manageCompetition() {
     unsigned long now = millis();
   
     if (competitionCompleted) {
-      if (competitionNotesCollected == targetNotes) {
-        Serial.println(">> Competition - Notes collected: " + String(competitionNotesCollected));
-        Serial.println(">> Competition - Notes spawned: " + String(competitionNotesSpawned));
+      Serial.println(">> Competition - Notes collected: " + String(competitionNotesCollected));
+      Serial.println(">> Competition - Notes spawned: " + String(competitionNotesSpawned));
+      Serial.println(">> Competition - Notes missed: " + String(competitionNotesMissed));
+      if (competitionNotesMissed == 0) {
         natsumi.popularity = 4;
         competitionInitialized = false;
         recentCompWin = true;
@@ -6256,10 +6259,10 @@ void manageCompetition() {
         }
         unlockedNextCompetitionLevel = true;
         return;
+      } else {
+        unlockedNextCompetitionLevel = false;
+        showToast("Too many misses, disqualified");
       }
-    } else {
-      unlockedNextCompetitionLevel = false;
-      showToast("Too many misses, disqualified");
     }
   
     if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -6303,6 +6306,7 @@ void manageCompetition() {
           competitionNotesCollected++;
           note.active = false;
         } else if (note.y > screenHeight) {
+          competitionNotesMissed++;
           note.active = false;
         }
       }
