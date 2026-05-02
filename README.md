@@ -15,23 +15,88 @@ In *Idol Natsumi*, the player takes care of and raises a Japanese girl named Nat
 
 ### General navigation
 
-* **TAB** key open or closes the main menu
-* **ESCAPE** key goes back to Home screen
-* **ENTER** key validates whatever option is selected
+* **TAB** opens or closes the main menu
+* **ESCAPE** goes back to Home screen
+* **ENTER** validates selected option
 * **UP/DOWN** Navigate menus
+
+#### Home screen
+
+![Home screen](./screenshots/home_screen.png "Home screen")
+
+Idol Natsumi is meant to be easy to navigate using a few keys; most of the time you have two options: the slow way, using TAB to open a menu, then UP/DOWN to pick the option you want and finally press ENTER to confirm, or the fast way, simply press one of the number keys to quickly access the feature you're after.
+
+The fast keys are as follows:
+
+|  KEY  |  FUNCTION  |
+|-------|----------|
+| 0 | Open Status board |
+| 1 | Open Inventory |
+| 2 | Open Food menu |
+| 3 | Open Training menu |
+| 4 | Open Competition menu |
+| 5 | Open Health menu |
+| 6 | Open Rest menu |
+| 7 | Go to the garden |
+| 8 | Open Events menu |
+| 9 | Looks at your cards collection |
+
+If you end up somewhere you don't want to be, simply press the ESC key to go back to the Home screen.
+
+#### Status board
+
+![Status board](./screenshots/stats.png "Status board")
+
+Press 0 from the Home screen to access it.
+
+It shows Natsumi's statistics as well as her age. It refreshes whenever a stat is updated, so you can leave it open if you feel like idling for a bit while keeping an eye on your little *protégé*.
+
+Pressing S on that screen saves the game.
+
+#### Inventory
+
+![Inventory](./screenshots/inventory.png "Inventory")
+
+Press 1 from the Home screen to access it.
+
+It shows how many flowers, tickets and food items Natsumi currently have. The amount of money in her purse is also displayed. Press LEFT/RIGHT to go from one page to another.
+
+#### Cards collection viewer
+
+Press 9 from the Home screen to access it.
+
+Matsuri tickets grant you access to the local Matsuri festival where you can play the Garapon lottery game and win beautiful illustrated cards. The Cards collection viewer allows you to browse your collection: Presss LEFT/RIGHT to go from one card to another, press SPACE to hide or show the legend.
 
 ### Game progression
 
-Age progression is automatic, Natsumi ages one year every 24 hours.
+* Age progression is automatic,
+* Natsumi ages one year every 24 hours,
+* Here is how progression goes for Competition:
 
-|  AGE  |  LIMITS  |
+|  LEVEL (natsumi.competition)  |  STATUS  |
 |-------|----------|
-| 11-12 | No access to Competition, Mobile app and Restaurant |
-| 13    | Unlock access to Local Competition |
-| 14    | Unlock access to mobile app (Orderibi) |
-| 15    | Unlock access to Departmental Competition |
-| 16    | Unlock access to Regional Competition and Restaurant |
-| 17    | Unlock access to National Competition |
+| 0 | Not started, all Competitions are locked |
+| 1 | Hunger, Hygiene, Energy, Performance, Fitness, Culture and Charm are all at 4 (their maximum) |
+| 2 | 1x perfect Training achieved (any category) |
+| 3 | 2x perfect Training |
+| 4 | 3x perfect Training -> Local competition unlocked |
+| 5 | Local competition completed (local champion) |
+| 6 | 1x perfect Training |
+| 7 | 2x perfect Training |
+| 8 | 3x perfect Training -> Departmental competition unlocked |
+| 9 | Departmental competition completed (departmental champion) |
+| 10 | 1x perfect Training |
+| 11 | 2x perfect Training |
+| 12 | 3x perfect Training -> Regional competition unlocked |
+| 13 | Regional competition completed (regional champion) |
+| 14 | 1x perfect Training |
+| 15 | 2x perfect Training |
+| 16 | 3x perfect Training -> National competition unlocked |
+| 17 | National competition completed (national champion) |
+
+* Natsumi must be in very good shape before entering any competition,
+* That's why Hunger, Hygiene, Energy, Performance, Fitness, Culture and Charm must be at 4 (their maximum),
+* Should any stat drop below 4 at any time, competition will be locked.
 
 ### Statistics
 
