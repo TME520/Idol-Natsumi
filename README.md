@@ -76,23 +76,22 @@ Matsuri tickets grant you access to the local Matsuri festival where you can pla
 |  LEVEL (natsumi.competition)  |  STATUS  |
 |-------|----------|
 | 0 | Not started, all Competitions are locked |
-| 1 | Hunger, Hygiene, Energy, Performance, Fitness, Culture and Charm are all at 4 (their maximum) |
-| 2 | 1x perfect Training achieved (any category) |
-| 3 | 2x perfect Training |
-| 4 | 3x perfect Training -> Local competition unlocked |
-| 5 | Local competition completed (local champion) |
-| 6 | 1x perfect Training |
-| 7 | 2x perfect Training |
-| 8 | 3x perfect Training -> Departmental competition unlocked |
-| 9 | Departmental competition completed (departmental champion) |
-| 10 | 1x perfect Training |
-| 11 | 2x perfect Training |
-| 12 | 3x perfect Training -> Regional competition unlocked |
-| 13 | Regional competition completed (regional champion) |
-| 14 | 1x perfect Training |
-| 15 | 2x perfect Training |
-| 16 | 3x perfect Training -> National competition unlocked |
-| 17 | National competition completed (national champion) |
+| 1 | 1x perfect Training achieved (any category) |
+| 2 | 2x perfect Training |
+| 3 | 3x perfect Training -> Local competition unlocked |
+| 4 | Local competition completed (local champion) |
+| 5 | 1x perfect Training |
+| 6 | 2x perfect Training |
+| 7 | 3x perfect Training -> Departmental competition unlocked |
+| 8 | Departmental competition completed (departmental champion) |
+| 9 | 1x perfect Training |
+| 10 | 2x perfect Training |
+| 11 | 3x perfect Training -> Regional competition unlocked |
+| 12 | Regional competition completed (regional champion) |
+| 13 | 1x perfect Training |
+| 14 | 2x perfect Training |
+| 15 | 3x perfect Training -> National competition unlocked |
+| 16 | National competition completed (national champion) |
 
 * Natsumi must be in very good shape before entering any competition,
 * That's why Hunger, Hygiene, Energy, Performance, Fitness, Culture and Charm must be at 4 (their maximum),

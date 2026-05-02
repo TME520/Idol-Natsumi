@@ -9093,9 +9093,7 @@ void manageTrainingStatus() {
   // Serial.println("> Entering manageTrainingStatus()");
   if (!trainingStatusProcessed) {
     Serial.println(">> manageTrainingStatus() - trainingStatusProcessed FALSE");
-    if (natsumi.competition < 2) {
-      trainingStatusMessage = "Bring Hunger, Hygiene, Energy, Performance, Fitness, Culture and Charm to 4 (their maximum) in order to benefit from training."
-    } else if (isLatestTrainingPerfect) {
+    if (isLatestTrainingPerfect) {
       Serial.println(">> manageTrainingStatus() - Last training session was perfect");
       natsumi.competition += 1;
       if (natsumi.competition > 17) {
@@ -9106,54 +9104,51 @@ void manageTrainingStatus() {
           trainingStatusMessage = "Perfect training chain complete! Competition level increased to Underground parking.";
           break;
         case 1:
-          trainingStatusMessage = "Hunger, Hygiene, Energy, Performance, Fitness, Culture and Charm are all at 4 (their maximum)! Local competition unlocked!";
+          trainingStatusMessage = "1x perfect Training achieved, congratulations!!";
           break;
         case 2:
-          trainingStatusMessage = "1x perfect Training achieved, congratulations!!";
+          trainingStatusMessage = "2x perfect Training achieved, congratulations!!";
           break;
         case 3:
-          trainingStatusMessage = "2x perfect Training achieved, congratulations!!";
-          break;
-        case 4:
           trainingStatusMessage = "3x perfect Training achieved, Local competition unlocked!!";
           break;
-        case 5:
+        case 4:
           trainingStatusMessage = "Local competition completed (local champion).";
           break;
-        case 6:
+        case 5:
           trainingStatusMessage = "1x perfect Training achieved, congratulations!!";
+          break;
+        case 6:
+          trainingStatusMessage = "2x perfect Training achieved, congratulations!!";
           break;
         case 7:
-          trainingStatusMessage = "2x perfect Training achieved, congratulations!!";
-          break;
-        case 8:
           trainingStatusMessage = "3x perfect Training achieved, Departmental competition unlocked!!";
           break;
-        case 9:
+        case 8:
           trainingStatusMessage = "Departmental competition completed (departmental champion).";
           break;
-        case 10:
+        case 9:
           trainingStatusMessage = "1x perfect Training achieved, congratulations!!";
+          break;
+        case 10:
+          trainingStatusMessage = "2x perfect Training achieved, congratulations!!";
           break;
         case 11:
-          trainingStatusMessage = "2x perfect Training achieved, congratulations!!";
-          break;
-        case 12:
           trainingStatusMessage = "3x perfect Training achieved, Regional competition unlocked!!";
           break;
-        case 13:
+        case 12:
           trainingStatusMessage = "Regional competition completed (regional champion).";
           break;
-        case 14:
+        case 13:
           trainingStatusMessage = "1x perfect Training achieved, congratulations!!";
           break;
-        case 15:
+        case 14:
           trainingStatusMessage = "2x perfect Training achieved, congratulations!!";
           break;
-        case 16:
+        case 15:
           trainingStatusMessage = "3x perfect Training achieved, National competition unlocked!!";
           break;
-        case 17:
+        case 16:
           trainingStatusMessage = "National competition completed (national champion).";
           break;
         default:
