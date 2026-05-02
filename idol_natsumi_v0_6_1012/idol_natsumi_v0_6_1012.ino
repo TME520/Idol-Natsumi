@@ -9093,7 +9093,7 @@ void manageTrainingStatus() {
   // Serial.println("> Entering manageTrainingStatus()");
   if (!trainingStatusProcessed) {
     Serial.println(">> manageTrainingStatus() - trainingStatusProcessed FALSE");
-    if (isLatestTrainingPerfect) {
+    if (isLatestTrainingPerfect && natsumi.competition > 0) {
       Serial.println(">> manageTrainingStatus() - Last training session was perfect");
       natsumi.competition += 1;
       if (natsumi.competition > 17) {
