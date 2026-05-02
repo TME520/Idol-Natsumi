@@ -676,7 +676,7 @@ String doctorHint = "";
 String priestHint = "";
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "Update 14";
+String versionNumber = "M5 Cardputer 1.0/1.1 - Update 14";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -7003,16 +7003,15 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           Serial.println(">> Local competition, age = " + String(natsumi.age));
           menuOpened = false;
           if (isCompetitionEnabled()) {
-            if (natsumi.age > 12) {
-              if (natsumi.competition == 0) {
-                changeState(0, COMP_LOCAL, 0);
-              } else {
-                changeState(0, HOME_LOOP, 0);
-                showToast("Already completed");
-              }
+            if (natsumi.competition == 4) {
+              changeState(0, COMP_LOCAL, 0);
             } else {
+              if (natsumi.competition > 4) {
+                showToast("Already completed");
+              } else {
+                showToast("Not unlocked yet");
+              }
               changeState(0, HOME_LOOP, 0);
-              showToast("Too young to compete");
             }
           } else {
             changeState(0, COMP_EXPLAIN, 0);
@@ -7022,19 +7021,15 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // 1: DEPARTMENTAL
           menuOpened = false;
           if (isCompetitionEnabled()) {
-            if (natsumi.age > 14) {
-              if (natsumi.competition == 1) {
-                changeState(0, COMP_DEPT, 0);
-              } else if (natsumi.competition < 1) {
-                changeState(0, HOME_LOOP, 0);
-                showToast("Complete local comp. 1st");
-              } else {
-                changeState(0, HOME_LOOP, 0);
-                showToast("Already completed");
-              }
+            if (natsumi.competition == 8) {
+              changeState(0, COMP_DEPT, 0);
             } else {
+              if (natsumi.competition > 8) {
+                showToast("Already completed");
+              } else {
+                showToast("Not unlocked yet");
+              }
               changeState(0, HOME_LOOP, 0);
-              showToast("Too young to compete departmentally");
             }
           } else {
             changeState(0, COMP_EXPLAIN, 0);
@@ -7044,19 +7039,15 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // 2: REGIONAL
           menuOpened = false;
           if (isCompetitionEnabled()) {
-            if (natsumi.age > 15) {
-              if (natsumi.competition == 2) {
-                changeState(0, COMP_REG, 0);
-              } else if (natsumi.competition < 2) {
-                changeState(0, HOME_LOOP, 0);
-                showToast("Complete lower comp. 1st");
-              } else {
-                changeState(0, HOME_LOOP, 0);
-                showToast("Already completed");
-              }
+            if (natsumi.competition == 12) {
+              changeState(0, COMP_REG, 0);
             } else {
+              if (natsumi.competition > 12) {
+                showToast("Already completed");
+              } else {
+                showToast("Not unlocked yet");
+              }
               changeState(0, HOME_LOOP, 0);
-              showToast("Too young to compete regionally");
             }
           } else {
             changeState(0, COMP_EXPLAIN, 0);
@@ -7066,19 +7057,15 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // 3: NATIONAL
           menuOpened = false;
           if (isCompetitionEnabled()) {
-            if (natsumi.age > 16) {
-              if (natsumi.competition == 3) {
-                changeState(0, COMP_NAT, 0);
-              } else if (natsumi.competition < 3) {
-                changeState(0, HOME_LOOP, 0);
-                showToast("Complete lower comp. 1st");
-              } else {
-                changeState(0, HOME_LOOP, 0);
-                showToast("Already completed");
-              }
+            if (natsumi.competition == 16) {
+              changeState(0, COMP_NAT, 0);
             } else {
+              if (natsumi.competition > 16) {
+                showToast("Already completed");
+              } else {
+                showToast("Not unlocked yet");
+              }
               changeState(0, HOME_LOOP, 0);
-              showToast("Too young to compete nationally");
             }
           } else {
             changeState(0, COMP_EXPLAIN, 0);
@@ -7128,71 +7115,56 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // VALIDATE
           if (selection == 0) {
             if (isCompetitionEnabled()) {
-              if (natsumi.age > 12) {
-                if (natsumi.competition == 0) {
-                  changeState(0, COMP_LOCAL, 0);
-                } else {
-                  showToast("Already completed");
-                }
+              if (natsumi.competition == 4) {
+                changeState(0, COMP_LOCAL, 0);
               } else {
-                showToast("Too young to compete");
+                if (natsumi.competition > 4) {
+                  showToast("Already completed");
+                } else {
+                  showToast("Not unlocked yet");
+                }
               }
             } else {
               changeState(0, COMP_EXPLAIN, 0);
             }
           } else if (selection == 1) {
             if (isCompetitionEnabled()) {
-              if (natsumi.age > 14) {
-                if (natsumi.competition == 1) {
-                  changeState(0, COMP_DEPT, 0);
-                } else if (natsumi.competition < 1) {
-                  changeState(0, HOME_LOOP, 0);
-                  showToast("Complete local comp. 1st");
-                } else {
-                  changeState(0, HOME_LOOP, 0);
-                  showToast("Already completed");
-                }
+              if (natsumi.competition == 8) {
+                changeState(0, COMP_DEPT, 0);
               } else {
-                changeState(0, HOME_LOOP, 0);
-                showToast("Too young to compete departmentally");
+                if (natsumi.competition > 8) {
+                  showToast("Already completed");
+                } else {
+                  showToast("Not unlocked yet");
+                }
               }
             } else {
               changeState(0, COMP_EXPLAIN, 0);
             }
           } else if (selection == 2) {
             if (isCompetitionEnabled()) {
-              if (natsumi.age > 15) {
-                if (natsumi.competition == 2) {
-                  changeState(0, COMP_REG, 0);
-                } else if (natsumi.competition < 2) {
-                  changeState(0, HOME_LOOP, 0);
-                  showToast("Complete lower comp. 1st");
-                } else {
-                  changeState(0, HOME_LOOP, 0);
-                  showToast("Already completed regionally");
-                }
+              if (natsumi.competition == 12) {
+                changeState(0, COMP_REG, 0);
               } else {
-                changeState(0, HOME_LOOP, 0);
-                showToast("Too young to compete regionally");
+                if (natsumi.competition > 12) {
+                  showToast("Already completed");
+                } else {
+                  showToast("Not unlocked yet");
+                }
               }
             } else {
               changeState(0, COMP_EXPLAIN, 0);
             }
           } else if (selection == 3) {
             if (isCompetitionEnabled()) {
-              if (natsumi.age > 16) {
-                if (natsumi.competition == 3) {
-                  changeState(0, COMP_NAT, 0);
-                } else if (natsumi.competition < 3) {
-                  changeState(0, HOME_LOOP, 0);
-                  showToast("Complete lower comp. 1st");
-                } else {
-                  changeState(0, HOME_LOOP, 0);
-                  showToast("Already completed");
-                }
+              if (natsumi.competition == 16) {
+                changeState(0, COMP_NAT, 0);
               } else {
-                changeState(0, HOME_LOOP, 0);
-                showToast("Too young to compete nationally");
+                if (natsumi.competition > 16) {
+                  showToast("Already completed");
+                } else {
+                  showToast("Not unlocked yet");
+                }
               }
             } else {
               changeState(0, COMP_EXPLAIN, 0);
