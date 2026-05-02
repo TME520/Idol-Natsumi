@@ -65,7 +65,7 @@ It shows how many flowers, tickets and food items Natsumi currently have. The am
 
 Press 9 from the Home screen to access it.
 
-Matsuri tickets grant you access to the local Matsuri festival where you can play the Garapon lottery game and win beautiful illustrated cards. The Cards collection viewer allows you to browse your collection: Presss LEFT/RIGHT to go from one card to another, press SPACE to hide or show the legend.
+Matsuri tickets grant you access to the local Matsuri festival where you can play the Garapon lottery game and win beautiful illustrated cards. The Cards collection viewer allows you to browse your collection: Press LEFT/RIGHT to go from one card to another, press SPACE to hide or show the legend.
 
 ### Game progression
 
@@ -127,17 +127,6 @@ Stat caps: 0 is the lowest while 4 is the highest.
 | **Fitness**    | Passive    | 0–4    | TRAINING → SWIM, GYM, RUN                                               | Decreases by 1 every time Age increases by 1 year                |
 | **Culture**    | Active     | 0–4    | TRAINING → LIBRARY, MARKET                                                      | —                                                                |
 | **Charm**      | Active     | 0–4    | FOOD → COOK, RESTAURANT, ORDER, MARKET                                           | —                                                                |
-
-### Inventory
-
-![Statistics](./itch.io/upd9-inventory.png "Inventory")
-
-The inventory screen will show you:
-
-* How much money Natsumi has on her bank account
-* How many flowers she grew and picked (Gardening)
-* How many Matsuri tickets she has (these tickets are used to enter the local Matsuri, then pay for games and food once inside)
-* How many food items are in her pantry
 
 ### Keep Natsumi fed
 
