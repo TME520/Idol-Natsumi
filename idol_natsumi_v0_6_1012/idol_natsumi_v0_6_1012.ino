@@ -1,4 +1,5 @@
 #include <M5Cardputer.h>
+#include <M5GFX.h>
 #include <SD.h>
 #include <algorithm>
 #include <cmath>
@@ -99,6 +100,7 @@ enum GameState {
   TRAIN_RUN2,
   TRAIN_RUN3,
   TRAIN_LIBRARY,
+  TRAIN_STATUS,
   COMP_EXPLAIN,
   COMP_MENU,
   COMP_LOCAL,
@@ -126,6 +128,9 @@ enum GameState {
   COMP_NAT5,
   COMP_NAT6,
   COMP_NAT7,
+  COMP_STATUS,
+  COMP_COMPLETE,
+  COMP_FAILED,
   MATSURI_TITLE,
   MATSURI_TICKETS,
   MATSURI_TICKETS2,
@@ -329,6 +334,8 @@ const char* saveGameBackupPath = "/idolnat/savegame.bak";
 String saveStatusMsg = "";
 unsigned long saveStatusUntil = 0;
 unsigned long counterToScreensaver = 0;
+String trainingStatusMessage = "";
+bool trainingStatusProcessed = false;
 
 // Onsen mini-game helpers
 void resetBathGame();
@@ -362,6 +369,7 @@ void resetTrainRunGame();
 void manageTrainRunGame();
 void drawTrainRunPlayfield(bool showCompletion, bool showFailure);
 void startTrainRunGame();
+void manageTrainingStatus();
 
 unsigned long changeStateCounter = 0;
 
@@ -466,6 +474,7 @@ bool isLatestTrainingPerfect = false;
 bool showCardsLabels = true;
 bool birthdayVisitEnabled = false;
 bool recentCompWin = false;
+bool addOneMatsuriTicket = false;
 
 int librarySegmentsFilled = 0;
 int flowersSaleHandicap = 0;
@@ -518,13 +527,17 @@ const int singPlayerWidth = 22;
 const int singPlayerHeight = 10;
 const unsigned long singNoteSpawnInterval = 700;
 const int singNoteFallSpeed = 3;
+const unsigned long singFlashDuration = 70;
 int singColumnWidth = 48;
 int singPlayerY = 118;
 int singPlayerColumn = singColumnCount / 2;
 int singNotesCollected = 0;
+int singNotesMissed = 0;
 int singNotesSpawned = 0;
 unsigned long singLastSpawnTime = 0;
 unsigned long singCompletionTime = 0;
+unsigned long singFlashUntil = 0;
+uint16_t singFlashColor = BLACK;
 bool singGameRunning = false;
 bool singGameCompleted = false;
 std::vector<FallingNote> singNotes;
@@ -583,6 +596,8 @@ unsigned long swimCompletionTime = 0;
 unsigned long swimLastSpawnTime = 0;
 unsigned long swimNextSpawnDelay = swimSpawnIntervalMin;
 std::vector<SwimShark> swimSharks;
+M5Canvas swimCanvas(&M5Cardputer.Display);
+bool swimCanvasReady = false;
 
 // Training GYM mini-game state
 const int gymTargetStreak = 10;
@@ -663,7 +678,7 @@ String doctorHint = "";
 String priestHint = "";
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "Update 13";
+String versionNumber = "M5 Cardputer 1.0/1.1 - Update 14";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -766,6 +781,7 @@ const char* gameStateToString(GameState state) {
     case TRAIN_RUN2:       return "TRAIN_RUN2";
     case TRAIN_RUN3:       return "TRAIN_RUN3";
     case TRAIN_LIBRARY:    return "TRAIN_LIBRARY";
+    case TRAIN_STATUS:     return "TRAIN_STATUS";
     case COMP_EXPLAIN:     return "COMP_EXPLAIN";
     case COMP_MENU:        return "COMP_MENU";
     case COMP_LOCAL:       return "COMP_LOCAL";
@@ -793,6 +809,9 @@ const char* gameStateToString(GameState state) {
     case COMP_NAT5:        return "COMP_NAT5";
     case COMP_NAT6:        return "COMP_NAT6";
     case COMP_NAT7:        return "COMP_NAT7";
+    case COMP_STATUS:      return "COMP_STATUS";
+    case COMP_COMPLETE:    return "COMP_COMPLETE";
+    case COMP_FAILED:      return "COMP_FAILED";
     case MATSURI_TITLE:    return "MATSURI_TITLE";
     case MATSURI_TICKETS:  return "MATSURI_TICKETS";
     case MATSURI_TICKETS2: return "MATSURI_TICKETS2";
@@ -855,7 +874,7 @@ void showToast(const String& msg, unsigned long ms = longWait) {
 
 bool isCompetitionEnabled() {
   Serial.println("> isCompetitionEnabled()");
-  if (natsumi.age >= 13 && natsumi.hunger == 4 && natsumi.hygiene == 4 && natsumi.energy == 4 && natsumi.performance == 4 && natsumi.fitness == 4 && natsumi.culture == 4 && natsumi.charm == 4) {
+  if (natsumi.hunger == 4 && natsumi.hygiene == 4 && natsumi.energy == 4 && natsumi.performance == 4 && natsumi.fitness == 4 && natsumi.culture == 4 && natsumi.charm == 4) {
     Serial.println(">> isCompetitionEnabled: true");
     return true;
   } else {
@@ -1337,7 +1356,7 @@ void preloadImages() {
     case IDLE_HOME:
       // preloadImage("/idolnat/screens/screensaver01.png", currentBackground);
       break;
-    case FLOWERS_MARKET: case FLOWERS_MARKET7:
+    case FLOWERS_MARKET:
       preloadImage("/idolnat/screens/flower_market_bg.png", currentBackground);
       break;
     case FLOWERS_MARKET2:
@@ -1355,6 +1374,9 @@ void preloadImages() {
     case FLOWERS_MARKET6:
       preloadImage("/idolnat/screens/flower_market_bg3.png", currentBackground);
       preloadImage("/idolnat/sprites/flower_stage_08-10x16.png", natsumiSprite);
+      break;
+    case FLOWERS_MARKET7:
+      preloadImage("/idolnat/screens/flower_market_bg3.png", currentBackground);
       break;
     case FOOD_MENU:
       preloadImage("/idolnat/screens/kitchen.png", currentBackground);
@@ -1624,6 +1646,9 @@ void preloadImages() {
           break;
       }
       break;
+    case TRAIN_STATUS:
+      preloadImage("/idolnat/screens/map_training.png", currentBackground);
+      break;
     case COMP_EXPLAIN:
       preloadImage("/idolnat/screens/competition_booth.png", currentBackground);
       break;
@@ -1662,6 +1687,12 @@ void preloadImages() {
       break;
     case COMP_LOCAL5: case COMP_DEPT5: case COMP_REG5: case COMP_NAT5:
       preloadImage("/idolnat/sprites/natsumi_head_sprite-22x20.png", natsumiSprite);
+      break;
+    case COMP_COMPLETE:
+      preloadImage("/idolnat/screens/competition_complete.png", currentBackground);
+      break;
+    case COMP_FAILED:
+      preloadImage("/idolnat/screens/competition_failed.png", currentBackground);
       break;
     case HEALTH_MENU:
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
@@ -2610,24 +2641,19 @@ void changeState(int baseLayer, GameState targetState, int delay) {
     }
     switch (targetState) {
       case M5_SCREEN:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         break;
       case MOTTO_SCREEN:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         break;
       case VERSION_SCREEN:
-        // screenConfig = TEXT;
         setScreenConfig(TEXT);
         break;
       case TITLE_SCREEN:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         characterEnabled = false;
         break;
       case TITLE_SCREEN2:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         currentMenuType = "main";
         currentMenuItems = mainMenuItems;
@@ -2636,7 +2662,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         characterEnabled = false;
         break;
       case NEW_GAME:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         natsumi.age = 11;
         natsumi.ageMilliseconds = 0;
@@ -2719,7 +2744,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         lastAgeTick = 0;
         break;
       case CONTINUE_GAME:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         if (loadGameFromSd()) {
           natsumi.lastHungerUpdate = 0;
@@ -2808,21 +2832,18 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         }
         break;
       case INTRO: case INTRO2: case INTRO3: case INTRO4: case INTRO5: case INTRO6:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         menuOpened = false;
         break;
       case INTRO7:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         characterEnabled = false;
         break;
       case HOME_LOOP:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         currentMenuType = "home";
         currentMenuItems = homeMenuItems;
@@ -2830,12 +2851,10 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         overlayActive = false;
         break;
       case IDLE_HOME: case IDLE_STATS:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         characterEnabled = false;
         break;
       case STATS_SCREEN:
-        // screenConfig = GAME;
         setScreenConfig(GAME);
         overlayActive = true;
         l5NeedsRedraw = true;
@@ -2844,7 +2863,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         saveStatusUntil = 0;
         break;
       case INVENTORY_SCREEN:
-        // screenConfig = GAME;
         setScreenConfig(GAME);
         overlayActive = true;
         l5NeedsRedraw = true;
@@ -2853,204 +2871,174 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         menuOpened = false;
         break;
       case FLOWERS_MARKET:
-        // screenConfig = IDLE;
         setScreenConfig(IDLE);
         characterEnabled = false;
         break;
       case FLOWERS_MARKET2: case FLOWERS_MARKET3: case FLOWERS_MARKET4:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         characterEnabled = false;
         break;
       case FLOWERS_MARKET5: case FLOWERS_MARKET6:
-        // screenConfig = GAME;
         setScreenConfig(GAME);
         overlayActive = true;
         l5NeedsRedraw = true;
         toastEnabled = false;
         break;
       case FLOWERS_MARKET7:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case FOOD_MENU:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         currentMenuType = "food";
         currentMenuItems = foodMenuItems;
         currentMenuItemsCount = foodMenuItemCount;
         break;
       case FOOD_CONBINI:
-        // screenConfig = IDLE;
         setScreenConfig(IDLE);
         characterEnabled = false;
         break;
       case FOOD_CONBINI2:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         characterEnabled = false;
         break;
       case FOOD_CONBINI3:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case FOOD_COOK:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         break;
       case FOOD_COOK2:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case FOOD_REST: case FOOD_REST5:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case FOOD_REST2: case FOOD_REST3: case FOOD_REST4:
-        // screenConfig = IDLE;
         setScreenConfig(IDLE);
         characterEnabled = false;
         break;
       case FOOD_REST6: case FOOD_REST7: case FOOD_REST8:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         characterEnabled = false;
         break;
       case FOOD_ORDER: case FOOD_ORDER2: case FOOD_ORDER3: case FOOD_ORDER4:
-        // screenConfig = IDLE;
         setScreenConfig(IDLE);
         overlayActive = true;
         l5NeedsRedraw = true;
         characterEnabled = false;
         break;
       case FOOD_ORDER5:
-        // screenConfig = IDLE;
         setScreenConfig(IDLE);
         overlayActive = false;
         l5NeedsRedraw = false;
         characterEnabled = true;
         break;
       case FOOD_ORDER6: case FOOD_ORDER7:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         break;
       case FOOD_ORDER8:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case TRAIN_MENU:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         currentMenuType = "training";
         currentMenuItems = trainingMenuItems;
         currentMenuItemsCount = trainingMenuItemCount;
         break;
       case TRAIN_DANCE:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case TRAIN_DANCE2:
-        // screenConfig = GAME;
         setScreenConfig(GAME);
         break;
       case TRAIN_DANCE3:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case TRAIN_SING:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case TRAIN_SING2:
-        // screenConfig = GAME;
         setScreenConfig(GAME);
         break;
       case TRAIN_SING3:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case TRAIN_SWIM:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case TRAIN_SWIM2:
-        // screenConfig = GAME;
         setScreenConfig(GAME);
         break;
       case TRAIN_SWIM3:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case TRAIN_GYM:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case TRAIN_GYM2:
-        // screenConfig = GAME;
         setScreenConfig(GAME);
         break;
       case TRAIN_GYM3:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case TRAIN_RUN:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case TRAIN_RUN2:
-        // screenConfig = GAME;
         setScreenConfig(GAME);
         break;
       case TRAIN_RUN3:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case TRAIN_LIBRARY:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         libraryInitialized = false;
         libraryRewardApplied = false;
         librarySegmentsFilled = 0;
         libraryStartTime = 0;
         break;
+      case TRAIN_STATUS:
+        setScreenConfig(DIALOG);
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        trainingStatusProcessed = false;
+        break;
       case COMP_EXPLAIN:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case COMP_MENU:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         currentMenuType = "competition";
         currentMenuItems = competitionMenuItems;
@@ -3060,7 +3048,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case COMP_DEPT: case COMP_DEPT2:
       case COMP_REG: case COMP_REG2:
       case COMP_NAT: case COMP_NAT2: case COMP_NAT7:
-        // screenConfig = IDLE;
         setScreenConfig(IDLE);
         characterEnabled = false;
         break;
@@ -3068,7 +3055,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case COMP_DEPT3: case COMP_DEPT6:
       case COMP_REG3: case COMP_REG6:
       case COMP_NAT3: case COMP_NAT6:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
@@ -3078,7 +3064,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case COMP_DEPT4:
       case COMP_REG4:
       case COMP_NAT4:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         overlayActive = true;
         l5NeedsRedraw = true;
@@ -3088,70 +3073,64 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case COMP_DEPT5:
       case COMP_REG5:
       case COMP_NAT5:
-        // screenConfig = GAME;
         setScreenConfig(GAME);
         break;
+      case COMP_COMPLETE: case COMP_FAILED:
+        setScreenConfig(IDLE);
+        overlayActive = false;
+        l5NeedsRedraw = false;
+        characterEnabled = true;
+        break;
       case HEALTH_MENU:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         currentMenuType = "health";
         currentMenuItems = healthMenuItems;
         currentMenuItemsCount = healthMenuItemCount;
         break;
       case HEALTH_WASH:
-        // screenConfig = GAME;
         setScreenConfig(GAME);
         overlayActive = false;
         menuOpened = false;
         resetBathGame();
         break;
       case HEALTH_WASH2: case HEALTH_WASH3: case HEALTH_WASH4:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         break;
       case HEALTH_WASH5:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         menuEnabled = false;
         l4NeedsRedraw = false;
         break;
       case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case HEALTH_DOCTOR2: case HEALTH_DOCTOR3: case HEALTH_DOCTOR4: case HEALTH_DOCTOR5:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         characterEnabled = false;
         break;
       case HEALTH_TEMPLE: case HEALTH_TEMPLE6:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case HEALTH_TEMPLE2: case HEALTH_TEMPLE3: case HEALTH_TEMPLE4: case HEALTH_TEMPLE5:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         characterEnabled = false;
         break;
       case HEALTH_ONSEN:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         characterEnabled = false;
         natsumi.hygiene = 4;
         break;
       case REST_MENU:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         currentMenuType = "rest";
         currentMenuItems = restMenuItems;
         currentMenuItemsCount = restMenuItemCount;
         break;
       case REST_MEDITATE:
-        // screenConfig = IDLE;
         setScreenConfig(IDLE);
         meditateStart = millis();
         lastMeditationRedraw = 0;
@@ -3163,7 +3142,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         toastEnabled = false;
         break;
       case REST_SLEEP:
-        // screenConfig = IDLE;
         setScreenConfig(IDLE);
         lastSleepEnergyDisplayed = -1;
         overlayActive = true;
@@ -3171,12 +3149,10 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         toastEnabled = false;
         break;
       case GARDEN_LOOP:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         menuOpened = false;
         break;
       case GARDEN_MENU:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         currentMenuType = "garden";
         currentMenuItems = gardenMenuItems;
@@ -3184,34 +3160,28 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         menuOpened = true;
         break;
       case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         menuOpened = false;
         break;
       case MATSURI_TITLE:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         characterEnabled = false;
         break;
       case MATSURI_TICKETS: case MATSURI_TICKETS3:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         break;
       case MATSURI_TICKETS2:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case MATSURI_COST:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         characterEnabled = false;
         matsuriSelection = 0;
         break;
       case MATSURI_SAVORY: case MATSURI_SAVORY2:
       case MATSURI_SUGARY:
-        // screenConfig = IDLE;
         setScreenConfig(IDLE);
         characterEnabled = false;
         overlayActive = true;
@@ -3220,7 +3190,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case MATSURI_SAVORY3: case MATSURI_SAVORY4:
       case MATSURI_SUGARY2: case MATSURI_SUGARY3:
       case MATSURI_GARAPON: case MATSURI_GARAPON2:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
@@ -3228,31 +3197,26 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case MATSURI_SAVORY5:
       case MATSURI_SUGARY4:
       case MATSURI_GARAPON4:
-        // screenConfig = CARD;
         setScreenConfig(IDLE);
         break;
       case MATSURI_GARAPON3:
-        // screenConfig = GAME;
         setScreenConfig(GAME);
         overlayActive = false;
         menuOpened = false;
         resetGaraponGame();
         break;
       case ACTION_OUTCOME:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case EVENTS_MENU:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         currentMenuType = "events";
         currentMenuItems = eventsMenuItems;
         currentMenuItemsCount = eventsMenuItemCount;
         break;
       case MATSURI_MENU: case MATSURI_MENU2: case MATSURI_MENU3:
-        // screenConfig = IDLE;
         setScreenConfig(IDLE);
         characterEnabled = false;
         break;
@@ -3260,12 +3224,10 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         setScreenConfig(GAME);
         break;
       case DOOR_KNOCK: case DOOR_KNOCK7: case DOOR_KNOCK9:
-        // screenConfig = IDLE;
         setScreenConfig(IDLE);
         characterEnabled = false;
         break;
       case DOOR_KNOCK4: case DOOR_KNOCK10:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
@@ -3273,13 +3235,11 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
         break;
       case DOOR_KNOCK2: case DOOR_KNOCK3:  case DOOR_KNOCK5: case DOOR_KNOCK6: case DOOR_KNOCK8:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case VISITOR_PORTRAIT:
-        // screenConfig = IDLE;
         setScreenConfig(IDLE);
         characterEnabled = false;
         break;
@@ -3301,45 +3261,32 @@ void updateAging() {
   unsigned long totalMs = playtimeTotalMs + currentPlaytime;
   int currentAge = natsumi.age;
  
-  // natsumi.ageMilliseconds = currentPlaytime;
   natsumi.ageMilliseconds = totalMs;
   // Serial.print("natsumi.age: ");
   // Serial.println(natsumi.age);
   if (natsumi.ageMilliseconds < agingInterval) {
-    // 11yo
     natsumi.age = 11;
   } else if ((natsumi.ageMilliseconds >= agingInterval) && (natsumi.ageMilliseconds < (agingInterval * 2))) {
-    // 12yo
     natsumi.age = 12;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 2)) && (natsumi.ageMilliseconds < (agingInterval * 3))) {
-    // 13yo
     natsumi.age = 13;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 3)) && (natsumi.ageMilliseconds < (agingInterval * 4))) {
-    // 14yo
     natsumi.age = 14;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 4)) && (natsumi.ageMilliseconds < (agingInterval * 5))) {
-    // 15yo
     natsumi.age = 15;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 5)) && (natsumi.ageMilliseconds < (agingInterval * 6))) {
-    // 16yo
     natsumi.age = 16;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 6)) && (natsumi.ageMilliseconds < (agingInterval * 7))) {
-    // 17yo
     natsumi.age = 17;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 7)) && (natsumi.ageMilliseconds < (agingInterval * 8))) {
-    // 18yo
     natsumi.age = 18;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 8)) && (natsumi.ageMilliseconds < (agingInterval * 9))) {
-    // 19yo
     natsumi.age = 19;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 9)) && (natsumi.ageMilliseconds < (agingInterval * 10))) {
-    // 20yo
     natsumi.age = 20;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 10)) && (natsumi.ageMilliseconds < (agingInterval * 11))) {
-    // 21 yo
     natsumi.age = 21;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 11)) && (natsumi.ageMilliseconds < (agingInterval * 12))) {
-    // 22yo - Game ends
     natsumi.age = 22;
   }
   // Serial.print("natsumi.age: ");
@@ -3803,6 +3750,9 @@ void manageDialog() {
     case ACTION_OUTCOME:
       actionOutcome();
       break;
+    case TRAIN_STATUS:
+      manageTrainingStatus();
+      break;
     case INTRO: case INTRO2: case INTRO3: case INTRO4: case INTRO5: case INTRO6: case INTRO7:
       introduction();
       break;
@@ -3964,6 +3914,27 @@ void manageIdle() {
       changeState(0, COMP_NAT3, microWait);
       break;
     case COMP_NAT7:
+      characterEnabled = false;
+      changeState(0, HOME_LOOP, microWait);
+      break;
+    case COMP_COMPLETE:
+      characterEnabled = false;
+      switch(previousState) {
+        case COMP_LOCAL5:
+          changeState(0, COMP_LOCAL6, microWait);
+          break;
+        case COMP_DEPT5:
+          changeState(0, COMP_DEPT6, microWait);
+          break;
+        case COMP_REG5:
+          changeState(0, COMP_REG6, microWait);
+          break;
+        case COMP_NAT5:
+          changeState(0, COMP_NAT6, microWait);
+          break;
+      }
+      break;
+    case COMP_FAILED:
       characterEnabled = false;
       changeState(0, HOME_LOOP, microWait);
       break;
@@ -4839,10 +4810,13 @@ void drawTrainDancePlayfield() {
 void resetTrainSingGame() {
   singNotes.clear();
   singNotesCollected = 0;
+  singNotesMissed = 0;
   singNotesSpawned = 0;
   singPlayerColumn = singColumnCount / 2;
   singLastSpawnTime = 0;
   singCompletionTime = 0;
+  singFlashUntil = 0;
+  singFlashColor = BLACK;
   singGameRunning = false;
   singGameCompleted = false;
 }
@@ -4902,8 +4876,15 @@ void manageTrainSingGame() {
   unsigned long now = millis();
 
   if (singGameCompleted) {
-    drawTrainSingPlayfield(true);
     if (now - singCompletionTime >= 1200) {
+      if (natsumi.performance < 4) {
+        natsumi.performance += 1;
+      }
+      if (natsumi.performance == 4) {
+        addOneMatsuriTicket = true;
+      } else {
+        addOneMatsuriTicket = false;
+      }
       changeState(0, TRAIN_SING3, 0);
     }
     return;
@@ -4950,8 +4931,13 @@ void manageTrainSingGame() {
       if (note.column == singPlayerColumn) {
         singNotesCollected++;
         note.active = false;
-      } else if (note.y > M5Cardputer.Display.height()) {
+        singFlashColor = M5Cardputer.Display.color565(40, 220, 80);
+        singFlashUntil = now + singFlashDuration;
+      } else {
+        singNotesMissed++;
         note.active = false;
+        singFlashColor = M5Cardputer.Display.color565(220, 40, 40);
+        singFlashUntil = now + singFlashDuration;
       }
     }
   }
@@ -4963,10 +4949,12 @@ void manageTrainSingGame() {
   if (singNotesCollected >= singTargetNotes) {
     singGameCompleted = true;
     singCompletionTime = now;
-    if (natsumi.performance < 4) {
-      natsumi.performance += 1;
-    }
     drawTrainSingPlayfield(true);
+    return;
+  }
+
+  if (now < singFlashUntil) {
+    M5Cardputer.Display.fillScreen(singFlashColor);
     return;
   }
 
@@ -5037,6 +5025,11 @@ void manageTrainDanceGame() {
     if (natsumi.performance < 4) {
       natsumi.performance += 1;
     }
+    if (natsumi.performance == 4) {
+      addOneMatsuriTicket = true;
+    } else {
+      addOneMatsuriTicket = false;
+    }
     danceNeedsRedraw = true;
   }
 
@@ -5083,6 +5076,10 @@ void startTrainSwimGame() {
   overlayActive = false;
   swimGameRunning = true;
   swimNeedsRedraw = true;
+  if (!swimCanvasReady) {
+    swimCanvas.setColorDepth(16);
+    swimCanvasReady = swimCanvas.createSprite(M5Cardputer.Display.width(), M5Cardputer.Display.height());
+  }
   M5Cardputer.Display.fillScreen(M5Cardputer.Display.color565(150, 220, 255));
 }
 
@@ -5092,42 +5089,77 @@ void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect) {
   const uint16_t poolColor = M5Cardputer.Display.color565(150, 220, 255);
   const uint16_t laneColor = M5Cardputer.Display.color565(180, 235, 255);
   const uint16_t laneDividerColor = WHITE;
-  const uint16_t sharkColor = M5Cardputer.Display.color565(255, 110, 110);
-  const uint16_t sharkBelly = M5Cardputer.Display.color565(255, 210, 210);
-  const uint16_t playerColor = M5Cardputer.Display.color565(70, 140, 255);
   const uint16_t textColor = BLACK;
+  const int poolHeight = swimLaneCount * swimLaneHeight;
+  const int playerX = screenWidth - 32;
+  const int playerY = getSwimLaneCenter(swimPlayerLane) - (swimPlayerHeight / 2);
+  M5Canvas* target = swimCanvasReady ? &swimCanvas : nullptr;
 
-  for (const auto &shark : swimSharks) {
-    if (!shark.active) continue;
-    int sharkX = static_cast<int>(shark.x);
-    int sharkY = getSwimLaneCenter(shark.lane);
-    M5Cardputer.Display.fillRect((sharkX - shark.speed), sharkY, (sharkX + swimSharkLength), (sharkY + swimSharkHeight), poolColor);
-    // M5Cardputer.Display.fillRect((sharkX - shark.speed), sharkY, sharkX + 4, swimSharkHeight + 2, poolColor);
-    M5Cardputer.Display.drawPng(enemySprite.data, enemySprite.length, sharkX, sharkY);
-  }
+  if (target) {
+    target->fillScreen(poolColor);
+    target->fillRect(0, swimPoolTop, screenWidth, poolHeight, poolColor);
+    for (int lane = 0; lane < swimLaneCount; lane++) {
+      int laneY = swimPoolTop + (lane * swimLaneHeight);
+      target->fillRect(0, laneY, screenWidth, swimLaneHeight, laneColor);
+      if (lane > 0) {
+        target->drawFastHLine(0, laneY, screenWidth, laneDividerColor);
+      }
+    }
 
-  int playerX = screenWidth - 32;
-  int playerY = getSwimLaneCenter(swimPlayerLane);
+    for (const auto &shark : swimSharks) {
+      if (!shark.active) continue;
+      int sharkX = static_cast<int>(shark.x);
+      int sharkY = getSwimLaneCenter(shark.lane) - (swimSharkHeight / 2);
+      target->drawPng(enemySprite.data, enemySprite.length, sharkX, sharkY);
+    }
 
-  // M5Cardputer.Display.fillRect(playerX, 20, playerX + 22, 130, poolColor);
-  M5Cardputer.Display.fillRect(playerX, 25, playerX + 22, 125, poolColor);
-  M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, playerX, playerY);
+    target->drawPng(natsumiSprite.data, natsumiSprite.length, playerX, playerY);
 
-  M5Cardputer.Display.setTextDatum(top_left);
-  M5Cardputer.Display.setTextColor(textColor, poolColor);
-  M5Cardputer.Display.setTextSize(2);
-  M5Cardputer.Display.drawString(String("Dodged: ") + swimAvoidedSharks + String("/") + swimTargetSharks + " ", 6, 4);
+    target->setTextDatum(top_left);
+    target->setTextColor(textColor, poolColor);
+    target->setTextSize(2);
+    target->drawString(String("Dodged: ") + swimAvoidedSharks + String("/") + swimTargetSharks + " ", 6, 4);
 
-  if (showCompletion) {
-    M5Cardputer.Display.setTextDatum(middle_center);
+    if (showCompletion) {
+      target->setTextDatum(middle_center);
+      target->setTextSize(2);
+      target->drawString("Training complete!", screenWidth / 2, screenHeight / 2);
+    }
+
+    target->pushSprite(0, 0);
+  } else {
+    M5Cardputer.Display.startWrite();
+    M5Cardputer.Display.fillRect(0, swimPoolTop, screenWidth, poolHeight, poolColor);
+    for (int lane = 0; lane < swimLaneCount; lane++) {
+      int laneY = swimPoolTop + (lane * swimLaneHeight);
+      M5Cardputer.Display.fillRect(0, laneY, screenWidth, swimLaneHeight, laneColor);
+      if (lane > 0) {
+        M5Cardputer.Display.drawFastHLine(0, laneY, screenWidth, laneDividerColor);
+      }
+    }
+    for (const auto &shark : swimSharks) {
+      if (!shark.active) continue;
+      int sharkX = static_cast<int>(shark.x);
+      int sharkY = getSwimLaneCenter(shark.lane) - (swimSharkHeight / 2);
+      M5Cardputer.Display.drawPng(enemySprite.data, enemySprite.length, sharkX, sharkY);
+    }
+    M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, playerX, playerY);
+    M5Cardputer.Display.setTextDatum(top_left);
+    M5Cardputer.Display.setTextColor(textColor, poolColor);
     M5Cardputer.Display.setTextSize(2);
-    M5Cardputer.Display.drawString("Training complete!", screenWidth / 2, screenHeight / 2);
+    M5Cardputer.Display.drawString(String("Dodged: ") + swimAvoidedSharks + String("/") + swimTargetSharks + " ", 6, 4);
+    if (showCompletion) {
+      M5Cardputer.Display.setTextDatum(middle_center);
+      M5Cardputer.Display.setTextSize(2);
+      M5Cardputer.Display.drawString("Training complete!", screenWidth / 2, screenHeight / 2);
+    }
+    M5Cardputer.Display.endWrite();
   }
 }
 
 void handleSwimCollision() {
   swimCollisions++;
-  swimAvoidedSharks = max(0, swimAvoidedSharks - swimHitPenalty);
+  // swimAvoidedSharks = max(0, swimAvoidedSharks - swimHitPenalty);
 }
 
 void manageTrainSwimGame() {
@@ -5145,6 +5177,11 @@ void manageTrainSwimGame() {
     if (now - swimCompletionTime >= swimCompletionDelay) {
       if (natsumi.fitness < 4) {
         natsumi.fitness += 1;
+      }
+      if (natsumi.fitness == 4) {
+        addOneMatsuriTicket = true;
+      } else {
+        addOneMatsuriTicket = false;
       }
       changeState(0, TRAIN_SWIM3, 0);
     }
@@ -5186,14 +5223,13 @@ void manageTrainSwimGame() {
   for (auto &shark : swimSharks) {
     if (!shark.active) continue;
     shark.x += shark.speed;
-    // shark.x += (shark.speed + swimSharkLength);
     int sharkLeft = static_cast<int>(shark.x);
     int sharkRight = sharkLeft + swimSharkLength;
 
     if (shark.lane == swimPlayerLane && sharkRight > playerLeft && sharkLeft < playerRight) {
       collision = true;
       shark.active = false;
-    } else if (shark.x > M5Cardputer.Display.width() + swimSharkLength) {
+    } else if (shark.x > M5Cardputer.Display.width()) {
       shark.active = false;
       swimAvoidedSharks++;
       swimNeedsRedraw = true;
@@ -5213,9 +5249,6 @@ void manageTrainSwimGame() {
     swimCompletionTime = now;
     swimSharks.clear();
     swimGameRunning = false;
-    if (natsumi.fitness < 4) {
-      natsumi.fitness += 1;
-    }
     swimNeedsRedraw = true;
   }
 
@@ -5337,7 +5370,10 @@ void drawTrainGymPlayfield(bool showCompletion) {
   const uint16_t cursorColor = M5Cardputer.Display.color565(255, 190, 90);
   const uint16_t frameColor = WHITE;
 
-  // M5Cardputer.Display.fillScreen(BLACK);
+  if (!showCompletion) {
+    // Clear only the moving cursor lane to avoid full-screen flicker.
+    M5Cardputer.Display.fillRect(gymBarX - 4, gymBarY - 6, gymBarWidth + 8, gymBarHeight + 12, BLACK);
+  }
 
   M5Cardputer.Display.setTextDatum(middle_left);
   M5Cardputer.Display.setTextColor(WHITE, BLACK);
@@ -5386,6 +5422,11 @@ void manageTrainGymGame() {
     if (now - gymCompletionTime >= gymCompletionDelay) {
       if (natsumi.fitness < 4) {
         natsumi.fitness += 1;
+      }
+      if (natsumi.fitness == 4) {
+        addOneMatsuriTicket = true;
+      } else {
+        addOneMatsuriTicket = false;
       }
       changeState(0, TRAIN_GYM3, 0);
     }
@@ -5549,6 +5590,11 @@ void manageTrainRunGame() {
       if (natsumi.fitness < 4) {
         natsumi.fitness += 1;
       }
+      if (natsumi.fitness == 4) {
+        addOneMatsuriTicket = true;
+      } else {
+        addOneMatsuriTicket = false;
+      }
       changeState(0, TRAIN_RUN3, 0);
     }
     return;
@@ -5596,9 +5642,7 @@ void manageTrainRunGame() {
       runGameRunning = false;
       runCompletionTime = now;
       runNeedsRedraw = true;
-      if (natsumi.fitness < 4) {
-        natsumi.fitness += 1;
-      }
+      isLatestTrainingPerfect = true;
       return;
     }
 
@@ -5607,6 +5651,7 @@ void manageTrainRunGame() {
       runGameRunning = false;
       runCompletionTime = now;
       runNeedsRedraw = true;
+      isLatestTrainingPerfect = false;
       return;
     }
     runNeedsRedraw = true;
@@ -5800,6 +5845,7 @@ void manageBathGame() {
 
 void drawDialogBubble(const String& dialogText) {
   // Draw a dialog bubble on the right, matching the menu style
+  Serial.println("> Entering drawDialogBubble() for text " + dialogText);
   const int x = 80;              // leave space for the character on the left
   const int w = 150;             // width of the bubble
   const int padding = 8;         // inner padding
@@ -6167,6 +6213,7 @@ void manageCompetition() {
     static int competitionPlayerColumn = 0;
     static int competitionNotesSpawned = 0;
     static int competitionNotesCollected = 0;
+    static int competitionNotesMissed = 0;
     static unsigned long competitionLastSpawn = 0;
     static unsigned long competitionCompletionTime = 0;
     static bool competitionCompleted = false;
@@ -6189,25 +6236,26 @@ void manageCompetition() {
       competitionNotes.clear();
       competitionNotesSpawned = 0;
       competitionNotesCollected = 0;
+      competitionNotesMissed = 0;
       competitionLastSpawn = 0;
       competitionCompletionTime = 0;
       competitionCompleted = false;
-  
-      switch (currentState) {
-        case COMP_LOCAL5:
-          Serial.println(">> COMP_LOCAL5 - 3 columns");
+
+      switch (natsumi.competition) {
+        case 3:
+          Serial.println(">> Competition level 1 - 3 columns");
           competitionColumns = 3;
           break;
-        case COMP_DEPT5:
-          Serial.println(">> COMP_DEPT5 - 4 columns");
+        case 7:
+          Serial.println(">> Competition level 2 - 4 columns");
           competitionColumns = 4;
           break;
-        case COMP_REG5:
-          Serial.println(">> COMP_REG5 - 5 columns");
+        case 11:
+          Serial.println(">> Competition level 3 - 5 columns");
           competitionColumns = 5;
           break;
-        case COMP_NAT5:
-          Serial.println(">> COMP_NAT5 - 6 columns");
+        case 15:
+          Serial.println(">> Competition level 4 - 6 columns");
           competitionColumns = 6;
           break;
       }
@@ -6220,67 +6268,45 @@ void manageCompetition() {
     unsigned long now = millis();
   
     if (competitionCompleted) {
-      if (competitionNotesCollected == targetNotes) {
-        Serial.println(">> Competition - Notes collected: " + String(competitionNotesCollected));
-        Serial.println(">> Competition - Notes spawned: " + String(competitionNotesSpawned));
+      Serial.println(">> Competition - Notes collected: " + String(competitionNotesCollected));
+      Serial.println(">> Competition - Notes spawned: " + String(competitionNotesSpawned));
+      Serial.println(">> Competition - Notes missed: " + String(competitionNotesMissed));
+      M5Cardputer.Keyboard.keysState().reset();
+      if (competitionNotesMissed == 0) {
+        natsumi.popularity = 4;
+        competitionInitialized = false;
+        recentCompWin = true;
         switch (currentState) {
           case COMP_LOCAL5:
-            if (natsumi.competition == 0) {
-              natsumi.competition = 1;
-              if (natsumi.popularity < 4) {
-                natsumi.popularity += 1;
-              }
-              competitionInitialized = false;
-              recentCompWin = true;
-              changeState(0, COMP_LOCAL6, 0);
-              competitionMenuSelection = 1;
-              showToast("Departmental competition unlocked");
-            }
+            natsumi.competition = 4;
+            // changeState(0, COMP_LOCAL6, 0);
+            changeState(0, COMP_COMPLETE, 0);
             break;
           case COMP_DEPT5:
-            if (natsumi.competition == 1) {
-              natsumi.competition = 2;
-              if (natsumi.popularity < 4) {
-                natsumi.popularity += 1;
-              }
-              competitionInitialized = false;
-              recentCompWin = true;
-              changeState(0, COMP_DEPT6, 0);
-              competitionMenuSelection = 2;
-              showToast("Regional competition unlocked");
-            }
+            natsumi.competition = 8;
+            // changeState(0, COMP_DEPT6, 0);
+            changeState(0, COMP_COMPLETE, 0);
             break;
           case COMP_REG5:
-            if (natsumi.competition == 2) {
-              natsumi.competition = 3;
-              if (natsumi.popularity < 4) {
-                natsumi.popularity += 1;
-              }
-              competitionInitialized = false;
-              recentCompWin = true;
-              changeState(0, COMP_REG6, 0);
-              competitionMenuSelection = 3;
-              showToast("National competition unlocked");
-            }
+            natsumi.competition = 12;
+            // changeState(0, COMP_REG6, 0);
+            changeState(0, COMP_COMPLETE, 0);
             break;
           case COMP_NAT5:
-            if (natsumi.competition == 3) {
-              natsumi.competition = 4;
-              if (natsumi.popularity < 4) {
-                natsumi.popularity += 1;
-              }
-              competitionInitialized = false;
-              recentCompWin = true;
-              changeState(0, COMP_NAT6, 0);
-            }
+            natsumi.competition = 16;
+            // changeState(0, COMP_NAT6, 0);
+            changeState(0, COMP_COMPLETE, 0);
             break;
         }
         unlockedNextCompetitionLevel = true;
         return;
+      } else {
+        competitionInitialized = false;
+        recentCompWin = false;
+        unlockedNextCompetitionLevel = false;
+        // showToast("Too many misses, disqualified");
+        changeState(0, COMP_FAILED, 0);
       }
-    } else {
-      unlockedNextCompetitionLevel = false;
-      showToast("Too many misses, disqualified");
     }
   
     if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -6322,8 +6348,11 @@ void manageCompetition() {
       if (note.y >= playerY - noteRadius) {
         if (note.column == competitionPlayerColumn) {
           competitionNotesCollected++;
+          Serial.println(">> Competition - Notes collected: " + String(competitionNotesCollected) + " Target: " + String(targetNotes));
           note.active = false;
         } else if (note.y > screenHeight) {
+          competitionNotesMissed++;
+          Serial.println(">> Competition - Notes missed: " + String(competitionNotesMissed) + " Target: " + String(targetNotes));
           note.active = false;
         }
       }
@@ -6807,7 +6836,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // 2: ORDER
           menuOpened = false;
           if (!waitingForFoodDelivery) {
-            if (natsumi.age > 13) {
+            if (natsumi.age > 10) {
               changeState(0, FOOD_ORDER, 0);
             } else {
               changeState(0, HOME_LOOP, 0);
@@ -7006,16 +7035,15 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           Serial.println(">> Local competition, age = " + String(natsumi.age));
           menuOpened = false;
           if (isCompetitionEnabled()) {
-            if (natsumi.age > 12) {
-              if (natsumi.competition == 0) {
-                changeState(0, COMP_LOCAL, 0);
-              } else {
-                changeState(0, HOME_LOOP, 0);
-                showToast("Already completed");
-              }
+            if (natsumi.competition == 3) {
+              changeState(0, COMP_LOCAL, 0);
             } else {
+              if (natsumi.competition > 3) {
+                showToast("Already completed");
+              } else {
+                showToast("Not unlocked yet");
+              }
               changeState(0, HOME_LOOP, 0);
-              showToast("Too young to compete");
             }
           } else {
             changeState(0, COMP_EXPLAIN, 0);
@@ -7025,19 +7053,15 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // 1: DEPARTMENTAL
           menuOpened = false;
           if (isCompetitionEnabled()) {
-            if (natsumi.age > 14) {
-              if (natsumi.competition == 1) {
-                changeState(0, COMP_DEPT, 0);
-              } else if (natsumi.competition < 1) {
-                changeState(0, HOME_LOOP, 0);
-                showToast("Complete local comp. 1st");
-              } else {
-                changeState(0, HOME_LOOP, 0);
-                showToast("Already completed");
-              }
+            if (natsumi.competition == 7) {
+              changeState(0, COMP_DEPT, 0);
             } else {
+              if (natsumi.competition > 7) {
+                showToast("Already completed");
+              } else {
+                showToast("Not unlocked yet");
+              }
               changeState(0, HOME_LOOP, 0);
-              showToast("Too young to compete departmentally");
             }
           } else {
             changeState(0, COMP_EXPLAIN, 0);
@@ -7047,19 +7071,15 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // 2: REGIONAL
           menuOpened = false;
           if (isCompetitionEnabled()) {
-            if (natsumi.age > 15) {
-              if (natsumi.competition == 2) {
-                changeState(0, COMP_REG, 0);
-              } else if (natsumi.competition < 2) {
-                changeState(0, HOME_LOOP, 0);
-                showToast("Complete lower comp. 1st");
-              } else {
-                changeState(0, HOME_LOOP, 0);
-                showToast("Already completed");
-              }
+            if (natsumi.competition == 11) {
+              changeState(0, COMP_REG, 0);
             } else {
+              if (natsumi.competition > 11) {
+                showToast("Already completed");
+              } else {
+                showToast("Not unlocked yet");
+              }
               changeState(0, HOME_LOOP, 0);
-              showToast("Too young to compete regionally");
             }
           } else {
             changeState(0, COMP_EXPLAIN, 0);
@@ -7069,19 +7089,15 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // 3: NATIONAL
           menuOpened = false;
           if (isCompetitionEnabled()) {
-            if (natsumi.age > 16) {
-              if (natsumi.competition == 3) {
-                changeState(0, COMP_NAT, 0);
-              } else if (natsumi.competition < 3) {
-                changeState(0, HOME_LOOP, 0);
-                showToast("Complete lower comp. 1st");
-              } else {
-                changeState(0, HOME_LOOP, 0);
-                showToast("Already completed");
-              }
+            if (natsumi.competition == 15) {
+              changeState(0, COMP_NAT, 0);
             } else {
+              if (natsumi.competition > 15) {
+                showToast("Already completed");
+              } else {
+                showToast("Not unlocked yet");
+              }
               changeState(0, HOME_LOOP, 0);
-              showToast("Too young to compete nationally");
             }
           } else {
             changeState(0, COMP_EXPLAIN, 0);
@@ -7131,71 +7147,56 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // VALIDATE
           if (selection == 0) {
             if (isCompetitionEnabled()) {
-              if (natsumi.age > 12) {
-                if (natsumi.competition == 0) {
-                  changeState(0, COMP_LOCAL, 0);
-                } else {
-                  showToast("Already completed");
-                }
+              if (natsumi.competition == 3) {
+                changeState(0, COMP_LOCAL, 0);
               } else {
-                showToast("Too young to compete");
+                if (natsumi.competition > 3) {
+                  showToast("Already completed");
+                } else {
+                  showToast("Not unlocked yet");
+                }
               }
             } else {
               changeState(0, COMP_EXPLAIN, 0);
             }
           } else if (selection == 1) {
             if (isCompetitionEnabled()) {
-              if (natsumi.age > 14) {
-                if (natsumi.competition == 1) {
-                  changeState(0, COMP_DEPT, 0);
-                } else if (natsumi.competition < 1) {
-                  changeState(0, HOME_LOOP, 0);
-                  showToast("Complete local comp. 1st");
-                } else {
-                  changeState(0, HOME_LOOP, 0);
-                  showToast("Already completed");
-                }
+              if (natsumi.competition == 7) {
+                changeState(0, COMP_DEPT, 0);
               } else {
-                changeState(0, HOME_LOOP, 0);
-                showToast("Too young to compete departmentally");
+                if (natsumi.competition > 7) {
+                  showToast("Already completed");
+                } else {
+                  showToast("Not unlocked yet");
+                }
               }
             } else {
               changeState(0, COMP_EXPLAIN, 0);
             }
           } else if (selection == 2) {
             if (isCompetitionEnabled()) {
-              if (natsumi.age > 15) {
-                if (natsumi.competition == 2) {
-                  changeState(0, COMP_REG, 0);
-                } else if (natsumi.competition < 2) {
-                  changeState(0, HOME_LOOP, 0);
-                  showToast("Complete lower comp. 1st");
-                } else {
-                  changeState(0, HOME_LOOP, 0);
-                  showToast("Already completed regionally");
-                }
+              if (natsumi.competition == 11) {
+                changeState(0, COMP_REG, 0);
               } else {
-                changeState(0, HOME_LOOP, 0);
-                showToast("Too young to compete regionally");
+                if (natsumi.competition > 11) {
+                  showToast("Already completed");
+                } else {
+                  showToast("Not unlocked yet");
+                }
               }
             } else {
               changeState(0, COMP_EXPLAIN, 0);
             }
           } else if (selection == 3) {
             if (isCompetitionEnabled()) {
-              if (natsumi.age > 16) {
-                if (natsumi.competition == 3) {
-                  changeState(0, COMP_NAT, 0);
-                } else if (natsumi.competition < 3) {
-                  changeState(0, HOME_LOOP, 0);
-                  showToast("Complete lower comp. 1st");
-                } else {
-                  changeState(0, HOME_LOOP, 0);
-                  showToast("Already completed");
-                }
+              if (natsumi.competition == 15) {
+                changeState(0, COMP_NAT, 0);
               } else {
-                changeState(0, HOME_LOOP, 0);
-                showToast("Too young to compete nationally");
+                if (natsumi.competition > 15) {
+                  showToast("Already completed");
+                } else {
+                  showToast("Not unlocked yet");
+                }
               }
             } else {
               changeState(0, COMP_EXPLAIN, 0);
@@ -7934,10 +7935,10 @@ void drawOverlay() {
         break;
       }
       case TRAIN_SING3: {
-        int missedMusicCoins = singNotesSpawned - singNotesCollected;
+        // int missedMusicCoins = singNotesSpawned - singNotesCollected;
         String musicTeacherFeedback = "";
         isLatestTrainingPerfect = false;
-        switch(missedMusicCoins) {
+        switch(singNotesMissed) {
           case 0:
             musicTeacherFeedback = "excellent!!";
             isLatestTrainingPerfect = true;
@@ -7955,7 +7956,7 @@ void drawOverlay() {
             musicTeacherFeedback = "very bad...";
             break;
         }
-        drawDialogBubble("You collected " + String(singNotesCollected) + " / " + String(singNotesSpawned) +" music coins (missed " + String(missedMusicCoins) +"). Your performance was " + musicTeacherFeedback);
+        drawDialogBubble("You missed " + String(singNotesMissed) +" notes. Your performance was " + musicTeacherFeedback);
         break;
       }
       case TRAIN_SWIM3: {
@@ -7992,7 +7993,12 @@ void drawOverlay() {
       }
       case TRAIN_RUN3:
         drawDialogBubble("Running is very good for your health, see you again very soon!!");
-        isLatestTrainingPerfect = true;
+        // isLatestTrainingPerfect = true;
+        break;
+      case TRAIN_STATUS:
+        Serial.println("> TRAIN_STATUS: Calling function drawDialogBubble for text " + trainingStatusMessage);
+        drawDialogBubble(trainingStatusMessage);
+        trainingStatusMessage = "";
         break;
       case FOOD_CONBINI2:
         drawConbimartOverlay();
@@ -8182,7 +8188,7 @@ void drawOverlay() {
         drawDialogBubble("I sold all my flowers and made " + String(flowersRevenue) + "$. I have " + String(natsumi.money) + "$ in the bank.");
         break;
       case COMP_EXPLAIN:
-        drawDialogBubble("In order to enter Competition, you must be at least 13 and have Hunger, Hygiene, Energy, Performance, Fitness, Culture and Charm to 4, their maximum.");
+        drawDialogBubble("In order to enter Competition, you must achieve 3 perfect training ssessions, plus have Hunger, Hygiene, Energy, Performance, Fitness, Culture and Charm to 4.");
         break;
       case COMP_LOCAL3:
         drawDialogBubble("Welcome to the Shiodome Ward Community Center! Get ready for a nice singing competition! Sore dewa, hajimemasho !");
@@ -8277,13 +8283,20 @@ void drawOverlay() {
         break;
       case ACTION_OUTCOME:
         switch(previousState) {
+          case FOOD_ORDER8:
+            if (natsumi.charm < 4) {
+              Serial.println(">> actionOutcome() - natsumi.charm < 4");
+              drawOutcome("+1", "Charm");
+            } else {
+              drawOutcome("MAX", "Charm");
+            }
+            break;
           case TRAIN_SING3: case TRAIN_DANCE3:
             if (natsumi.performance < 4) {
               Serial.println(">> actionOutcome() - natsumi.performance < 4");
               drawOutcome("+1", "Performance");
             } else {
-              Serial.println(">> actionOutcome() - natsumi.performance = 4");
-              changeState(0, MATSURI_TICKETS, 0);
+              drawOutcome("MAX", "Performance");
             }
             break;
           case TRAIN_SWIM3: case TRAIN_GYM3: case TRAIN_RUN3:
@@ -8291,8 +8304,7 @@ void drawOverlay() {
               Serial.println(">> actionOutcome() - natsumi.fitness < 4");
               drawOutcome("+1", "Fitness");
             } else {
-              Serial.println(">> actionOutcome() - natsumi.fitness = 4");
-              changeState(0, MATSURI_TICKETS, 0);
+              drawOutcome("MAX", "Fitness");
             }
             break;
           case TRAIN_LIBRARY:
@@ -8301,8 +8313,8 @@ void drawOverlay() {
               Serial.println(">> actionOutcome() - natsumi.culture < 4");
               drawOutcome("+1", "Culture");
             } else {
-              Serial.println(">> actionOutcome() - natsumi.culture = 4");
-              changeState(0, MATSURI_TICKETS, 0);
+              addOneMatsuriTicket = true;
+              drawOutcome("MAX", "Culture");
             }
             break;
           case MATSURI_SAVORY5: case MATSURI_SUGARY4:
@@ -8394,7 +8406,7 @@ void playGame() {
 
 void allocateTickets() {
   Serial.println("> Entering allocateTickets()");
-  int extraTickets = 0;
+  int extraTickets = 1;
   const int screenWidth = M5Cardputer.Display.width();
   const int screenHeight = M5Cardputer.Display.height();
   const int frameInset = 6;
@@ -8447,7 +8459,7 @@ void allocateTickets() {
 
   // Helper text at the bottom
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("Total: " + String (natsumi.tickets) + " tickets [ENTER]", 120, 131, true, WHITE, 1);
+  drawText("Total: " + String (natsumi.tickets) + " tickets", 120, 131, true, WHITE, 1);
   return;
 }
 
@@ -8906,11 +8918,6 @@ void cookFood() {
                   saveRequired = true;
                   // isNatsumiHappy = true;
                 }
-                if (natsumi.charm < 4) {
-                  natsumi.charm += 1;
-                  saveRequired = true;
-                  // isNatsumiHappy = true;
-                }
                 showToast("Having " + String(choice.label));
                 clearFoodGrid();
                 overlayActive = false;
@@ -9088,13 +9095,18 @@ void actionOutcome() {
       Serial.println(">> actionOutcome() - key pressed");
       switch(previousState) {
         case TRAIN_SING3: case TRAIN_DANCE3:
-          changeState(0, HOME_LOOP, 0);
+          changeState(0, TRAIN_STATUS, 0);
           break;
         case TRAIN_SWIM3: case TRAIN_GYM3: case TRAIN_RUN3:
-          changeState(0, HOME_LOOP, 0);
+          changeState(0, TRAIN_STATUS, 0);
           break;
         case TRAIN_LIBRARY:
-          changeState(0, HOME_LOOP, 0);
+          if (addOneMatsuriTicket) {
+            addOneMatsuriTicket = false;
+            changeState(0, MATSURI_TICKETS, 0);
+          } else {
+            changeState(0, HOME_LOOP, 0);
+          }
           break;
         case MATSURI_SAVORY5: case MATSURI_SUGARY4:
           changeState(0, MATSURI_MENU, 0);
@@ -9112,6 +9124,101 @@ void actionOutcome() {
     }
   }
   return;
+}
+
+void manageTrainingStatus() {
+  // Serial.println("> Entering manageTrainingStatus()");
+  if (!trainingStatusProcessed) {
+    Serial.println(">> manageTrainingStatus() - trainingStatusProcessed FALSE");
+    if (isLatestTrainingPerfect) {
+      Serial.println(">> manageTrainingStatus() - Last training session was perfect");
+      switch(natsumi.competition) {
+        case 0: case 1: case 2:
+        case 4: case 5: case 6:
+        case 8: case 9: case 10:
+        case 12: case 13: case 14:
+          natsumi.competition += 1;
+          if (natsumi.competition > 16) {
+            natsumi.competition = 16;
+          }
+          break;
+      }
+      switch(natsumi.competition) {
+        case 1:
+          trainingStatusMessage = "1x perfect Training achieved, congratulations!!";
+          break;
+        case 2:
+          trainingStatusMessage = "2x perfect Training achieved, congratulations!!";
+          break;
+        case 3:
+          trainingStatusMessage = "3x perfect Training achieved, Local competition unlocked!!";
+          break;
+        case 4:
+          trainingStatusMessage = "Local competition completed (local champion).";
+          break;
+        case 5:
+          trainingStatusMessage = "1x perfect Training achieved, congratulations!!";
+          break;
+        case 6:
+          trainingStatusMessage = "2x perfect Training achieved, congratulations!!";
+          break;
+        case 7:
+          trainingStatusMessage = "3x perfect Training achieved, Departmental competition unlocked!!";
+          break;
+        case 8:
+          trainingStatusMessage = "Departmental competition completed (departmental champion).";
+          break;
+        case 9:
+          trainingStatusMessage = "1x perfect Training achieved, congratulations!!";
+          break;
+        case 10:
+          trainingStatusMessage = "2x perfect Training achieved, congratulations!!";
+          break;
+        case 11:
+          trainingStatusMessage = "3x perfect Training achieved, Regional competition unlocked!!";
+          break;
+        case 12:
+          trainingStatusMessage = "Regional competition completed (regional champion).";
+          break;
+        case 13:
+          trainingStatusMessage = "1x perfect Training achieved, congratulations!!";
+          break;
+        case 14:
+          trainingStatusMessage = "2x perfect Training achieved, congratulations!!";
+          break;
+        case 15:
+          trainingStatusMessage = "3x perfect Training achieved, National competition unlocked!!";
+          break;
+        case 16:
+          trainingStatusMessage = "National competition completed (national champion).";
+          break;
+        default:
+          trainingStatusMessage = "Perfect training chain complete! Competition level increased to Intergalactic.";
+          break;
+      }
+    } else {
+      Serial.println(">> manageTrainingStatus() - Last training session was NOT perfect");
+      trainingStatusMessage = "This training was not perfect... Do not give up, train some more to unlock the next competition level!";
+    }
+    trainingStatusProcessed = true;
+    saveRequired = true;
+    l5NeedsRedraw = true;
+  }
+
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      if (addOneMatsuriTicket) {
+        addOneMatsuriTicket = false;
+        changeState(0, MATSURI_TICKETS, 0);
+      } else {
+        changeState(0, HOME_LOOP, 0);
+      }
+      return;
+    }
+  }
 }
 
 void matsuriDialogs() {
@@ -9475,7 +9582,8 @@ void foodDelivery() {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       switch (currentState) {
         case FOOD_ORDER8:
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          changeState(0, ACTION_OUTCOME, 0);
           break;
       }
       return;
@@ -9484,7 +9592,7 @@ void foodDelivery() {
 }
 
 void miniGameDebrief() {
-  // Serial.println("> Entering miniGameDebrief()");
+  Serial.println("> Entering miniGameDebrief()");
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
@@ -9497,6 +9605,7 @@ void miniGameDebrief() {
           changeState(0, HOME_LOOP, 0);
           break;
         case TRAIN_SING3:
+          Serial.println(">> miniGameDebrief() - Changing state to ACTION_OUTCOME");
           saveRequired = true;
           // isNatsumiHappy = true;
           // changeState(0, HOME_LOOP, 0);
