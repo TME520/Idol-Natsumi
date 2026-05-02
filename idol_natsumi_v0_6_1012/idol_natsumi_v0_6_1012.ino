@@ -6235,6 +6235,7 @@ void manageCompetition() {
       Serial.println(">> Competition - Notes collected: " + String(competitionNotesCollected));
       Serial.println(">> Competition - Notes spawned: " + String(competitionNotesSpawned));
       Serial.println(">> Competition - Notes missed: " + String(competitionNotesMissed));
+      M5Cardputer.Keyboard.keysState().reset();
       if (competitionNotesMissed == 0) {
         natsumi.popularity = 4;
         competitionInitialized = false;
