@@ -9547,6 +9547,21 @@ void foodDelivery() {
 
 void miniGameDebrief() {
   Serial.println("> Entering miniGameDebrief()");
+  static GameState debriefState = VERSION_SCREEN;
+  static bool waitKeyRelease = false;
+
+  if (debriefState != currentState) {
+    debriefState = currentState;
+    waitKeyRelease = true;
+  }
+
+  if (waitKeyRelease) {
+    if (!M5Cardputer.Keyboard.isPressed()) {
+      waitKeyRelease = false;
+    }
+    return;
+  }
+
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
