@@ -130,6 +130,7 @@ enum GameState {
   COMP_NAT7,
   COMP_STATUS,
   COMP_COMPLETE,
+  COMP_FAILED,
   MATSURI_TITLE,
   MATSURI_TICKETS,
   MATSURI_TICKETS2,
@@ -810,6 +811,7 @@ const char* gameStateToString(GameState state) {
     case COMP_NAT7:        return "COMP_NAT7";
     case COMP_STATUS:      return "COMP_STATUS";
     case COMP_COMPLETE:    return "COMP_COMPLETE";
+    case COMP_FAILED:      return "COMP_FAILED";
     case MATSURI_TITLE:    return "MATSURI_TITLE";
     case MATSURI_TICKETS:  return "MATSURI_TICKETS";
     case MATSURI_TICKETS2: return "MATSURI_TICKETS2";
@@ -1688,6 +1690,9 @@ void preloadImages() {
       break;
     case COMP_COMPLETE:
       preloadImage("/idolnat/screens/competition_complete.png", currentBackground);
+      break;
+    case COMP_FAILED:
+      preloadImage("/idolnat/screens/competition_failed.png", currentBackground);
       break;
     case HEALTH_MENU:
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
@@ -3070,7 +3075,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case COMP_NAT5:
         setScreenConfig(GAME);
         break;
-      case COMP_COMPLETE:
+      case COMP_COMPLETE: case COMP_FAILED:
         setScreenConfig(IDLE);
         overlayActive = false;
         l5NeedsRedraw = false;
@@ -3928,6 +3933,10 @@ void manageIdle() {
           changeState(0, COMP_NAT6, microWait);
           break;
       }
+      break;
+    case COMP_FAILED:
+      characterEnabled = false;
+      changeState(0, HOME_LOOP, microWait);
       break;
     case MATSURI_MENU: case MATSURI_MENU2: case MATSURI_MENU3:
       characterEnabled = false;
@@ -6292,8 +6301,11 @@ void manageCompetition() {
         unlockedNextCompetitionLevel = true;
         return;
       } else {
+        competitionInitialized = false;
+        recentCompWin = false;
         unlockedNextCompetitionLevel = false;
-        showToast("Too many misses, disqualified");
+        // showToast("Too many misses, disqualified");
+        changeState(0, COMP_FAILED, 0);
       }
     }
   
@@ -6336,9 +6348,11 @@ void manageCompetition() {
       if (note.y >= playerY - noteRadius) {
         if (note.column == competitionPlayerColumn) {
           competitionNotesCollected++;
+          Serial.println(">> Competition - Notes collected: " + String(competitionNotesCollected) + " Target: " + String(targetNotes));
           note.active = false;
         } else if (note.y > screenHeight) {
           competitionNotesMissed++;
+          Serial.println(">> Competition - Notes missed: " + String(competitionNotesMissed) + " Target: " + String(targetNotes));
           note.active = false;
         }
       }
