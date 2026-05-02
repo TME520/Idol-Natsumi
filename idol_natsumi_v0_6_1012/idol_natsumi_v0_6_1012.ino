@@ -129,6 +129,7 @@ enum GameState {
   COMP_NAT6,
   COMP_NAT7,
   COMP_STATUS,
+  COMP_COMPLETE,
   MATSURI_TITLE,
   MATSURI_TICKETS,
   MATSURI_TICKETS2,
@@ -808,6 +809,7 @@ const char* gameStateToString(GameState state) {
     case COMP_NAT6:        return "COMP_NAT6";
     case COMP_NAT7:        return "COMP_NAT7";
     case COMP_STATUS:      return "COMP_STATUS";
+    case COMP_COMPLETE:    return "COMP_COMPLETE";
     case MATSURI_TITLE:    return "MATSURI_TITLE";
     case MATSURI_TICKETS:  return "MATSURI_TICKETS";
     case MATSURI_TICKETS2: return "MATSURI_TICKETS2";
@@ -1683,6 +1685,9 @@ void preloadImages() {
       break;
     case COMP_LOCAL5: case COMP_DEPT5: case COMP_REG5: case COMP_NAT5:
       preloadImage("/idolnat/sprites/natsumi_head_sprite-22x20.png", natsumiSprite);
+      break;
+    case COMP_COMPLETE:
+      preloadImage("/idolnat/screens/competition_complete.png", currentBackground);
       break;
     case HEALTH_MENU:
       preloadImage("/idolnat/screens/bathroom.png", currentBackground);
@@ -3065,6 +3070,12 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case COMP_NAT5:
         setScreenConfig(GAME);
         break;
+      case COMP_COMPLETE:
+        setScreenConfig(IDLE);
+        overlayActive = false;
+        l5NeedsRedraw = false;
+        characterEnabled = true;
+        break;
       case HEALTH_MENU:
         setScreenConfig(ROOM);
         currentMenuType = "health";
@@ -3900,6 +3911,23 @@ void manageIdle() {
     case COMP_NAT7:
       characterEnabled = false;
       changeState(0, HOME_LOOP, microWait);
+      break;
+    case COMP_COMPLETE:
+      characterEnabled = false;
+      switch(previousState) {
+        case COMP_LOCAL5:
+          changeState(0, COMP_LOCAL6, microWait);
+          break;
+        case COMP_DEPT5:
+          changeState(0, COMP_DEPT6, microWait);
+          break;
+        case COMP_REG5:
+          changeState(0, COMP_REG6, microWait);
+          break;
+        case COMP_NAT5:
+          changeState(0, COMP_NAT6, microWait);
+          break;
+      }
       break;
     case MATSURI_MENU: case MATSURI_MENU2: case MATSURI_MENU3:
       characterEnabled = false;
@@ -4918,7 +4946,6 @@ void manageTrainSingGame() {
 
   if (now < singFlashUntil) {
     M5Cardputer.Display.fillScreen(singFlashColor);
-    // M5Cardputer.Display.fillRect(0, 130, 240, 5, singFlashColor);
     return;
   }
 
@@ -6243,19 +6270,23 @@ void manageCompetition() {
         switch (currentState) {
           case COMP_LOCAL5:
             natsumi.competition = 4;
-            changeState(0, COMP_LOCAL6, 0);
+            // changeState(0, COMP_LOCAL6, 0);
+            changeState(0, COMP_COMPLETE, 0);
             break;
           case COMP_DEPT5:
             natsumi.competition = 8;
-            changeState(0, COMP_DEPT6, 0);
+            // changeState(0, COMP_DEPT6, 0);
+            changeState(0, COMP_COMPLETE, 0);
             break;
           case COMP_REG5:
             natsumi.competition = 12;
-            changeState(0, COMP_REG6, 0);
+            // changeState(0, COMP_REG6, 0);
+            changeState(0, COMP_COMPLETE, 0);
             break;
           case COMP_NAT5:
             natsumi.competition = 16;
-            changeState(0, COMP_NAT6, 0);
+            // changeState(0, COMP_NAT6, 0);
+            changeState(0, COMP_COMPLETE, 0);
             break;
         }
         unlockedNextCompetitionLevel = true;
