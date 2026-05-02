@@ -203,8 +203,6 @@ struct NatsumiStats {
   int flowers;
   int competition;
   int tickets;
-  int trainingCntr;
-  int competitionLevel;
   unsigned long lastHungerUpdate = 0;
   unsigned long lastHygieneUpdate = 0;
   unsigned long lastEnergyUpdate = 0;
@@ -872,7 +870,7 @@ void showToast(const String& msg, unsigned long ms = longWait) {
 
 bool isCompetitionEnabled() {
   Serial.println("> isCompetitionEnabled()");
-  if (natsumi.competitionLevel > 0 && natsumi.hunger == 4 && natsumi.hygiene == 4 && natsumi.energy == 4 && natsumi.performance == 4 && natsumi.fitness == 4 && natsumi.culture == 4 && natsumi.charm == 4) {
+  if (natsumi.competition > 0 && natsumi.hunger == 4 && natsumi.hygiene == 4 && natsumi.energy == 4 && natsumi.performance == 4 && natsumi.fitness == 4 && natsumi.culture == 4 && natsumi.charm == 4) {
     Serial.println(">> isCompetitionEnabled: true");
     return true;
   } else {
@@ -918,8 +916,6 @@ bool saveGameToSd() {
   saveFile.println("flowers=" + String(natsumi.flowers));
   saveFile.println("competition=" + String(natsumi.competition));
   saveFile.println("tickets=" + String(natsumi.tickets));
-  saveFile.println("trainingCntr=" + String(natsumi.trainingCntr));
-  saveFile.println("competitionLevel=" + String(natsumi.competitionLevel));
   saveFile.println("last_hunger_update=" + String(natsumi.lastHungerUpdate));
   saveFile.println("last_hygiene_update=" + String(natsumi.lastHygieneUpdate));
   saveFile.println("last_energy_update=" + String(natsumi.lastEnergyUpdate));
@@ -1099,8 +1095,6 @@ bool loadGameFromSd() {
       else if (key == "flowers") natsumi.flowers = value.toInt();
       else if (key == "competition") natsumi.competition = value.toInt();
       else if (key == "tickets") natsumi.tickets = value.toInt();
-      else if (key == "trainingCntr") natsumi.trainingCntr = value.toInt();
-      else if (key == "competitionLevel") natsumi.competitionLevel = value.toInt();
     } else if (section == "[fridge]") {
       Serial.println(">>>  loadGameFromSd - fridge: key=" + key);
       if (key == "red_apple") fridge.redApple = value.toInt();
@@ -2634,24 +2628,19 @@ void changeState(int baseLayer, GameState targetState, int delay) {
     }
     switch (targetState) {
       case M5_SCREEN:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         break;
       case MOTTO_SCREEN:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         break;
       case VERSION_SCREEN:
-        // screenConfig = TEXT;
         setScreenConfig(TEXT);
         break;
       case TITLE_SCREEN:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         characterEnabled = false;
         break;
       case TITLE_SCREEN2:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         currentMenuType = "main";
         currentMenuItems = mainMenuItems;
@@ -2660,7 +2649,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         characterEnabled = false;
         break;
       case NEW_GAME:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         natsumi.age = 11;
         natsumi.ageMilliseconds = 0;
@@ -2743,7 +2731,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         lastAgeTick = 0;
         break;
       case CONTINUE_GAME:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         if (loadGameFromSd()) {
           natsumi.lastHungerUpdate = 0;
@@ -2832,21 +2819,18 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         }
         break;
       case INTRO: case INTRO2: case INTRO3: case INTRO4: case INTRO5: case INTRO6:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         menuOpened = false;
         break;
       case INTRO7:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         characterEnabled = false;
         break;
       case HOME_LOOP:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         currentMenuType = "home";
         currentMenuItems = homeMenuItems;
@@ -2854,12 +2838,10 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         overlayActive = false;
         break;
       case IDLE_HOME: case IDLE_STATS:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         characterEnabled = false;
         break;
       case STATS_SCREEN:
-        // screenConfig = GAME;
         setScreenConfig(GAME);
         overlayActive = true;
         l5NeedsRedraw = true;
@@ -2868,7 +2850,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         saveStatusUntil = 0;
         break;
       case INVENTORY_SCREEN:
-        // screenConfig = GAME;
         setScreenConfig(GAME);
         overlayActive = true;
         l5NeedsRedraw = true;
@@ -2877,190 +2858,156 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         menuOpened = false;
         break;
       case FLOWERS_MARKET:
-        // screenConfig = IDLE;
         setScreenConfig(IDLE);
         characterEnabled = false;
         break;
       case FLOWERS_MARKET2: case FLOWERS_MARKET3: case FLOWERS_MARKET4:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         characterEnabled = false;
         break;
       case FLOWERS_MARKET5: case FLOWERS_MARKET6:
-        // screenConfig = GAME;
         setScreenConfig(GAME);
         overlayActive = true;
         l5NeedsRedraw = true;
         toastEnabled = false;
         break;
       case FLOWERS_MARKET7:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case FOOD_MENU:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         currentMenuType = "food";
         currentMenuItems = foodMenuItems;
         currentMenuItemsCount = foodMenuItemCount;
         break;
       case FOOD_CONBINI:
-        // screenConfig = IDLE;
         setScreenConfig(IDLE);
         characterEnabled = false;
         break;
       case FOOD_CONBINI2:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         characterEnabled = false;
         break;
       case FOOD_CONBINI3:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case FOOD_COOK:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         break;
       case FOOD_COOK2:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case FOOD_REST: case FOOD_REST5:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case FOOD_REST2: case FOOD_REST3: case FOOD_REST4:
-        // screenConfig = IDLE;
         setScreenConfig(IDLE);
         characterEnabled = false;
         break;
       case FOOD_REST6: case FOOD_REST7: case FOOD_REST8:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         characterEnabled = false;
         break;
       case FOOD_ORDER: case FOOD_ORDER2: case FOOD_ORDER3: case FOOD_ORDER4:
-        // screenConfig = IDLE;
         setScreenConfig(IDLE);
         overlayActive = true;
         l5NeedsRedraw = true;
         characterEnabled = false;
         break;
       case FOOD_ORDER5:
-        // screenConfig = IDLE;
         setScreenConfig(IDLE);
         overlayActive = false;
         l5NeedsRedraw = false;
         characterEnabled = true;
         break;
       case FOOD_ORDER6: case FOOD_ORDER7:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         break;
       case FOOD_ORDER8:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case TRAIN_MENU:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         currentMenuType = "training";
         currentMenuItems = trainingMenuItems;
         currentMenuItemsCount = trainingMenuItemCount;
         break;
       case TRAIN_DANCE:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case TRAIN_DANCE2:
-        // screenConfig = GAME;
         setScreenConfig(GAME);
         break;
       case TRAIN_DANCE3:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case TRAIN_SING:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case TRAIN_SING2:
-        // screenConfig = GAME;
         setScreenConfig(GAME);
         break;
       case TRAIN_SING3:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case TRAIN_SWIM:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case TRAIN_SWIM2:
-        // screenConfig = GAME;
         setScreenConfig(GAME);
         break;
       case TRAIN_SWIM3:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case TRAIN_GYM:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case TRAIN_GYM2:
-        // screenConfig = GAME;
         setScreenConfig(GAME);
         break;
       case TRAIN_GYM3:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case TRAIN_RUN:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case TRAIN_RUN2:
-        // screenConfig = GAME;
         setScreenConfig(GAME);
         break;
       case TRAIN_RUN3:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case TRAIN_LIBRARY:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         libraryInitialized = false;
         libraryRewardApplied = false;
@@ -3074,13 +3021,11 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         trainingStatusProcessed = false;
         break;
       case COMP_EXPLAIN:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case COMP_MENU:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         currentMenuType = "competition";
         currentMenuItems = competitionMenuItems;
@@ -3090,7 +3035,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case COMP_DEPT: case COMP_DEPT2:
       case COMP_REG: case COMP_REG2:
       case COMP_NAT: case COMP_NAT2: case COMP_NAT7:
-        // screenConfig = IDLE;
         setScreenConfig(IDLE);
         characterEnabled = false;
         break;
@@ -3098,7 +3042,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case COMP_DEPT3: case COMP_DEPT6:
       case COMP_REG3: case COMP_REG6:
       case COMP_NAT3: case COMP_NAT6:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
@@ -3108,7 +3051,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case COMP_DEPT4:
       case COMP_REG4:
       case COMP_NAT4:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         overlayActive = true;
         l5NeedsRedraw = true;
@@ -3118,70 +3060,58 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case COMP_DEPT5:
       case COMP_REG5:
       case COMP_NAT5:
-        // screenConfig = GAME;
         setScreenConfig(GAME);
         break;
       case HEALTH_MENU:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         currentMenuType = "health";
         currentMenuItems = healthMenuItems;
         currentMenuItemsCount = healthMenuItemCount;
         break;
       case HEALTH_WASH:
-        // screenConfig = GAME;
         setScreenConfig(GAME);
         overlayActive = false;
         menuOpened = false;
         resetBathGame();
         break;
       case HEALTH_WASH2: case HEALTH_WASH3: case HEALTH_WASH4:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         break;
       case HEALTH_WASH5:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         menuEnabled = false;
         l4NeedsRedraw = false;
         break;
       case HEALTH_DOCTOR: case HEALTH_DOCTOR6:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case HEALTH_DOCTOR2: case HEALTH_DOCTOR3: case HEALTH_DOCTOR4: case HEALTH_DOCTOR5:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         characterEnabled = false;
         break;
       case HEALTH_TEMPLE: case HEALTH_TEMPLE6:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case HEALTH_TEMPLE2: case HEALTH_TEMPLE3: case HEALTH_TEMPLE4: case HEALTH_TEMPLE5:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         characterEnabled = false;
         break;
       case HEALTH_ONSEN:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         characterEnabled = false;
         natsumi.hygiene = 4;
         break;
       case REST_MENU:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         currentMenuType = "rest";
         currentMenuItems = restMenuItems;
         currentMenuItemsCount = restMenuItemCount;
         break;
       case REST_MEDITATE:
-        // screenConfig = IDLE;
         setScreenConfig(IDLE);
         meditateStart = millis();
         lastMeditationRedraw = 0;
@@ -3193,7 +3123,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         toastEnabled = false;
         break;
       case REST_SLEEP:
-        // screenConfig = IDLE;
         setScreenConfig(IDLE);
         lastSleepEnergyDisplayed = -1;
         overlayActive = true;
@@ -3201,12 +3130,10 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         toastEnabled = false;
         break;
       case GARDEN_LOOP:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         menuOpened = false;
         break;
       case GARDEN_MENU:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         currentMenuType = "garden";
         currentMenuItems = gardenMenuItems;
@@ -3214,34 +3141,28 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         menuOpened = true;
         break;
       case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         menuOpened = false;
         break;
       case MATSURI_TITLE:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         characterEnabled = false;
         break;
       case MATSURI_TICKETS: case MATSURI_TICKETS3:
-        // screenConfig = CARD;
         setScreenConfig(CARD);
         break;
       case MATSURI_TICKETS2:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case MATSURI_COST:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         characterEnabled = false;
         matsuriSelection = 0;
         break;
       case MATSURI_SAVORY: case MATSURI_SAVORY2:
       case MATSURI_SUGARY:
-        // screenConfig = IDLE;
         setScreenConfig(IDLE);
         characterEnabled = false;
         overlayActive = true;
@@ -3250,7 +3171,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case MATSURI_SAVORY3: case MATSURI_SAVORY4:
       case MATSURI_SUGARY2: case MATSURI_SUGARY3:
       case MATSURI_GARAPON: case MATSURI_GARAPON2:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
@@ -3258,31 +3178,26 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case MATSURI_SAVORY5:
       case MATSURI_SUGARY4:
       case MATSURI_GARAPON4:
-        // screenConfig = CARD;
         setScreenConfig(IDLE);
         break;
       case MATSURI_GARAPON3:
-        // screenConfig = GAME;
         setScreenConfig(GAME);
         overlayActive = false;
         menuOpened = false;
         resetGaraponGame();
         break;
       case ACTION_OUTCOME:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case EVENTS_MENU:
-        // screenConfig = ROOM;
         setScreenConfig(ROOM);
         currentMenuType = "events";
         currentMenuItems = eventsMenuItems;
         currentMenuItemsCount = eventsMenuItemCount;
         break;
       case MATSURI_MENU: case MATSURI_MENU2: case MATSURI_MENU3:
-        // screenConfig = IDLE;
         setScreenConfig(IDLE);
         characterEnabled = false;
         break;
@@ -3290,12 +3205,10 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         setScreenConfig(GAME);
         break;
       case DOOR_KNOCK: case DOOR_KNOCK7: case DOOR_KNOCK9:
-        // screenConfig = IDLE;
         setScreenConfig(IDLE);
         characterEnabled = false;
         break;
       case DOOR_KNOCK4: case DOOR_KNOCK10:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
@@ -3303,13 +3216,11 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
         break;
       case DOOR_KNOCK2: case DOOR_KNOCK3:  case DOOR_KNOCK5: case DOOR_KNOCK6: case DOOR_KNOCK8:
-        // screenConfig = DIALOG;
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
       case VISITOR_PORTRAIT:
-        // screenConfig = IDLE;
         setScreenConfig(IDLE);
         characterEnabled = false;
         break;
@@ -3331,45 +3242,32 @@ void updateAging() {
   unsigned long totalMs = playtimeTotalMs + currentPlaytime;
   int currentAge = natsumi.age;
  
-  // natsumi.ageMilliseconds = currentPlaytime;
   natsumi.ageMilliseconds = totalMs;
   // Serial.print("natsumi.age: ");
   // Serial.println(natsumi.age);
   if (natsumi.ageMilliseconds < agingInterval) {
-    // 11yo
     natsumi.age = 11;
   } else if ((natsumi.ageMilliseconds >= agingInterval) && (natsumi.ageMilliseconds < (agingInterval * 2))) {
-    // 12yo
     natsumi.age = 12;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 2)) && (natsumi.ageMilliseconds < (agingInterval * 3))) {
-    // 13yo
     natsumi.age = 13;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 3)) && (natsumi.ageMilliseconds < (agingInterval * 4))) {
-    // 14yo
     natsumi.age = 14;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 4)) && (natsumi.ageMilliseconds < (agingInterval * 5))) {
-    // 15yo
     natsumi.age = 15;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 5)) && (natsumi.ageMilliseconds < (agingInterval * 6))) {
-    // 16yo
     natsumi.age = 16;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 6)) && (natsumi.ageMilliseconds < (agingInterval * 7))) {
-    // 17yo
     natsumi.age = 17;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 7)) && (natsumi.ageMilliseconds < (agingInterval * 8))) {
-    // 18yo
     natsumi.age = 18;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 8)) && (natsumi.ageMilliseconds < (agingInterval * 9))) {
-    // 19yo
     natsumi.age = 19;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 9)) && (natsumi.ageMilliseconds < (agingInterval * 10))) {
-    // 20yo
     natsumi.age = 20;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 10)) && (natsumi.ageMilliseconds < (agingInterval * 11))) {
-    // 21 yo
     natsumi.age = 21;
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 11)) && (natsumi.ageMilliseconds < (agingInterval * 12))) {
-    // 22yo - Game ends
     natsumi.age = 22;
   }
   // Serial.print("natsumi.age: ");
@@ -6323,7 +6221,7 @@ void manageCompetition() {
       }
       */
 
-      switch (natsumi.competitionLevel) {
+      switch (natsumi.competition) {
         case 1:
           Serial.println(">> Competition level 1 - 3 columns");
           competitionColumns = 3;
@@ -6353,7 +6251,7 @@ void manageCompetition() {
       if (competitionNotesCollected == targetNotes) {
         Serial.println(">> Competition - Notes collected: " + String(competitionNotesCollected));
         Serial.println(">> Competition - Notes spawned: " + String(competitionNotesSpawned));
-        natsumi.competitionLevel += 1;
+        natsumi.competition += 1;
         if (natsumi.popularity < 4) {
           natsumi.popularity += 1;
         }
@@ -9239,46 +9137,72 @@ void manageTrainingStatus() {
     Serial.println(">> manageTrainingStatus() - trainingStatusProcessed FALSE");
     if (isLatestTrainingPerfect) {
       Serial.println(">> manageTrainingStatus() - Last training session was perfect");
-      natsumi.trainingCntr += 1;
-      if (natsumi.trainingCntr >= 3) {
-        Serial.println(">> manageTrainingStatus() - Competition level goes UP");
-        natsumi.competitionLevel += 1;
-        natsumi.trainingCntr = 0;
-        switch(natsumi.competitionLevel) {
-          case 0:
-            trainingStatusMessage = "Perfect training chain complete! Competition level increased to Underground parking.";
-            break;
-          case 1:
-            trainingStatusMessage = "Perfect training chain complete! Competition level increased to Local.";
-            break;
-          case 2:
-            trainingStatusMessage = "Perfect training chain complete! Competition level increased to Departmental";
-            break;
-          case 3:
-            trainingStatusMessage = "Perfect training chain complete! Competition level increased to Regional.";
-            break;
-          case 4:
-            trainingStatusMessage = "Perfect training chain complete! Competition level increased to National.";
-            break;
-          case 5:
-            trainingStatusMessage = "Perfect training chain complete! Competition level increased to International.";
-            break;
-          default:
-            trainingStatusMessage = "Perfect training chain complete! Competition level increased to Intergalactic.";
-            break;
-        }
-      } else {
-        Serial.println(">> manageTrainingStatus() - Competition level DOES NOT go UP");
-        int remainingPerfectTrainings = 3 - natsumi.trainingCntr;
-        trainingStatusMessage = "Perfect training recorded! Keep going: " + String(remainingPerfectTrainings) + " more perfect training session(s) to unlock the next competition level.";
+      natsumi.competition += 1;
+      if (natsumi.competition > 17) {
+        natsumi.competition = 17;
+      }
+      switch(natsumi.competition) {
+        case 0:
+          trainingStatusMessage = "Perfect training chain complete! Competition level increased to Underground parking.";
+          break;
+        case 1:
+          trainingStatusMessage = "Hunger, Hygiene, Energy, Performance, Fitness, Culture and Charm are all at 4 (their maximum)! Local competition unlocked!";
+          break;
+        case 2:
+          trainingStatusMessage = "1x perfect Training achieved, congratulations!!";
+          break;
+        case 3:
+          trainingStatusMessage = "2x perfect Training achieved, congratulations!!";
+          break;
+        case 4:
+          trainingStatusMessage = "3x perfect Training achieved, Local competition unlocked!!";
+          break;
+        case 5:
+          trainingStatusMessage = "Local competition completed (local champion).";
+          break;
+        case 6:
+          trainingStatusMessage = "1x perfect Training achieved, congratulations!!";
+          break;
+        case 7:
+          trainingStatusMessage = "2x perfect Training achieved, congratulations!!";
+          break;
+        case 8:
+          trainingStatusMessage = "3x perfect Training achieved, Departmental competition unlocked!!";
+          break;
+        case 9:
+          trainingStatusMessage = "Departmental competition completed (departmental champion).";
+          break;
+        case 10:
+          trainingStatusMessage = "1x perfect Training achieved, congratulations!!";
+          break;
+        case 11:
+          trainingStatusMessage = "2x perfect Training achieved, congratulations!!";
+          break;
+        case 12:
+          trainingStatusMessage = "3x perfect Training achieved, Regional competition unlocked!!";
+          break;
+        case 13:
+          trainingStatusMessage = "Regional competition completed (regional champion).";
+          break;
+        case 14:
+          trainingStatusMessage = "1x perfect Training achieved, congratulations!!";
+          break;
+        case 15:
+          trainingStatusMessage = "2x perfect Training achieved, congratulations!!";
+          break;
+        case 16:
+          trainingStatusMessage = "3x perfect Training achieved, National competition unlocked!!";
+          break;
+        case 17:
+          trainingStatusMessage = "National competition completed (national champion).";
+          break;
+        default:
+          trainingStatusMessage = "Perfect training chain complete! Competition level increased to Intergalactic.";
+          break;
       }
     } else {
       Serial.println(">> manageTrainingStatus() - Last training session was NOT perfect");
-      int remainingPerfectTrainings = 3 - natsumi.trainingCntr;
-      if (remainingPerfectTrainings < 0) {
-        remainingPerfectTrainings = 0;
-      }
-      trainingStatusMessage = "This training was not perfect. You still need " + String(remainingPerfectTrainings) + " perfect training session(s) to unlock the next competition level.";
+      trainingStatusMessage = "This training was not perfect... Do not give up, train some more to unlock the next competition level!";
     }
     trainingStatusProcessed = true;
     saveRequired = true;
