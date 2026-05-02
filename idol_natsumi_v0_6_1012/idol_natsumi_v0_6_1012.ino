@@ -8419,7 +8419,7 @@ void allocateTickets() {
 
   // Helper text at the bottom
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("Total: " + String (natsumi.tickets) + " tickets [ENTER]", 120, 131, true, WHITE, 1);
+  drawText("Total: " + String (natsumi.tickets) + " tickets", 120, 131, true, WHITE, 1);
   return;
 }
 
@@ -9092,14 +9092,18 @@ void manageTrainingStatus() {
     Serial.println(">> manageTrainingStatus() - trainingStatusProcessed FALSE");
     if (isLatestTrainingPerfect) {
       Serial.println(">> manageTrainingStatus() - Last training session was perfect");
-      natsumi.competition += 1;
-      if (natsumi.competition > 16) {
-        natsumi.competition = 16;
+      switch(natsumi.competition) {
+        case 0: case 1: case 2:
+        case 4: case 5: case 6:
+        case 8: case 9: case 10:
+        case 12: case 13: case 14:
+          natsumi.competition += 1;
+          if (natsumi.competition > 16) {
+            natsumi.competition = 16;
+          }
+          break;
       }
       switch(natsumi.competition) {
-        case 0:
-          trainingStatusMessage = "Perfect training chain complete! Competition level increased to Underground parking.";
-          break;
         case 1:
           trainingStatusMessage = "1x perfect Training achieved, congratulations!!";
           break;
