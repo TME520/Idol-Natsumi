@@ -871,9 +871,6 @@ void showToast(const String& msg, unsigned long ms = longWait) {
 bool isCompetitionEnabled() {
   Serial.println("> isCompetitionEnabled()");
   if (natsumi.hunger == 4 && natsumi.hygiene == 4 && natsumi.energy == 4 && natsumi.performance == 4 && natsumi.fitness == 4 && natsumi.culture == 4 && natsumi.charm == 4) {
-    if (natsumi.competition == 0) {
-      natsumi.competition = 1;
-    }
     Serial.println(">> isCompetitionEnabled: true");
     return true;
   } else {
@@ -7006,10 +7003,10 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           Serial.println(">> Local competition, age = " + String(natsumi.age));
           menuOpened = false;
           if (isCompetitionEnabled()) {
-            if (natsumi.competition == 4) {
+            if (natsumi.competition == 3) {
               changeState(0, COMP_LOCAL, 0);
             } else {
-              if (natsumi.competition > 4) {
+              if (natsumi.competition > 3) {
                 showToast("Already completed");
               } else {
                 showToast("Not unlocked yet");
@@ -7024,10 +7021,10 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // 1: DEPARTMENTAL
           menuOpened = false;
           if (isCompetitionEnabled()) {
-            if (natsumi.competition == 8) {
+            if (natsumi.competition == 7) {
               changeState(0, COMP_DEPT, 0);
             } else {
-              if (natsumi.competition > 8) {
+              if (natsumi.competition > 7) {
                 showToast("Already completed");
               } else {
                 showToast("Not unlocked yet");
@@ -7042,10 +7039,10 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // 2: REGIONAL
           menuOpened = false;
           if (isCompetitionEnabled()) {
-            if (natsumi.competition == 12) {
+            if (natsumi.competition == 11) {
               changeState(0, COMP_REG, 0);
             } else {
-              if (natsumi.competition > 12) {
+              if (natsumi.competition > 11) {
                 showToast("Already completed");
               } else {
                 showToast("Not unlocked yet");
@@ -7060,10 +7057,10 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // 3: NATIONAL
           menuOpened = false;
           if (isCompetitionEnabled()) {
-            if (natsumi.competition == 16) {
+            if (natsumi.competition == 15) {
               changeState(0, COMP_NAT, 0);
             } else {
-              if (natsumi.competition > 16) {
+              if (natsumi.competition > 15) {
                 showToast("Already completed");
               } else {
                 showToast("Not unlocked yet");
@@ -7118,10 +7115,10 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // VALIDATE
           if (selection == 0) {
             if (isCompetitionEnabled()) {
-              if (natsumi.competition == 4) {
+              if (natsumi.competition == 3) {
                 changeState(0, COMP_LOCAL, 0);
               } else {
-                if (natsumi.competition > 4) {
+                if (natsumi.competition > 3) {
                   showToast("Already completed");
                 } else {
                   showToast("Not unlocked yet");
@@ -7132,10 +7129,10 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             }
           } else if (selection == 1) {
             if (isCompetitionEnabled()) {
-              if (natsumi.competition == 8) {
+              if (natsumi.competition == 7) {
                 changeState(0, COMP_DEPT, 0);
               } else {
-                if (natsumi.competition > 8) {
+                if (natsumi.competition > 7) {
                   showToast("Already completed");
                 } else {
                   showToast("Not unlocked yet");
@@ -7146,10 +7143,10 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             }
           } else if (selection == 2) {
             if (isCompetitionEnabled()) {
-              if (natsumi.competition == 12) {
+              if (natsumi.competition == 11) {
                 changeState(0, COMP_REG, 0);
               } else {
-                if (natsumi.competition > 12) {
+                if (natsumi.competition > 11) {
                   showToast("Already completed");
                 } else {
                   showToast("Not unlocked yet");
@@ -7160,10 +7157,10 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             }
           } else if (selection == 3) {
             if (isCompetitionEnabled()) {
-              if (natsumi.competition == 16) {
+              if (natsumi.competition == 15) {
                 changeState(0, COMP_NAT, 0);
               } else {
-                if (natsumi.competition > 16) {
+                if (natsumi.competition > 15) {
                   showToast("Already completed");
                 } else {
                   showToast("Not unlocked yet");
@@ -9096,8 +9093,8 @@ void manageTrainingStatus() {
     if (isLatestTrainingPerfect) {
       Serial.println(">> manageTrainingStatus() - Last training session was perfect");
       natsumi.competition += 1;
-      if (natsumi.competition > 17) {
-        natsumi.competition = 17;
+      if (natsumi.competition > 16) {
+        natsumi.competition = 16;
       }
       switch(natsumi.competition) {
         case 0:
