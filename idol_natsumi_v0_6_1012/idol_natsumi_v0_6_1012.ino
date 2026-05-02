@@ -6200,27 +6200,6 @@ void manageCompetition() {
       competitionCompletionTime = 0;
       competitionCompleted = false;
 
-      /*
-      switch (currentState) {
-        case COMP_LOCAL5:
-          Serial.println(">> COMP_LOCAL5 - 3 columns");
-          competitionColumns = 3;
-          break;
-        case COMP_DEPT5:
-          Serial.println(">> COMP_DEPT5 - 4 columns");
-          competitionColumns = 4;
-          break;
-        case COMP_REG5:
-          Serial.println(">> COMP_REG5 - 5 columns");
-          competitionColumns = 5;
-          break;
-        case COMP_NAT5:
-          Serial.println(">> COMP_NAT5 - 6 columns");
-          competitionColumns = 6;
-          break;
-      }
-      */
-
       switch (natsumi.competition) {
         case 1:
           Serial.println(">> Competition level 1 - 3 columns");
@@ -6256,19 +6235,19 @@ void manageCompetition() {
         recentCompWin = true;
         switch (currentState) {
           case COMP_LOCAL5:
-            natsumi.competition = 5;
+            natsumi.competition = 4;
             changeState(0, COMP_LOCAL6, 0);
             break;
           case COMP_DEPT5:
-            natsumi.competition = 9;
+            natsumi.competition = 8;
             changeState(0, COMP_DEPT6, 0);
             break;
           case COMP_REG5:
-            natsumi.competition = 13;
+            natsumi.competition = 12;
             changeState(0, COMP_REG6, 0);
             break;
           case COMP_NAT5:
-            natsumi.competition = 17;
+            natsumi.competition = 16;
             changeState(0, COMP_NAT6, 0);
             break;
         }
