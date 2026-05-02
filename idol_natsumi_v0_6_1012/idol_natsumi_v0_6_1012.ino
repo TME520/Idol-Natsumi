@@ -6251,42 +6251,25 @@ void manageCompetition() {
       if (competitionNotesCollected == targetNotes) {
         Serial.println(">> Competition - Notes collected: " + String(competitionNotesCollected));
         Serial.println(">> Competition - Notes spawned: " + String(competitionNotesSpawned));
-        natsumi.competition += 1;
-        if (natsumi.popularity < 4) {
-          natsumi.popularity += 1;
-        }
+        natsumi.popularity = 4;
         competitionInitialized = false;
         recentCompWin = true;
         switch (currentState) {
           case COMP_LOCAL5:
-            if (natsumi.competition == 0) {
-              natsumi.competition = 1;
-              changeState(0, COMP_LOCAL6, 0);
-              competitionMenuSelection = 1;
-              showToast("Departmental competition unlocked");
-            }
+            natsumi.competition = 5;
+            changeState(0, COMP_LOCAL6, 0);
             break;
           case COMP_DEPT5:
-            if (natsumi.competition == 1) {
-              natsumi.competition = 2;
-              changeState(0, COMP_DEPT6, 0);
-              competitionMenuSelection = 2;
-              showToast("Regional competition unlocked");
-            }
+            natsumi.competition = 9;
+            changeState(0, COMP_DEPT6, 0);
             break;
           case COMP_REG5:
-            if (natsumi.competition == 2) {
-              natsumi.competition = 3;
-              changeState(0, COMP_REG6, 0);
-              competitionMenuSelection = 3;
-              showToast("National competition unlocked");
-            }
+            natsumi.competition = 13;
+            changeState(0, COMP_REG6, 0);
             break;
           case COMP_NAT5:
-            if (natsumi.competition == 3) {
-              natsumi.competition = 4;
-              changeState(0, COMP_NAT6, 0);
-            }
+            natsumi.competition = 17;
+            changeState(0, COMP_NAT6, 0);
             break;
         }
         unlockedNextCompetitionLevel = true;
