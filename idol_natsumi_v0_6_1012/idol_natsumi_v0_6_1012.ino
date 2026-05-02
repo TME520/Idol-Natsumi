@@ -9093,7 +9093,9 @@ void manageTrainingStatus() {
   // Serial.println("> Entering manageTrainingStatus()");
   if (!trainingStatusProcessed) {
     Serial.println(">> manageTrainingStatus() - trainingStatusProcessed FALSE");
-    if (isLatestTrainingPerfect && natsumi.competition > 0) {
+    if (natsumi.competition < 2) {
+      trainingStatusMessage = "Bring Hunger, Hygiene, Energy, Performance, Fitness, Culture and Charm to 4 (their maximum) in order to benefit from training."
+    } else if (isLatestTrainingPerfect) {
       Serial.println(">> manageTrainingStatus() - Last training session was perfect");
       natsumi.competition += 1;
       if (natsumi.competition > 17) {
