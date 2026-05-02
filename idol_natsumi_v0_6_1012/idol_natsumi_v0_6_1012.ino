@@ -5120,7 +5120,7 @@ void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect) {
 
 void handleSwimCollision() {
   swimCollisions++;
-  swimAvoidedSharks = max(0, swimAvoidedSharks - swimHitPenalty);
+  // swimAvoidedSharks = max(0, swimAvoidedSharks - swimHitPenalty);
 }
 
 void manageTrainSwimGame() {
@@ -8251,6 +8251,14 @@ void drawOverlay() {
         break;
       case ACTION_OUTCOME:
         switch(previousState) {
+          case FOOD_ORDER8:
+            if (natsumi.charm < 4) {
+              Serial.println(">> actionOutcome() - natsumi.charm < 4");
+              drawOutcome("+1", "Charm");
+            } else {
+              drawOutcome("MAX", "Charm");
+            }
+            break;
           case TRAIN_SING3: case TRAIN_DANCE3:
             if (natsumi.performance < 4) {
               Serial.println(">> actionOutcome() - natsumi.performance < 4");
@@ -9542,7 +9550,8 @@ void foodDelivery() {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       switch (currentState) {
         case FOOD_ORDER8:
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          changeState(0, ACTION_OUTCOME, 0);
           break;
       }
       return;
