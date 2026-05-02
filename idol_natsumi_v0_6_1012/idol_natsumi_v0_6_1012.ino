@@ -1352,7 +1352,7 @@ void preloadImages() {
     case IDLE_HOME:
       // preloadImage("/idolnat/screens/screensaver01.png", currentBackground);
       break;
-    case FLOWERS_MARKET: case FLOWERS_MARKET7:
+    case FLOWERS_MARKET:
       preloadImage("/idolnat/screens/flower_market_bg.png", currentBackground);
       break;
     case FLOWERS_MARKET2:
@@ -1370,6 +1370,9 @@ void preloadImages() {
     case FLOWERS_MARKET6:
       preloadImage("/idolnat/screens/flower_market_bg3.png", currentBackground);
       preloadImage("/idolnat/sprites/flower_stage_08-10x16.png", natsumiSprite);
+      break;
+    case FLOWERS_MARKET7:
+      preloadImage("/idolnat/screens/flower_market_bg3.png", currentBackground);
       break;
     case FOOD_MENU:
       preloadImage("/idolnat/screens/kitchen.png", currentBackground);
