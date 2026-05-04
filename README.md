@@ -298,21 +298,25 @@ Gives access to the food menu.
 #### FRIDGE
 
 Open the fridge and pick one food item to eat.
+
 Shortcut: 2, 0
 
 #### RESTAURANT
 
 Go to the restaurant; Natsumi must be at least 16.
+
 Shortcut: 2, 1
 
 #### ORDER
 
 Order food using the *Orderibi* phone app.
+
 Shortcut: 2, 2
 
 #### CONBINI
 
 Go to "Conbimart", the local convenience store (*conbini*).
+
 Shortcut: 2, 3
 
 ### TRAINING
@@ -320,36 +324,43 @@ Shortcut: 2, 3
 #### SING
 
 Go to the singing school for a lesson. Catch 30 notes and you're good!
+
 Shortcut: 3, 0
 
 #### DANCE
 
 Walk to the dance school and work on your moves. Get it right 30 times in a row to score a perfect training.
+
 Shortcut: 3, 1
 
 #### SWIM
 
 Go to the swimming pool and dodge 30 sharks.
+
 Shortcut: 3, 2
 
 #### GYM
 
 Go to the fitness club for a good workout. Wash the equipment once you're done.
+
 Shortcut: 3, 3
 
 #### RUN
 
 Jogging is always good, especially early in the morning.
+
 Shortcut: 3, 4
 
 #### LIBRARY
 
 It's not all about sport, the mind also needs exercise. Go to the local library to read a book.
+
 Shortcut: 3, 5
 
 #### MARKET
 
 Natsumi sets up a flower stall at the local market; that's a very good way to make money fast. You need flowers though. Fortunately, you have a garden!
+
 Shortcut: 3, 6
 
 ### COMPETITION
@@ -373,21 +384,25 @@ Shortcuts:
 #### WASH
 
 Set the temperature of the shower right before Natsumi steps in.
+
 Shortcut: 5, 0
 
 #### DOCTOR
 
 Send Natsumi to the doctor for a checkup; her general health will be checked, then the doctor will tell you what could be improved.
+
 Shortcut: 5, 1
 
 #### TEMPLE
 
 Take Natsumi to the temple so a priest can pray for her and provide guidance.
+
 Shortcut: 5, 2
 
 #### ONSEN
 
 Take Natsumi to the public hot bath (*onsen*) so she can relax fully (and wash herself).
+
 Shortcut: 5, 3
 
 ### REST
