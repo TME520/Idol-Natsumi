@@ -32,6 +32,38 @@ Manage the daily life and artistic career of Natsumi Hasegawa, an aspiring Japan
     - [Run](#run)
   - [Go to the temple](#go-to-the-temple)
   - [Do gardening](#do-gardening)
+- [Menus](#menus)
+  - [STATS](#stats)
+  - [INVENTORY](#inventory-1)
+  - [FOOD](#food)
+    - [FRIDGE](#fridge)
+    - [RESTAURANT](#restaurant)
+    - [ORDER](#order)
+    - [CONBINI](#conbini)
+  - [TRAINING](#training)
+    - [SING](#sing)
+    - [DANCE](#dance)
+    - [SWIM](#swim)
+    - [GYM](#gym-1)
+    - [RUN](#run-1)
+    - [LIBRARY](#library)
+    - [MARKET](#market)
+  - [COMPETITION](#competition)
+  - [HEALTH](#health)
+    - [WASH](#wash)
+    - [DOCTOR](#doctor)
+    - [TEMPLE](#temple)
+    - [ONSEN](#onsen)
+  - [REST](#rest)
+    - [MEDITATE](#meditate)
+    - [SLEEP](#sleep)
+  - [GARDEN](#garden)
+  - [EVENTS](#events)
+    - [MATSURI](#matsuri)
+    - [JOBS](#jobs)
+    - [QUESTS](#quests)
+    - [FESTIVALS](#festivals)
+  - [CARDS](#cards)
 
 ## Presentation
 
@@ -280,7 +312,6 @@ Go for a run in the forest and increase your Fitness.
 ![Flowers market 4](./screenshots/flowers_market_debrief.png "Flowers market 4")
 
 Natsumi can grow flowers and sell it to the local market.
-
 ## Menus
 
 ### STATS
@@ -441,7 +472,9 @@ Enter the local Matsuri festival where you can taste some traditional street foo
 
 Shortcut: 8
 
-![Garapon](./screens/matsuri_garapon.png "Garapon game") ![Kakigori](./screens/matsuri_kakigori.png "Kakigori")
+![Garapon](./screens/matsuri_garapon.png "Garapon game")
+
+![Kakigori](./screens/matsuri_kakigori.png "Kakigori")
 
 #### JOBS
 
