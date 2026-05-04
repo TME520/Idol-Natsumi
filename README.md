@@ -361,6 +361,8 @@ Shortcut: 3, 5
 
 Natsumi sets up a flower stall at the local market; that's a very good way to make money fast. You need flowers though. Fortunately, you have a garden!
 
+Natsumi can select the price she wants to sell her flowers for; the cheaper they are, the faster they sell.
+
 Shortcut: 3, 6
 
 ### COMPETITION
@@ -401,7 +403,7 @@ Shortcut: 5, 2
 
 #### ONSEN
 
-Take Natsumi to the public hot bath (*onsen*) so she can relax fully (and wash herself).
+Take Natsumi to the public hot bath (*onsen*) so she can regain her energy (and wash herself).
 
 Shortcut: 5, 3
 
@@ -409,10 +411,54 @@ Shortcut: 5, 3
 
 #### MEDITATE
 
+Natsumi can sit in the lotus pose and slowly let her spirit regain strength.
+
+Shortcut: 6, 0
+
 #### SLEEP
+
+Natsumi goes to bed for a good nap so she can be full of energy again.
+
+Shortcut: 6, 1
 
 ### GARDEN
 
+![Gardening](./screenshots/gardening.png "Gardening")
+
+Natsumi can grow flowers in her very own garden, pick them once they are ready and sell them at the local market to make some money.
+
+Natsumi can store 24 flowers max.
+
+Shortcut: 7
+
 ### EVENTS
 
+#### MATSURI
+
+![Matsuri](./screens/matsuri_banner01.png "Matsuri festival")
+
+Enter the local Matsuri festival where you can taste some traditional street food, enjoy a Kakigori or play Garapon, a gambling game with nice prizes (Matsuri tickets, money, food, drinks, cards...).
+
+Shortcut: 8
+
+![Garapon](./screens/matsuri_garapon.png "Garapon game") ![Kakigori](./screens/matsuri_kakigori.png "Kakigori")
+
+#### JOBS
+
+Not available yet.
+
+#### QUESTS
+
+Not available yet.
+
+#### FESTIVALS
+
+Not available yet.
+
 ### CARDS
+
+Natsumi can win and collect 32 illustrated cards while playing the Garapon game at the Matsuri festival.
+
+Review your collection, browse through your cards.
+
+Shortcut: 9
