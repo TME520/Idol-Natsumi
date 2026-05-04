@@ -3,6 +3,36 @@ Manage the daily life and artistic career of Natsumi Hasegawa, an aspiring Japan
 
 ![cover](./itch.io/cover2.png "Cover")
 
+## Table of contents
+
+- [Presentation](#presentation)
+- [Core mechanics](#core-mechanics)
+  - [General navigation](#general-navigation)
+    - [Home screen](#home-screen)
+    - [Status board](#status-board)
+    - [Inventory](#inventory)
+    - [Cards collection viewer](#cards-collection-viewer)
+  - [Game progression](#game-progression)
+  - [Statistics](#statistics)
+  - [Keep Natsumi fed](#keep-natsumi-fed)
+    - [Eat at home](#eat-at-home)
+    - [Go to the restaurant](#go-to-the-restaurant)
+    - [Order takeaway food](#order-takeaway-food)
+    - [Shop at the local conbini ("ConbiMart")](#shop-at-the-local-conbini-conbimart)
+  - [Compete](#compete)
+    - [Start locally](#start-locally)
+    - [Move on to the departmental stage](#move-on-to-the-departmental-stage)
+    - [Reach the regional competition](#reach-the-regional-competition)
+    - [Claim the national spotlight](#claim-the-national-spotlight)
+  - [Train](#train)
+    - [Singing](#singing)
+    - [Dancing](#dancing)
+    - [Swimming](#swimming)
+    - [Gym](#gym)
+    - [Run](#run)
+  - [Go to the temple](#go-to-the-temple)
+  - [Do gardening](#do-gardening)
+
 ## Presentation
 
 *Idol Natsumi* is a Tamagotchi like game, with a short game loop, simple mechanics, that can be played on-the-go. The player has to be able to progress in the game even by just playing it for 5 minutes.
