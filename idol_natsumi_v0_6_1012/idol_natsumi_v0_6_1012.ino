@@ -4477,29 +4477,29 @@ void manageMiniGameCountdown() {
         case TRAIN_SING:
           changeState(0, TRAIN_SING2, 0);
           break;
-      case TRAIN_SWIM:
-        changeState(0, TRAIN_SWIM2, 0);
-        break;
-      case TRAIN_GYM:
-        changeState(0, TRAIN_GYM2, 0);
-        break;
-      case TRAIN_RUN:
-        changeState(0, TRAIN_RUN2, 0);
-        break;
-      case COMP_LOCAL4:
-        changeState(0, COMP_LOCAL5, 0);
-        break;
-      case COMP_DEPT4:
-        changeState(0, COMP_DEPT5, 0);
-        break;
-      case COMP_REG4:
-        changeState(0, COMP_REG5, 0);
-        break;
-      case COMP_NAT4:
-        changeState(0, COMP_NAT5, 0);
-        break;
-      default:
-        break;
+        case TRAIN_SWIM:
+          changeState(0, TRAIN_SWIM2, 0);
+          break;
+        case TRAIN_GYM:
+          changeState(0, TRAIN_GYM2, 0);
+          break;
+        case TRAIN_RUN: 
+          changeState(0, TRAIN_RUN2, 0);
+          break;
+        case COMP_LOCAL4:
+          changeState(0, COMP_LOCAL5, 0);
+          break;
+        case COMP_DEPT4:
+          changeState(0, COMP_DEPT5, 0);
+          break;
+        case COMP_REG4:
+          changeState(0, COMP_REG5, 0);
+          break;
+        case COMP_NAT4:
+          changeState(0, COMP_NAT5, 0);
+          break;
+        default:
+          break;
       }
       return;
     }
