@@ -678,7 +678,7 @@ String doctorHint = "";
 String priestHint = "";
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "M5 Cardputer 1.0/1.1 - Update 14";
+String versionNumber = "M5 Cardputer 1.0/1.1 - Update 15";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -5737,7 +5737,18 @@ void finalizeBathOutcome(String outcomeText) {
   drawText("Shower temperature is " + outcomeText, 120, 131, true, WHITE, 1);
   showToast("Shower is " + outcomeText);
 
+  /*
   if (outcomeText == "perfect!") {
+    if (natsumi.hygiene < 4) {
+      natsumi.hygiene = 4;
+    }
+    changeState(0, HEALTH_WASH2, 0);
+  } else {
+    changeState(0, HEALTH_WASH5, 0);
+  }
+  */
+
+  if (bathOutcomeCode == 0) {
     if (natsumi.hygiene < 4) {
       natsumi.hygiene = 4;
     }
@@ -6395,6 +6406,7 @@ void manageCompetition() {
 
 void wash() {
   if (changeStateCounter==0) {
+    /*
     if (natsumi.hygiene < 4) {
       natsumi.hygiene = 4;
       showToast("Washed feels better");
@@ -6402,6 +6414,13 @@ void wash() {
       // isNatsumiHappy = true;
     } else {
       // showToast("Natsumi is clean");
+    }
+    */
+    if (bathOutcomeCode == 0) {
+      showToast("Washed feels better");
+      saveRequired = true;
+    } else {
+      showToast("Ah!! Skipping shower!");
     }
   }
   changeState(0, HOME_LOOP, microWait);
