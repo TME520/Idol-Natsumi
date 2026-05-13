@@ -200,7 +200,7 @@ struct NatsumiStats {
   int performance;
   int fitness;
   int culture;
-  int charm;
+  int grace;
   int money;
   int flowers;
   int competition;
@@ -874,7 +874,7 @@ void showToast(const String& msg, unsigned long ms = longWait) {
 
 bool isCompetitionEnabled() {
   Serial.println("> isCompetitionEnabled()");
-  if (natsumi.hunger == 4 && natsumi.hygiene == 4 && natsumi.energy == 4 && natsumi.performance == 4 && natsumi.fitness == 4 && natsumi.culture == 4 && natsumi.charm == 4) {
+  if (natsumi.hunger == 4 && natsumi.hygiene == 4 && natsumi.energy == 4 && natsumi.performance == 4 && natsumi.fitness == 4 && natsumi.culture == 4 && natsumi.grace == 4) {
     Serial.println(">> isCompetitionEnabled: true");
     return true;
   } else {
@@ -915,7 +915,7 @@ bool saveGameToSd() {
   saveFile.println("performance=" + String(natsumi.performance));
   saveFile.println("fitness=" + String(natsumi.fitness));
   saveFile.println("culture=" + String(natsumi.culture));
-  saveFile.println("charm=" + String(natsumi.charm));
+  saveFile.println("grace=" + String(natsumi.grace));
   saveFile.println("money=" + String(natsumi.money));
   saveFile.println("flowers=" + String(natsumi.flowers));
   saveFile.println("competition=" + String(natsumi.competition));
@@ -1094,7 +1094,7 @@ bool loadGameFromSd() {
       else if (key == "performance") natsumi.performance = value.toInt();
       else if (key == "fitness") natsumi.fitness = value.toInt();
       else if (key == "culture") natsumi.culture = value.toInt();
-      else if (key == "charm") natsumi.charm = value.toInt();
+      else if (key == "grace") natsumi.grace = value.toInt();
       else if (key == "money") natsumi.money = value.toInt();
       else if (key == "flowers") natsumi.flowers = value.toInt();
       else if (key == "competition") natsumi.competition = value.toInt();
@@ -2673,7 +2673,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         natsumi.performance = 0;
         natsumi.fitness = 0;
         natsumi.culture = 0;
-        natsumi.charm = 0;
+        natsumi.grace = 0;
         natsumi.money = 1800;
         natsumi.flowers = 0;
         natsumi.tickets = 0;
@@ -2760,7 +2760,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           natsumi.performance = 0;
           natsumi.fitness = 0;
           natsumi.culture = 0;
-          natsumi.charm = 0;
+          natsumi.grace = 0;
           natsumi.money = 1800;
           natsumi.flowers = 0;
           natsumi.competition = 0;
@@ -4591,7 +4591,7 @@ void applyGaraponReward(int index) {
       garaponResultText = "Money +600¥";
       break;
     case 4:
-      // applyGaraponStatReward(natsumi.charm, "Charm", 200);
+      // applyGaraponStatReward(natsumi.grace, "Grace", 200);
       fridge.sweets += 10;
       garaponResultQty = "+10";
       garaponResultLabel = "Sweets";
@@ -6036,7 +6036,7 @@ void manageFlowersMarket() {
     flowerMarketInitialized = true;
   }
 
-  int handicapScore = natsumi.spirit + natsumi.charm + natsumi.culture;
+  int handicapScore = natsumi.spirit + natsumi.grace + natsumi.culture;
   int prices[3];
   if (handicapScore <= 3) {
     prices[0] = 200;
@@ -6637,7 +6637,7 @@ void drawDebug() {
       drawText(String("Performance: ") + natsumi.performance, 80, 90, false, WHITE, 1);
       drawText(String("Fitness: ") + natsumi.fitness, 80, 100, false, WHITE, 1);
       drawText(String("Culture: ") + natsumi.culture, 80, 110, false, WHITE, 1);
-      drawText(String("Charm: ") + natsumi.charm, 80, 120, false, WHITE, 1);
+      drawText(String("Grace: ") + natsumi.grace, 80, 120, false, WHITE, 1);
       l2NeedsRedraw = true;
       l3NeedsRedraw = true;
       l4NeedsRedraw = true;
@@ -8051,8 +8051,8 @@ void drawOverlay() {
         break;
       case FOOD_ORDER8:
         natsumi.hunger = 4;
-        if (natsumi.charm < 4) {
-          natsumi.charm += 1;
+        if (natsumi.grace < 4) {
+          natsumi.grace += 1;
         }
         saveRequired = true;
         // isNatsumiHappy = true;
@@ -8149,7 +8149,7 @@ void drawOverlay() {
           priestHint += "You need to read more. ";
           priestState = TRAIN_MENU;
         }
-        if (natsumi.charm == 4) {
+        if (natsumi.grace == 4) {
           priestHint += "You have good manners. ";
         } else {
           priestHint += "You need to go out more. ";
@@ -8207,7 +8207,7 @@ void drawOverlay() {
         drawDialogBubble("I sold all my flowers and made " + String(flowersRevenue) + "$. I have " + String(natsumi.money) + "$ in the bank.");
         break;
       case COMP_EXPLAIN:
-        drawDialogBubble("In order to enter Competition, you must achieve 3 perfect training ssessions, plus have Hunger, Hygiene, Energy, Performance, Fitness, Culture and Charm to 4.");
+        drawDialogBubble("In order to enter Competition, you must achieve 3 perfect training ssessions, plus have Hunger, Hygiene, Energy, Performance, Fitness, Culture and Grace to 4.");
         break;
       case COMP_LOCAL3:
         drawDialogBubble("Welcome to the Shiodome Ward Community Center! Get ready for a nice singing competition! Sore dewa, hajimemasho !");
@@ -8303,11 +8303,11 @@ void drawOverlay() {
       case ACTION_OUTCOME:
         switch(previousState) {
           case FOOD_ORDER8:
-            if (natsumi.charm < 4) {
-              Serial.println(">> actionOutcome() - natsumi.charm < 4");
-              drawOutcome("+1", "Charm");
+            if (natsumi.grace < 4) {
+              Serial.println(">> actionOutcome() - natsumi.grace < 4");
+              drawOutcome("+1", "Grace");
             } else {
-              drawOutcome("MAX", "Charm");
+              drawOutcome("MAX", "Grace");
             }
             break;
           case TRAIN_SING3: case TRAIN_DANCE3:
@@ -8456,9 +8456,11 @@ void allocateTickets() {
   if (isLatestTrainingPerfect) {
     extraTickets += 1;
   }
-  if (natsumi.charm == 4) {
+  /*
+  if (natsumi.grace == 4) {
     extraTickets += 1;
   }
+  */
   switch(natsumi.popularity) {
     case 0:
       extraTickets += 0;
@@ -8536,7 +8538,7 @@ void drawStats() {
     {"Performance", natsumi.performance, 4, M5Cardputer.Display.color565(102, 163, 255)},
     {"Fitness", natsumi.fitness, 4, M5Cardputer.Display.color565(140, 255, 182)},
     {"Culture", natsumi.culture, 4, M5Cardputer.Display.color565(178, 130, 255)},
-    {"Charm", natsumi.charm, 4, M5Cardputer.Display.color565(255, 163, 210)},
+    {"Grace", natsumi.grace, 4, M5Cardputer.Display.color565(255, 163, 210)},
     {"Age", natsumi.age, 22, M5Cardputer.Display.color565(255, 149, 64)}
   };
 
@@ -9472,7 +9474,7 @@ void slideStats() {
     {"Performance", "/idolnat/screens/slidestats_performance.png", &natsumi.performance},
     {"Fitness", "/idolnat/screens/slidestats_fitness.png", &natsumi.fitness},
     {"Culture", "/idolnat/screens/slidestats_culture.png", &natsumi.culture},
-    {"Charm", "/idolnat/screens/slidestats_charm.png", &natsumi.charm},
+    {"Grace", "/idolnat/screens/slidestats_grace.png", &natsumi.grace},
     {"Flowers", "/idolnat/screens/slidestats_flowers.png", &natsumi.flowers},
     {"Age", "/idolnat/screens/slidestats_age.png", &natsumi.age},
     {"Money", "/idolnat/screens/slidestats_money.png", &natsumi.money}
@@ -9809,8 +9811,8 @@ void restaurantFoodSelection() {
               if (natsumi.money >= 700) {
                 natsumi.money -= 700;
                 natsumi.hunger = 4;
-                if (natsumi.charm < 4) {
-                  natsumi.charm += 1;
+                if (natsumi.grace < 4) {
+                  natsumi.grace += 1;
                 }
                 saveRequired = true;
                 // isNatsumiHappy = true;
@@ -9841,8 +9843,8 @@ void restaurantFoodSelection() {
               if (natsumi.money >= 800) {
                 natsumi.money -= 800;
                 natsumi.hunger = 4;
-                if (natsumi.charm < 4) {
-                  natsumi.charm += 1;
+                if (natsumi.grace < 4) {
+                  natsumi.grace += 1;
                 }
                 saveRequired = true;
                 // isNatsumiHappy = true;
@@ -9873,8 +9875,8 @@ void restaurantFoodSelection() {
               if (natsumi.money >= 900) {
                 natsumi.money -= 900;
                 natsumi.hunger = 4;
-                if (natsumi.charm < 4) {
-                  natsumi.charm += 1;
+                if (natsumi.grace < 4) {
+                  natsumi.grace += 1;
                 }
                 saveRequired = true;
                 // isNatsumiHappy = true;
