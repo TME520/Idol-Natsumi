@@ -1825,6 +1825,9 @@ void preloadImages() {
         case 4:
           preloadImage("/idolnat/screens/portrait_frame_older_sister.png", currentBackground);
           break;
+        case 5:
+          preloadImage("/idolnat/screens/portrait_frame_emily.png", currentBackground);
+          break;
         default:
           break;
       }
