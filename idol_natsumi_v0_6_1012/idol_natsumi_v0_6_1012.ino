@@ -3529,7 +3529,7 @@ void updateFiveSecondPulse() {
               Serial.println(">>> HOME_LOOP - visitor: " + String(visitor));
               recentCompWin = false;
               changeState(0, DOOR_KNOCK, 0);
-            } (isLatestTrainingPerfect) {
+            } else if (isLatestTrainingPerfect) {
                 visitor = 5;
                 changeState(0, DOOR_KNOCK, 0);
             } else {
