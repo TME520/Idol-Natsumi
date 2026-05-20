@@ -1762,6 +1762,9 @@ void preloadImages() {
         case 4:
           preloadImage("/idolnat/screens/entrance_door_older_sister.png", currentBackground);
           break;
+        case 5:
+          preloadImage("/idolnat/screens/entrance_door_emily.png", currentBackground);
+          break;
         default:
           break;
       }
@@ -1783,6 +1786,9 @@ void preloadImages() {
         case 2: case 3: case 4:
           preloadImage("/idolnat/screens/celebration_shortcake.png", currentBackground);
           break;
+        case 5:
+          preloadImage("/idolnat/screens/bedroom.png", currentBackground);
+          break;
         default:
           break;
       }
@@ -1803,6 +1809,9 @@ void preloadImages() {
           break;
         case 4:
           preloadImage("/idolnat/screens/teatime_older_sister.png", currentBackground);
+          break;
+        case 5:
+          preloadImage("/idolnat/screens/teatime_emily.png", currentBackground);
           break;
         default:
           break;
@@ -3520,6 +3529,9 @@ void updateFiveSecondPulse() {
               Serial.println(">>> HOME_LOOP - visitor: " + String(visitor));
               recentCompWin = false;
               changeState(0, DOOR_KNOCK, 0);
+            } (isLatestTrainingPerfect) {
+                visitor = 5;
+                changeState(0, DOOR_KNOCK, 0);
             } else {
               visitor = 1;
               if (natsumi.hunger < 1) {
