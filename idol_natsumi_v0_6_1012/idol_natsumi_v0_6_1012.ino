@@ -1773,7 +1773,11 @@ void preloadImages() {
       preloadImage("/idolnat/screens/entrance_door.png", currentBackground);
       break;
     case DOOR_KNOCK5: case DOOR_KNOCK6: case DOOR_KNOCK8:
-      preloadImage("/idolnat/screens/lounge.png", currentBackground);
+      if (visitor != 5) {
+        preloadImage("/idolnat/screens/lounge.png", currentBackground);
+      } else {
+        preloadImage("/idolnat/screens/bedroom.png", currentBackground);
+      }
       break;
     case DOOR_KNOCK7:
       switch(visitor) {
@@ -1924,6 +1928,9 @@ void preloadImages() {
             case 4:
               preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
+            case 5:
+              preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+              break;
             default:
               break;
           }
@@ -1944,6 +1951,9 @@ void preloadImages() {
               break;
             case 4:
               preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
+              break;
+            case 5:
+              preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
               break;
             default:
               break;
@@ -2046,6 +2056,9 @@ void preloadImages() {
             case 4:
               preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
+            case 5:
+              preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+              break;
             default:
               break;
           }
@@ -2066,6 +2079,9 @@ void preloadImages() {
               break;
             case 4:
               preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
+              break;
+            case 5:
+              preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
               break;
             default:
               break;
@@ -2168,6 +2184,9 @@ void preloadImages() {
             case 4:
               preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
+            case 5:
+              preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+              break;
             default:
               break;
           }
@@ -2188,6 +2207,9 @@ void preloadImages() {
               break;
             case 4:
               preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
+              break;
+            case 5:
+              preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
               break;
             default:
               break;
@@ -2290,6 +2312,9 @@ void preloadImages() {
             case 4:
               preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
+            case 5:
+              preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+              break;
             default:
               break;
           }
@@ -2310,6 +2335,9 @@ void preloadImages() {
               break;
             case 4:
               preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
+              break;
+            case 5:
+              preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
               break;
             default:
               break;
@@ -2412,6 +2440,9 @@ void preloadImages() {
             case 4:
               preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
+            case 5:
+              preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+              break;
             default:
               break;
           }
@@ -2432,6 +2463,9 @@ void preloadImages() {
               break;
             case 4:
               preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
+              break;
+            case 5:
+              preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
               break;
             default:
               break;
@@ -3244,7 +3278,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         overlayActive = true;
         l5NeedsRedraw = true;
         characterEnabled = false;
-        break;
         break;
       case DOOR_KNOCK2: case DOOR_KNOCK3:  case DOOR_KNOCK5: case DOOR_KNOCK6: case DOOR_KNOCK8:
         setScreenConfig(DIALOG);
@@ -8371,6 +8404,10 @@ void drawOverlay() {
                 natsumi.hunger = 4;
                 drawOutcome("4", "Hunger");
                 break;
+              case 5:
+                natsumi.spirit = 4;
+                drawOutcome("MAX", "Spirit");
+                break;
               default:
                 break;
             }
@@ -8394,7 +8431,7 @@ void drawOverlay() {
           case 1:
             drawDialogBubble("Hello sweetie!!");
             break;
-          case 2:
+          case 2: case 5:
             drawDialogBubble("Hello Natsumi!!");
             break;
           case 3: case 4:
@@ -8414,6 +8451,9 @@ void drawOverlay() {
             break;
           case 2: case 3: case 4:
             drawDialogBubble("Congratulations for the competition! I brought you shortcake to celebrate!");
+            break;
+          case 5:
+            drawDialogBubble("Let\'s play together!");
             break;
           default:
             break;
