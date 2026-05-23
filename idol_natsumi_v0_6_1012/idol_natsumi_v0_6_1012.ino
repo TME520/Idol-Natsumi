@@ -166,7 +166,8 @@ enum GameState {
   DOOR_KNOCK8,
   DOOR_KNOCK9,
   DOOR_KNOCK10,
-  VISITOR_PORTRAIT
+  VISITOR_PORTRAIT,
+  PFC_GAME
 };
 
 GameState currentState = VERSION_SCREEN;
@@ -848,6 +849,7 @@ const char* gameStateToString(GameState state) {
     case DOOR_KNOCK9:      return "DOOR_KNOCK9";
     case DOOR_KNOCK10:     return "DOOR_KNOCK10";
     case VISITOR_PORTRAIT: return "VISITOR_PORTRAIT";
+    case PFC_GAME:         return "PFC_GAME";
     default:               return "UNKNOWN";
   }
 }
@@ -1844,6 +1846,9 @@ void preloadImages() {
         default:
           break;
       }
+      break;
+    case PFC_GAME:
+      preloadImage("/idolnat/screens/bedroom.png", currentBackground);
       break;
   }
   // Load portraits
@@ -3288,6 +3293,12 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         setScreenConfig(IDLE);
         characterEnabled = false;
         break;
+      case PFC_GAME:
+        setScreenConfig(GAME);
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        toastEnabled = false;
+        break;
       default:
         break;
     }
@@ -3880,6 +3891,9 @@ void manageGame() {
       break;
     case CARDS_SCREEN:
       browseCards();
+      break;
+    case PFC_GAME:
+      managePFCGame();
       break;
     default:
       playGame();
@@ -8458,7 +8472,7 @@ void drawOverlay() {
             drawDialogBubble("Congratulations for the competition! I brought you shortcake to celebrate!");
             break;
           case 5:
-            drawDialogBubble("Let\'s play together!");
+            drawDialogBubble("Let\'s play Jan-ken-pon together!");
             break;
           default:
             break;
@@ -9402,7 +9416,11 @@ void manageFriendsVisits() {
           changeState(0, DOOR_KNOCK6, 0);
           break;
         case DOOR_KNOCK6:
-          changeState(0, DOOR_KNOCK7, 0);
+          if (visitor == 5) {
+            changeState(0, PFC_GAME, 0);
+          } else {
+            changeState(0, DOOR_KNOCK7, 0);
+          }
           break;
         case DOOR_KNOCK7:
           changeState(0, DOOR_KNOCK8, 0);
@@ -10143,6 +10161,10 @@ void matsuriMainMenu() {
     }
   }
   return;
+}
+
+void managePFCGame() {
+  // Update this function to add the Jan-ken-pon game
 }
 
 void orderibiFoodSelection() {
