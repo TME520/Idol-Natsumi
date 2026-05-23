@@ -10164,6 +10164,7 @@ void matsuriMainMenu() {
 }
 
 void managePFCGame() {
+  Serial.println("> Entering managePFCGame()");
   // Natsumi (player) vs Emily (CPU) in a 3-round rock-paper-scissors game.
   static int roundIndex = 0;
   static int natsumiWins = 0;
@@ -10174,6 +10175,7 @@ void managePFCGame() {
   const char* handNames[3] = {"Rock", "Paper", "Scissors"};
 
   if (gameFinished) {
+    Serial.println(">> managePFCGame() - gameFinished");
     roundIndex = 0;
     natsumiWins = 0;
     emilyWins = 0;
@@ -10230,12 +10232,18 @@ void managePFCGame() {
       roundIndex += 1;
       String toast = "R" + String(roundIndex) + ": N " + handNames[natsumiHand] +
                      " / E " + handNames[emilyHand] + " - " + resultText;
-      showToast(toast);
+      // showToast(toast);
+      // Helper text at the bottom
+      M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+      drawText(toast, 120, 131, true, WHITE, 1);
 
       if (roundIndex >= 3) {
         String finalToast = "Final " + String(natsumiWins) + "-" + String(emilyWins) +
                             " (D:" + String(drawCount) + ")";
-        showToast(finalToast);
+        // showToast(finalToast);
+        // Helper text at the bottom
+        M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+        drawText(finalToast, 120, 131, true, WHITE, 1);
         gameFinished = true;
       }
     }
