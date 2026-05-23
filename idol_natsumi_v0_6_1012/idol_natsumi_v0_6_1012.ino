@@ -1858,7 +1858,7 @@ void preloadImages() {
       }
       break;
     case PFC_GAME:
-      preloadImage("/idolnat/screens/outcome_bg.png", currentBackground);
+      preloadImage("/idolnat/screens/PFC_game_bg.png", currentBackground);
       break;
   }
   // Load portraits
