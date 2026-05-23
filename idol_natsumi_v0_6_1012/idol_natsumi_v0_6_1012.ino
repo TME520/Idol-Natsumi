@@ -8529,8 +8529,8 @@ void drawOverlay() {
         M5Cardputer.Display.drawPng(currentBackground.data, currentBackground.length, 0, 0);
 
         // Characters
-        M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, -10, 0);
-        M5Cardputer.Display.drawPng(enemySprite.data, enemySprite.length, 180, 0);
+        M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, 0, 0);
+        M5Cardputer.Display.drawPng(enemySprite.data, enemySprite.length, 160, 0);
 
         // Helper text
         drawHelper(pfcHelperText);
