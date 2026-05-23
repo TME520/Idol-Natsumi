@@ -9474,7 +9474,7 @@ void manageFriendsVisits() {
           break;
         case DOOR_KNOCK6:
           if (visitor == 5) {
-            pfcHelperText = "Rock: A | Paper: S | Scissors: D";
+            pfcHelperText = "R = ROCK | P = PAPER | S = SCISSORS";
             changeState(0, PFC_GAME, 0);
           } else {
             changeState(0, DOOR_KNOCK7, 0);
@@ -10247,17 +10247,18 @@ void managePFCGame() {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      Serial.println(">> managePFCGame() - key pressed: " + String(key));
 
       int natsumiHand = -1;
-      // Rock: A / ,   Paper: S / .   Scissors: D / /
+      // Rock: R / Paper: P / Scissors: S
       switch (key) {
-        case 'a': case 'A': case 44:
+        case 'r': case 'R':
           natsumiHand = 0;
           break;
-        case 's': case 'S': case 46:
+        case 'p': case 'P':
           natsumiHand = 1;
           break;
-        case 'd': case 'D': case 47:
+        case 's': case 'S':
           natsumiHand = 2;
           break;
         case 96:
