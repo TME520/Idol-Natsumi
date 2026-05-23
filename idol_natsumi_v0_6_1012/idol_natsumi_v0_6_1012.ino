@@ -678,8 +678,11 @@ String gardeningHelperText = "";
 String doctorHint = "";
 String priestHint = "";
 
+// Jan-ken-pon game
+String pfcHelperText = "";
+
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "M5 Cardputer 1.0/1.1 - Update 15";
+String versionNumber = "Update 15";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -8522,8 +8525,15 @@ void drawOverlay() {
         drawDialogBubble("Mata ne! See you later!");
         break;
       case PFC_GAME:
-        M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, 0, 0);
+        // Bg
+        M5Cardputer.Display.drawPng(currentBackground.data, currentBackground.length, 0, 0);
+
+        // Characters
+        M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, -10, 0);
         M5Cardputer.Display.drawPng(enemySprite.data, enemySprite.length, 180, 0);
+
+        // Helper text
+        drawHelper(pfcHelperText);
         break;
       default:
         break;
@@ -8597,6 +8607,12 @@ void allocateTickets() {
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
   drawText("Total: " + String (natsumi.tickets) + " tickets", 120, 131, true, WHITE, 1);
   return;
+}
+
+void drawHelper(String helperText) {
+  // Helper text at the bottom
+  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  drawText(helperText, 120, 131, true, WHITE, 1);
 }
 
 void getTickets() {
@@ -9458,6 +9474,7 @@ void manageFriendsVisits() {
           break;
         case DOOR_KNOCK6:
           if (visitor == 5) {
+            pfcHelperText = "Rock: A | Paper: S | Scissors: D";
             changeState(0, PFC_GAME, 0);
           } else {
             changeState(0, DOOR_KNOCK7, 0);
@@ -10213,7 +10230,6 @@ void managePFCGame() {
   static int drawCount = 0;
   static bool gameFinished = false;
   const char* handNames[3] = {"Rock", "Paper", "Scissors"};
-  String toast = "Rock: A | Paper: S | Scissors: D";
 
   if (gameFinished) {
     Serial.println(">> managePFCGame() - gameFinished");
@@ -10231,7 +10247,6 @@ void managePFCGame() {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      l5NeedsRedraw = false;
 
       int natsumiHand = -1;
       // Rock: A / ,   Paper: S / .   Scissors: D / /
@@ -10246,14 +10261,17 @@ void managePFCGame() {
           natsumiHand = 2;
           break;
         case 96:
-          changeState(0, DOOR_KNOCK7, 0);
+          changeState(0, HOME_LOOP, 0);
           return;
+          break;
         default:
           break;
       }
 
       if (natsumiHand == -1) {
         return;
+      } else {
+        l5NeedsRedraw = true;
       }
 
       int emilyHand = random(0, 3);
@@ -10272,17 +10290,14 @@ void managePFCGame() {
       }
 
       roundIndex += 1;
-      toast = "R" + String(roundIndex) + ": N " + handNames[natsumiHand] + " / E " + handNames[emilyHand] + " - " + resultText;
+      pfcHelperText = "R" + String(roundIndex) + ": N " + handNames[natsumiHand] + " / E " + handNames[emilyHand] + " - " + resultText;
 
       if (roundIndex >= 3) {
-        toast = "Final " + String(natsumiWins) + "-" + String(emilyWins) + " (D:" + String(drawCount) + ")";
+        pfcHelperText = "Final " + String(natsumiWins) + "-" + String(emilyWins) + " (D:" + String(drawCount) + ")";
         gameFinished = true;
       }
     }
   }
-  // Helper text at the bottom
-  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText(toast, 120, 131, true, WHITE, 1);
 }
 
 void orderibiFoodSelection() {
