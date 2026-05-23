@@ -10164,7 +10164,82 @@ void matsuriMainMenu() {
 }
 
 void managePFCGame() {
-  // Update this function to add the Jan-ken-pon game
+  // Natsumi (player) vs Emily (CPU) in a 3-round rock-paper-scissors game.
+  static int roundIndex = 0;
+  static int natsumiWins = 0;
+  static int emilyWins = 0;
+  static int drawCount = 0;
+  static bool gameFinished = false;
+
+  const char* handNames[3] = {"Rock", "Paper", "Scissors"};
+
+  if (gameFinished) {
+    roundIndex = 0;
+    natsumiWins = 0;
+    emilyWins = 0;
+    drawCount = 0;
+    gameFinished = false;
+    changeState(0, DOOR_KNOCK7, 0);
+    return;
+  }
+
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+
+      int natsumiHand = -1;
+      // Rock: A / ,   Paper: S / .   Scissors: D / /
+      switch (key) {
+        case 'a': case 'A': case 44:
+          natsumiHand = 0;
+          break;
+        case 's': case 'S': case 46:
+          natsumiHand = 1;
+          break;
+        case 'd': case 'D': case 47:
+          natsumiHand = 2;
+          break;
+        case 96:
+          changeState(0, DOOR_KNOCK7, 0);
+          return;
+        default:
+          break;
+      }
+
+      if (natsumiHand == -1) {
+        return;
+      }
+
+      int emilyHand = random(0, 3);
+      String resultText;
+      if (natsumiHand == emilyHand) {
+        drawCount += 1;
+        resultText = "Draw! ";
+      } else if ((natsumiHand == 0 && emilyHand == 2) ||
+                 (natsumiHand == 1 && emilyHand == 0) ||
+                 (natsumiHand == 2 && emilyHand == 1)) {
+        natsumiWins += 1;
+        resultText = "Natsumi wins! ";
+      } else {
+        emilyWins += 1;
+        resultText = "Emily wins! ";
+      }
+
+      roundIndex += 1;
+      String toast = "R" + String(roundIndex) + ": N " + handNames[natsumiHand] +
+                     " / E " + handNames[emilyHand] + " - " + resultText;
+      showToast(toast);
+
+      if (roundIndex >= 3) {
+        String finalToast = "Final " + String(natsumiWins) + "-" + String(emilyWins) +
+                            " (D:" + String(drawCount) + ")";
+        showToast(finalToast);
+        gameFinished = true;
+      }
+    }
+  }
 }
 
 void orderibiFoodSelection() {
