@@ -680,6 +680,7 @@ String priestHint = "";
 
 // Jan-ken-pon game
 String pfcHelperText = "";
+int pfcCurrentStage = 0;
 
 String copyright = "(c) 2026 - Pantzumatic";
 String versionNumber = "Update 15";
@@ -1858,7 +1859,32 @@ void preloadImages() {
       }
       break;
     case PFC_GAME:
-      preloadImage("/idolnat/screens/PFC_game_bg.png", currentBackground);
+      switch(pfcCurrentStage) {
+        case 0:
+          preloadImage("/idolnat/screens/jan-ken-pon_title.png", currentBackground);
+          break;
+        case 1:
+          preloadImage("/idolnat/screens/jkp_round1.png", currentBackground);
+          break;
+        case 2:
+          preloadImage("/idolnat/screens/jkp_versus.png", currentBackground);
+          break;
+        case 3:
+          preloadImage("/idolnat/screens/jkp_round2.png", currentBackground);
+          break;
+        case 4:
+          preloadImage("/idolnat/screens/jkp_versus.png", currentBackground);
+          break;
+        case 5:
+          preloadImage("/idolnat/screens/jkp_round3.png", currentBackground);
+          break;
+        case 6:
+          preloadImage("/idolnat/screens/jkp_versus.png", currentBackground);
+          break;
+        default:
+          preloadImage("/idolnat/screens/PFC_game_bg.png", currentBackground);
+          break;
+      }
       break;
   }
   // Load portraits
@@ -8529,8 +8555,10 @@ void drawOverlay() {
         M5Cardputer.Display.drawPng(currentBackground.data, currentBackground.length, 0, 0);
 
         // Characters
-        M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, 0, 0);
-        M5Cardputer.Display.drawPng(enemySprite.data, enemySprite.length, 160, 0);
+        if (pfcCurrentStage == 2 || pfcCurrentStage == 4 || pfcCurrentStage == 6) {
+          M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, 0, 0);
+          M5Cardputer.Display.drawPng(enemySprite.data, enemySprite.length, 160, 0);
+        }
 
         // Helper text
         drawHelper(pfcHelperText);
@@ -9475,6 +9503,7 @@ void manageFriendsVisits() {
         case DOOR_KNOCK6:
           if (visitor == 5) {
             pfcHelperText = "R = ROCK | P = PAPER | S = SCISSORS";
+            pfcCurrentStage = 0;
             changeState(0, PFC_GAME, 0);
           } else {
             changeState(0, DOOR_KNOCK7, 0);
@@ -10249,6 +10278,39 @@ void managePFCGame() {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       Serial.println(">> managePFCGame() - key pressed: " + String(key));
 
+      switch(pfcCurrentStage) {
+        case 0:
+          // TITLE
+          pfcHelperText = "Press any key";
+          break;
+        case 1:
+          // ROUND 1
+          pfcHelperText = "Press any key";
+          break;
+        case 2:
+          // R/P/S?
+          pfcHelperText = "R = ROCK | P = PAPER | S = SCISSORS";
+          break;
+        case 3:
+          // ROUND 2
+          pfcHelperText = "Press any key";
+          break;
+        case 4:
+          // R/P/S?
+          pfcHelperText = "R = ROCK | P = PAPER | S = SCISSORS";
+          break;
+        case 5:
+          // ROUND 3
+          pfcHelperText = "Press any key";
+          break;
+        case 6:
+          // R/P/S?
+          pfcHelperText = "R = ROCK | P = PAPER | S = SCISSORS";
+          break;
+        default:
+          break;
+      }
+
       int natsumiHand = -1;
       // Rock: R / Paper: P / Scissors: S
       switch (key) {
@@ -10268,6 +10330,8 @@ void managePFCGame() {
         default:
           break;
       }
+
+      pfcCurrentStage += 1;
 
       if (natsumiHand == -1) {
         return;
