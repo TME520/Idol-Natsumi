@@ -8567,8 +8567,8 @@ void drawOverlay() {
         M5Cardputer.Display.drawPng(currentBackground.data, currentBackground.length, 0, 0);
 
         // Characters
-        M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, 0, 0);
-        M5Cardputer.Display.drawPng(enemySprite.data, enemySprite.length, 160, 0);
+        // M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, 0, 0);
+        // M5Cardputer.Display.drawPng(enemySprite.data, enemySprite.length, 160, 0);
 
         // Helper text
         drawHelper(pfcHelperText);
@@ -10293,7 +10293,7 @@ void managePFCGame() {
       switch (currentState) {
         case PFC_GAME: case PFC_GAME2: case PFC_GAME4: case PFC_GAME6:
           // TITLE, ROUND 1, ROUND 2, ROUND 3
-          pfcHelperText = "Press [ENTER] to proceed";
+          // pfcHelperText = "Press [ENTER] to proceed";
           switch(key) {
             case 13: case 40: case ' ':
               pfcCurrentStage += 1;
@@ -10302,31 +10302,43 @@ void managePFCGame() {
           }
           switch(pfcCurrentStage) {
             case 0:
+              // TITLE -> R1
+              pfcHelperText = "Press [ENTER] to proceed";
               changeState(0, PFC_GAME2, 0);
               break;
             case 1:
-              changeState(0, PFC_GAME2, 0);
-              break;
-            case 2:
+              // R1 -> RPS
+              pfcHelperText = "R = ROCK | P = PAPER | S = SCISSORS";
               changeState(0, PFC_GAME3, 0);
               break;
-            case 3:
+            case 2:
+              // RPS -> R2
+              pfcHelperText = "Press [ENTER] to proceed";
               changeState(0, PFC_GAME4, 0);
               break;
-            case 4:
+            case 3:
+              // R2 -> RPS
+              pfcHelperText = "R = ROCK | P = PAPER | S = SCISSORS";
               changeState(0, PFC_GAME5, 0);
               break;
-            case 5:
+            case 4:
+              // RPS -> R3
+              pfcHelperText = "Press [ENTER] to proceed";
               changeState(0, PFC_GAME6, 0);
               break;
-            case 6:
+            case 5:
+              // R3 -> RPS
+              pfcHelperText = "R = ROCK | P = PAPER | S = SCISSORS";
               changeState(0, PFC_GAME7, 0);
+              break;
+            case 6:
+              changeState(0, DOOR_KNOCK7, 0);
               break;
           }
           break;
         case PFC_GAME3: case PFC_GAME5: case PFC_GAME7:
           // RPS 1, RPS 2, RPS 3
-          pfcHelperText = "R = ROCK | P = PAPER | S = SCISSORS";
+          // pfcHelperText = "R = ROCK | P = PAPER | S = SCISSORS";
           pfcCurrentStage += 1;
           int natsumiHand = -1;
           // Rock: R / Paper: P / Scissors: S
@@ -10377,25 +10389,37 @@ void managePFCGame() {
           }
           switch(pfcCurrentStage) {
             case 0:
+              // TITLE -> R1
+              pfcHelperText = "Press [ENTER] to proceed";
               changeState(0, PFC_GAME2, 0);
               break;
             case 1:
-              changeState(0, PFC_GAME2, 0);
-              break;
-            case 2:
+              // R1 -> RPS
+              pfcHelperText = "R = ROCK | P = PAPER | S = SCISSORS";
               changeState(0, PFC_GAME3, 0);
               break;
-            case 3:
+            case 2:
+              // RPS -> R2
+              pfcHelperText = "Press [ENTER] to proceed";
               changeState(0, PFC_GAME4, 0);
               break;
-            case 4:
+            case 3:
+              // R2 -> RPS
+              pfcHelperText = "R = ROCK | P = PAPER | S = SCISSORS";
               changeState(0, PFC_GAME5, 0);
               break;
-            case 5:
+            case 4:
+              // RPS -> R3
+              pfcHelperText = "Press [ENTER] to proceed";
               changeState(0, PFC_GAME6, 0);
               break;
-            case 6:
+            case 5:
+              // R3 -> RPS
+              pfcHelperText = "R = ROCK | P = PAPER | S = SCISSORS";
               changeState(0, PFC_GAME7, 0);
+              break;
+            case 6:
+              changeState(0, DOOR_KNOCK7, 0);
               break;
           }
           break;
