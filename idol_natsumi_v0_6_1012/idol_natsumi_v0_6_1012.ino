@@ -8697,8 +8697,16 @@ void drawOverlay() {
         // Bg
         M5Cardputer.Display.drawPng(currentBackground.data, currentBackground.length, 0, 0);
 
-        // Character
-        M5Cardputer.Display.drawPng(currentCharacter.data, currentCharacter.length, 100, 0);
+        // Character (center current PNG horizontally)
+        int characterX = 100;
+        if (currentCharacter.data != nullptr && currentCharacter.length >= 24) {
+          const uint8_t* png = currentCharacter.data;
+          const int characterWidth = (int(png[16]) << 24) | (int(png[17]) << 16) | (int(png[18]) << 8) | int(png[19]);
+          if (characterWidth > 0) {
+            characterX = (M5Cardputer.Display.width() - characterWidth) / 2;
+          }
+        }
+        M5Cardputer.Display.drawPng(currentCharacter.data, currentCharacter.length, characterX, 0);
 
         // Helper text
         drawHelper(pfcHelperText);
