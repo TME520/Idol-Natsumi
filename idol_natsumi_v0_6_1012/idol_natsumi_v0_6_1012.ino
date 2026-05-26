@@ -8711,8 +8711,6 @@ void drawOverlay() {
         // Helper text
         drawHelper(pfcHelperText);
         break;
-      default:
-        break;
     }
   }
   l5NeedsRedraw = false;
