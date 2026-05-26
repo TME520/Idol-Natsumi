@@ -691,6 +691,7 @@ String pfcHelperText = "";
 int pfcCurrentStage = 0;
 int emilyHand = 0;
 int natsumiHand = 0;
+int pfcOutcome = 0;
 
 String copyright = "(c) 2026 - Pantzumatic";
 String versionNumber = "Update 15";
@@ -2039,10 +2040,25 @@ void preloadImages() {
               break;
           }
           break;
-        case PFC_GAME3: case PFC_GAME5: case PFC_GAME7: case DOOR_KNOCK7:
+        case PFC_GAME3: case PFC_GAME5: case PFC_GAME7:
           if (visitor == 5) {
             preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", natsumiSprite);
             preloadImage("/idolnat/sprites/emily_pantsu.png", enemySprite);
+          }
+          break;
+        case DOOR_KNOCK7:
+          if (visitor == 5) {
+            switch(pfcOutcome) {
+              case 0:
+                preloadImage("/idolnat/sprites/natsumi_11yo_happy-90x135.png", currentCharacter);
+                break;
+              case 1:
+                preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+                break;
+              case 2:
+                preloadImage("/idolnat/sprites/punk_jelly.png", currentCharacter);
+                break;
+            }
           }
           break;
         case PFC_GAME9:
@@ -2187,10 +2203,25 @@ void preloadImages() {
               break;
           }
           break;
-        case PFC_GAME3: case PFC_GAME5: case PFC_GAME7: case DOOR_KNOCK7:
+        case PFC_GAME3: case PFC_GAME5: case PFC_GAME7:
           if (visitor == 5) {
             preloadImage("/idolnat/sprites/natsumi_13yo-90x135.png", natsumiSprite);
             preloadImage("/idolnat/sprites/emily_pantsu.png", enemySprite);
+          }
+          break;
+        case DOOR_KNOCK7:
+          if (visitor == 5) {
+            switch(pfcOutcome) {
+              case 0:
+                preloadImage("/idolnat/sprites/natsumi_13yo_happy-90x135.png", currentCharacter);
+                break;
+              case 1:
+                preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+                break;
+              case 2:
+                preloadImage("/idolnat/sprites/punk_jelly.png", currentCharacter);
+                break;
+            }
           }
           break;
         case PFC_GAME9:
@@ -2335,10 +2366,25 @@ void preloadImages() {
               break;
           }
           break;
-        case PFC_GAME3: case PFC_GAME5: case PFC_GAME7: case DOOR_KNOCK7:
+        case PFC_GAME3: case PFC_GAME5: case PFC_GAME7:
           if (visitor == 5) {
             preloadImage("/idolnat/sprites/natsumi_15yo-90x135.png", natsumiSprite);
             preloadImage("/idolnat/sprites/emily_pantsu.png", enemySprite);
+          }
+          break;
+        case DOOR_KNOCK7:
+          if (visitor == 5) {
+            switch(pfcOutcome) {
+              case 0:
+                preloadImage("/idolnat/sprites/natsumi_15yo_happy-90x135.png", currentCharacter);
+                break;
+              case 1:
+                preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+                break;
+              case 2:
+                preloadImage("/idolnat/sprites/punk_jelly.png", currentCharacter);
+                break;
+            }
           }
           break;
         case PFC_GAME9:
@@ -2483,10 +2529,25 @@ void preloadImages() {
               break;
           }
           break;
-        case PFC_GAME3: case PFC_GAME5: case PFC_GAME7: case DOOR_KNOCK7:
+        case PFC_GAME3: case PFC_GAME5: case PFC_GAME7:
           if (visitor == 5) {
             preloadImage("/idolnat/sprites/natsumi_18yo-90x135.png", natsumiSprite);
             preloadImage("/idolnat/sprites/emily_pantsu.png", enemySprite);
+          }
+          break;
+        case DOOR_KNOCK7:
+          if (visitor == 5) {
+            switch(pfcOutcome) {
+              case 0:
+                preloadImage("/idolnat/sprites/natsumi_18yo_happy-90x135.png", currentCharacter);
+                break;
+              case 1:
+                preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+                break;
+              case 2:
+                preloadImage("/idolnat/sprites/punk_jelly.png", currentCharacter);
+                break;
+            }
           }
           break;
         case PFC_GAME9:
@@ -2631,10 +2692,25 @@ void preloadImages() {
               break;
           }
           break;
-        case PFC_GAME3: case PFC_GAME5: case PFC_GAME7: case DOOR_KNOCK7:
+        case PFC_GAME3: case PFC_GAME5: case PFC_GAME7:
           if (visitor == 5) {
             preloadImage("/idolnat/sprites/natsumi_21yo-90x135.png", natsumiSprite);
             preloadImage("/idolnat/sprites/emily_pantsu.png", enemySprite);
+          }
+          break;
+        case DOOR_KNOCK7:
+          if (visitor == 5) {
+            switch(pfcOutcome) {
+              case 0:
+                preloadImage("/idolnat/sprites/natsumi_21yo_happy-90x135.png", currentCharacter);
+                break;
+              case 1:
+                preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+                break;
+              case 2:
+                preloadImage("/idolnat/sprites/punk_jelly.png", currentCharacter);
+                break;
+            }
           }
           break;
         case PFC_GAME9:
@@ -3451,7 +3527,9 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case DOOR_KNOCK: case DOOR_KNOCK7: case DOOR_KNOCK9:
         setScreenConfig(IDLE);
-        characterEnabled = false;
+        if (visitor != 5) {
+          characterEnabled = false;
+        }
         break;
       case DOOR_KNOCK4: case DOOR_KNOCK10:
         setScreenConfig(DIALOG);
@@ -3459,10 +3537,19 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         l5NeedsRedraw = true;
         characterEnabled = false;
         break;
-      case DOOR_KNOCK2: case DOOR_KNOCK3:  case DOOR_KNOCK5: case DOOR_KNOCK6: case DOOR_KNOCK8:
+      case DOOR_KNOCK2: case DOOR_KNOCK3:  case DOOR_KNOCK5: case DOOR_KNOCK6:
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
+        break;
+      case DOOR_KNOCK8:
+        setScreenConfig(DIALOG);
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        if (visitor == 5) {
+          characterEnabled = false;
+        }
+        break;
         break;
       case VISITOR_PORTRAIT:
         setScreenConfig(IDLE);
@@ -10543,6 +10630,16 @@ void managePFCGame() {
     
           if (roundIndex >= 3) {
             pfcHelperText = "Final " + String(natsumiWins) + "-" + String(emilyWins) + " (D:" + String(drawCount) + ")";
+            if (natsumiWins > emilyWins) {
+              // Natsumi wins
+              pfcOutcome = 0;
+            } else if (emilyWins > natsumiWins) {
+              // Emily wins
+              pfcOutcome = 1;
+            } else {
+              // Draw
+              pfcOutcome = 2;
+            }
             gameFinished = true;
           }
           switch(pfcCurrentStage) {
