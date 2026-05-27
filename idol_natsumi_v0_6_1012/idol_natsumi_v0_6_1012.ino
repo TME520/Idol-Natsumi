@@ -3826,7 +3826,6 @@ void updateFiveSecondPulse() {
         counterToScreensaver += 1;
         Serial.println(">> HOME_LOOP -> counterToScreensaver: " + String(counterToScreensaver));
         if (counterToScreensaver > screensaverWait) {
-          changeState(0, DOOR_KNOCK, 0);
           if (friendsVisitEnabled) {
             if (birthdayVisitEnabled) {
               visitor = 0;
