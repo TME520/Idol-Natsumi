@@ -1823,7 +1823,7 @@ void preloadImages() {
           preloadImage("/idolnat/screens/celebration_shortcake.png", currentBackground);
           break;
         case 5:
-          preloadImage("/idolnat/screens/competition.png", currentBackground);
+          preloadImage("/idolnat/screens/jkp_results.png", currentBackground);
           break;
         default:
           break;
@@ -3525,11 +3525,15 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case CARDS_SCREEN:
         setScreenConfig(GAME);
         break;
-      case DOOR_KNOCK: case DOOR_KNOCK7: case DOOR_KNOCK9:
+      case DOOR_KNOCK: case DOOR_KNOCK9:
         setScreenConfig(IDLE);
-        if (visitor != 5) {
+        if (visitor == 5) {
           characterEnabled = false;
         }
+        break;
+      case DOOR_KNOCK7:
+        setScreenConfig(IDLE);
+        characterEnabled = true;
         break;
       case DOOR_KNOCK4: case DOOR_KNOCK10:
         setScreenConfig(DIALOG);
@@ -3547,7 +3551,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         overlayActive = true;
         l5NeedsRedraw = true;
         if (visitor == 5) {
-          characterEnabled = false;
+          characterEnabled = true;
         }
         break;
         break;
@@ -3824,10 +3828,7 @@ void updateFiveSecondPulse() {
         counterToScreensaver += 1;
         Serial.println(">> HOME_LOOP -> counterToScreensaver: " + String(counterToScreensaver));
         if (counterToScreensaver > screensaverWait) {
-          // TEMPORARY - update-15
-          visitor = 5;
           changeState(0, DOOR_KNOCK, 0);
-          /*
           if (friendsVisitEnabled) {
             if (birthdayVisitEnabled) {
               visitor = 0;
@@ -3853,7 +3854,6 @@ void updateFiveSecondPulse() {
           } else {
             changeState(0, IDLE_HOME, 0);
           }
-          */
         }
         break;
       case IDLE_HOME:
@@ -10534,11 +10534,11 @@ void managePFCGame() {
               changeState(0, PFC_GAME3, 0);
               break;
             case 2:
-              pfcHelperText = "";
+              // pfcHelperText = "";
               changeState(0, PFC_GAME8, 0);
               break;
             case 3:
-              pfcHelperText = "";
+              // pfcHelperText = "";
               changeState(0, PFC_GAME9, 0);
               break;
             case 4:
@@ -10552,11 +10552,11 @@ void managePFCGame() {
               changeState(0, PFC_GAME5, 0);
               break;
             case 6:
-              pfcHelperText = "";
+              // pfcHelperText = "";
               changeState(0, PFC_GAME8, 0);
               break;
             case 7:
-              pfcHelperText = "";
+              // pfcHelperText = "";
               changeState(0, PFC_GAME9, 0);
               break;
             case 8:
@@ -10570,11 +10570,11 @@ void managePFCGame() {
               changeState(0, PFC_GAME7, 0);
               break;
             case 10:
-              pfcHelperText = "";
+              // pfcHelperText = "";
               changeState(0, PFC_GAME8, 0);
               break;
             case 11:
-              pfcHelperText = "";
+              // pfcHelperText = "";
               changeState(0, PFC_GAME9, 0);
               break;
             case 12:
@@ -10630,7 +10630,10 @@ void managePFCGame() {
     
           if (roundIndex >= 3) {
             pfcHelperText = "Final " + String(natsumiWins) + "-" + String(emilyWins) + " (D:" + String(drawCount) + ")";
-            if (natsumiWins > emilyWins) {
+            if (drawCount > 1) {
+              // Draw
+              pfcOutcome = 2;
+            } else if (natsumiWins > emilyWins) {
               // Natsumi wins
               pfcOutcome = 0;
             } else if (emilyWins > natsumiWins) {
@@ -10654,11 +10657,11 @@ void managePFCGame() {
               changeState(0, PFC_GAME3, 0);
               break;
             case 2:
-              pfcHelperText = "";
+              // pfcHelperText = "";
               changeState(0, PFC_GAME8, 0);
               break;
             case 3:
-              pfcHelperText = "";
+              // pfcHelperText = "";
               changeState(0, PFC_GAME9, 0);
               break;
             case 4:
@@ -10672,11 +10675,11 @@ void managePFCGame() {
               changeState(0, PFC_GAME5, 0);
               break;
             case 6:
-              pfcHelperText = "";
+              // pfcHelperText = "";
               changeState(0, PFC_GAME8, 0);
               break;
             case 7:
-              pfcHelperText = "";
+              // pfcHelperText = "";
               changeState(0, PFC_GAME9, 0);
               break;
             case 8:
@@ -10690,11 +10693,11 @@ void managePFCGame() {
               changeState(0, PFC_GAME7, 0);
               break;
             case 10:
-              pfcHelperText = "";
+              // pfcHelperText = "";
               changeState(0, PFC_GAME8, 0);
               break;
             case 11:
-              pfcHelperText = "";
+              // pfcHelperText = "";
               changeState(0, PFC_GAME9, 0);
               break;
             case 12:
