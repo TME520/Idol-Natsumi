@@ -3527,9 +3527,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case DOOR_KNOCK: case DOOR_KNOCK9:
         setScreenConfig(IDLE);
-        if (visitor == 5) {
-          characterEnabled = false;
-        }
+        characterEnabled = false;
         break;
       case DOOR_KNOCK7:
         setScreenConfig(IDLE);
@@ -3919,7 +3917,7 @@ void manageCard() {
       changeState(0, MOTTO_SCREEN, microWait);
       break;
     case MOTTO_SCREEN:
-      changeState(0, TITLE_SCREEN, microWait);
+      changeState(0, TITLE_SCREEN2, microWait);
       break;
     case TITLE_SCREEN:
       changeState(0, TITLE_SCREEN2, 10);
