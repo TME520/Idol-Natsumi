@@ -156,7 +156,7 @@ Matsuri tickets grant you access to the local Matsuri festival where you can pla
 | 16 | National competition completed (national champion) |
 
 * Natsumi must be in very good shape before entering any competition,
-* That's why Hunger, Hygiene, Energy, Performance, Fitness, Culture and Charm must be at 4 (their maximum),
+* That's why Hunger, Hygiene, Energy, Performance, Fitness, Culture and Grace must be at 4 (their maximum),
 * Should any stat drop below 4 at any time, competition will be locked.
 
 ### Statistics
@@ -173,7 +173,7 @@ Stat caps: 0 is the lowest while 4 is the highest.
 * **Performance** (integer; 0 to 4; shows how good of an entertainer Natsumi is)
 * **Fitness** (integer; 0 to 4; indicates how healthy Natsumi is)
 * **Culture** (integer; 0 to 4; indicates how knowledgeable Natsumi is)
-* **Charm** (integer; 0 to 4; shows how well-mannered and likeable Natsumi is)
+* **Grace** (integer; 0 to 4; shows how well-mannered and likeable Natsumi is)
 
 
 | STAT          | TYPE       | RANGE | UP (activities or events that raise it)                                   | DOWN (causes that lower it)                                      |
@@ -187,7 +187,7 @@ Stat caps: 0 is the lowest while 4 is the highest.
 | **Performance**| Active     | 0–4    | TRAINING → SING, DANCE                                                   | —                                                                |
 | **Fitness**    | Passive    | 0–4    | TRAINING → SWIM, GYM, RUN                                               | Decreases by 1 every time Age increases by 1 year                |
 | **Culture**    | Active     | 0–4    | TRAINING → LIBRARY, MARKET                                                      | —                                                                |
-| **Charm**      | Active     | 0–4    | FOOD → COOK, RESTAURANT, ORDER, MARKET                                           | —                                                                |
+| **Grace**      | Active     | 0–4    | FOOD → COOK, RESTAURANT, ORDER, MARKET                                           | —                                                                |
 
 ### Keep Natsumi fed
 
@@ -400,7 +400,7 @@ Shortcut: 3, 6
 
 Access to competition is only possible when the following conditions are met:
 
-* Hunger, Hygiene, Energy, Performance, Fitness, Culture and Charm must be at 4 (their maximum),
+* Hunger, Hygiene, Energy, Performance, Fitness, Culture and Grace must be at 4 (their maximum),
 * The competition level you are trying to enter has been unlocked,
 * Natsumi has to become the best version of herself by maxxing out her stats,
 * She must also train a lot and be good at it, as 3 perfect (no miss) training sessions are required to unlock a competition level

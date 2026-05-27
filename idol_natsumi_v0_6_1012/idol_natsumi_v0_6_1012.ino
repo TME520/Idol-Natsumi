@@ -166,7 +166,16 @@ enum GameState {
   DOOR_KNOCK8,
   DOOR_KNOCK9,
   DOOR_KNOCK10,
-  VISITOR_PORTRAIT
+  VISITOR_PORTRAIT,
+  PFC_GAME,
+  PFC_GAME2,
+  PFC_GAME3,
+  PFC_GAME4,
+  PFC_GAME5,
+  PFC_GAME6,
+  PFC_GAME7,
+  PFC_GAME8,
+  PFC_GAME9
 };
 
 GameState currentState = VERSION_SCREEN;
@@ -200,7 +209,7 @@ struct NatsumiStats {
   int performance;
   int fitness;
   int culture;
-  int charm;
+  int grace;
   int money;
   int flowers;
   int competition;
@@ -677,8 +686,15 @@ String gardeningHelperText = "";
 String doctorHint = "";
 String priestHint = "";
 
+// Jan-ken-pon game
+String pfcHelperText = "";
+int pfcCurrentStage = 0;
+int emilyHand = 0;
+int natsumiHand = 0;
+int pfcOutcome = 0;
+
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "M5 Cardputer 1.0/1.1 - Update 14";
+String versionNumber = "Update 15";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -848,6 +864,15 @@ const char* gameStateToString(GameState state) {
     case DOOR_KNOCK9:      return "DOOR_KNOCK9";
     case DOOR_KNOCK10:     return "DOOR_KNOCK10";
     case VISITOR_PORTRAIT: return "VISITOR_PORTRAIT";
+    case PFC_GAME:         return "PFC_GAME";
+    case PFC_GAME2:        return "PFC_GAME2";
+    case PFC_GAME3:        return "PFC_GAME3";
+    case PFC_GAME4:        return "PFC_GAME4";
+    case PFC_GAME5:        return "PFC_GAME5";
+    case PFC_GAME6:        return "PFC_GAME6";
+    case PFC_GAME7:        return "PFC_GAME7";
+    case PFC_GAME8:        return "PFC_GAME8";
+    case PFC_GAME9:        return "PFC_GAME9";
     default:               return "UNKNOWN";
   }
 }
@@ -874,7 +899,7 @@ void showToast(const String& msg, unsigned long ms = longWait) {
 
 bool isCompetitionEnabled() {
   Serial.println("> isCompetitionEnabled()");
-  if (natsumi.hunger == 4 && natsumi.hygiene == 4 && natsumi.energy == 4 && natsumi.performance == 4 && natsumi.fitness == 4 && natsumi.culture == 4 && natsumi.charm == 4) {
+  if (natsumi.hunger == 4 && natsumi.hygiene == 4 && natsumi.energy == 4 && natsumi.performance == 4 && natsumi.fitness == 4 && natsumi.culture == 4 && natsumi.grace == 4) {
     Serial.println(">> isCompetitionEnabled: true");
     return true;
   } else {
@@ -915,7 +940,7 @@ bool saveGameToSd() {
   saveFile.println("performance=" + String(natsumi.performance));
   saveFile.println("fitness=" + String(natsumi.fitness));
   saveFile.println("culture=" + String(natsumi.culture));
-  saveFile.println("charm=" + String(natsumi.charm));
+  saveFile.println("grace=" + String(natsumi.grace));
   saveFile.println("money=" + String(natsumi.money));
   saveFile.println("flowers=" + String(natsumi.flowers));
   saveFile.println("competition=" + String(natsumi.competition));
@@ -1094,7 +1119,7 @@ bool loadGameFromSd() {
       else if (key == "performance") natsumi.performance = value.toInt();
       else if (key == "fitness") natsumi.fitness = value.toInt();
       else if (key == "culture") natsumi.culture = value.toInt();
-      else if (key == "charm") natsumi.charm = value.toInt();
+      else if (key == "grace") natsumi.grace = value.toInt();
       else if (key == "money") natsumi.money = value.toInt();
       else if (key == "flowers") natsumi.flowers = value.toInt();
       else if (key == "competition") natsumi.competition = value.toInt();
@@ -1762,6 +1787,9 @@ void preloadImages() {
         case 4:
           preloadImage("/idolnat/screens/entrance_door_older_sister.png", currentBackground);
           break;
+        case 5:
+          preloadImage("/idolnat/screens/entrance_door_emily.png", currentBackground);
+          break;
         default:
           break;
       }
@@ -1769,8 +1797,19 @@ void preloadImages() {
     case DOOR_KNOCK2: case DOOR_KNOCK3: 
       preloadImage("/idolnat/screens/entrance_door.png", currentBackground);
       break;
-    case DOOR_KNOCK5: case DOOR_KNOCK6: case DOOR_KNOCK8:
-      preloadImage("/idolnat/screens/lounge.png", currentBackground);
+    case DOOR_KNOCK5: case DOOR_KNOCK8:
+      if (visitor != 5) {
+        preloadImage("/idolnat/screens/lounge.png", currentBackground);
+      } else {
+        preloadImage("/idolnat/screens/bedroom.png", currentBackground);
+      }
+      break;
+    case DOOR_KNOCK6:
+      if (visitor != 5) {
+        preloadImage("/idolnat/screens/lounge.png", currentBackground);
+      } else {
+        preloadImage("/idolnat/screens/outcome_bg.png", currentBackground);
+      }
       break;
     case DOOR_KNOCK7:
       switch(visitor) {
@@ -1782,6 +1821,9 @@ void preloadImages() {
           break;
         case 2: case 3: case 4:
           preloadImage("/idolnat/screens/celebration_shortcake.png", currentBackground);
+          break;
+        case 5:
+          preloadImage("/idolnat/screens/jkp_results.png", currentBackground);
           break;
         default:
           break;
@@ -1804,6 +1846,9 @@ void preloadImages() {
         case 4:
           preloadImage("/idolnat/screens/teatime_older_sister.png", currentBackground);
           break;
+        case 5:
+          preloadImage("/idolnat/screens/teatime_emily.png", currentBackground);
+          break;
         default:
           break;
       }
@@ -1825,9 +1870,61 @@ void preloadImages() {
         case 4:
           preloadImage("/idolnat/screens/portrait_frame_older_sister.png", currentBackground);
           break;
+        case 5:
+          preloadImage("/idolnat/screens/portrait_frame_emily.png", currentBackground);
+          break;
         default:
           break;
       }
+      break;
+    case PFC_GAME:
+      preloadImage("/idolnat/screens/jan-ken-pon_title.png", currentBackground);
+      break;
+    case PFC_GAME2:
+      preloadImage("/idolnat/screens/jkp_round1.png", currentBackground);
+      break;
+    case PFC_GAME3:
+      preloadImage("/idolnat/screens/PFC_game_bg.png", currentBackground);
+      break;
+    case PFC_GAME4:
+      preloadImage("/idolnat/screens/jkp_round2.png", currentBackground);
+      break;
+    case PFC_GAME5:
+      preloadImage("/idolnat/screens/PFC_game_bg.png", currentBackground);
+      break;
+    case PFC_GAME6:
+      preloadImage("/idolnat/screens/jkp_round3.png", currentBackground);
+      break;
+    case PFC_GAME7:
+      preloadImage("/idolnat/screens/PFC_game_bg.png", currentBackground);
+      break;
+    case PFC_GAME8:
+      preloadImage("/idolnat/screens/jkp_versus.png", currentBackground);
+      switch(natsumiHand) {
+        case 0:
+          preloadImage("/idolnat/sprites/rock.png", natsumiSprite);
+          break;
+        case 1:
+          preloadImage("/idolnat/sprites/paper.png", natsumiSprite);
+          break;
+        case 2:
+          preloadImage("/idolnat/sprites/scissors.png", natsumiSprite);
+          break;
+      }
+      switch(emilyHand) {
+        case 0:
+          preloadImage("/idolnat/sprites/rock.png", enemySprite);
+          break;
+        case 1:
+          preloadImage("/idolnat/sprites/paper.png", enemySprite);
+          break;
+        case 2:
+          preloadImage("/idolnat/sprites/scissors.png", enemySprite);
+          break;
+      }
+      break;
+    case PFC_GAME9:
+      preloadImage("/idolnat/screens/outcome_bg.png", currentBackground);
       break;
   }
   // Load portraits
@@ -1912,6 +2009,9 @@ void preloadImages() {
             case 4:
               preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
+            case 5:
+              preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+              break;
             default:
               break;
           }
@@ -1933,8 +2033,46 @@ void preloadImages() {
             case 4:
               preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
+            case 5:
+              preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+              break;
             default:
               break;
+          }
+          break;
+        case PFC_GAME3: case PFC_GAME5: case PFC_GAME7:
+          if (visitor == 5) {
+            preloadImage("/idolnat/sprites/natsumi_11yo-90x135.png", natsumiSprite);
+            preloadImage("/idolnat/sprites/emily_pantsu.png", enemySprite);
+          }
+          break;
+        case DOOR_KNOCK7:
+          if (visitor == 5) {
+            switch(pfcOutcome) {
+              case 0:
+                preloadImage("/idolnat/sprites/natsumi_11yo_happy-90x135.png", currentCharacter);
+                break;
+              case 1:
+                preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+                break;
+              case 2:
+                preloadImage("/idolnat/sprites/punk_jelly.png", currentCharacter);
+                break;
+            }
+          }
+          break;
+        case PFC_GAME9:
+          if (natsumiHand == emilyHand) {
+            // Draw
+            preloadImage("/idolnat/sprites/punk_jelly.png", currentCharacter);
+          } else if ((natsumiHand == 0 && emilyHand == 2) ||
+                     (natsumiHand == 1 && emilyHand == 0) ||
+                     (natsumiHand == 2 && emilyHand == 1)) {
+            // Natsumi wins
+            preloadImage("/idolnat/sprites/natsumi_11yo_happy-90x135.png", currentCharacter);
+          } else {
+            // Emily wins
+            preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
           }
           break;
         default:
@@ -2034,6 +2172,9 @@ void preloadImages() {
             case 4:
               preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
+            case 5:
+              preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+              break;
             default:
               break;
           }
@@ -2055,8 +2196,46 @@ void preloadImages() {
             case 4:
               preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
+            case 5:
+              preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+              break;
             default:
               break;
+          }
+          break;
+        case PFC_GAME3: case PFC_GAME5: case PFC_GAME7:
+          if (visitor == 5) {
+            preloadImage("/idolnat/sprites/natsumi_13yo-90x135.png", natsumiSprite);
+            preloadImage("/idolnat/sprites/emily_pantsu.png", enemySprite);
+          }
+          break;
+        case DOOR_KNOCK7:
+          if (visitor == 5) {
+            switch(pfcOutcome) {
+              case 0:
+                preloadImage("/idolnat/sprites/natsumi_13yo_happy-90x135.png", currentCharacter);
+                break;
+              case 1:
+                preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+                break;
+              case 2:
+                preloadImage("/idolnat/sprites/punk_jelly.png", currentCharacter);
+                break;
+            }
+          }
+          break;
+        case PFC_GAME9:
+          if (natsumiHand == emilyHand) {
+            // Draw
+            preloadImage("/idolnat/sprites/punk_jelly.png", currentCharacter);
+          } else if ((natsumiHand == 0 && emilyHand == 2) ||
+                     (natsumiHand == 1 && emilyHand == 0) ||
+                     (natsumiHand == 2 && emilyHand == 1)) {
+            // Natsumi wins
+            preloadImage("/idolnat/sprites/natsumi_13yo_happy-90x135.png", currentCharacter);
+          } else {
+            // Emily wins
+            preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
           }
           break;
         default:
@@ -2156,6 +2335,9 @@ void preloadImages() {
             case 4:
               preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
+            case 5:
+              preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+              break;
             default:
               break;
           }
@@ -2177,8 +2359,46 @@ void preloadImages() {
             case 4:
               preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
+            case 5:
+              preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+              break;
             default:
               break;
+          }
+          break;
+        case PFC_GAME3: case PFC_GAME5: case PFC_GAME7:
+          if (visitor == 5) {
+            preloadImage("/idolnat/sprites/natsumi_15yo-90x135.png", natsumiSprite);
+            preloadImage("/idolnat/sprites/emily_pantsu.png", enemySprite);
+          }
+          break;
+        case DOOR_KNOCK7:
+          if (visitor == 5) {
+            switch(pfcOutcome) {
+              case 0:
+                preloadImage("/idolnat/sprites/natsumi_15yo_happy-90x135.png", currentCharacter);
+                break;
+              case 1:
+                preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+                break;
+              case 2:
+                preloadImage("/idolnat/sprites/punk_jelly.png", currentCharacter);
+                break;
+            }
+          }
+          break;
+        case PFC_GAME9:
+          if (natsumiHand == emilyHand) {
+            // Draw
+            preloadImage("/idolnat/sprites/punk_jelly.png", currentCharacter);
+          } else if ((natsumiHand == 0 && emilyHand == 2) ||
+                     (natsumiHand == 1 && emilyHand == 0) ||
+                     (natsumiHand == 2 && emilyHand == 1)) {
+            // Natsumi wins
+            preloadImage("/idolnat/sprites/natsumi_15yo_happy-90x135.png", currentCharacter);
+          } else {
+            // Emily wins
+            preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
           }
           break;
         default:
@@ -2278,6 +2498,9 @@ void preloadImages() {
             case 4:
               preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
+            case 5:
+              preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+              break;
             default:
               break;
           }
@@ -2299,8 +2522,46 @@ void preloadImages() {
             case 4:
               preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
+            case 5:
+              preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+              break;
             default:
               break;
+          }
+          break;
+        case PFC_GAME3: case PFC_GAME5: case PFC_GAME7:
+          if (visitor == 5) {
+            preloadImage("/idolnat/sprites/natsumi_18yo-90x135.png", natsumiSprite);
+            preloadImage("/idolnat/sprites/emily_pantsu.png", enemySprite);
+          }
+          break;
+        case DOOR_KNOCK7:
+          if (visitor == 5) {
+            switch(pfcOutcome) {
+              case 0:
+                preloadImage("/idolnat/sprites/natsumi_18yo_happy-90x135.png", currentCharacter);
+                break;
+              case 1:
+                preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+                break;
+              case 2:
+                preloadImage("/idolnat/sprites/punk_jelly.png", currentCharacter);
+                break;
+            }
+          }
+          break;
+        case PFC_GAME9:
+          if (natsumiHand == emilyHand) {
+            // Draw
+            preloadImage("/idolnat/sprites/punk_jelly.png", currentCharacter);
+          } else if ((natsumiHand == 0 && emilyHand == 2) ||
+                     (natsumiHand == 1 && emilyHand == 0) ||
+                     (natsumiHand == 2 && emilyHand == 1)) {
+            // Natsumi wins
+            preloadImage("/idolnat/sprites/natsumi_18yo_happy-90x135.png", currentCharacter);
+          } else {
+            // Emily wins
+            preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
           }
           break;
         default:
@@ -2400,6 +2661,9 @@ void preloadImages() {
             case 4:
               preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
+            case 5:
+              preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+              break;
             default:
               break;
           }
@@ -2421,8 +2685,46 @@ void preloadImages() {
             case 4:
               preloadImage("/idolnat/sprites/older_sister.png", currentCharacter);
               break;
+            case 5:
+              preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+              break;
             default:
               break;
+          }
+          break;
+        case PFC_GAME3: case PFC_GAME5: case PFC_GAME7:
+          if (visitor == 5) {
+            preloadImage("/idolnat/sprites/natsumi_21yo-90x135.png", natsumiSprite);
+            preloadImage("/idolnat/sprites/emily_pantsu.png", enemySprite);
+          }
+          break;
+        case DOOR_KNOCK7:
+          if (visitor == 5) {
+            switch(pfcOutcome) {
+              case 0:
+                preloadImage("/idolnat/sprites/natsumi_21yo_happy-90x135.png", currentCharacter);
+                break;
+              case 1:
+                preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
+                break;
+              case 2:
+                preloadImage("/idolnat/sprites/punk_jelly.png", currentCharacter);
+                break;
+            }
+          }
+          break;
+        case PFC_GAME9:
+          if (natsumiHand == emilyHand) {
+            // Draw
+            preloadImage("/idolnat/sprites/punk_jelly.png", currentCharacter);
+          } else if ((natsumiHand == 0 && emilyHand == 2) ||
+                     (natsumiHand == 1 && emilyHand == 0) ||
+                     (natsumiHand == 2 && emilyHand == 1)) {
+            // Natsumi wins
+            preloadImage("/idolnat/sprites/natsumi_21yo_happy-90x135.png", currentCharacter);
+          } else {
+            // Emily wins
+            preloadImage("/idolnat/sprites/emily_pantsu.png", currentCharacter);
           }
           break;
         default:
@@ -2498,7 +2800,7 @@ void loop() {
   Serial.println("debugEnabled: " + String(debugEnabled) + " - menuOpened: " + String(menuOpened) + " - toastActive: " + String(toastActive));
   Serial.println("changeStateCounter: " + String(changeStateCounter) + " - l5NeedsRedraw: " + String(l5NeedsRedraw));
 */
-  // Serial.println("> currentState = " + String(gameStateToString(currentState)));
+  Serial.println("> currentState = " + String(gameStateToString(currentState)));
   // Serial.println("loop - natsumi.ageMilliseconds: " + String(natsumi.ageMilliseconds));
   // Serial.println("loop - playtimeTotalMs: " + String(playtimeTotalMs));
   switch (screenConfig) {
@@ -2673,7 +2975,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         natsumi.performance = 0;
         natsumi.fitness = 0;
         natsumi.culture = 0;
-        natsumi.charm = 0;
+        natsumi.grace = 0;
         natsumi.money = 1800;
         natsumi.flowers = 0;
         natsumi.tickets = 0;
@@ -2760,7 +3062,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           natsumi.performance = 0;
           natsumi.fitness = 0;
           natsumi.culture = 0;
-          natsumi.charm = 0;
+          natsumi.grace = 0;
           natsumi.money = 1800;
           natsumi.flowers = 0;
           natsumi.competition = 0;
@@ -3223,9 +3525,13 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case CARDS_SCREEN:
         setScreenConfig(GAME);
         break;
-      case DOOR_KNOCK: case DOOR_KNOCK7: case DOOR_KNOCK9:
+      case DOOR_KNOCK: case DOOR_KNOCK9:
         setScreenConfig(IDLE);
         characterEnabled = false;
+        break;
+      case DOOR_KNOCK7:
+        setScreenConfig(IDLE);
+        characterEnabled = true;
         break;
       case DOOR_KNOCK4: case DOOR_KNOCK10:
         setScreenConfig(DIALOG);
@@ -3233,15 +3539,29 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         l5NeedsRedraw = true;
         characterEnabled = false;
         break;
-        break;
-      case DOOR_KNOCK2: case DOOR_KNOCK3:  case DOOR_KNOCK5: case DOOR_KNOCK6: case DOOR_KNOCK8:
+      case DOOR_KNOCK2: case DOOR_KNOCK3:  case DOOR_KNOCK5: case DOOR_KNOCK6:
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
+      case DOOR_KNOCK8:
+        setScreenConfig(DIALOG);
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        if (visitor == 5) {
+          characterEnabled = true;
+        }
+        break;
+        break;
       case VISITOR_PORTRAIT:
         setScreenConfig(IDLE);
         characterEnabled = false;
+        break;
+      case PFC_GAME: case PFC_GAME2: case PFC_GAME3: case PFC_GAME4: case PFC_GAME5: case PFC_GAME6: case PFC_GAME7: case PFC_GAME8: case PFC_GAME9:
+        setScreenConfig(GAME);
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        toastEnabled = false;
         break;
       default:
         break;
@@ -3449,11 +3769,11 @@ void updateFiveSecondPulse() {
   unsigned long now = millis();
   if (now < lastFiveSecondTick) {
     lastFiveSecondTick = now;
-    Serial.println(">> 5 sec tick");
+    // Serial.println(">> 5 sec tick");
   }
   if (now - lastFiveSecondTick >= fiveSecondInterval) {
     lastFiveSecondTick = now;
-    Serial.println(">>> 5 sec tick");
+    // Serial.println(">>> 5 sec tick");
     fiveSecondPulse = true;
     // saveScreenshotToSd();
     if (waitingForFoodDelivery) {
@@ -3517,6 +3837,10 @@ void updateFiveSecondPulse() {
               Serial.println(">>> HOME_LOOP - visitor: " + String(visitor));
               recentCompWin = false;
               changeState(0, DOOR_KNOCK, 0);
+            } else if (isLatestTrainingPerfect) {
+                visitor = 5;
+                isLatestTrainingPerfect = false;
+                changeState(0, DOOR_KNOCK, 0);
             } else {
               visitor = 1;
               if (natsumi.hunger < 1) {
@@ -3535,39 +3859,7 @@ void updateFiveSecondPulse() {
         if (counterToScreensaver < screensaverWait) {
           changeState(0, HOME_LOOP, 0);
         }
-        /*
-        unloadImage(currentBackground);
-        Serial.println(">> IDLE_HOME / IDLE_STATS -> slideshowImage: " + String(slideshowImage));
-        if (slideshowImage == 0) {
-          preloadImage("/idolnat/screens/screensaver01.png", currentBackground);
-        } else if (slideshowImage == 1) {
-          preloadImage("/idolnat/screens/slideshow01.png", currentBackground);
-        } else if (slideshowImage == 2) {
-          preloadImage("/idolnat/screens/slideshow02.png", currentBackground);
-        } else if (slideshowImage == 3) {
-          preloadImage("/idolnat/screens/slideshow03.png", currentBackground);
-        } else if (slideshowImage == 4) {
-          preloadImage("/idolnat/screens/slideshow04.png", currentBackground);
-        } else if (slideshowImage == 5) {
-          preloadImage("/idolnat/screens/slideshow05.png", currentBackground);
-        } else if (slideshowImage == 6) {
-          preloadImage("/idolnat/screens/slideshow06.png", currentBackground);
-        } else if (slideshowImage == 7) {
-          preloadImage("/idolnat/screens/slideshow07.png", currentBackground);
-        } else if (slideshowImage == 8) {
-          preloadImage("/idolnat/screens/slideshow08.png", currentBackground);
-        } else if (slideshowImage == 9) {
-          preloadImage("/idolnat/screens/slideshow09.png", currentBackground);
-        } else if (slideshowImage == 10) {
-          preloadImage("/idolnat/screens/slideshow10.png", currentBackground);
-        }
-        drawImage(currentBackground);
-        slideshowImage += 1;
-        if (slideshowImage > 10) {
-          slideshowImage = 0;
-        }
-        */
-        Serial.println(">> IDLE_HOME / IDLE_STATS -> slideshowImage: " + String(slideshowImage));
+        // Serial.println(">> IDLE_HOME / IDLE_STATS -> slideshowImage: " + String(slideshowImage));
         break;
       case IDLE_STATS:
         break;
@@ -3593,7 +3885,7 @@ void manageCard() {
       changeState(0, MOTTO_SCREEN, microWait);
       break;
     case MOTTO_SCREEN:
-      changeState(0, TITLE_SCREEN, microWait);
+      changeState(0, TITLE_SCREEN2, microWait);
       break;
     case TITLE_SCREEN:
       changeState(0, TITLE_SCREEN2, 10);
@@ -3827,6 +4119,9 @@ void manageGame() {
       break;
     case CARDS_SCREEN:
       browseCards();
+      break;
+    case PFC_GAME: case PFC_GAME2: case PFC_GAME3: case PFC_GAME4: case PFC_GAME5: case PFC_GAME6: case PFC_GAME7: case PFC_GAME8: case PFC_GAME9:
+      managePFCGame();
       break;
     default:
       playGame();
@@ -4477,29 +4772,29 @@ void manageMiniGameCountdown() {
         case TRAIN_SING:
           changeState(0, TRAIN_SING2, 0);
           break;
-      case TRAIN_SWIM:
-        changeState(0, TRAIN_SWIM2, 0);
-        break;
-      case TRAIN_GYM:
-        changeState(0, TRAIN_GYM2, 0);
-        break;
-      case TRAIN_RUN:
-        changeState(0, TRAIN_RUN2, 0);
-        break;
-      case COMP_LOCAL4:
-        changeState(0, COMP_LOCAL5, 0);
-        break;
-      case COMP_DEPT4:
-        changeState(0, COMP_DEPT5, 0);
-        break;
-      case COMP_REG4:
-        changeState(0, COMP_REG5, 0);
-        break;
-      case COMP_NAT4:
-        changeState(0, COMP_NAT5, 0);
-        break;
-      default:
-        break;
+        case TRAIN_SWIM:
+          changeState(0, TRAIN_SWIM2, 0);
+          break;
+        case TRAIN_GYM:
+          changeState(0, TRAIN_GYM2, 0);
+          break;
+        case TRAIN_RUN: 
+          changeState(0, TRAIN_RUN2, 0);
+          break;
+        case COMP_LOCAL4:
+          changeState(0, COMP_LOCAL5, 0);
+          break;
+        case COMP_DEPT4:
+          changeState(0, COMP_DEPT5, 0);
+          break;
+        case COMP_REG4:
+          changeState(0, COMP_REG5, 0);
+          break;
+        case COMP_NAT4:
+          changeState(0, COMP_NAT5, 0);
+          break;
+        default:
+          break;
       }
       return;
     }
@@ -4591,7 +4886,7 @@ void applyGaraponReward(int index) {
       garaponResultText = "Money +600¥";
       break;
     case 4:
-      // applyGaraponStatReward(natsumi.charm, "Charm", 200);
+      // applyGaraponStatReward(natsumi.grace, "Grace", 200);
       fridge.sweets += 10;
       garaponResultQty = "+10";
       garaponResultLabel = "Sweets";
@@ -5737,7 +6032,18 @@ void finalizeBathOutcome(String outcomeText) {
   drawText("Shower temperature is " + outcomeText, 120, 131, true, WHITE, 1);
   showToast("Shower is " + outcomeText);
 
+  /*
   if (outcomeText == "perfect!") {
+    if (natsumi.hygiene < 4) {
+      natsumi.hygiene = 4;
+    }
+    changeState(0, HEALTH_WASH2, 0);
+  } else {
+    changeState(0, HEALTH_WASH5, 0);
+  }
+  */
+
+  if (bathOutcomeCode == 0) {
     if (natsumi.hygiene < 4) {
       natsumi.hygiene = 4;
     }
@@ -6025,7 +6331,7 @@ void manageFlowersMarket() {
     flowerMarketInitialized = true;
   }
 
-  int handicapScore = natsumi.spirit + natsumi.charm + natsumi.culture;
+  int handicapScore = natsumi.spirit + natsumi.grace + natsumi.culture;
   int prices[3];
   if (handicapScore <= 3) {
     prices[0] = 200;
@@ -6395,6 +6701,7 @@ void manageCompetition() {
 
 void wash() {
   if (changeStateCounter==0) {
+    /*
     if (natsumi.hygiene < 4) {
       natsumi.hygiene = 4;
       showToast("Washed feels better");
@@ -6402,6 +6709,13 @@ void wash() {
       // isNatsumiHappy = true;
     } else {
       // showToast("Natsumi is clean");
+    }
+    */
+    if (bathOutcomeCode == 0) {
+      showToast("Washed feels better");
+      saveRequired = true;
+    } else {
+      showToast("Ah!! Skipping shower!");
     }
   }
   changeState(0, HOME_LOOP, microWait);
@@ -6618,7 +6932,7 @@ void drawDebug() {
       drawText(String("Performance: ") + natsumi.performance, 80, 90, false, WHITE, 1);
       drawText(String("Fitness: ") + natsumi.fitness, 80, 100, false, WHITE, 1);
       drawText(String("Culture: ") + natsumi.culture, 80, 110, false, WHITE, 1);
-      drawText(String("Charm: ") + natsumi.charm, 80, 120, false, WHITE, 1);
+      drawText(String("Grace: ") + natsumi.grace, 80, 120, false, WHITE, 1);
       l2NeedsRedraw = true;
       l3NeedsRedraw = true;
       l4NeedsRedraw = true;
@@ -8032,8 +8346,8 @@ void drawOverlay() {
         break;
       case FOOD_ORDER8:
         natsumi.hunger = 4;
-        if (natsumi.charm < 4) {
-          natsumi.charm += 1;
+        if (natsumi.grace < 4) {
+          natsumi.grace += 1;
         }
         saveRequired = true;
         // isNatsumiHappy = true;
@@ -8130,7 +8444,7 @@ void drawOverlay() {
           priestHint += "You need to read more. ";
           priestState = TRAIN_MENU;
         }
-        if (natsumi.charm == 4) {
+        if (natsumi.grace == 4) {
           priestHint += "You have good manners. ";
         } else {
           priestHint += "You need to go out more. ";
@@ -8188,7 +8502,7 @@ void drawOverlay() {
         drawDialogBubble("I sold all my flowers and made " + String(flowersRevenue) + "$. I have " + String(natsumi.money) + "$ in the bank.");
         break;
       case COMP_EXPLAIN:
-        drawDialogBubble("In order to enter Competition, you must achieve 3 perfect training ssessions, plus have Hunger, Hygiene, Energy, Performance, Fitness, Culture and Charm to 4.");
+        drawDialogBubble("In order to enter Competition, you must achieve 3 perfect training ssessions, plus have Hunger, Hygiene, Energy, Performance, Fitness, Culture and Grace to 4.");
         break;
       case COMP_LOCAL3:
         drawDialogBubble("Welcome to the Shiodome Ward Community Center! Get ready for a nice singing competition! Sore dewa, hajimemasho !");
@@ -8284,11 +8598,11 @@ void drawOverlay() {
       case ACTION_OUTCOME:
         switch(previousState) {
           case FOOD_ORDER8:
-            if (natsumi.charm < 4) {
-              Serial.println(">> actionOutcome() - natsumi.charm < 4");
-              drawOutcome("+1", "Charm");
+            if (natsumi.grace < 4) {
+              Serial.println(">> actionOutcome() - natsumi.grace < 4");
+              drawOutcome("+1", "Grace");
             } else {
-              drawOutcome("MAX", "Charm");
+              drawOutcome("MAX", "Grace");
             }
             break;
           case TRAIN_SING3: case TRAIN_DANCE3:
@@ -8337,6 +8651,10 @@ void drawOverlay() {
                 natsumi.hunger = 4;
                 drawOutcome("4", "Hunger");
                 break;
+              case 5:
+                natsumi.spirit = 4;
+                drawOutcome("MAX", "Spirit");
+                break;
               default:
                 break;
             }
@@ -8360,8 +8678,8 @@ void drawOverlay() {
           case 1:
             drawDialogBubble("Hello sweetie!!");
             break;
-          case 2:
-            drawDialogBubble("Hello Natsumi!!");
+          case 2: case 5:
+            drawDialogBubble("How are you doing?");
             break;
           case 3: case 4:
             drawDialogBubble("Hello sister!!");
@@ -8381,6 +8699,9 @@ void drawOverlay() {
           case 2: case 3: case 4:
             drawDialogBubble("Congratulations for the competition! I brought you shortcake to celebrate!");
             break;
+          case 5:
+            drawDialogBubble("Let\'s play Jan-ken-pon together!");
+            break;
           default:
             break;
         }
@@ -8388,10 +8709,60 @@ void drawOverlay() {
       case DOOR_KNOCK8:
         drawDialogBubble("Arigato! Thank you very much!");
         break;
+      case DOOR_KNOCK9:
+        if (visitor == 5) {
+          drawDialogBubble("That was fun!");
+        }
+        break;
       case DOOR_KNOCK10:
         drawDialogBubble("Mata ne! See you later!");
         break;
-      default:
+      case PFC_GAME: case PFC_GAME2: case PFC_GAME4: case PFC_GAME6:
+        // Bg
+        M5Cardputer.Display.drawPng(currentBackground.data, currentBackground.length, 0, 0);
+
+        // Helper text
+        drawHelper(pfcHelperText);
+        break;
+      case PFC_GAME3: case PFC_GAME5: case PFC_GAME7:
+        // Bg
+        M5Cardputer.Display.drawPng(currentBackground.data, currentBackground.length, 0, 0);
+
+        // Characters
+        M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, 0, 0);
+        M5Cardputer.Display.drawPng(enemySprite.data, enemySprite.length, 160, 0);
+
+        // Helper text
+        drawHelper(pfcHelperText);
+        break;
+      case PFC_GAME8:
+        // Bg
+        M5Cardputer.Display.drawPng(currentBackground.data, currentBackground.length, 0, 0);
+
+        // Picks (Rock, Paper, Scissors)
+        M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, 30, 35);
+        M5Cardputer.Display.drawPng(enemySprite.data, enemySprite.length, 150, 25);
+
+        // Helper text
+        drawHelper(pfcHelperText);
+        break;
+      case PFC_GAME9:
+        // Bg
+        M5Cardputer.Display.drawPng(currentBackground.data, currentBackground.length, 0, 0);
+
+        // Character (center current PNG horizontally)
+        int characterX = 100;
+        if (currentCharacter.data != nullptr && currentCharacter.length >= 24) {
+          const uint8_t* png = currentCharacter.data;
+          const int characterWidth = (int(png[16]) << 24) | (int(png[17]) << 16) | (int(png[18]) << 8) | int(png[19]);
+          if (characterWidth > 0) {
+            characterX = (M5Cardputer.Display.width() - characterWidth) / 2;
+          }
+        }
+        M5Cardputer.Display.drawPng(currentCharacter.data, currentCharacter.length, characterX, 0);
+
+        // Helper text
+        drawHelper(pfcHelperText);
         break;
     }
   }
@@ -8437,9 +8808,11 @@ void allocateTickets() {
   if (isLatestTrainingPerfect) {
     extraTickets += 1;
   }
-  if (natsumi.charm == 4) {
+  /*
+  if (natsumi.grace == 4) {
     extraTickets += 1;
   }
+  */
   switch(natsumi.popularity) {
     case 0:
       extraTickets += 0;
@@ -8461,6 +8834,12 @@ void allocateTickets() {
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
   drawText("Total: " + String (natsumi.tickets) + " tickets", 120, 131, true, WHITE, 1);
   return;
+}
+
+void drawHelper(String helperText) {
+  // Helper text at the bottom
+  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  drawText(helperText, 120, 131, true, WHITE, 1);
 }
 
 void getTickets() {
@@ -8517,7 +8896,7 @@ void drawStats() {
     {"Performance", natsumi.performance, 4, M5Cardputer.Display.color565(102, 163, 255)},
     {"Fitness", natsumi.fitness, 4, M5Cardputer.Display.color565(140, 255, 182)},
     {"Culture", natsumi.culture, 4, M5Cardputer.Display.color565(178, 130, 255)},
-    {"Charm", natsumi.charm, 4, M5Cardputer.Display.color565(255, 163, 210)},
+    {"Grace", natsumi.grace, 4, M5Cardputer.Display.color565(255, 163, 210)},
     {"Age", natsumi.age, 22, M5Cardputer.Display.color565(255, 149, 64)}
   };
 
@@ -9321,7 +9700,13 @@ void manageFriendsVisits() {
           changeState(0, DOOR_KNOCK6, 0);
           break;
         case DOOR_KNOCK6:
-          changeState(0, DOOR_KNOCK7, 0);
+          if (visitor == 5) {
+            pfcHelperText = "Press [ENTER] to proceed";
+            pfcCurrentStage = 0;
+            changeState(0, PFC_GAME, 0);
+          } else {
+            changeState(0, DOOR_KNOCK7, 0);
+          }
           break;
         case DOOR_KNOCK7:
           changeState(0, DOOR_KNOCK8, 0);
@@ -9453,7 +9838,7 @@ void slideStats() {
     {"Performance", "/idolnat/screens/slidestats_performance.png", &natsumi.performance},
     {"Fitness", "/idolnat/screens/slidestats_fitness.png", &natsumi.fitness},
     {"Culture", "/idolnat/screens/slidestats_culture.png", &natsumi.culture},
-    {"Charm", "/idolnat/screens/slidestats_charm.png", &natsumi.charm},
+    {"Grace", "/idolnat/screens/slidestats_grace.png", &natsumi.grace},
     {"Flowers", "/idolnat/screens/slidestats_flowers.png", &natsumi.flowers},
     {"Age", "/idolnat/screens/slidestats_age.png", &natsumi.age},
     {"Money", "/idolnat/screens/slidestats_money.png", &natsumi.money}
@@ -9790,8 +10175,8 @@ void restaurantFoodSelection() {
               if (natsumi.money >= 700) {
                 natsumi.money -= 700;
                 natsumi.hunger = 4;
-                if (natsumi.charm < 4) {
-                  natsumi.charm += 1;
+                if (natsumi.grace < 4) {
+                  natsumi.grace += 1;
                 }
                 saveRequired = true;
                 // isNatsumiHappy = true;
@@ -9822,8 +10207,8 @@ void restaurantFoodSelection() {
               if (natsumi.money >= 800) {
                 natsumi.money -= 800;
                 natsumi.hunger = 4;
-                if (natsumi.charm < 4) {
-                  natsumi.charm += 1;
+                if (natsumi.grace < 4) {
+                  natsumi.grace += 1;
                 }
                 saveRequired = true;
                 // isNatsumiHappy = true;
@@ -9854,8 +10239,8 @@ void restaurantFoodSelection() {
               if (natsumi.money >= 900) {
                 natsumi.money -= 900;
                 natsumi.hunger = 4;
-                if (natsumi.charm < 4) {
-                  natsumi.charm += 1;
+                if (natsumi.grace < 4) {
+                  natsumi.grace += 1;
                 }
                 saveRequired = true;
                 // isNatsumiHappy = true;
@@ -10062,6 +10447,233 @@ void matsuriMainMenu() {
     }
   }
   return;
+}
+
+void managePFCGame() {
+  Serial.println("> Entering managePFCGame()");
+  // Natsumi (player) vs Emily (CPU) in a 3-round rock-paper-scissors game.
+  static int roundIndex = 0;
+  static int natsumiWins = 0;
+  static int emilyWins = 0;
+  static int drawCount = 0;
+  static bool gameFinished = false;
+  const char* handNames[3] = {"Rock", "Paper", "Scissors"};
+
+  if (gameFinished) {
+    Serial.println(">> managePFCGame() - gameFinished");
+    roundIndex = 0;
+    natsumiWins = 0;
+    emilyWins = 0;
+    drawCount = 0;
+    gameFinished = false;
+    // changeState(0, DOOR_KNOCK7, 0);
+    return;
+  }
+
+  Serial.println(">> managePFCGame() - pfcCurrentStage: " + String(pfcCurrentStage));
+
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      Serial.println(">> managePFCGame() - key pressed: " + String(key));
+
+      switch (currentState) {
+        case PFC_GAME: case PFC_GAME2: case PFC_GAME4: case PFC_GAME6: case PFC_GAME8: case PFC_GAME9:
+          // TITLE, ROUND 1, ROUND 2, ROUND 3
+          switch(key) {
+            case 13: case 40: case ' ':
+              pfcCurrentStage += 1;
+              l5NeedsRedraw = true;
+              break;
+          }
+          switch(pfcCurrentStage) {
+            case 0:
+              // TITLE -> R1
+              pfcHelperText = "Press [ENTER] to proceed";
+              changeState(0, PFC_GAME2, 0);
+              break;
+            case 1:
+              // R1 -> RPS
+              pfcHelperText = "R = ROCK | P = PAPER | S = SCISSORS";
+              changeState(0, PFC_GAME3, 0);
+              break;
+            case 2:
+              // pfcHelperText = "";
+              changeState(0, PFC_GAME8, 0);
+              break;
+            case 3:
+              // pfcHelperText = "";
+              changeState(0, PFC_GAME9, 0);
+              break;
+            case 4:
+              // RPS -> R2
+              pfcHelperText = "Press [ENTER] to proceed";
+              changeState(0, PFC_GAME4, 0);
+              break;
+            case 5:
+              // R2 -> RPS
+              pfcHelperText = "R = ROCK | P = PAPER | S = SCISSORS";
+              changeState(0, PFC_GAME5, 0);
+              break;
+            case 6:
+              // pfcHelperText = "";
+              changeState(0, PFC_GAME8, 0);
+              break;
+            case 7:
+              // pfcHelperText = "";
+              changeState(0, PFC_GAME9, 0);
+              break;
+            case 8:
+              // RPS -> R3
+              pfcHelperText = "Press [ENTER] to proceed";
+              changeState(0, PFC_GAME6, 0);
+              break;
+            case 9:
+              // R3 -> RPS
+              pfcHelperText = "R = ROCK | P = PAPER | S = SCISSORS";
+              changeState(0, PFC_GAME7, 0);
+              break;
+            case 10:
+              // pfcHelperText = "";
+              changeState(0, PFC_GAME8, 0);
+              break;
+            case 11:
+              // pfcHelperText = "";
+              changeState(0, PFC_GAME9, 0);
+              break;
+            case 12:
+              changeState(0, DOOR_KNOCK7, 0);
+              break;
+          }
+          break;
+        case PFC_GAME3: case PFC_GAME5: case PFC_GAME7:
+          // RPS 1, RPS 2, RPS 3
+          pfcCurrentStage += 1;
+          natsumiHand = -1;
+          // Rock: R / Paper: P / Scissors: S
+          switch (key) {
+            case 'r': case 'R':
+              natsumiHand = 0;
+              break;
+            case 'p': case 'P':
+              natsumiHand = 1;
+              break;
+            case 's': case 'S':
+              natsumiHand = 2;
+              break;
+            case 96:
+              changeState(0, HOME_LOOP, 0);
+              return;
+              break;
+            default:
+              break;
+          }
+          if (natsumiHand == -1) {
+            return;
+          } else {
+            l5NeedsRedraw = true;
+          }
+    
+          emilyHand = random(0, 3);
+          String resultText;
+          if (natsumiHand == emilyHand) {
+            drawCount += 1;
+            resultText = "Draw! ";
+          } else if ((natsumiHand == 0 && emilyHand == 2) ||
+                     (natsumiHand == 1 && emilyHand == 0) ||
+                     (natsumiHand == 2 && emilyHand == 1)) {
+            natsumiWins += 1;
+            resultText = "Natsumi wins! ";
+          } else {
+            emilyWins += 1;
+            resultText = "Emily wins! ";
+          }
+    
+          roundIndex += 1;
+          pfcHelperText = "R" + String(roundIndex) + ": N " + handNames[natsumiHand] + " / E " + handNames[emilyHand] + " - " + resultText;
+    
+          if (roundIndex >= 3) {
+            pfcHelperText = "Final " + String(natsumiWins) + "-" + String(emilyWins) + " (D:" + String(drawCount) + ")";
+            if (drawCount > 1) {
+              // Draw
+              pfcOutcome = 2;
+            } else if (natsumiWins > emilyWins) {
+              // Natsumi wins
+              pfcOutcome = 0;
+            } else if (emilyWins > natsumiWins) {
+              // Emily wins
+              pfcOutcome = 1;
+            } else {
+              // Draw
+              pfcOutcome = 2;
+            }
+            gameFinished = true;
+          }
+          switch(pfcCurrentStage) {
+            case 0:
+              // TITLE -> R1
+              pfcHelperText = "Press [ENTER] to proceed";
+              changeState(0, PFC_GAME2, 0);
+              break;
+            case 1:
+              // R1 -> RPS
+              pfcHelperText = "R = ROCK | P = PAPER | S = SCISSORS";
+              changeState(0, PFC_GAME3, 0);
+              break;
+            case 2:
+              // pfcHelperText = "";
+              changeState(0, PFC_GAME8, 0);
+              break;
+            case 3:
+              // pfcHelperText = "";
+              changeState(0, PFC_GAME9, 0);
+              break;
+            case 4:
+              // RPS -> R2
+              pfcHelperText = "Press [ENTER] to proceed";
+              changeState(0, PFC_GAME4, 0);
+              break;
+            case 5:
+              // R2 -> RPS
+              pfcHelperText = "R = ROCK | P = PAPER | S = SCISSORS";
+              changeState(0, PFC_GAME5, 0);
+              break;
+            case 6:
+              // pfcHelperText = "";
+              changeState(0, PFC_GAME8, 0);
+              break;
+            case 7:
+              // pfcHelperText = "";
+              changeState(0, PFC_GAME9, 0);
+              break;
+            case 8:
+              // RPS -> R3
+              pfcHelperText = "Press [ENTER] to proceed";
+              changeState(0, PFC_GAME6, 0);
+              break;
+            case 9:
+              // R3 -> RPS
+              pfcHelperText = "R = ROCK | P = PAPER | S = SCISSORS";
+              changeState(0, PFC_GAME7, 0);
+              break;
+            case 10:
+              // pfcHelperText = "";
+              changeState(0, PFC_GAME8, 0);
+              break;
+            case 11:
+              // pfcHelperText = "";
+              changeState(0, PFC_GAME9, 0);
+              break;
+            case 12:
+              changeState(0, DOOR_KNOCK7, 0);
+              break;
+          }
+          break;
+      }
+    }
+  }
 }
 
 void orderibiFoodSelection() {
