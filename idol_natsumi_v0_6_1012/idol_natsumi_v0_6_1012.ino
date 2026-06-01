@@ -295,12 +295,49 @@ struct ImageBuffer {
   size_t length = 0;
 };
 
+enum FoodId : uint8_t {
+  FOOD_ID_RED_APPLE,
+  FOOD_ID_GREEN_APPLE,
+  FOOD_ID_AVOCADO,
+  FOOD_ID_BREAD,
+  FOOD_ID_BANANA,
+  FOOD_ID_BROCCOLI,
+  FOOD_ID_SWEETS,
+  FOOD_ID_CARROT,
+  FOOD_ID_MEAT,
+  FOOD_ID_COCONUT,
+  FOOD_ID_COCONUT_JUICE,
+  FOOD_ID_COFFEE,
+  FOOD_ID_BISCUIT,
+  FOOD_ID_CORN,
+  FOOD_ID_CROISSANT,
+  FOOD_ID_FRIED_EGG,
+  FOOD_ID_GRAPE,
+  FOOD_ID_KIWI,
+  FOOD_ID_MILK,
+  FOOD_ID_ORANGE,
+  FOOD_ID_PEACH,
+  FOOD_ID_PEAR,
+  FOOD_ID_STRAWBERRIES,
+  FOOD_ID_MAKI,
+  FOOD_ID_SUSHI,
+  FOOD_ID_WATERMELON,
+  FOOD_ID_NONE
+};
+
 struct FoodDisplayItem {
+  FoodId id;
   const char* label;
   const char* iconPath;
   int* quantityPtr;
   int quantity;
   ImageBuffer icon;
+};
+
+struct CookRecipe {
+  const char* name;
+  uint8_t ingredientCount;
+  FoodId ingredients[4];
 };
 
 String selectedFood = "None";
@@ -309,6 +346,8 @@ std::vector<FoodDisplayItem> foodGridItems;
 int foodSelectionIndex = 0;
 bool foodGridInitialized = false;
 int inventoryPageIndex = 0;
+FoodId recipeSelection[4] = {FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE};
+uint8_t recipeSelectionCount = 0;
 
 struct ConbimartItem {
   const char* label;
@@ -7936,44 +7975,174 @@ bool preloadFoodIcon(FoodDisplayItem &item) {
   return preloadImage(altPath.c_str(), item.icon);
 }
 
+void clearFoodGrid();
+
+void resetRecipeSelection() {
+  for (uint8_t i = 0; i < 4; i++) {
+    recipeSelection[i] = FOOD_ID_NONE;
+  }
+  recipeSelectionCount = 0;
+}
+
+int findRecipeSelection(FoodId id) {
+  for (uint8_t i = 0; i < recipeSelectionCount; i++) {
+    if (recipeSelection[i] == id) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+bool isRecipeItemSelected(FoodId id) {
+  return findRecipeSelection(id) >= 0;
+}
+
+bool toggleRecipeIngredient(const FoodDisplayItem &item) {
+  int selectedIndex = findRecipeSelection(item.id);
+  if (selectedIndex >= 0) {
+    for (uint8_t i = selectedIndex; i + 1 < recipeSelectionCount; i++) {
+      recipeSelection[i] = recipeSelection[i + 1];
+    }
+    recipeSelection[recipeSelectionCount - 1] = FOOD_ID_NONE;
+    recipeSelectionCount--;
+    return true;
+  }
+
+  if (recipeSelectionCount >= 4 || *(item.quantityPtr) <= 0) {
+    return false;
+  }
+
+  recipeSelection[recipeSelectionCount] = item.id;
+  recipeSelectionCount++;
+  return true;
+}
+
+const CookRecipe* findMatchingRecipe() {
+  static const CookRecipe recipes[] = {
+    {"Avocado Toast", 2, {FOOD_ID_BREAD, FOOD_ID_AVOCADO, FOOD_ID_NONE, FOOD_ID_NONE}},
+    {"Egg Toast", 2, {FOOD_ID_BREAD, FOOD_ID_FRIED_EGG, FOOD_ID_NONE, FOOD_ID_NONE}},
+    {"Banana Milk", 2, {FOOD_ID_BANANA, FOOD_ID_MILK, FOOD_ID_NONE, FOOD_ID_NONE}},
+    {"Strawberry Milk", 2, {FOOD_ID_STRAWBERRIES, FOOD_ID_MILK, FOOD_ID_NONE, FOOD_ID_NONE}},
+    {"Avocado Egg Toast", 3, {FOOD_ID_BREAD, FOOD_ID_AVOCADO, FOOD_ID_FRIED_EGG, FOOD_ID_NONE}},
+    {"Meat Veggie Plate", 3, {FOOD_ID_MEAT, FOOD_ID_BROCCOLI, FOOD_ID_CARROT, FOOD_ID_NONE}},
+    {"Natsumi Bento", 4, {FOOD_ID_MAKI, FOOD_ID_FRIED_EGG, FOOD_ID_BROCCOLI, FOOD_ID_CARROT}},
+    {"Fruit Parfait", 4, {FOOD_ID_MILK, FOOD_ID_STRAWBERRIES, FOOD_ID_BANANA, FOOD_ID_BISCUIT}}
+  };
+
+  for (const auto &recipe : recipes) {
+    if (recipe.ingredientCount != recipeSelectionCount) {
+      continue;
+    }
+
+    bool matched = true;
+    for (uint8_t i = 0; i < recipeSelectionCount; i++) {
+      bool ingredientFound = false;
+      for (uint8_t j = 0; j < recipe.ingredientCount; j++) {
+        if (recipeSelection[i] == recipe.ingredients[j]) {
+          ingredientFound = true;
+          break;
+        }
+      }
+      if (!ingredientFound) {
+        matched = false;
+        break;
+      }
+    }
+
+    if (matched) {
+      return &recipe;
+    }
+  }
+
+  return nullptr;
+}
+
+FoodDisplayItem* findFoodGridItem(FoodId id) {
+  for (auto &item : foodGridItems) {
+    if (item.id == id) {
+      return &item;
+    }
+  }
+  return nullptr;
+}
+
+bool cookSelectedRecipe() {
+  if (recipeSelectionCount < 2 || recipeSelectionCount > 4) {
+    showToast("Pick 2-4 items");
+    return false;
+  }
+
+  const CookRecipe* recipe = findMatchingRecipe();
+  if (!recipe) {
+    // Safer prototype behavior: reject unknown mixes without consuming scarce fridge stock.
+    showToast("No recipe yet");
+    return false;
+  }
+
+  for (uint8_t i = 0; i < recipeSelectionCount; i++) {
+    FoodDisplayItem* item = findFoodGridItem(recipeSelection[i]);
+    if (!item || *(item->quantityPtr) <= 0) {
+      showToast("Missing ingredient");
+      return false;
+    }
+  }
+
+  for (uint8_t i = 0; i < recipeSelectionCount; i++) {
+    FoodDisplayItem* item = findFoodGridItem(recipeSelection[i]);
+    *(item->quantityPtr) -= 1;
+    item->quantity = *(item->quantityPtr);
+  }
+
+  natsumi.hunger = std::min(4, natsumi.hunger + 1);
+  saveRequired = true;
+  FoodDisplayItem* previewItem = findFoodGridItem(recipeSelection[0]);
+  selectedFood = previewItem ? String(previewItem->label) : "None";
+  showToast(String(recipe->name));
+  clearFoodGrid();
+  overlayActive = false;
+  changeState(0, FOOD_COOK2, 0);
+  return true;
+}
+
 void clearFoodGrid() {
   for (auto &item : foodGridItems) {
     unloadImage(item.icon);
   }
   foodGridItems.clear();
   foodGridInitialized = false;
+  resetRecipeSelection();
 }
 
 void prepareFoodGrid() {
   clearFoodGrid();
 
   std::vector<FoodDisplayItem> options = {
-    {"Red apple", "/idolnat/sprites/food_001.png", &fridge.redApple},
-    {"Green apple", "/idolnat/sprites/food_002.png", &fridge.greenApple},
-    {"Avocado", "/idolnat/sprites/food_003.png", &fridge.avocado},
-    {"Bread", "/idolnat/sprites/food_005.png", &fridge.bread},
-    {"Banana", "/idolnat/sprites/food_008.png", &fridge.banana},
-    {"Broccoli", "/idolnat/sprites/food_015.png", &fridge.broccoli},
-    {"Sweets", "/idolnat/sprites/food_021.png", &fridge.sweets},
-    {"Carrot", "/idolnat/sprites/food_028.png", &fridge.carrot},
-    {"Meat", "/idolnat/sprites/food_033.png", &fridge.meat},
-    {"Coconut", "/idolnat/sprites/food_038.png", &fridge.coconut},
-    {"Coconut juice", "/idolnat/sprites/food_039.png", &fridge.coconutJuice},
-    {"Coffee", "/idolnat/sprites/food_041.png", &fridge.coffee},
-    {"Biscuit", "/idolnat/sprites/food_044.png", &fridge.biscuits},
-    {"Corn", "/idolnat/sprites/food_045.png", &fridge.corn},
-    {"Croissant", "/idolnat/sprites/food_046.png", &fridge.croissant},
-    {"Fried egg", "/idolnat/sprites/food_053.png", &fridge.friedEgg},
-    {"Grape", "/idolnat/sprites/food_061.png", &fridge.grapes},
-    {"Kiwi", "/idolnat/sprites/food_081.png", &fridge.kiwi},
-    {"Milk", "/idolnat/sprites/food_092.png", &fridge.milk},
-    {"Orange", "/idolnat/sprites/food_109.png", &fridge.orange},
-    {"Peach", "/idolnat/sprites/food_111.png", &fridge.peach},
-    {"Pear", "/idolnat/sprites/food_113.png", &fridge.pear},
-    {"Strawberries", "/idolnat/sprites/food_149.png", &fridge.strawberries},
-    {"Maki", "/idolnat/sprites/food_150.png", &fridge.maki},
-    {"Sushi", "/idolnat/sprites/food_154.png", &fridge.sushi},
-    {"Watermelon", "/idolnat/sprites/food_168.png", &fridge.watermelon}
+    {FOOD_ID_RED_APPLE, "Red apple", "/idolnat/sprites/food_001.png", &fridge.redApple},
+    {FOOD_ID_GREEN_APPLE, "Green apple", "/idolnat/sprites/food_002.png", &fridge.greenApple},
+    {FOOD_ID_AVOCADO, "Avocado", "/idolnat/sprites/food_003.png", &fridge.avocado},
+    {FOOD_ID_BREAD, "Bread", "/idolnat/sprites/food_005.png", &fridge.bread},
+    {FOOD_ID_BANANA, "Banana", "/idolnat/sprites/food_008.png", &fridge.banana},
+    {FOOD_ID_BROCCOLI, "Broccoli", "/idolnat/sprites/food_015.png", &fridge.broccoli},
+    {FOOD_ID_SWEETS, "Sweets", "/idolnat/sprites/food_021.png", &fridge.sweets},
+    {FOOD_ID_CARROT, "Carrot", "/idolnat/sprites/food_028.png", &fridge.carrot},
+    {FOOD_ID_MEAT, "Meat", "/idolnat/sprites/food_033.png", &fridge.meat},
+    {FOOD_ID_COCONUT, "Coconut", "/idolnat/sprites/food_038.png", &fridge.coconut},
+    {FOOD_ID_COCONUT_JUICE, "Coconut juice", "/idolnat/sprites/food_039.png", &fridge.coconutJuice},
+    {FOOD_ID_COFFEE, "Coffee", "/idolnat/sprites/food_041.png", &fridge.coffee},
+    {FOOD_ID_BISCUIT, "Biscuit", "/idolnat/sprites/food_044.png", &fridge.biscuits},
+    {FOOD_ID_CORN, "Corn", "/idolnat/sprites/food_045.png", &fridge.corn},
+    {FOOD_ID_CROISSANT, "Croissant", "/idolnat/sprites/food_046.png", &fridge.croissant},
+    {FOOD_ID_FRIED_EGG, "Fried egg", "/idolnat/sprites/food_053.png", &fridge.friedEgg},
+    {FOOD_ID_GRAPE, "Grape", "/idolnat/sprites/food_061.png", &fridge.grapes},
+    {FOOD_ID_KIWI, "Kiwi", "/idolnat/sprites/food_081.png", &fridge.kiwi},
+    {FOOD_ID_MILK, "Milk", "/idolnat/sprites/food_092.png", &fridge.milk},
+    {FOOD_ID_ORANGE, "Orange", "/idolnat/sprites/food_109.png", &fridge.orange},
+    {FOOD_ID_PEACH, "Peach", "/idolnat/sprites/food_111.png", &fridge.peach},
+    {FOOD_ID_PEAR, "Pear", "/idolnat/sprites/food_113.png", &fridge.pear},
+    {FOOD_ID_STRAWBERRIES, "Strawberries", "/idolnat/sprites/food_149.png", &fridge.strawberries},
+    {FOOD_ID_MAKI, "Maki", "/idolnat/sprites/food_150.png", &fridge.maki},
+    {FOOD_ID_SUSHI, "Sushi", "/idolnat/sprites/food_154.png", &fridge.sushi},
+    {FOOD_ID_WATERMELON, "Watermelon", "/idolnat/sprites/food_168.png", &fridge.watermelon}
   };
 
   for (auto &option : options) {
@@ -8015,7 +8184,7 @@ void drawFoodGrid(const std::vector<FoodDisplayItem> &items, int selectedIndex) 
   M5Cardputer.Display.setTextDatum(middle_center);
   M5Cardputer.Display.setTextSize(1);
   M5Cardputer.Display.setTextColor(WHITE, panelColor);
-  M5Cardputer.Display.drawString("What\'s in the fridge?", panelX + panelW / 2, panelY + headerHeight / 2 + 1);
+  M5Cardputer.Display.drawString(String("Cook with Natsumi ") + String(recipeSelectionCount) + String("/4"), panelX + panelW / 2, panelY + headerHeight / 2 + 1);
 
   const int cols = 4;
   const int rows = 2;
@@ -8029,10 +8198,15 @@ void drawFoodGrid(const std::vector<FoodDisplayItem> &items, int selectedIndex) 
     int cellX = panelX + padding + col * (cellW + padding);
     int cellY = panelY + headerHeight + padding + row * (cellH + padding);
     bool selected = (static_cast<int>(i) == selectedIndex);
+    bool ingredientSelected = isRecipeItemSelected(items[i].id);
     uint16_t fill = selected ? highlightColor : cellColor;
+    uint16_t border = ingredientSelected ? YELLOW : accentColor;
 
     M5Cardputer.Display.fillRoundRect(cellX, cellY, cellW, cellH, 6, fill);
-    M5Cardputer.Display.drawRoundRect(cellX, cellY, cellW, cellH, 6, accentColor);
+    M5Cardputer.Display.drawRoundRect(cellX, cellY, cellW, cellH, 6, border);
+    if (ingredientSelected) {
+      M5Cardputer.Display.fillCircle(cellX + cellW - 7, cellY + 7, 4, YELLOW);
+    }
 
     int iconOffset = (cellW - 32) / 2;
     if (items[i].icon.data && items[i].icon.length > 0) {
@@ -8049,7 +8223,7 @@ void drawFoodGrid(const std::vector<FoodDisplayItem> &items, int selectedIndex) 
   }
 
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("Arrows: Move  ENTER: Eat  ESC: Close", 120, 131, true, WHITE, 1);
+  drawText("ENTER: Add/Remove  SPACE: Cook  ESC", 120, 131, true, WHITE, 1);
 }
 
 int getConbimartTotal() {
@@ -9285,25 +9459,26 @@ void cookFood() {
             changeState(0, HOME_LOOP, 0);
             return;
             break;
-          // ENTER
-          case 13: case 40: case ' ':
+          // ENTER toggles the highlighted fridge item in the current recipe.
+          case 13: case 40:
             if (!foodGridItems.empty()) {
               FoodDisplayItem &choice = foodGridItems[foodSelectionIndex];
-              if (*(choice.quantityPtr) > 0) {
-                *(choice.quantityPtr) -= 1;
-                choice.quantity = *(choice.quantityPtr);
-                if (natsumi.hunger < 4) {
-                  natsumi.hunger += 1;
-                  saveRequired = true;
-                  // isNatsumiHappy = true;
-                }
-                showToast("Having " + String(choice.label));
-                clearFoodGrid();
-                overlayActive = false;
-                selectedFood = String(choice.label);
-                changeState(0, FOOD_COOK2, 0);
+              if (toggleRecipeIngredient(choice)) {
+                l5NeedsRedraw = true;
+              } else if (*(choice.quantityPtr) <= 0) {
+                showToast("No stock");
+              } else {
+                showToast("Max 4 items");
               }
             }
+            return;
+            break;
+          // SPACE cooks the current 2-4 ingredient selection.
+          case ' ':
+            if (cookSelectedRecipe()) {
+              return;
+            }
+            l5NeedsRedraw = true;
             return;
             break;
         }
