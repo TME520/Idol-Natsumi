@@ -8095,6 +8095,50 @@ bool isCookableRecipeIngredient(FoodId id) {
   return false;
 }
 
+bool recipeContainsIngredient(const CookRecipe &recipe, FoodId id) {
+  for (uint8_t i = 0; i < recipe.ingredientCount; i++) {
+    if (recipe.ingredients[i] == id) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool recipeContainsCurrentSelection(const CookRecipe &recipe) {
+  for (uint8_t i = 0; i < recipeSelectionCount; i++) {
+    if (!recipeContainsIngredient(recipe, recipeSelection[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool isPotentialRecipeIngredient(FoodId id) {
+  if (isRecipeItemSelected(id)) {
+    return false;
+  }
+
+  int* quantityPtr = getFridgeQuantityPtr(id);
+  if (!quantityPtr || *quantityPtr <= 0 || recipeSelectionCount >= 4) {
+    return false;
+  }
+
+  if (!hasCookableRecipe()) {
+    return true;
+  }
+
+  for (uint8_t i = 0; i < cookRecipeCount; i++) {
+    const CookRecipe &recipe = cookRecipes[i];
+    if (!canMakeRecipeFromFridge(recipe) || recipe.ingredientCount <= recipeSelectionCount) {
+      continue;
+    }
+    if (recipeContainsCurrentSelection(recipe) && recipeContainsIngredient(recipe, id)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 const CookRecipe* findMatchingRecipe() {
   for (uint8_t recipeIndex = 0; recipeIndex < cookRecipeCount; recipeIndex++) {
     const CookRecipe &recipe = cookRecipes[recipeIndex];
@@ -8253,6 +8297,7 @@ void drawFoodGrid(const std::vector<FoodDisplayItem> &items, int selectedIndex) 
   const uint16_t shadowColor = M5Cardputer.Display.color565(10, 14, 32);
   const uint16_t panelColor = M5Cardputer.Display.color565(16, 24, 44);
   const uint16_t accentColor = M5Cardputer.Display.color565(120, 200, 255);
+  const uint16_t combineColor = M5Cardputer.Display.color565(80, 235, 150);
   const uint16_t cellColor = M5Cardputer.Display.color565(28, 40, 64);
   const uint16_t highlightColor = M5Cardputer.Display.color565(60, 90, 140);
 
@@ -8278,13 +8323,16 @@ void drawFoodGrid(const std::vector<FoodDisplayItem> &items, int selectedIndex) 
     int cellY = panelY + headerHeight + padding + row * (cellH + padding);
     bool selected = (static_cast<int>(i) == selectedIndex);
     bool ingredientSelected = isRecipeItemSelected(items[i].id);
+    bool combineCandidate = isPotentialRecipeIngredient(items[i].id);
     uint16_t fill = selected ? highlightColor : cellColor;
-    uint16_t border = ingredientSelected ? YELLOW : accentColor;
+    uint16_t border = ingredientSelected ? YELLOW : (combineCandidate ? combineColor : accentColor);
 
     M5Cardputer.Display.fillRoundRect(cellX, cellY, cellW, cellH, 6, fill);
     M5Cardputer.Display.drawRoundRect(cellX, cellY, cellW, cellH, 6, border);
     if (ingredientSelected) {
       M5Cardputer.Display.fillCircle(cellX + cellW - 7, cellY + 7, 4, YELLOW);
+    } else if (combineCandidate) {
+      M5Cardputer.Display.fillCircle(cellX + cellW - 7, cellY + 7, 3, combineColor);
     }
 
     int iconOffset = (cellW - 32) / 2;
@@ -8302,7 +8350,7 @@ void drawFoodGrid(const std::vector<FoodDisplayItem> &items, int selectedIndex) 
   }
 
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("ENTER: Add/Remove  SPACE: Cook  ESC", 120, 131, true, WHITE, 1);
+  drawText("Green: Combines  ENTER +/-  SPACE Cook", 120, 131, true, WHITE, 1);
 }
 
 int getConbimartTotal() {
