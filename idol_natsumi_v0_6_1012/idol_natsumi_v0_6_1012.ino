@@ -694,7 +694,7 @@ int natsumiHand = 0;
 int pfcOutcome = 0;
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "Update 15";
+String versionNumber = "Update 16";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
