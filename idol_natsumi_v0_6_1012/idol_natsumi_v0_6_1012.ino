@@ -340,6 +340,18 @@ struct CookRecipe {
   FoodId ingredients[4];
 };
 
+const CookRecipe cookRecipes[] = {
+  {"Avocado Toast", 2, {FOOD_ID_BREAD, FOOD_ID_AVOCADO, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Egg Toast", 2, {FOOD_ID_BREAD, FOOD_ID_FRIED_EGG, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Banana Milk", 2, {FOOD_ID_BANANA, FOOD_ID_MILK, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Strawberry Milk", 2, {FOOD_ID_STRAWBERRIES, FOOD_ID_MILK, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Avocado Egg Toast", 3, {FOOD_ID_BREAD, FOOD_ID_AVOCADO, FOOD_ID_FRIED_EGG, FOOD_ID_NONE}},
+  {"Meat Veggie Plate", 3, {FOOD_ID_MEAT, FOOD_ID_BROCCOLI, FOOD_ID_CARROT, FOOD_ID_NONE}},
+  {"Natsumi Bento", 4, {FOOD_ID_MAKI, FOOD_ID_FRIED_EGG, FOOD_ID_BROCCOLI, FOOD_ID_CARROT}},
+  {"Fruit Parfait", 4, {FOOD_ID_MILK, FOOD_ID_STRAWBERRIES, FOOD_ID_BANANA, FOOD_ID_BISCUIT}}
+};
+const uint8_t cookRecipeCount = sizeof(cookRecipes) / sizeof(cookRecipes[0]);
+
 String selectedFood = "None";
 
 std::vector<FoodDisplayItem> foodGridItems;
@@ -8017,19 +8029,75 @@ bool toggleRecipeIngredient(const FoodDisplayItem &item) {
   return true;
 }
 
-const CookRecipe* findMatchingRecipe() {
-  static const CookRecipe recipes[] = {
-    {"Avocado Toast", 2, {FOOD_ID_BREAD, FOOD_ID_AVOCADO, FOOD_ID_NONE, FOOD_ID_NONE}},
-    {"Egg Toast", 2, {FOOD_ID_BREAD, FOOD_ID_FRIED_EGG, FOOD_ID_NONE, FOOD_ID_NONE}},
-    {"Banana Milk", 2, {FOOD_ID_BANANA, FOOD_ID_MILK, FOOD_ID_NONE, FOOD_ID_NONE}},
-    {"Strawberry Milk", 2, {FOOD_ID_STRAWBERRIES, FOOD_ID_MILK, FOOD_ID_NONE, FOOD_ID_NONE}},
-    {"Avocado Egg Toast", 3, {FOOD_ID_BREAD, FOOD_ID_AVOCADO, FOOD_ID_FRIED_EGG, FOOD_ID_NONE}},
-    {"Meat Veggie Plate", 3, {FOOD_ID_MEAT, FOOD_ID_BROCCOLI, FOOD_ID_CARROT, FOOD_ID_NONE}},
-    {"Natsumi Bento", 4, {FOOD_ID_MAKI, FOOD_ID_FRIED_EGG, FOOD_ID_BROCCOLI, FOOD_ID_CARROT}},
-    {"Fruit Parfait", 4, {FOOD_ID_MILK, FOOD_ID_STRAWBERRIES, FOOD_ID_BANANA, FOOD_ID_BISCUIT}}
-  };
+int* getFridgeQuantityPtr(FoodId id) {
+  switch (id) {
+    case FOOD_ID_RED_APPLE: return &fridge.redApple;
+    case FOOD_ID_GREEN_APPLE: return &fridge.greenApple;
+    case FOOD_ID_AVOCADO: return &fridge.avocado;
+    case FOOD_ID_BREAD: return &fridge.bread;
+    case FOOD_ID_BANANA: return &fridge.banana;
+    case FOOD_ID_BROCCOLI: return &fridge.broccoli;
+    case FOOD_ID_SWEETS: return &fridge.sweets;
+    case FOOD_ID_CARROT: return &fridge.carrot;
+    case FOOD_ID_MEAT: return &fridge.meat;
+    case FOOD_ID_COCONUT: return &fridge.coconut;
+    case FOOD_ID_COCONUT_JUICE: return &fridge.coconutJuice;
+    case FOOD_ID_COFFEE: return &fridge.coffee;
+    case FOOD_ID_BISCUIT: return &fridge.biscuits;
+    case FOOD_ID_CORN: return &fridge.corn;
+    case FOOD_ID_CROISSANT: return &fridge.croissant;
+    case FOOD_ID_FRIED_EGG: return &fridge.friedEgg;
+    case FOOD_ID_GRAPE: return &fridge.grapes;
+    case FOOD_ID_KIWI: return &fridge.kiwi;
+    case FOOD_ID_MILK: return &fridge.milk;
+    case FOOD_ID_ORANGE: return &fridge.orange;
+    case FOOD_ID_PEACH: return &fridge.peach;
+    case FOOD_ID_PEAR: return &fridge.pear;
+    case FOOD_ID_STRAWBERRIES: return &fridge.strawberries;
+    case FOOD_ID_MAKI: return &fridge.maki;
+    case FOOD_ID_SUSHI: return &fridge.sushi;
+    case FOOD_ID_WATERMELON: return &fridge.watermelon;
+    case FOOD_ID_NONE: return nullptr;
+  }
+  return nullptr;
+}
 
-  for (const auto &recipe : recipes) {
+bool canMakeRecipeFromFridge(const CookRecipe &recipe) {
+  for (uint8_t i = 0; i < recipe.ingredientCount; i++) {
+    int* quantityPtr = getFridgeQuantityPtr(recipe.ingredients[i]);
+    if (!quantityPtr || *quantityPtr <= 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool hasCookableRecipe() {
+  for (uint8_t i = 0; i < cookRecipeCount; i++) {
+    if (canMakeRecipeFromFridge(cookRecipes[i])) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool isCookableRecipeIngredient(FoodId id) {
+  for (uint8_t i = 0; i < cookRecipeCount; i++) {
+    if (!canMakeRecipeFromFridge(cookRecipes[i])) {
+      continue;
+    }
+    for (uint8_t j = 0; j < cookRecipes[i].ingredientCount; j++) {
+      if (cookRecipes[i].ingredients[j] == id) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+const CookRecipe* findMatchingRecipe() {
+  for (uint8_t recipeIndex = 0; recipeIndex < cookRecipeCount; recipeIndex++) {
+    const CookRecipe &recipe = cookRecipes[recipeIndex];
     if (recipe.ingredientCount != recipeSelectionCount) {
       continue;
     }
@@ -8050,7 +8118,7 @@ const CookRecipe* findMatchingRecipe() {
     }
 
     if (matched) {
-      return &recipe;
+      return &cookRecipes[recipeIndex];
     }
   }
 
@@ -8073,10 +8141,16 @@ bool cookSelectedRecipe() {
   }
 
   const CookRecipe* recipe = findMatchingRecipe();
+  bool pantryFallback = false;
   if (!recipe) {
-    // Safer prototype behavior: reject unknown mixes without consuming scarce fridge stock.
-    showToast("No recipe yet");
-    return false;
+    if (hasCookableRecipe()) {
+      // Safer prototype behavior: reject unknown mixes while a known recipe is available.
+      showToast("No recipe yet");
+      return false;
+    }
+    // If the fridge cannot make any known recipe, allow a generic snack so the
+    // player is not blocked from feeding Natsumi by the prototype recipe list.
+    pantryFallback = true;
   }
 
   for (uint8_t i = 0; i < recipeSelectionCount; i++) {
@@ -8097,7 +8171,7 @@ bool cookSelectedRecipe() {
   saveRequired = true;
   FoodDisplayItem* previewItem = findFoodGridItem(recipeSelection[0]);
   selectedFood = previewItem ? String(previewItem->label) : "None";
-  showToast(String(recipe->name));
+  showToast(pantryFallback ? String("Pantry Snack") : String(recipe->name));
   clearFoodGrid();
   overlayActive = false;
   changeState(0, FOOD_COOK2, 0);
@@ -8150,6 +8224,11 @@ void prepareFoodGrid() {
   }
 
   std::sort(options.begin(), options.end(), [](const FoodDisplayItem &a, const FoodDisplayItem &b) {
+    bool aCookable = isCookableRecipeIngredient(a.id);
+    bool bCookable = isCookableRecipeIngredient(b.id);
+    if (aCookable != bCookable) {
+      return aCookable;
+    }
     return a.quantity > b.quantity;
   });
 
