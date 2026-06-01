@@ -349,6 +349,8 @@ int inventoryPageIndex = 0;
 FoodId recipeSelection[4] = {FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE};
 uint8_t recipeSelectionCount = 0;
 
+void clearFoodGrid();
+
 struct ConbimartItem {
   const char* label;
   int price;
@@ -7974,8 +7976,6 @@ bool preloadFoodIcon(FoodDisplayItem &item) {
   String altPath = String("/idolnat/sprites/food/") + String(strrchr(item.iconPath, '/') ? strrchr(item.iconPath, '/') + 1 : item.iconPath);
   return preloadImage(altPath.c_str(), item.icon);
 }
-
-void clearFoodGrid();
 
 void resetRecipeSelection() {
   for (uint8_t i = 0; i < 4; i++) {
