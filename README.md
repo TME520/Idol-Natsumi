@@ -36,7 +36,7 @@ Manage the daily life and artistic career of Natsumi Hasegawa, an aspiring Japan
   - [STATS](#stats)
   - [INVENTORY](#inventory-1)
   - [FOOD](#food)
-    - [FRIDGE](#fridge)
+    - [COOKING](#cooking)
     - [RESTAURANT](#restaurant)
     - [ORDER](#order)
     - [CONBINI](#conbini)
@@ -326,9 +326,32 @@ Opens the [Inventory](#inventory)
 
 Gives access to the food menu.
 
-#### FRIDGE
+#### COOKING
 
-Open the fridge and pick one food item to eat.
+Cook at home with ingredients stocked in the fridge. Use this option when Natsumi is hungry and you want to prepare a meal from the food bought at ConbiMart or won during events.
+
+How to cook:
+
+* Open **FOOD → COOKING**.
+* Move the cursor with the arrow keys, or with **W/A/S/D**.
+* Press **ENTER** to add or remove the highlighted fridge item from the current recipe.
+* Pick **2 to 4 ingredients**. Selected ingredients are marked on the cooking grid.
+* Green-highlighted ingredients can combine with the current selection.
+* Press **SPACE** to cook the selected recipe. Cooking consumes one of each selected ingredient and raises Hunger by 1, up to the maximum of 4.
+* If the selected ingredients do not match a known recipe while a known recipe is available, the game rejects the mix. If no known recipe can be made from the fridge stock, a generic **Pantry Snack** can still be cooked so Natsumi is not blocked from eating.
+
+Available recipes:
+
+| RECIPE | INGREDIENTS |
+|--------|-------------|
+| Avocado Toast | Bread, Avocado |
+| Egg Toast | Bread, Fried egg |
+| Banana Milk | Banana, Milk |
+| Strawberry Milk | Strawberries, Milk |
+| Avocado Egg Toast | Bread, Avocado, Fried egg |
+| Meat Veggie Plate | Meat, Broccoli, Carrot |
+| Natsumi Bento | Maki, Fried egg, Broccoli, Carrot |
+| Fruit Parfait | Milk, Strawberries, Banana, Biscuit |
 
 Shortcut: 2, 0
 
