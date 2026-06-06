@@ -175,7 +175,8 @@ enum GameState {
   PFC_GAME6,
   PFC_GAME7,
   PFC_GAME8,
-  PFC_GAME9
+  PFC_GAME9,
+  QUEST_SCREEN
 };
 
 GameState currentState = VERSION_SCREEN;
@@ -926,6 +927,7 @@ const char* gameStateToString(GameState state) {
     case PFC_GAME7:        return "PFC_GAME7";
     case PFC_GAME8:        return "PFC_GAME8";
     case PFC_GAME9:        return "PFC_GAME9";
+    case QUEST_SCREEN:     return "QUEST_SCREEN";
     default:               return "UNKNOWN";
   }
 }
@@ -1977,6 +1979,9 @@ void preloadImages() {
       }
       break;
     case PFC_GAME9:
+      preloadImage("/idolnat/screens/outcome_bg.png", currentBackground);
+      break;
+    case QUEST_SCREEN:
       preloadImage("/idolnat/screens/outcome_bg.png", currentBackground);
       break;
   }
@@ -3225,6 +3230,13 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         inventoryPageIndex = 0;
         menuOpened = false;
         break;
+      case QUEST_SCREEN:
+        setScreenConfig(GAME);
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        toastEnabled = false;
+        menuOpened = false;
+        break;
       case FLOWERS_MARKET:
         setScreenConfig(IDLE);
         characterEnabled = false;
@@ -4176,6 +4188,9 @@ void manageGame() {
     case PFC_GAME: case PFC_GAME2: case PFC_GAME3: case PFC_GAME4: case PFC_GAME5: case PFC_GAME6: case PFC_GAME7: case PFC_GAME8: case PFC_GAME9:
       managePFCGame();
       break;
+    case QUEST_SCREEN:
+      manageQuests();
+      break;
     default:
       playGame();
       break;
@@ -4730,7 +4745,7 @@ void manageGarden() {
               }
               break;
             // ENTER
-            case 13: case 40: case ' ': {
+            case 13: case 40: {
               Serial.println(">>> ENTER");
               menuOpened = true;
               int tileValue = gardenTiles[gardenCursorRow][gardenCursorCol];
@@ -6430,7 +6445,7 @@ void manageFlowersMarket() {
           changeState(0, HOME_LOOP, 0);
           return;
         // ENTER
-        case 13: case 40: case ' ':
+        case 13: case 40:
           flowersPrice = prices[flowerMarketSelection];
           flowersSaleHandicap = flowerMarketSelection;
           Serial.println("> manageFlowersMarket - flowersPrice=" + String(flowersPrice));
@@ -7028,7 +7043,7 @@ void drawToast() {
 void drawMenu(String menuType, const char* items[], int itemCount, int &selection) {
   // Draw menus on the screen (layer 4)
   // Serial.println("> Entering drawMenu() L4 with menuEnabled set to " + String(menuEnabled));
-  // Serial.println(">> menuType set to " + String(menuType));
+  // Serial.println(">> drawMenu() - menuType set to " + String(menuType));
   if (menuEnabled) {
     uint8_t key = 0;
     if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -7036,6 +7051,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       if (keyList.size() > 0) {
         key = M5Cardputer.Keyboard.getKey(keyList[0]);
       }
+      Serial.println(">> drawMenu() - KEY: " + String(key));
     }
   
     if (menuType == "home") {
@@ -7135,7 +7151,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           selection = (selection + 1) % homeMenuItemCount;
           l4NeedsRedraw = true;
           break;
-        case 13: case 40: case ' ':
+        case 13: case 40:
           // VALIDATE
           if (selection == 0) {
             changeState(0, STATS_SCREEN, 0);
@@ -7262,7 +7278,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           selection = (selection + 1) % foodMenuItemCount;
           l4NeedsRedraw = true;
           break;
-        case 13: case 40: case ' ':
+        case 13: case 40:
           // VALIDATE
           if (selection == 0) {
             changeState(0, FOOD_COOK, 0);
@@ -7375,7 +7391,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           selection = (selection + 1) % trainingMenuItemCount;
           l4NeedsRedraw = true;
           break;
-        case 13: case 40: case ' ':
+        case 13: case 40:
           // VALIDATE
           if (selection == 0) {
             changeState(0, TRAIN_SING, 0);
@@ -7510,7 +7526,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           selection = (selection + 1) % competitionMenuItemCount;
           l4NeedsRedraw = true;
           break;
-        case 13: case 40: case ' ':
+        case 13: case 40:
           // VALIDATE
           if (selection == 0) {
             if (isCompetitionEnabled()) {
@@ -7634,7 +7650,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           selection = (selection + 1) % healthMenuItemCount;
           l4NeedsRedraw = true;
           break;
-        case 13: case 40: case ' ':
+        case 13: case 40:
           // VALIDATE
           if (selection == 0) {
             changeState(0, HEALTH_WASH, 0);
@@ -7700,7 +7716,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           selection = (selection + 1) % restMenuItemCount;
           l4NeedsRedraw = true;
           break;
-        case 13: case 40: case ' ':
+        case 13: case 40:
           // VALIDATE
           if (selection == 0) {
             changeState(0, REST_MEDITATE, 0);
@@ -7737,7 +7753,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           selection = (selection + 1) % mainMenuItemCount;
           l4NeedsRedraw = true;
           break;
-        case 13: case 40: case ' ':
+        case 13: case 40:
           // VALIDATE
           if (selection == 0) {
             menuOpened = false;
@@ -7820,7 +7836,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           selection = (selection + 1) % gardenMenuItemCount;
           l4NeedsRedraw = true;
           break;
-        case 13: case 40: case ' ':
+        case 13: case 40:
           // VALIDATE
           if (selection == 0) {
             changeState(0, GARDEN_PLANT, 0);
@@ -7903,7 +7919,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           selection = (selection + 1) % eventsMenuItemCount;
           l4NeedsRedraw = true;
           break;
-        case 13: case 40: case ' ':
+        case 13: case 40:
           // VALIDATE
           if (selection == 0) {
             changeState(0, MATSURI_TITLE, 0);
@@ -9687,7 +9703,7 @@ void matsuriSale() {
           Serial.println(">> matsuriSale() - RIGHT - selection: 1");
           break;
         // ENTER
-        case 13: case 40: case ' ':
+        case 13: case 40:
           Serial.println(">> matsuriSale() - ENTER");
           switch(previousState) {
             case MATSURI_SAVORY: case MATSURI_SAVORY2:
@@ -10383,7 +10399,7 @@ void gotoConbimart() {
           }
           break;
         // CONFIRM PURCHASE
-        case 13: case 40: case ' ':
+        case 13: case 40:
           {
             int total = getConbimartTotal();
             if (total == 0) {
@@ -10471,7 +10487,7 @@ void restaurantFoodSelection() {
               changeState(0, FOOD_REST3, 0);
               break;
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40:
               restaurantSelection = 0;
               if (natsumi.money >= 700) {
                 natsumi.money -= 700;
@@ -10503,7 +10519,7 @@ void restaurantFoodSelection() {
               changeState(0, FOOD_REST4, 0);
               break;
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40:
               restaurantSelection = 1;
               if (natsumi.money >= 800) {
                 natsumi.money -= 800;
@@ -10535,7 +10551,7 @@ void restaurantFoodSelection() {
               changeState(0, FOOD_REST2, 0);
               break;
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40:
               restaurantSelection = 2;
               if (natsumi.money >= 900) {
                 natsumi.money -= 900;
@@ -10591,7 +10607,7 @@ void matsuriFoodSelection() {
               changeState(0, MATSURI_SAVORY2, 0);
               break;
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40:
               if (natsumi.tickets >= 1) {
                 natsumi.tickets -= 1;
                 natsumi.hunger = 4;
@@ -10620,7 +10636,7 @@ void matsuriFoodSelection() {
               changeState(0, MATSURI_SAVORY, 0);
               break;
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40:
               if (natsumi.tickets >= 1) {
                 natsumi.tickets -= 1;
                 natsumi.hunger = 4;
@@ -10640,7 +10656,7 @@ void matsuriFoodSelection() {
         case MATSURI_SUGARY:
           switch (key) {
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40:
               if (natsumi.tickets >= 1) {
                 natsumi.tickets -= 1;
                 natsumi.hunger = 4;
@@ -10687,7 +10703,7 @@ void matsuriMainMenu() {
               changeState(0, MATSURI_MENU2, 0);
               break;
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40:
               changeState(0, MATSURI_SAVORY, 0);
               break;
             // ESC
@@ -10707,7 +10723,7 @@ void matsuriMainMenu() {
               changeState(0, MATSURI_MENU3, 0);
               break;
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40:
               changeState(0, MATSURI_SUGARY, 0);
               break;
             // ESC
@@ -10727,7 +10743,7 @@ void matsuriMainMenu() {
               changeState(0, MATSURI_MENU, 0);
               break;
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40:
               if (natsumi.tickets >= 1) {
                 natsumi.tickets -= 1;
                 changeState(0, MATSURI_GARAPON, 0);
@@ -10784,7 +10800,7 @@ void managePFCGame() {
         case PFC_GAME: case PFC_GAME2: case PFC_GAME4: case PFC_GAME6: case PFC_GAME8: case PFC_GAME9:
           // TITLE, ROUND 1, ROUND 2, ROUND 3
           switch(key) {
-            case 13: case 40: case ' ':
+            case 13: case 40:
               pfcCurrentStage += 1;
               l5NeedsRedraw = true;
               break;
@@ -10996,7 +11012,7 @@ void orderibiFoodSelection() {
               changeState(0, FOOD_ORDER3, 0);
               break;
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40:
               orderibiSelection = 0;
               if (natsumi.money >= 600) {
                 natsumi.money -= 600;
@@ -11022,7 +11038,7 @@ void orderibiFoodSelection() {
               changeState(0, FOOD_ORDER4, 0);
               break;
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40:
               orderibiSelection = 1;
               if (natsumi.money >= 750) {
                 natsumi.money -= 750;
@@ -11048,7 +11064,7 @@ void orderibiFoodSelection() {
               changeState(0, FOOD_ORDER2, 0);
               break;
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40:
               orderibiSelection = 2;
               if (natsumi.money >= 1200) {
                 natsumi.money -= 1200;
@@ -11216,4 +11232,8 @@ void browseCards() {
   }
 
   return;
+}
+
+void manageQuests() {
+  // Update this
 }
