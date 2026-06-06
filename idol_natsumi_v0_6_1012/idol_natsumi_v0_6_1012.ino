@@ -455,7 +455,7 @@ unsigned long libraryStartTime = 0;
 String currentMenuType = "main";
 const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: INTRO"};
 const char* homeMenuItems[] = {"0: STATS", "1: INVENTORY", "2: FOOD", "3: TRAINING", "4: COMPETITION", "5: HEALTH", "6: REST", "7: GARDEN", "8: EVENTS", "9: CARDS"};
-const char* foodMenuItems[] = {"0: FRIDGE", "1: RESTAURANT", "2: ORDER", "3: CONBINI"};
+const char* foodMenuItems[] = {"0: COOKING", "1: RESTAURANT", "2: ORDER", "3: CONBINI"};
 const char* trainingMenuItems[] = {"0: SING", "1: DANCE", "2: SWIM", "3: GYM", "4: RUN", "5: LIBRARY", "6: MARKET"};
 const char* competitionMenuItems[] = {"0: LOCAL", "1: DEPARTMENTAL", "2: REGIONAL", "3: NATIONAL"};
 const char* healthMenuItems[] = {"0: WASH", "1: DOCTOR", "2: TEMPLE", "3: ONSEN"};
@@ -747,7 +747,7 @@ int natsumiHand = 0;
 int pfcOutcome = 0;
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "Update 16";
+String versionNumber = "Update 17";
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -3620,8 +3620,8 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
     }
   } else {
-    Serial.println("Delay transition");
     changeStateCounter += 1;
+    Serial.println("Delay transition (" + String(changeStateCounter) + "/" + String(delay) + ")");
   }
   return;
 }
@@ -10447,7 +10447,6 @@ void manageOnsen() {
 }
 
 void showFood() {
-  //
   changeState(0, HOME_LOOP, microWait);
   return;
 }
