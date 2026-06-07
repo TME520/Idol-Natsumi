@@ -6,6 +6,9 @@
 #include <cstring>
 #include <vector>
 
+#define SAVE_MAGIC 0x4E49 // "NI" for Natsumi Idol
+#define SAVE_VERSION 17
+
 // === Game state definitions ===
 enum GameState {
   VERSION_SCREEN,
@@ -748,7 +751,7 @@ int natsumiHand = 0;
 int pfcOutcome = 0;
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "Update 17";
+String versionNumber = "Update " + String(SAVE_VERSION);
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
