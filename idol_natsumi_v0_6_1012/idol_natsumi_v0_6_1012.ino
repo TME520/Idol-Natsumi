@@ -378,6 +378,197 @@ std::vector<ConbimartItem> conbimartItems;
 int conbimartSelectionIndex = 0;
 bool conbimartInitialized = false;
 
+
+extern bool saveRequired;
+
+// === Challenges system ===
+// challengeFlags bit layout:
+// bits 0-2: completed steps, bit 3: unlocked, bit 4: reward claimed
+#define CHALLENGE_STEP_0_DONE 0b00000001
+#define CHALLENGE_STEP_1_DONE 0b00000010
+#define CHALLENGE_STEP_2_DONE 0b00000100
+#define CHALLENGE_UNLOCKED    0b00001000
+#define CHALLENGE_REWARDED    0b00010000
+
+#define MAX_CHALLENGES 3
+#define CHALLENGE_STEP_COUNT 3
+
+enum ChallengeId : uint8_t {
+  CHALLENGE_GARDENING_1,
+  CHALLENGE_GARDENING_2,
+  CHALLENGE_TRAINING_1
+};
+
+enum ChallengeType : uint8_t {
+  CHALLENGE_TYPE_GARDENING,
+  CHALLENGE_TYPE_TRAINING
+};
+
+enum PlaceId : uint8_t {
+  PLACE_CONBIMART
+};
+
+enum LessonType : uint8_t {
+  LESSON_SINGING,
+  LESSON_DANCING,
+  LESSON_SWIMMING
+};
+
+struct ChallengeDefinition {
+  const char* title;
+  ChallengeType type;
+  const char* steps[CHALLENGE_STEP_COUNT];
+};
+
+const ChallengeDefinition challengeDefinitions[MAX_CHALLENGES] = {
+  {"Gardening 1", CHALLENGE_TYPE_GARDENING, {"Grow 9 flowers", "Sell 9 flowers", "Go to Combimart"}},
+  {"Gardening 2", CHALLENGE_TYPE_GARDENING, {"Grow 24 flowers", "Sell 24 flowers", "Cook a recipe"}},
+  {"Training 1", CHALLENGE_TYPE_TRAINING, {"Perfect singing lesson", "Perfect dancing lesson", "Perfect swimming lesson"}}
+};
+
+uint8_t challengeFlags[MAX_CHALLENGES] = {};
+uint16_t flowersGrownTotal = 0;
+uint16_t flowersSoldTotal = 0;
+uint16_t recipesCookedTotal = 0;
+uint16_t perfectSingingLessons = 0;
+uint16_t perfectDancingLessons = 0;
+uint16_t perfectSwimmingLessons = 0;
+uint8_t challengeSelection = 0;
+
+uint8_t challengeStepMask(uint8_t stepIndex) {
+  if (stepIndex >= CHALLENGE_STEP_COUNT) {
+    return 0;
+  }
+  return (1 << stepIndex);
+}
+
+bool isChallengeUnlocked(uint8_t challengeId) {
+  return challengeId < MAX_CHALLENGES && (challengeFlags[challengeId] & CHALLENGE_UNLOCKED);
+}
+
+bool isChallengeStepDone(uint8_t challengeId, uint8_t stepIndex) {
+  return challengeId < MAX_CHALLENGES && stepIndex < CHALLENGE_STEP_COUNT && (challengeFlags[challengeId] & challengeStepMask(stepIndex));
+}
+
+bool isChallengeComplete(uint8_t challengeId) {
+  return challengeId < MAX_CHALLENGES && ((challengeFlags[challengeId] & 0b00000111) == 0b00000111);
+}
+
+uint8_t getCurrentChallengeStep(uint8_t challengeId) {
+  if (challengeId >= MAX_CHALLENGES || !isChallengeUnlocked(challengeId)) {
+    return CHALLENGE_STEP_COUNT;
+  }
+  for (uint8_t step = 0; step < CHALLENGE_STEP_COUNT; ++step) {
+    if (!isChallengeStepDone(challengeId, step)) {
+      return step;
+    }
+  }
+  return CHALLENGE_STEP_COUNT;
+}
+
+bool canCompleteChallengeStep(uint8_t challengeId, uint8_t stepIndex) {
+  if (challengeId >= MAX_CHALLENGES || stepIndex >= CHALLENGE_STEP_COUNT || !isChallengeUnlocked(challengeId)) {
+    return false;
+  }
+  if (getCurrentChallengeStep(challengeId) != stepIndex) {
+    return false;
+  }
+
+  switch (challengeId) {
+    case CHALLENGE_GARDENING_1:
+      if (stepIndex == 0) return flowersGrownTotal >= 9;
+      if (stepIndex == 1) return flowersSoldTotal >= 9;
+      return false;
+    case CHALLENGE_GARDENING_2:
+      if (stepIndex == 0) return flowersGrownTotal >= 24;
+      if (stepIndex == 1) return flowersSoldTotal >= 24;
+      if (stepIndex == 2) return recipesCookedTotal >= 1;
+      return false;
+    case CHALLENGE_TRAINING_1:
+      if (stepIndex == 0) return perfectSingingLessons >= 1;
+      if (stepIndex == 1) return perfectDancingLessons >= 1;
+      if (stepIndex == 2) return perfectSwimmingLessons >= 1;
+      return false;
+    default:
+      return false;
+  }
+}
+
+void completeChallengeStep(uint8_t challengeId, uint8_t stepIndex) {
+  if (canCompleteChallengeStep(challengeId, stepIndex)) {
+    challengeFlags[challengeId] |= challengeStepMask(stepIndex);
+    saveRequired = true;
+  }
+}
+
+void updateChallengeProgress() {
+  for (uint8_t pass = 0; pass < 2; ++pass) {
+    for (uint8_t challengeId = 0; challengeId < MAX_CHALLENGES; ++challengeId) {
+      uint8_t step = getCurrentChallengeStep(challengeId);
+      if (step < CHALLENGE_STEP_COUNT) {
+        completeChallengeStep(challengeId, step);
+      }
+    }
+
+    if (isChallengeComplete(CHALLENGE_GARDENING_1)) {
+      challengeFlags[CHALLENGE_GARDENING_2] |= CHALLENGE_UNLOCKED;
+    }
+  }
+}
+
+void initializeChallengeProgress() {
+  for (uint8_t i = 0; i < MAX_CHALLENGES; ++i) {
+    challengeFlags[i] = 0;
+  }
+  challengeFlags[CHALLENGE_GARDENING_1] = CHALLENGE_UNLOCKED;
+  challengeFlags[CHALLENGE_TRAINING_1] = CHALLENGE_UNLOCKED;
+  flowersGrownTotal = 0;
+  flowersSoldTotal = 0;
+  recipesCookedTotal = 0;
+  perfectSingingLessons = 0;
+  perfectDancingLessons = 0;
+  perfectSwimmingLessons = 0;
+  challengeSelection = 0;
+}
+
+void notifyFlowersGrown(uint16_t count) {
+  flowersGrownTotal += count;
+  updateChallengeProgress();
+}
+
+void notifyFlowersSold(uint16_t count) {
+  flowersSoldTotal += count;
+  updateChallengeProgress();
+}
+
+void notifyVisitedPlace(uint8_t placeId) {
+  if (placeId == PLACE_CONBIMART && canCompleteChallengeStep(CHALLENGE_GARDENING_1, 2)) {
+    completeChallengeStep(CHALLENGE_GARDENING_1, 2);
+    updateChallengeProgress();
+  }
+}
+
+void notifyRecipeCooked(uint8_t recipeId) {
+  (void)recipeId;
+  recipesCookedTotal += 1;
+  updateChallengeProgress();
+}
+
+void notifyPerfectLesson(uint8_t lessonType) {
+  switch (lessonType) {
+    case LESSON_SINGING:
+      perfectSingingLessons += 1;
+      break;
+    case LESSON_DANCING:
+      perfectDancingLessons += 1;
+      break;
+    case LESSON_SWIMMING:
+      perfectSwimmingLessons += 1;
+      break;
+  }
+  updateChallengeProgress();
+}
+
 // === Game Time Tracking ===
 // 60000 milliseconds in a minute
 // 86,400,000 milliseconds in a day
@@ -986,6 +1177,8 @@ bool saveGameToSd() {
 
   saveFile.println("[version]");
   saveFile.println(String(versionNumber));
+  saveFile.println("magic=" + String(SAVE_MAGIC));
+  saveFile.println("save_version=" + String(SAVE_VERSION));
   
   saveFile.println("[natsumi]");
   saveFile.println("age=" + String(natsumi.age));
@@ -1081,6 +1274,22 @@ bool saveGameToSd() {
   saveFile.println("silverOne=" + String(cards.silverOne));
   saveFile.println("goldOne=" + String(cards.goldOne));
   saveFile.println("platinumOne=" + String(cards.platinumOne));
+
+  saveFile.println("[challenges]");
+  saveFile.print("challenge_flags=");
+  for (uint8_t i = 0; i < MAX_CHALLENGES; ++i) {
+    if (i > 0) {
+      saveFile.print(",");
+    }
+    saveFile.print(challengeFlags[i]);
+  }
+  saveFile.println();
+  saveFile.println("flowers_grown_total=" + String(flowersGrownTotal));
+  saveFile.println("flowers_sold_total=" + String(flowersSoldTotal));
+  saveFile.println("recipes_cooked_total=" + String(recipesCookedTotal));
+  saveFile.println("perfect_singing_lessons=" + String(perfectSingingLessons));
+  saveFile.println("perfect_dancing_lessons=" + String(perfectDancingLessons));
+  saveFile.println("perfect_swimming_lessons=" + String(perfectSwimmingLessons));
   
   saveFile.println("[meta]");
   saveFile.println("current_state=" + String(gameStateToString(currentState)));
@@ -1117,6 +1326,7 @@ bool saveGameToSd() {
 bool loadGameFromSd() {
   Serial.println(">> loadGameFromSd: Loading save data");
   loadedContinueState = HOME_LOOP;
+  initializeChallengeProgress();
 
   const char* loadPath = saveGamePath;
   if (!SD.exists(loadPath)) {
@@ -1274,6 +1484,29 @@ bool loadGameFromSd() {
       else if (key == "silverOne") cards.silverOne = value.toInt();
       else if (key == "goldOne") cards.goldOne = value.toInt();
       else if (key == "platinumOne") cards.platinumOne = value.toInt();
+    } else if (section == "[challenges]") {
+      if (key == "challenge_flags") {
+        int flagIndex = 0;
+        int startIndex = 0;
+        while (startIndex < value.length() && flagIndex < MAX_CHALLENGES) {
+          int commaIndex = value.indexOf(',', startIndex);
+          String token = (commaIndex == -1) ? value.substring(startIndex) : value.substring(startIndex, commaIndex);
+          token.trim();
+          if (token.length() > 0) {
+            challengeFlags[flagIndex] = static_cast<uint8_t>(token.toInt());
+            flagIndex++;
+          }
+          if (commaIndex == -1) {
+            break;
+          }
+          startIndex = commaIndex + 1;
+        }
+      } else if (key == "flowers_grown_total") flowersGrownTotal = static_cast<uint16_t>(value.toInt());
+      else if (key == "flowers_sold_total") flowersSoldTotal = static_cast<uint16_t>(value.toInt());
+      else if (key == "recipes_cooked_total") recipesCookedTotal = static_cast<uint16_t>(value.toInt());
+      else if (key == "perfect_singing_lessons") perfectSingingLessons = static_cast<uint16_t>(value.toInt());
+      else if (key == "perfect_dancing_lessons") perfectDancingLessons = static_cast<uint16_t>(value.toInt());
+      else if (key == "perfect_swimming_lessons") perfectSwimmingLessons = static_cast<uint16_t>(value.toInt());
     } else if (section == "[meta]") {
       if (key == "current_state") loadedContinueState = gameStateFromString(value);
       else if (key == "playtime_total_ms") playtimeTotalMs = strtoul(value.c_str(), nullptr, 10);
@@ -1285,6 +1518,7 @@ bool loadGameFromSd() {
   }
 
   saveFile.close();
+  updateChallengeProgress();
   sessionStart = millis();
   Serial.println(">> loadGameFromSd: Load complete");
   Serial.println(">>> loadGameFromSd - natsumi.ageMilliseconds: " + String(natsumi.ageMilliseconds));
@@ -3105,6 +3339,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         playtimeTotalMs = 0;
         sessionStart = millis();
         lastAgeTick = 0;
+        initializeChallengeProgress();
         break;
       case CONTINUE_GAME:
         setScreenConfig(CARD);
@@ -3192,6 +3427,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           playtimeTotalMs = 0;
           sessionStart = millis();
           lastAgeTick = 0;
+          initializeChallengeProgress();
         }
         break;
       case INTRO: case INTRO2: case INTRO3: case INTRO4: case INTRO5: case INTRO6:
@@ -4684,6 +4920,7 @@ void manageGarden() {
         if (natsumi.flowers < 24) {
           tile = 0;
           natsumi.flowers += 1;
+          notifyFlowersGrown(1);
           gardeningHelperText = "Natsumi now has " + String(natsumi.flowers) + " flowers";
           saveRequired = true;
           isPlayerGardening = true;
@@ -6543,6 +6780,7 @@ void manageFlowersSale() {
         natsumi.flowers -= 1;
         natsumi.money += flowersPrice;
         flowersRevenue += flowersPrice;
+        notifyFlowersSold(1);
       }
       Serial.println("> manageFlowersSale - flowersRevenue=" + String(flowersRevenue));
       flowerSaleNeedsRedraw = true;
@@ -8236,6 +8474,7 @@ bool cookSelectedRecipe() {
   }
 
   natsumi.hunger = std::min(4, natsumi.hunger + 1);
+  notifyRecipeCooked(recipe ? static_cast<uint8_t>(recipe - cookRecipes) : 255);
   saveRequired = true;
   FoodDisplayItem* previewItem = findFoodGridItem(recipeSelection[0]);
   selectedFood = previewItem ? String(previewItem->label) : "None";
@@ -8522,7 +8761,8 @@ void drawOverlay() {
         if (currentState != FOOD_COOK && currentState != FOOD_CONBINI3 &&
             currentState != GARDEN_LOOP && currentState != GARDEN_PLANT &&
             currentState != GARDEN_WATER && currentState != GARDEN_PICK &&
-            currentState != GARDEN_CLEANUP && currentState != GARDEN_MENU) {
+            currentState != GARDEN_CLEANUP && currentState != GARDEN_MENU &&
+            currentState != CHALLENGES_SCREEN) {
           overlayActive = false;
           changeState(0, HOME_LOOP, 0);
           return;
@@ -8541,6 +8781,9 @@ void drawOverlay() {
       case INVENTORY_SCREEN:
         // Serial.println(">>> drawOverlay: INVENTORY_SCREEN");
         drawInventory();
+        break;
+      case CHALLENGES_SCREEN:
+        drawChallengesScreen();
         break;
       case TRAIN_DANCE: case TRAIN_SING: case TRAIN_SWIM: case TRAIN_GYM: case TRAIN_RUN: case COMP_LOCAL4: case COMP_DEPT: case COMP_REG4: case COMP_NAT4:
         drawMiniGameCountdown();
@@ -10317,18 +10560,21 @@ void miniGameDebrief() {
           break;
         case TRAIN_SING3:
           Serial.println(">> miniGameDebrief() - Changing state to ACTION_OUTCOME");
+          if (isLatestTrainingPerfect) notifyPerfectLesson(LESSON_SINGING);
           saveRequired = true;
           // isNatsumiHappy = true;
           // changeState(0, HOME_LOOP, 0);
           changeState(0, ACTION_OUTCOME, 0);
           break;
         case TRAIN_DANCE3:
+          if (isLatestTrainingPerfect) notifyPerfectLesson(LESSON_DANCING);
           saveRequired = true;
           // isNatsumiHappy = true;
           // changeState(0, HOME_LOOP, 0);
           changeState(0, ACTION_OUTCOME, 0);
           break;
         case TRAIN_SWIM3:
+          if (isLatestTrainingPerfect) notifyPerfectLesson(LESSON_SWIMMING);
           saveRequired = true;
           // isNatsumiHappy = true;
           // changeState(0, HOME_LOOP, 0);
@@ -10364,6 +10610,7 @@ void miniGameDebrief() {
 
 void gotoConbimart() {
   Serial.println("> Entering gotoConbimart()");
+  notifyVisitedPlace(PLACE_CONBIMART);
   if (!conbimartInitialized) {
     prepareConbimartItems();
     return;
@@ -11242,6 +11489,88 @@ void browseCards() {
   return;
 }
 
+void drawChallengesScreen() {
+  M5Cardputer.Display.fillScreen(BLACK);
+
+  const ChallengeDefinition &challenge = challengeDefinitions[challengeSelection];
+  const bool unlocked = isChallengeUnlocked(challengeSelection);
+  const uint16_t panelBg = M5Cardputer.Display.color565(12, 16, 24);
+  const uint16_t panelFrame = M5Cardputer.Display.color565(90, 140, 210);
+  const uint16_t doneColor = M5Cardputer.Display.color565(170, 170, 170);
+  const uint16_t activeColor = M5Cardputer.Display.color565(255, 220, 80);
+
+  M5Cardputer.Display.fillRoundRect(4, 4, 232, 126, 6, panelBg);
+  M5Cardputer.Display.drawRoundRect(4, 4, 232, 126, 6, panelFrame);
+
+  M5Cardputer.Display.setTextSize(1);
+  M5Cardputer.Display.setTextColor(panelFrame, panelBg);
+  M5Cardputer.Display.setCursor(10, 9);
+  M5Cardputer.Display.print("Challenges");
+  M5Cardputer.Display.setCursor(182, 9);
+  M5Cardputer.Display.print(String(challengeSelection + 1) + "/" + String(MAX_CHALLENGES));
+
+  M5Cardputer.Display.setTextSize(2);
+  M5Cardputer.Display.setTextColor(unlocked ? WHITE : doneColor, panelBg);
+  M5Cardputer.Display.setCursor(10, 24);
+  M5Cardputer.Display.print(challenge.title);
+
+  M5Cardputer.Display.setTextSize(1);
+  if (!unlocked) {
+    M5Cardputer.Display.setTextColor(doneColor, panelBg);
+    M5Cardputer.Display.setCursor(10, 50);
+    M5Cardputer.Display.print("Locked");
+  }
+
+  uint8_t currentStep = getCurrentChallengeStep(challengeSelection);
+  for (uint8_t step = 0; step < CHALLENGE_STEP_COUNT; ++step) {
+    int y = 52 + (step * 18);
+    bool done = isChallengeStepDone(challengeSelection, step);
+    uint16_t textColor = done ? doneColor : (step == currentStep ? activeColor : WHITE);
+
+    M5Cardputer.Display.setTextColor(textColor, panelBg);
+    M5Cardputer.Display.setCursor(12, y);
+    M5Cardputer.Display.print(done ? "[x] " : "[ ] ");
+    M5Cardputer.Display.print(challenge.steps[step]);
+
+    if (done) {
+      M5Cardputer.Display.drawFastHLine(14, y + 5, 188, RED);
+    }
+  }
+
+  M5Cardputer.Display.setTextColor(panelFrame, panelBg);
+  M5Cardputer.Display.setCursor(10, 116);
+  M5Cardputer.Display.print("UP/DOWN: Select  ESC: Home");
+}
+
 void manageChallenges() {
-  // Update this
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (key) {
+        // UP
+        case 181: case 59: case 'w': case 'W':
+          if (challengeSelection > 0) {
+            challengeSelection--;
+            l5NeedsRedraw = true;
+          }
+          break;
+        // DOWN
+        case 182: case 46: case 's': case 'S':
+          if (challengeSelection + 1 < MAX_CHALLENGES) {
+            challengeSelection++;
+            l5NeedsRedraw = true;
+          }
+          break;
+        // ESC
+        case 96: case 43:
+          overlayActive = false;
+          changeState(0, HOME_LOOP, 0);
+          return;
+        default:
+          break;
+      }
+    }
+  }
 }
