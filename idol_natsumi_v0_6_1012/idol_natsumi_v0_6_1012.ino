@@ -176,7 +176,7 @@ enum GameState {
   PFC_GAME7,
   PFC_GAME8,
   PFC_GAME9,
-  QUEST_SCREEN
+  CHALLENGES_SCREEN
 };
 
 GameState currentState = VERSION_SCREEN;
@@ -462,7 +462,7 @@ const char* competitionMenuItems[] = {"0: LOCAL", "1: DEPARTMENTAL", "2: REGIONA
 const char* healthMenuItems[] = {"0: WASH", "1: DOCTOR", "2: TEMPLE", "3: ONSEN"};
 const char* restMenuItems[] = {"0: MEDITATE", "1: SLEEP"};
 const char* gardenMenuItems[] = {"0: PLANT", "1: WATER", "2: PICK", "3: CLEANUP"};
-const char* eventsMenuItems[] = {"0: MATSURI", "1: JOBS", "2: QUESTS", "3: FESTIVALS"};
+const char* eventsMenuItems[] = {"0: MATSURI", "1: JOBS", "2: CHALLENGES", "3: FESTIVALS"};
 const char** currentMenuItems = nullptr;
 const int mainMenuItemCount = 3;
 const int homeMenuItemCount = 10;
@@ -927,7 +927,7 @@ const char* gameStateToString(GameState state) {
     case PFC_GAME7:        return "PFC_GAME7";
     case PFC_GAME8:        return "PFC_GAME8";
     case PFC_GAME9:        return "PFC_GAME9";
-    case QUEST_SCREEN:     return "QUEST_SCREEN";
+    case CHALLENGES_SCREEN:     return "CHALLENGES_SCREEN";
     default:               return "UNKNOWN";
   }
 }
@@ -1981,7 +1981,7 @@ void preloadImages() {
     case PFC_GAME9:
       preloadImage("/idolnat/screens/outcome_bg.png", currentBackground);
       break;
-    case QUEST_SCREEN:
+    case CHALLENGES_SCREEN:
       preloadImage("/idolnat/screens/outcome_bg.png", currentBackground);
       break;
   }
@@ -3230,7 +3230,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         inventoryPageIndex = 0;
         menuOpened = false;
         break;
-      case QUEST_SCREEN:
+      case CHALLENGES_SCREEN:
         setScreenConfig(GAME);
         overlayActive = true;
         l5NeedsRedraw = true;
@@ -4188,8 +4188,8 @@ void manageGame() {
     case PFC_GAME: case PFC_GAME2: case PFC_GAME3: case PFC_GAME4: case PFC_GAME5: case PFC_GAME6: case PFC_GAME7: case PFC_GAME8: case PFC_GAME9:
       managePFCGame();
       break;
-    case QUEST_SCREEN:
-      manageQuests();
+    case CHALLENGES_SCREEN:
+      manageChallenges();
       break;
     default:
       playGame();
@@ -4520,7 +4520,7 @@ void displayVersionScreen() {
 }
 
 void manageHomeScreen() {
-  Serial.println("> Entering manageHomeScreen()");
+  // Serial.println("> Entering manageHomeScreen()");
   // Serial.print("natsumi.age: ");
   // Serial.println(natsumi.age);
   // Serial.print("currentAge: ");
@@ -7056,6 +7056,11 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
   
     if (menuType == "home") {
       switch (key) {
+        case 32:
+          // SPACE (Challenges screen)
+          menuOpened = false;
+          changeState(0, CHALLENGES_SCREEN, 0);
+          break;
         case 48:
           // 0: STATS
           menuOpened = false;
@@ -7768,29 +7773,29 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           }
       }
     } else if (menuType == "garden") {
-      Serial.println(">> drawMenu - garden menuType");
+      // Serial.println(">> drawMenu - garden menuType");
       switch (key) {
         case 48:
           // 0: PLANT
-          Serial.println(">>> drawMenu - 0: PLANT");
+          // Serial.println(">>> drawMenu - 0: PLANT");
           menuOpened = false;
           changeState(0, GARDEN_PLANT, 0);
           break;
         case 49:
           // 1: WATER
-          Serial.println(">>> drawMenu - 1: WATER");
+          // Serial.println(">>> drawMenu - 1: WATER");
           menuOpened = false;
           changeState(0, GARDEN_WATER, 0);
           break;
         case 50:
           // 2: PICK
-          Serial.println(">>> drawMenu - 2: PICK");
+          // Serial.println(">>> drawMenu - 2: PICK");
           menuOpened = false;
           changeState(0, GARDEN_PICK, 0);
           break;
         case 51:
           // 3: CLEANUP
-          Serial.println(">>> drawMenu - 3: CLEANUP");
+          // Serial.println(">>> drawMenu - 3: CLEANUP");
           menuOpened = false;
           changeState(0, GARDEN_CLEANUP, 0);
           break;
@@ -7860,16 +7865,16 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           changeState(0, MATSURI_TITLE, 0);
           break;
         case 49:
-          // 1: GIGS
-          // Serial.println(">>> drawMenu - 1: GIGS");
+          // 1: JOBS
+          // Serial.println(">>> drawMenu - 1: JOBS");
           menuOpened = false;
           changeState(0, HOME_LOOP, 0);
           break;
         case 50:
-          // 2: JOBS
-          // Serial.println(">>> drawMenu - 2: JOBS");
+          // 2: CHALLENGES
+          // Serial.println(">>> drawMenu - 2: CHALLENGES");
           menuOpened = false;
-          changeState(0, HOME_LOOP, 0);
+          changeState(0, CHALLENGES_SCREEN, 0);
           break;
         case 51:
           // 3: FESTIVALS
@@ -7909,13 +7914,13 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           break;
         case 181: case 'w': case 'W': case 59:
           // UP
-          Serial.println(">>> drawMenu - UP");
+          // Serial.println(">>> drawMenu - UP");
           selection = (selection - 1 + eventsMenuItemCount) % eventsMenuItemCount;
           l4NeedsRedraw = true;
           break;
         case 182: case 's': case 'S': case 46:
           // DOWN
-          Serial.println(">>> drawMenu - DOWN");
+          // Serial.println(">>> drawMenu - DOWN");
           selection = (selection + 1) % eventsMenuItemCount;
           l4NeedsRedraw = true;
           break;
@@ -7926,7 +7931,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           } else if (selection == 1) {
             changeState(0, HOME_LOOP, 0);
           } else if (selection == 2) {
-            changeState(0, HOME_LOOP, 0);
+            changeState(0, CHALLENGES_SCREEN, 0);
           } else if (selection == 3) {
             changeState(0, HOME_LOOP, 0);
           }
@@ -11234,6 +11239,6 @@ void browseCards() {
   return;
 }
 
-void manageQuests() {
+void manageChallenges() {
   // Update this
 }
