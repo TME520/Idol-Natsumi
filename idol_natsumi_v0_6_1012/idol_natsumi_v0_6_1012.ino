@@ -406,7 +406,6 @@ std::vector<ConbimartItem> conbimartItems;
 int conbimartSelectionIndex = 0;
 bool conbimartInitialized = false;
 
-
 extern bool saveRequired;
 
 // === Challenges system ===
@@ -449,7 +448,7 @@ struct ChallengeDefinition {
 };
 
 const ChallengeDefinition challengeDefinitions[MAX_CHALLENGES] = {
-  {"Gardening 1", CHALLENGE_TYPE_GARDENING, {"Grow 9 flowers", "Sell 9 flowers", "Go to Combimart"}},
+  {"Gardening 1", CHALLENGE_TYPE_GARDENING, {"Grow 9 flowers", "Sell 9 flowers", "Go to Conbimart"}},
   {"Gardening 2", CHALLENGE_TYPE_GARDENING, {"Grow 24 flowers", "Sell 24 flowers", "Cook a recipe"}},
   {"Training 1", CHALLENGE_TYPE_TRAINING, {"Perfect singing lesson", "Perfect dancing lesson", "Perfect swimming lesson"}}
 };
@@ -457,6 +456,7 @@ const ChallengeDefinition challengeDefinitions[MAX_CHALLENGES] = {
 uint8_t challengeFlags[MAX_CHALLENGES] = {};
 uint16_t flowersGrownTotal = 0;
 uint16_t flowersSoldTotal = 0;
+uint16_t conbimartVisitsTotal = 0;
 uint16_t recipesCookedTotal = 0;
 uint16_t perfectSingingLessons = 0;
 uint16_t perfectDancingLessons = 0;
@@ -471,14 +471,18 @@ uint8_t challengeStepMask(uint8_t stepIndex) {
 }
 
 bool isChallengeUnlocked(uint8_t challengeId) {
+  Serial.println("> isChallengeUnlocked() - Returning " + String(challengeId < MAX_CHALLENGES && (challengeFlags[challengeId] & CHALLENGE_UNLOCKED)));
   return challengeId < MAX_CHALLENGES && (challengeFlags[challengeId] & CHALLENGE_UNLOCKED);
 }
 
 bool isChallengeStepDone(uint8_t challengeId, uint8_t stepIndex) {
+  Serial.println("> isChallengeStepDone() - challengeId: " + String(challengeId) + " - stepIndex: " + String(stepIndex) + " - MAX_CHALLENGES: " + String(MAX_CHALLENGES) + " - CHALLENGE_STEP_COUNT: " + String(CHALLENGE_STEP_COUNT));
+  Serial.println(">> isChallengeStepDone() - Returns " + String(challengeId < MAX_CHALLENGES && stepIndex < CHALLENGE_STEP_COUNT && (challengeFlags[challengeId] & challengeStepMask(stepIndex))));
   return challengeId < MAX_CHALLENGES && stepIndex < CHALLENGE_STEP_COUNT && (challengeFlags[challengeId] & challengeStepMask(stepIndex));
 }
 
 bool isChallengeComplete(uint8_t challengeId) {
+  Serial.println("> isChallengeComplete()");
   return challengeId < MAX_CHALLENGES && ((challengeFlags[challengeId] & 0b00000111) == 0b00000111);
 }
 
@@ -495,24 +499,31 @@ uint8_t getCurrentChallengeStep(uint8_t challengeId) {
 }
 
 bool canCompleteChallengeStep(uint8_t challengeId, uint8_t stepIndex) {
+  Serial.println("> canCompleteChallengeStep()");
   if (challengeId >= MAX_CHALLENGES || stepIndex >= CHALLENGE_STEP_COUNT || !isChallengeUnlocked(challengeId)) {
+    Serial.println(">> canCompleteChallengeStep() - FALSE");
     return false;
   }
   if (getCurrentChallengeStep(challengeId) != stepIndex) {
+    Serial.println(">> canCompleteChallengeStep() - FALSE");
     return false;
   }
 
   switch (challengeId) {
     case CHALLENGE_GARDENING_1:
+      Serial.println(">> canCompleteChallengeStep() - CHALLENGE_GARDENING_1 - stepIndex: " + String(stepIndex));
       if (stepIndex == 0) return flowersGrownTotal >= 9;
       if (stepIndex == 1) return flowersSoldTotal >= 9;
+      if (stepIndex == 2) return conbimartVisitsTotal > 0;
       return false;
     case CHALLENGE_GARDENING_2:
+      Serial.println(">> canCompleteChallengeStep() - CHALLENGE_GARDENING_2");
       if (stepIndex == 0) return flowersGrownTotal >= 24;
       if (stepIndex == 1) return flowersSoldTotal >= 24;
       if (stepIndex == 2) return recipesCookedTotal >= 1;
       return false;
     case CHALLENGE_TRAINING_1:
+      Serial.println(">> canCompleteChallengeStep() - CHALLENGE_TRAINING_1");
       if (stepIndex == 0) return perfectSingingLessons >= 1;
       if (stepIndex == 1) return perfectDancingLessons >= 1;
       if (stepIndex == 2) return perfectSwimmingLessons >= 1;
@@ -523,13 +534,18 @@ bool canCompleteChallengeStep(uint8_t challengeId, uint8_t stepIndex) {
 }
 
 void completeChallengeStep(uint8_t challengeId, uint8_t stepIndex) {
+  Serial.println("> completeChallengeStep()");
   if (canCompleteChallengeStep(challengeId, stepIndex)) {
     challengeFlags[challengeId] |= challengeStepMask(stepIndex);
     saveRequired = true;
+    Serial.println(">> completeChallengeStep() - challengeId: " + String(challengeId) + " - stepIndex: " + String(stepIndex) + " - COMPLETED");
+  } else {
+    Serial.println(">> completeChallengeStep() - challengeId: " + String(challengeId) + " - stepIndex: " + String(stepIndex) + " - NOT COMPLETED");
   }
 }
 
 void updateChallengeProgress() {
+  Serial.println("> updateChallengeProgress()");
   for (uint8_t pass = 0; pass < 2; ++pass) {
     for (uint8_t challengeId = 0; challengeId < MAX_CHALLENGES; ++challengeId) {
       uint8_t step = getCurrentChallengeStep(challengeId);
@@ -545,6 +561,7 @@ void updateChallengeProgress() {
 }
 
 void initializeChallengeProgress() {
+  Serial.println("> initializeChallengeProgress()");
   for (uint8_t i = 0; i < MAX_CHALLENGES; ++i) {
     challengeFlags[i] = 0;
   }
@@ -552,6 +569,7 @@ void initializeChallengeProgress() {
   challengeFlags[CHALLENGE_TRAINING_1] = CHALLENGE_UNLOCKED;
   flowersGrownTotal = 0;
   flowersSoldTotal = 0;
+  conbimartVisitsTotal = 0;
   recipesCookedTotal = 0;
   perfectSingingLessons = 0;
   perfectDancingLessons = 0;
@@ -560,29 +578,36 @@ void initializeChallengeProgress() {
 }
 
 void notifyFlowersGrown(uint16_t count) {
+  Serial.println("> notifyFlowersGrown()");
   flowersGrownTotal += count;
   updateChallengeProgress();
 }
 
 void notifyFlowersSold(uint16_t count) {
+  Serial.println("> notifyFlowersSold()");
   flowersSoldTotal += count;
   updateChallengeProgress();
 }
 
 void notifyVisitedPlace(uint8_t placeId) {
+  Serial.println("> notifyVisitedPlace() - placeId: " + String(placeId));
   if (placeId == PLACE_CONBIMART && canCompleteChallengeStep(CHALLENGE_GARDENING_1, 2)) {
+    conbimartVisitsTotal += 1;
     completeChallengeStep(CHALLENGE_GARDENING_1, 2);
     updateChallengeProgress();
+    Serial.println(">> notifyVisitedPlace() - conbimartVisitsTotal: " + String(conbimartVisitsTotal));
   }
 }
 
 void notifyRecipeCooked(uint8_t recipeId) {
+  Serial.println("> notifyRecipeCooked()");
   (void)recipeId;
   recipesCookedTotal += 1;
   updateChallengeProgress();
 }
 
 void notifyPerfectLesson(uint8_t lessonType) {
+  Serial.println("> notifyPerfectLesson()");
   switch (lessonType) {
     case LESSON_SINGING:
       perfectSingingLessons += 1;
@@ -3123,7 +3148,7 @@ void loop() {
   Serial.println("debugEnabled: " + String(debugEnabled) + " - menuOpened: " + String(menuOpened) + " - toastActive: " + String(toastActive));
   Serial.println("changeStateCounter: " + String(changeStateCounter) + " - l5NeedsRedraw: " + String(l5NeedsRedraw));
 */
-  Serial.println("> currentState = " + String(gameStateToString(currentState)));
+  // Serial.println("> currentState = " + String(gameStateToString(currentState)));
   // Serial.println("loop - natsumi.ageMilliseconds: " + String(natsumi.ageMilliseconds));
   // Serial.println("loop - playtimeTotalMs: " + String(playtimeTotalMs));
   switch (screenConfig) {
