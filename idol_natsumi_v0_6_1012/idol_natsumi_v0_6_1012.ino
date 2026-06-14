@@ -547,15 +547,19 @@ void completeChallengeStep(uint8_t challengeId, uint8_t stepIndex) {
 void updateChallengeProgress() {
   Serial.println("> updateChallengeProgress()");
   for (uint8_t pass = 0; pass < 2; ++pass) {
+    Serial.println(">> updateChallengeProgress() - pass: " + String(pass));
     for (uint8_t challengeId = 0; challengeId < MAX_CHALLENGES; ++challengeId) {
+      Serial.println(">>> updateChallengeProgress() - challengeId: " + String(challengeId));
       uint8_t step = getCurrentChallengeStep(challengeId);
       if (step < CHALLENGE_STEP_COUNT) {
         completeChallengeStep(challengeId, step);
+        Serial.println(">>> updateChallengeProgress() - Completed challenge " + String(challengeId) + " (step: " + String(step) +")");
       }
     }
 
     if (isChallengeComplete(CHALLENGE_GARDENING_1)) {
       challengeFlags[CHALLENGE_GARDENING_2] |= CHALLENGE_UNLOCKED;
+      Serial.println(">> updateChallengeProgress() - Challenge CHALLENGE_GARDENING_1 complete");
     }
   }
 }
@@ -4673,6 +4677,7 @@ void manageRoom() {
       break;
     case FOOD_ORDER6:
       waitingForFoodDelivery = true;
+      saveRequired = true;
       changeState(0, HOME_LOOP, 0);
       break;
     case FOOD_ORDER7:
