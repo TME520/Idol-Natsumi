@@ -11562,14 +11562,17 @@ void drawChallengesScreen() {
 
   M5Cardputer.Display.setTextSize(1);
   M5Cardputer.Display.setTextColor(panelFrame, panelBg);
-  M5Cardputer.Display.setCursor(10, 9);
+  // M5Cardputer.Display.setCursor(10, 9);
+  M5Cardputer.Display.setCursor(12, 11);
   M5Cardputer.Display.print("Challenges");
-  M5Cardputer.Display.setCursor(182, 9);
+  // M5Cardputer.Display.setCursor(182, 9);
+  M5Cardputer.Display.setCursor(210, 11);
   M5Cardputer.Display.print(String(challengeSelection + 1) + "/" + String(MAX_CHALLENGES));
 
   M5Cardputer.Display.setTextSize(2);
   M5Cardputer.Display.setTextColor(unlocked ? WHITE : doneColor, panelBg);
-  M5Cardputer.Display.setCursor(10, 24);
+  // M5Cardputer.Display.setCursor(10, 24);
+  M5Cardputer.Display.setCursor(10, 28);
   M5Cardputer.Display.print(challenge.title);
 
   M5Cardputer.Display.setTextSize(1);
@@ -11586,17 +11589,20 @@ void drawChallengesScreen() {
     uint16_t textColor = done ? doneColor : (step == currentStep ? activeColor : WHITE);
 
     M5Cardputer.Display.setTextColor(textColor, panelBg);
-    M5Cardputer.Display.setCursor(12, y);
+    // M5Cardputer.Display.setCursor(12, y);
+    M5Cardputer.Display.setCursor(16, y);
     M5Cardputer.Display.print(done ? "[x] " : "[ ] ");
     M5Cardputer.Display.print(challenge.steps[step]);
 
     if (done) {
-      M5Cardputer.Display.drawFastHLine(14, y + 5, 188, RED);
+      // M5Cardputer.Display.drawFastHLine(14, y + 5, 188, RED);
+      // M5Cardputer.Display.drawFastHLine(28, y + 2, 188, RED);
     }
   }
 
   M5Cardputer.Display.setTextColor(panelFrame, panelBg);
-  M5Cardputer.Display.setCursor(10, 116);
+  // M5Cardputer.Display.setCursor(10, 116);
+  M5Cardputer.Display.setCursor(44, 124);
   M5Cardputer.Display.print("UP/DOWN: Select  ESC: Home");
 }
 
