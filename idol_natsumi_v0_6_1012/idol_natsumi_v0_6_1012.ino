@@ -420,6 +420,12 @@ extern bool saveRequired;
 #define MAX_CHALLENGES 3
 #define CHALLENGE_STEP_COUNT 3
 
+void printByteBinary(uint8_t value) {
+  for (int i = 7; i >= 0; i--) {
+    Serial.print((value >> i) & 1);
+  }
+}
+
 enum ChallengeId : uint8_t {
   CHALLENGE_GARDENING_1,
   CHALLENGE_GARDENING_2,
@@ -478,6 +484,21 @@ bool isChallengeUnlocked(uint8_t challengeId) {
 bool isChallengeStepDone(uint8_t challengeId, uint8_t stepIndex) {
   Serial.println("> isChallengeStepDone() - challengeId: " + String(challengeId) + " - stepIndex: " + String(stepIndex) + " - MAX_CHALLENGES: " + String(MAX_CHALLENGES) + " - CHALLENGE_STEP_COUNT: " + String(CHALLENGE_STEP_COUNT));
   Serial.println(">> isChallengeStepDone() - Returns " + String(challengeId < MAX_CHALLENGES && stepIndex < CHALLENGE_STEP_COUNT && (challengeFlags[challengeId] & challengeStepMask(stepIndex))));
+  uint8_t flags = challengeFlags[challengeId];
+  uint8_t mask  = challengeStepMask(stepIndex);
+  
+  Serial.print("challengeFlags[");
+  Serial.print(challengeId);
+  Serial.print("] = ");
+  printByteBinary(flags);
+  
+  Serial.print(" | challengeStepMask(");
+  Serial.print(stepIndex);
+  Serial.print(") = ");
+  printByteBinary(mask);
+  
+  Serial.print(" | result = ");
+  Serial.println((flags & mask) ? "DONE" : "NOT DONE");
   return challengeId < MAX_CHALLENGES && stepIndex < CHALLENGE_STEP_COUNT && (challengeFlags[challengeId] & challengeStepMask(stepIndex));
 }
 
@@ -514,7 +535,8 @@ bool canCompleteChallengeStep(uint8_t challengeId, uint8_t stepIndex) {
       Serial.println(">> canCompleteChallengeStep() - CHALLENGE_GARDENING_1 - stepIndex: " + String(stepIndex));
       if (stepIndex == 0) return flowersGrownTotal >= 9;
       if (stepIndex == 1) return flowersSoldTotal >= 9;
-      if (stepIndex == 2) return conbimartVisitsTotal > 0;
+      // if (stepIndex == 2) return conbimartVisitsTotal > 0;
+      if (stepIndex == 2) return true;
       return false;
     case CHALLENGE_GARDENING_2:
       Serial.println(">> canCompleteChallengeStep() - CHALLENGE_GARDENING_2");
@@ -529,6 +551,7 @@ bool canCompleteChallengeStep(uint8_t challengeId, uint8_t stepIndex) {
       if (stepIndex == 2) return perfectSwimmingLessons >= 1;
       return false;
     default:
+      Serial.println(">> canCompleteChallengeStep() - Went the default route...");
       return false;
   }
 }
@@ -595,11 +618,26 @@ void notifyFlowersSold(uint16_t count) {
 
 void notifyVisitedPlace(uint8_t placeId) {
   Serial.println("> notifyVisitedPlace() - placeId: " + String(placeId));
+  /*
   if (placeId == PLACE_CONBIMART && canCompleteChallengeStep(CHALLENGE_GARDENING_1, 2)) {
     conbimartVisitsTotal += 1;
     completeChallengeStep(CHALLENGE_GARDENING_1, 2);
     updateChallengeProgress();
     Serial.println(">> notifyVisitedPlace() - conbimartVisitsTotal: " + String(conbimartVisitsTotal));
+  }
+  */
+  switch(placeId) {
+    case PLACE_CONBIMART:
+      if (canCompleteChallengeStep(CHALLENGE_GARDENING_1, 2)) {
+        conbimartVisitsTotal += 1;
+        completeChallengeStep(CHALLENGE_GARDENING_1, 2);
+        updateChallengeProgress();
+        Serial.println(">> notifyVisitedPlace() - conbimartVisitsTotal: " + String(conbimartVisitsTotal));
+      }
+      break;
+    default:
+      Serial.println(">> notifyVisitedPlace() - Went the default route...");
+      break;
   }
 }
 
@@ -10406,6 +10444,7 @@ void cashier() {
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       overlayActive = false;
+      notifyVisitedPlace(PLACE_CONBIMART);
       changeState(0, HOME_LOOP, 0);
     }
   }
@@ -10668,7 +10707,6 @@ void miniGameDebrief() {
 
 void gotoConbimart() {
   Serial.println("> Entering gotoConbimart()");
-  notifyVisitedPlace(PLACE_CONBIMART);
   if (!conbimartInitialized) {
     prepareConbimartItems();
     return;
