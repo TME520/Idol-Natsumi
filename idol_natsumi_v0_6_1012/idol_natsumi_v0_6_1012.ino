@@ -3644,6 +3644,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case FOOD_ORDER6: case FOOD_ORDER7:
         setScreenConfig(ROOM);
+        menuOpened = false;
         break;
       case FOOD_ORDER8:
         setScreenConfig(DIALOG);
