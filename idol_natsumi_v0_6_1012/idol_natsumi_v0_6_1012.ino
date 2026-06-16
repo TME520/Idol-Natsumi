@@ -179,7 +179,10 @@ enum GameState {
   PFC_GAME7,
   PFC_GAME8,
   PFC_GAME9,
-  CHALLENGES_SCREEN
+  CHALLENGES_SCREEN,
+  CHALLENGE_DONE,
+  CHALLENGE_DONE2,
+  CHALLENGE_DONE3
 };
 
 GameState currentState = VERSION_SCREEN;
@@ -577,6 +580,7 @@ void updateChallengeProgress() {
       if (step < CHALLENGE_STEP_COUNT) {
         completeChallengeStep(challengeId, step);
         Serial.println(">>> updateChallengeProgress() - Completed challenge " + String(challengeId) + " (step: " + String(step) +")");
+        changeState(0, CHALLENGE_DONE, 0);
       }
     }
 
@@ -1217,6 +1221,9 @@ const char* gameStateToString(GameState state) {
     case PFC_GAME8:        return "PFC_GAME8";
     case PFC_GAME9:        return "PFC_GAME9";
     case CHALLENGES_SCREEN:     return "CHALLENGES_SCREEN";
+    case CHALLENGE_DONE:   return "CHALLENGE_DONE";
+    case CHALLENGE_DONE2:  return "CHALLENGE_DONE2";
+    case CHALLENGE_DONE3:  return "CHALLENGE_DONE3";
     default:               return "UNKNOWN";
   }
 }
@@ -2314,6 +2321,12 @@ void preloadImages() {
       preloadImage("/idolnat/screens/outcome_bg.png", currentBackground);
       break;
     case CHALLENGES_SCREEN:
+      preloadImage("/idolnat/screens/outcome_bg.png", currentBackground);
+      break;
+    case CHALLENGE_DONE:
+      preloadImage("/idolnat/screens/challenge_complete.png", currentBackground);
+      break;
+    case CHALLENGE_DONE2: case CHALLENGE_DONE3:
       preloadImage("/idolnat/screens/outcome_bg.png", currentBackground);
       break;
   }
@@ -3963,6 +3976,19 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         l5NeedsRedraw = true;
         toastEnabled = false;
         break;
+      case CHALLENGE_DONE:
+        setScreenConfig(CARD);
+        characterEnabled = false;
+        break;
+      case CHALLENGE_DONE2:
+        setScreenConfig(DIALOG);
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        break;
+      case CHALLENGE_DONE3:
+        setScreenConfig(IDLE);
+        characterEnabled = false;
+        break;
       default:
         break;
     }
@@ -4376,6 +4402,10 @@ void manageCard() {
       break;
     case MATSURI_TICKETS3:
       changeState(0, HOME_LOOP, 0);
+      break;
+    case CHALLENGE_DONE:
+      characterEnabled = false;
+      changeState(0, HOME_LOOP, microWait);
       break;
   }
   drawBackground(currentBackground);
@@ -11676,4 +11706,39 @@ void manageChallenges() {
       }
     }
   }
+}
+
+void challengeDone() {
+  Serial.println("> Entering challengeDone()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      Serial.println(">> challengeDone() - key pressed");
+      switch(previousState) {
+        case TRAIN_SING3: case TRAIN_DANCE3:
+          changeState(0, TRAIN_STATUS, 0);
+          break;
+        case TRAIN_SWIM3: case TRAIN_GYM3: case TRAIN_RUN3:
+          changeState(0, TRAIN_STATUS, 0);
+          break;
+        case TRAIN_LIBRARY:
+          changeState(0, HOME_LOOP, 0);
+          break;
+        case MATSURI_SAVORY5: case MATSURI_SUGARY4:
+          changeState(0, MATSURI_MENU, 0);
+          break;
+        case MATSURI_GARAPON4:
+          changeState(0, MATSURI_MENU, 0);
+          break;
+        case DOOR_KNOCK7:
+          changeState(0, DOOR_KNOCK8, 0);
+          break;
+        default:
+          changeState(0, HOME_LOOP, 0);
+          break;
+      }
+    }
+  }
+  return;
 }
