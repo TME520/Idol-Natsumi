@@ -9456,10 +9456,10 @@ void drawOverlay() {
         // Helper text
         drawHelper(pfcHelperText);
         break;
-      case PFC_GAME9:
+      case PFC_GAME9: {
         // Bg
         M5Cardputer.Display.drawPng(currentBackground.data, currentBackground.length, 0, 0);
-
+      
         // Character (center current PNG horizontally)
         int characterX = 100;
         if (currentCharacter.data != nullptr && currentCharacter.length >= 24) {
@@ -9470,10 +9470,11 @@ void drawOverlay() {
           }
         }
         M5Cardputer.Display.drawPng(currentCharacter.data, currentCharacter.length, characterX, 0);
-
+      
         // Helper text
         drawHelper(pfcHelperText);
         break;
+      }
       case CHALLENGE_DONE2:
         drawDialogBubble("Congratulations, you completed a challenge!!");
         break;
