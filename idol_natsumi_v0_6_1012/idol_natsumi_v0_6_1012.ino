@@ -471,6 +471,7 @@ uint16_t perfectSingingLessons = 0;
 uint16_t perfectDancingLessons = 0;
 uint16_t perfectSwimmingLessons = 0;
 uint8_t challengeSelection = 0;
+bool announceChallengeCompletion = false;
 
 uint8_t challengeStepMask(uint8_t stepIndex) {
   if (stepIndex >= CHALLENGE_STEP_COUNT) {
@@ -565,6 +566,7 @@ void completeChallengeStep(uint8_t challengeId, uint8_t stepIndex) {
     challengeFlags[challengeId] |= challengeStepMask(stepIndex);
     saveRequired = true;
     Serial.println(">> completeChallengeStep() - challengeId: " + String(challengeId) + " - stepIndex: " + String(stepIndex) + " - COMPLETED");
+    announceChallengeCompletion = true;
   } else {
     Serial.println(">> completeChallengeStep() - challengeId: " + String(challengeId) + " - stepIndex: " + String(stepIndex) + " - NOT COMPLETED");
   }
@@ -580,7 +582,6 @@ void updateChallengeProgress() {
       if (step < CHALLENGE_STEP_COUNT) {
         completeChallengeStep(challengeId, step);
         Serial.println(">>> updateChallengeProgress() - Completed challenge " + String(challengeId) + " (step: " + String(step) +")");
-        changeState(0, CHALLENGE_DONE, 0);
       }
     }
 
@@ -4405,7 +4406,8 @@ void manageCard() {
       break;
     case CHALLENGE_DONE:
       characterEnabled = false;
-      changeState(0, HOME_LOOP, microWait);
+      announceChallengeCompletion = false;
+      changeState(0, CHALLENGE_DONE2, microWait);
       break;
   }
   drawBackground(currentBackground);
@@ -4470,7 +4472,11 @@ void manageDialog() {
       miniGameDebrief();
       break;
     case ACTION_OUTCOME:
-      actionOutcome();
+      if (announceChallengeCompletion) {
+        changeState(0, CHALLENGE_DONE, 0);
+      } else {
+        actionOutcome();
+      }
       break;
     case TRAIN_STATUS:
       manageTrainingStatus();
@@ -4488,6 +4494,9 @@ void manageDialog() {
       break;
     case DOOR_KNOCK2: case DOOR_KNOCK3: case DOOR_KNOCK4: case DOOR_KNOCK5: case DOOR_KNOCK6: case DOOR_KNOCK8: case DOOR_KNOCK10:
       manageFriendsVisits();
+      break;
+    case CHALLENGE_DONE2:
+      challengeDone();
       break;
     default:
       break;
@@ -4681,6 +4690,9 @@ void manageIdle() {
       break;
     case VISITOR_PORTRAIT:
       manageFriendsVisits();
+      break;
+    case CHALLENGE_DONE3:
+      challengeDone();
       break;
     default:
       break;
@@ -8600,7 +8612,7 @@ bool cookSelectedRecipe() {
     item->quantity = *(item->quantityPtr);
   }
 
-  natsumi.hunger = std::min(4, natsumi.hunger + 1);
+  natsumi.hunger = 4;
   notifyRecipeCooked(recipe ? static_cast<uint8_t>(recipe - cookRecipes) : 255);
   saveRequired = true;
   FoodDisplayItem* previewItem = findFoodGridItem(recipeSelection[0]);
@@ -9292,6 +9304,9 @@ void drawOverlay() {
         break;
       case ACTION_OUTCOME:
         switch(previousState) {
+          case FOOD_COOK2:
+            drawOutcome("MAX", "Hunger");
+            break;
           case FOOD_ORDER8:
             if (natsumi.grace < 4) {
               Serial.println(">> actionOutcome() - natsumi.grace < 4");
@@ -9458,6 +9473,13 @@ void drawOverlay() {
 
         // Helper text
         drawHelper(pfcHelperText);
+        break;
+      case CHALLENGE_DONE2:
+        drawDialogBubble("Congratulations, you completed a challenge!!");
+        break;
+      case CHALLENGE_DONE3:
+        natsumi.spirit = 4;
+        drawOutcome("MAX", "Spirit");
         break;
     }
   }
@@ -10845,7 +10867,7 @@ void manageOnsen() {
 }
 
 void showFood() {
-  changeState(0, HOME_LOOP, microWait);
+  changeState(0, ACTION_OUTCOME, microWait);
   return;
 }
 
@@ -11715,24 +11737,15 @@ void challengeDone() {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       Serial.println(">> challengeDone() - key pressed");
-      switch(previousState) {
-        case TRAIN_SING3: case TRAIN_DANCE3:
-          changeState(0, TRAIN_STATUS, 0);
+      switch(currentState) {
+        case CHALLENGE_DONE:
+          changeState(0, CHALLENGE_DONE2, 0);
           break;
-        case TRAIN_SWIM3: case TRAIN_GYM3: case TRAIN_RUN3:
-          changeState(0, TRAIN_STATUS, 0);
+        case CHALLENGE_DONE2:
+          changeState(0, CHALLENGE_DONE3, 0);
           break;
-        case TRAIN_LIBRARY:
-          changeState(0, HOME_LOOP, 0);
-          break;
-        case MATSURI_SAVORY5: case MATSURI_SUGARY4:
-          changeState(0, MATSURI_MENU, 0);
-          break;
-        case MATSURI_GARAPON4:
-          changeState(0, MATSURI_MENU, 0);
-          break;
-        case DOOR_KNOCK7:
-          changeState(0, DOOR_KNOCK8, 0);
+        case CHALLENGE_DONE3:
+          changeState(0, ACTION_OUTCOME, 0);
           break;
         default:
           changeState(0, HOME_LOOP, 0);
