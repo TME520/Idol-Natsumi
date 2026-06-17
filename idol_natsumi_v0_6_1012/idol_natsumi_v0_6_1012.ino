@@ -612,6 +612,7 @@ void initializeChallengeProgress() {
 void notifyFlowersGrown(uint16_t count) {
   Serial.println("> notifyFlowersGrown()");
   flowersGrownTotal += count;
+  Serial.println(">> notifyFlowersGrown() - Grown flowers: " + String(flowersGrownTotal));
   updateChallengeProgress();
 }
 
@@ -5027,7 +5028,7 @@ void manageGarden() {
   gardeningHelperText = "ARROWS: Move  ENTER: Menu  ESC: Home";
 
   int &tile = gardenTiles[gardenCursorRow][gardenCursorCol];
-  Serial.println(">> tile: " + String(tile));
+  // Serial.println(">> tile: " + String(tile));
   switch (currentState) {
     case GARDEN_PLANT:
       // Serial.println(">> GARDEN_PLANT");
