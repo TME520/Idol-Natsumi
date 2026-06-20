@@ -3599,6 +3599,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         overlayActive = true;
         l5NeedsRedraw = true;
         toastEnabled = false;
+        menuOpened = false;
         break;
       case FLOWERS_MARKET7:
         setScreenConfig(DIALOG);
@@ -9964,7 +9965,7 @@ void cookFood() {
       auto keyList = M5Cardputer.Keyboard.keyList();
       if (keyList.size() > 0) {
         key = M5Cardputer.Keyboard.getKey(keyList[0]);
-        Serial.println(">> [KEY] = " + String(key));
+        // Serial.println(">> [KEY] = " + String(key));
         int currentCol = foodSelectionIndex % 4;
         int currentRow = foodSelectionIndex / 4;
 
