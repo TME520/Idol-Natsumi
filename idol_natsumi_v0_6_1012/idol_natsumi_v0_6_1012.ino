@@ -3600,6 +3600,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         l5NeedsRedraw = true;
         toastEnabled = false;
         menuOpened = false;
+        menuEnabled = false;
         break;
       case FLOWERS_MARKET7:
         setScreenConfig(DIALOG);
@@ -5086,6 +5087,7 @@ void manageGarden() {
       if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
         auto keyList = M5Cardputer.Keyboard.keyList();
         if (keyList.size() > 0) {
+          Serial.println(">> manageGarden() - key pressed");
           key = M5Cardputer.Keyboard.getKey(keyList[0]);
           bool moved = false;
           switch (key) {
@@ -5941,6 +5943,7 @@ void manageTrainSwimGame() {
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
+      Serial.println(">> manageTrainSwimGame() - key pressed");
       uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
       if ((key == 59 || key == 'w' || key == 'W') && swimPlayerLane > 0) { // UP
         swimPlayerLane--;
@@ -6554,6 +6557,7 @@ void manageBathGame() {
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
+      Serial.println(">> manageBathGame() - key pressed");
       uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
       if (key == 13 || key == 40 || key == ' ') {
         buttonPressed = true;
@@ -7292,6 +7296,7 @@ void sleep() {
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
+      Serial.println(">> sleep() - key pressed");
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       overlayActive = false;
       changeState(0, HOME_LOOP, 0);
@@ -8903,7 +8908,7 @@ void drawOverlay() {
             currentState != GARDEN_LOOP && currentState != GARDEN_PLANT &&
             currentState != GARDEN_WATER && currentState != GARDEN_PICK &&
             currentState != GARDEN_CLEANUP && currentState != GARDEN_MENU &&
-            currentState != CHALLENGES_SCREEN) {
+            currentState != CHALLENGES_SCREEN && currentState != FLOWERS_MARKET6) {
           overlayActive = false;
           changeState(0, HOME_LOOP, 0);
           return;
