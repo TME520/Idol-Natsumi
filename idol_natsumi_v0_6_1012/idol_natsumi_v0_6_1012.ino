@@ -8582,8 +8582,8 @@ FoodDisplayItem* findFoodGridItem(FoodId id) {
 }
 
 bool cookSelectedRecipe() {
-  if (recipeSelectionCount < 2 || recipeSelectionCount > 4) {
-    showToast("Pick 2-4 items");
+  if (recipeSelectionCount < 1 || recipeSelectionCount > 4) {
+    showToast("Pick 1-4 items");
     return false;
   }
 
@@ -8754,7 +8754,7 @@ void drawFoodGrid(const std::vector<FoodDisplayItem> &items, int selectedIndex) 
   }
 
   M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("Green: Combines  ENTER +/-  SPACE Cook", 120, 131, true, WHITE, 1);
+  drawText("Green: Can cook  ENTER +/-  SPACE Eat", 120, 131, true, WHITE, 1);
 }
 
 int getConbimartTotal() {
@@ -10019,7 +10019,7 @@ void cookFood() {
             }
             return;
             break;
-          // SPACE cooks the current 2-4 ingredient selection.
+          // SPACE cooks the current 1-4 ingredient selection.
           case ' ':
             if (cookSelectedRecipe()) {
               return;

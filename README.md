@@ -335,9 +335,9 @@ How to cook:
 * Open **FOOD → COOKING**.
 * Move the cursor with the arrow keys, or with **W/A/S/D**.
 * Press **ENTER** to add or remove the highlighted fridge item from the current recipe.
-* Pick **2 to 4 ingredients**. Selected ingredients are marked on the cooking grid.
+* Pick **1 to 4 ingredients**. Selected ingredients are marked on the cooking grid.
 * Green-highlighted ingredients can combine with the current selection.
-* Press **SPACE** to cook the selected recipe. Cooking consumes one of each selected ingredient and raises Hunger by 1, up to the maximum of 4.
+* Press **SPACE** to cook/eat the selected recipe. Cooking consumes one of each selected ingredient and raises Hunger by 1, up to the maximum of 4.
 * If the selected ingredients do not match a known recipe while a known recipe is available, the game rejects the mix. If no known recipe can be made from the fridge stock, a generic **Pantry Snack** can still be cooked so Natsumi is not blocked from eating.
 
 Available recipes:
