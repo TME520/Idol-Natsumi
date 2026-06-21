@@ -3969,7 +3969,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           characterEnabled = true;
         }
         break;
-        break;
       case VISITOR_PORTRAIT:
         setScreenConfig(IDLE);
         characterEnabled = false;
@@ -4405,7 +4404,12 @@ void manageCard() {
       changeState(0, MATSURI_TICKETS2, microWait);
       break;
     case MATSURI_TICKETS3:
-      changeState(0, HOME_LOOP, 0);
+      // changeState(0, HOME_LOOP, 0);
+      if (announceChallengeCompletion) {
+        changeState(0, CHALLENGE_DONE, 0);
+      } else {
+        changeState(0, HOME_LOOP, 0);
+      }
       break;
     case CHALLENGE_DONE:
       characterEnabled = false;
@@ -4475,11 +4479,7 @@ void manageDialog() {
       miniGameDebrief();
       break;
     case ACTION_OUTCOME:
-      if (announceChallengeCompletion) {
-        changeState(0, CHALLENGE_DONE, 0);
-      } else {
-        actionOutcome();
-      }
+      actionOutcome();
       break;
     case TRAIN_STATUS:
       manageTrainingStatus();
@@ -10210,7 +10210,12 @@ void actionOutcome() {
             addOneMatsuriTicket = false;
             changeState(0, MATSURI_TICKETS, 0);
           } else {
-            changeState(0, HOME_LOOP, 0);
+            // changeState(0, HOME_LOOP, 0);
+            if (announceChallengeCompletion) {
+              changeState(0, CHALLENGE_DONE, 0);
+            } else {
+              changeState(0, HOME_LOOP, 0);
+            }
           }
           break;
         case MATSURI_SAVORY5: case MATSURI_SUGARY4:
@@ -10223,7 +10228,12 @@ void actionOutcome() {
           changeState(0, DOOR_KNOCK8, 0);
           break;
         default:
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          if (announceChallengeCompletion) {
+            changeState(0, CHALLENGE_DONE, 0);
+          } else {
+            changeState(0, HOME_LOOP, 0);
+          }
           break;
       }
     }
@@ -10319,7 +10329,12 @@ void manageTrainingStatus() {
         addOneMatsuriTicket = false;
         changeState(0, MATSURI_TICKETS, 0);
       } else {
-        changeState(0, HOME_LOOP, 0);
+        // changeState(0, HOME_LOOP, 0);
+        if (announceChallengeCompletion) {
+          changeState(0, CHALLENGE_DONE, 0);
+        } else {
+          changeState(0, HOME_LOOP, 0);
+        }
       }
       return;
     }
@@ -10444,7 +10459,12 @@ void manageFriendsVisits() {
           changeState(0, DOOR_KNOCK10, 0);
           break;
         case DOOR_KNOCK10:
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          if (announceChallengeCompletion) {
+            changeState(0, CHALLENGE_DONE, 0);
+          } else {
+            changeState(0, HOME_LOOP, 0);
+          }
           break;
         case VISITOR_PORTRAIT:
           changeState(0, DOOR_KNOCK3, 0);
