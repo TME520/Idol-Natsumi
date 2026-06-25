@@ -524,7 +524,7 @@ uint8_t getCurrentChallengeStep(uint8_t challengeId) {
 }
 
 bool canCompleteChallengeStep(uint8_t challengeId, uint8_t stepIndex) {
-  Serial.println("> canCompleteChallengeStep()");
+  Serial.println("> canCompleteChallengeStep() - conbimartVisitsTotal: " + String(conbimartVisitsTotal));
   if (challengeId >= MAX_CHALLENGES || stepIndex >= CHALLENGE_STEP_COUNT || !isChallengeUnlocked(challengeId)) {
     // Serial.println(">> canCompleteChallengeStep() - FALSE");
     return false;
@@ -539,8 +539,8 @@ bool canCompleteChallengeStep(uint8_t challengeId, uint8_t stepIndex) {
       // Serial.println(">> canCompleteChallengeStep() - CHALLENGE_GARDENING_1 - stepIndex: " + String(stepIndex));
       if (stepIndex == 0) return flowersGrownTotal >= 9;
       if (stepIndex == 1) return flowersSoldTotal >= 9;
-      // if (stepIndex == 2) return conbimartVisitsTotal > 0;
-      if (stepIndex == 2) return true;
+      if (stepIndex == 2) return conbimartVisitsTotal > 0;
+      // if (stepIndex == 2) return true;
       return false;
     case CHALLENGE_GARDENING_2:
       // Serial.println(">> canCompleteChallengeStep() - CHALLENGE_GARDENING_2");
@@ -625,18 +625,11 @@ void notifyFlowersSold(uint16_t count) {
 
 void notifyVisitedPlace(uint8_t placeId) {
   Serial.println("> notifyVisitedPlace() - placeId: " + String(placeId));
-  /*
-  if (placeId == PLACE_CONBIMART && canCompleteChallengeStep(CHALLENGE_GARDENING_1, 2)) {
-    conbimartVisitsTotal += 1;
-    completeChallengeStep(CHALLENGE_GARDENING_1, 2);
-    updateChallengeProgress();
-    Serial.println(">> notifyVisitedPlace() - conbimartVisitsTotal: " + String(conbimartVisitsTotal));
-  }
-  */
+  Serial.println(">> notifyVisitedPlace() - Before SWITCH");
   switch(placeId) {
     case PLACE_CONBIMART:
+      conbimartVisitsTotal += 1;
       if (canCompleteChallengeStep(CHALLENGE_GARDENING_1, 2)) {
-        conbimartVisitsTotal += 1;
         completeChallengeStep(CHALLENGE_GARDENING_1, 2);
         updateChallengeProgress();
         Serial.println(">> notifyVisitedPlace() - conbimartVisitsTotal: " + String(conbimartVisitsTotal));
@@ -646,6 +639,7 @@ void notifyVisitedPlace(uint8_t placeId) {
       Serial.println(">> notifyVisitedPlace() - Went the default route...");
       break;
   }
+  Serial.println(">> notifyVisitedPlace() - After SWITCH");
 }
 
 void notifyRecipeCooked(uint8_t recipeId) {
@@ -10752,7 +10746,12 @@ void miniGameDebrief() {
         case FLOWERS_MARKET7:
           saveRequired = true;
           // isNatsumiHappy = true;
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          if (announceChallengeCompletion) {
+            changeState(0, CHALLENGE_DONE, 0);
+          } else {
+            changeState(0, HOME_LOOP, 0);
+          }
           break;
         case TRAIN_SING3:
           Serial.println(">> miniGameDebrief() - Changing state to ACTION_OUTCOME");
