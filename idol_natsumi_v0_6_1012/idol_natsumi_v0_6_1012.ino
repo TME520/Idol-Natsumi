@@ -487,22 +487,22 @@ bool isChallengeUnlocked(uint8_t challengeId) {
 
 bool isChallengeStepDone(uint8_t challengeId, uint8_t stepIndex) {
   Serial.println("> isChallengeStepDone() - challengeId: " + String(challengeId) + " - stepIndex: " + String(stepIndex) + " - MAX_CHALLENGES: " + String(MAX_CHALLENGES) + " - CHALLENGE_STEP_COUNT: " + String(CHALLENGE_STEP_COUNT));
-  Serial.println(">> isChallengeStepDone() - Returns " + String(challengeId < MAX_CHALLENGES && stepIndex < CHALLENGE_STEP_COUNT && (challengeFlags[challengeId] & challengeStepMask(stepIndex))));
+  // Serial.println(">> isChallengeStepDone() - Returns " + String(challengeId < MAX_CHALLENGES && stepIndex < CHALLENGE_STEP_COUNT && (challengeFlags[challengeId] & challengeStepMask(stepIndex))));
   uint8_t flags = challengeFlags[challengeId];
   uint8_t mask  = challengeStepMask(stepIndex);
   
-  Serial.print("challengeFlags[");
-  Serial.print(challengeId);
-  Serial.print("] = ");
+  // Serial.print("challengeFlags[");
+  // Serial.print(challengeId);
+  // Serial.print("] = ");
   printByteBinary(flags);
   
-  Serial.print(" | challengeStepMask(");
-  Serial.print(stepIndex);
-  Serial.print(") = ");
+  // Serial.print(" | challengeStepMask(");
+  // Serial.print(stepIndex);
+  // Serial.print(") = ");
   printByteBinary(mask);
   
-  Serial.print(" | result = ");
-  Serial.println((flags & mask) ? "DONE" : "NOT DONE");
+  // Serial.print(" | result = ");
+  // Serial.println((flags & mask) ? "DONE" : "NOT DONE");
   return challengeId < MAX_CHALLENGES && stepIndex < CHALLENGE_STEP_COUNT && (challengeFlags[challengeId] & challengeStepMask(stepIndex));
 }
 
@@ -526,30 +526,30 @@ uint8_t getCurrentChallengeStep(uint8_t challengeId) {
 bool canCompleteChallengeStep(uint8_t challengeId, uint8_t stepIndex) {
   Serial.println("> canCompleteChallengeStep()");
   if (challengeId >= MAX_CHALLENGES || stepIndex >= CHALLENGE_STEP_COUNT || !isChallengeUnlocked(challengeId)) {
-    Serial.println(">> canCompleteChallengeStep() - FALSE");
+    // Serial.println(">> canCompleteChallengeStep() - FALSE");
     return false;
   }
   if (getCurrentChallengeStep(challengeId) != stepIndex) {
-    Serial.println(">> canCompleteChallengeStep() - FALSE");
+    // Serial.println(">> canCompleteChallengeStep() - FALSE");
     return false;
   }
 
   switch (challengeId) {
     case CHALLENGE_GARDENING_1:
-      Serial.println(">> canCompleteChallengeStep() - CHALLENGE_GARDENING_1 - stepIndex: " + String(stepIndex));
+      // Serial.println(">> canCompleteChallengeStep() - CHALLENGE_GARDENING_1 - stepIndex: " + String(stepIndex));
       if (stepIndex == 0) return flowersGrownTotal >= 9;
       if (stepIndex == 1) return flowersSoldTotal >= 9;
       // if (stepIndex == 2) return conbimartVisitsTotal > 0;
       if (stepIndex == 2) return true;
       return false;
     case CHALLENGE_GARDENING_2:
-      Serial.println(">> canCompleteChallengeStep() - CHALLENGE_GARDENING_2");
+      // Serial.println(">> canCompleteChallengeStep() - CHALLENGE_GARDENING_2");
       if (stepIndex == 0) return flowersGrownTotal >= 24;
       if (stepIndex == 1) return flowersSoldTotal >= 24;
       if (stepIndex == 2) return recipesCookedTotal >= 1;
       return false;
     case CHALLENGE_TRAINING_1:
-      Serial.println(">> canCompleteChallengeStep() - CHALLENGE_TRAINING_1");
+      // Serial.println(">> canCompleteChallengeStep() - CHALLENGE_TRAINING_1");
       if (stepIndex == 0) return perfectSingingLessons >= 1;
       if (stepIndex == 1) return perfectDancingLessons >= 1;
       if (stepIndex == 2) return perfectSwimmingLessons >= 1;
@@ -561,12 +561,13 @@ bool canCompleteChallengeStep(uint8_t challengeId, uint8_t stepIndex) {
 }
 
 void completeChallengeStep(uint8_t challengeId, uint8_t stepIndex) {
-  Serial.println("> completeChallengeStep()");
+  // Serial.println("> completeChallengeStep()");
   if (canCompleteChallengeStep(challengeId, stepIndex)) {
     challengeFlags[challengeId] |= challengeStepMask(stepIndex);
     saveRequired = true;
-    Serial.println(">> completeChallengeStep() - challengeId: " + String(challengeId) + " - stepIndex: " + String(stepIndex) + " - COMPLETED");
+    // Serial.println(">> completeChallengeStep() - challengeId: " + String(challengeId) + " - stepIndex: " + String(stepIndex) + " - COMPLETED");
     announceChallengeCompletion = true;
+    Serial.println(">> completeChallengeStep() - announceChallengeCompletion set to TRUE");
   } else {
     Serial.println(">> completeChallengeStep() - challengeId: " + String(challengeId) + " - stepIndex: " + String(stepIndex) + " - NOT COMPLETED");
   }
@@ -575,9 +576,9 @@ void completeChallengeStep(uint8_t challengeId, uint8_t stepIndex) {
 void updateChallengeProgress() {
   Serial.println("> updateChallengeProgress()");
   for (uint8_t pass = 0; pass < 2; ++pass) {
-    Serial.println(">> updateChallengeProgress() - pass: " + String(pass));
+    // Serial.println(">> updateChallengeProgress() - pass: " + String(pass));
     for (uint8_t challengeId = 0; challengeId < MAX_CHALLENGES; ++challengeId) {
-      Serial.println(">>> updateChallengeProgress() - challengeId: " + String(challengeId));
+      // Serial.println(">>> updateChallengeProgress() - challengeId: " + String(challengeId));
       uint8_t step = getCurrentChallengeStep(challengeId);
       if (step < CHALLENGE_STEP_COUNT) {
         completeChallengeStep(challengeId, step);
@@ -587,7 +588,7 @@ void updateChallengeProgress() {
 
     if (isChallengeComplete(CHALLENGE_GARDENING_1)) {
       challengeFlags[CHALLENGE_GARDENING_2] |= CHALLENGE_UNLOCKED;
-      Serial.println(">> updateChallengeProgress() - Challenge CHALLENGE_GARDENING_1 complete");
+      // Serial.println(">> updateChallengeProgress() - Challenge CHALLENGE_GARDENING_1 complete");
     }
   }
 }
@@ -3990,14 +3991,14 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case CHALLENGE_DONE3:
         setScreenConfig(IDLE);
-        characterEnabled = false;
+        // characterEnabled = true;
         break;
       default:
         break;
     }
   } else {
     changeStateCounter += 1;
-    Serial.println("Delay transition (" + String(changeStateCounter) + "/" + String(delay) + ")");
+    // Serial.println("Delay transition (" + String(changeStateCounter) + "/" + String(delay) + ")");
   }
   return;
 }
@@ -5016,8 +5017,9 @@ void drawGardenPlanter(String helperText) {
   }
 
   if (!menuOpened) {
-    M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-    drawText(helperText, 120, 131, true, WHITE, 1);
+    // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+    // drawText(helperText, 120, 131, true, WHITE, 1);
+    drawHelper(helperText);
   }
 }
 
@@ -5087,13 +5089,13 @@ void manageGarden() {
       if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
         auto keyList = M5Cardputer.Keyboard.keyList();
         if (keyList.size() > 0) {
-          Serial.println(">> manageGarden() - key pressed");
+          // Serial.println(">> manageGarden() - key pressed");
           key = M5Cardputer.Keyboard.getKey(keyList[0]);
           bool moved = false;
           switch (key) {
             // UP
             case 181: case 59: case 'w': case 'W':
-              Serial.println(">>> UP");
+              // Serial.println(">>> UP");
               if (gardenCursorRow > 0) {
                 gardenCursorRow--;
                 moved = true;
@@ -5102,7 +5104,7 @@ void manageGarden() {
               break;
             // DOWN
             case 182: case 46: case 's': case 'S':
-              Serial.println(">>> DOWN");
+              // Serial.println(">>> DOWN");
               if (gardenCursorRow < gardenRows - 1) {
                 gardenCursorRow++;
                 moved = true;
@@ -5111,7 +5113,7 @@ void manageGarden() {
               break;
             // LEFT
             case 180: case 44: case 'a': case 'A':
-              Serial.println(">>> LEFT");
+              // Serial.println(">>> LEFT");
               if (gardenCursorCol > 0) {
                 gardenCursorCol--;
                 moved = true;
@@ -5120,7 +5122,7 @@ void manageGarden() {
               break;
             // RIGHT
             case 183: case 47: case 'd': case 'D':
-              Serial.println(">>> RIGHT");
+              // Serial.println(">>> RIGHT");
               if (gardenCursorCol < gardenCols - 1) {
                 gardenCursorCol++;
                 moved = true;
@@ -5129,7 +5131,7 @@ void manageGarden() {
               break;
             // ENTER
             case 13: case 40: {
-              Serial.println(">>> ENTER");
+              // Serial.println(">>> ENTER");
               menuOpened = true;
               int tileValue = gardenTiles[gardenCursorRow][gardenCursorCol];
               if (tileValue == 0) {
@@ -5146,9 +5148,14 @@ void manageGarden() {
             }
             // ESC
             case 96:
-              Serial.println(">>> ESC");
+              // Serial.println(">>> ESC");
               menuOpened = false;
-              changeState(0, HOME_LOOP, 0);
+              // changeState(0, HOME_LOOP, 0);
+              if (announceChallengeCompletion) {
+                changeState(0, CHALLENGE_DONE, 0);
+              } else {
+                changeState(0, HOME_LOOP, 0);
+              }
               return;
           }
           if (moved) {
@@ -6440,8 +6447,9 @@ void drawBathStaticLayout() {
   const int innerX = thermometerX + thermometerInnerPadding;
   const int innerWidth = thermometerWidth - thermometerInnerPadding * 2;
 
-  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("Press ENTER at right temperature", 120, 131, true, WHITE, 1);
+  // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  // drawText("Press ENTER at right temperature", 120, 131, true, WHITE, 1);
+  drawHelper("Press ENTER at right temperature");
 
   M5Cardputer.Display.drawRect(thermometerX, thermometerY, thermometerWidth, thermometerHeight, frameColor);
   M5Cardputer.Display.fillRect(innerX, thermometerY + thermometerInnerPadding, innerWidth, thermometerHeight - thermometerInnerPadding * 2, fillColor);
@@ -6480,8 +6488,9 @@ void drawBathSlider(int y) {
 void finalizeBathOutcome(String outcomeText) {
   bathOutcomeTime = millis();
   bathGameRunning = false;
-  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("Shower temperature is " + outcomeText, 120, 131, true, WHITE, 1);
+  // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  // drawText("Shower temperature is " + outcomeText, 120, 131, true, WHITE, 1);
+  drawHelper("Shower temperature is " + outcomeText);
   showToast("Shower is " + outcomeText);
 
   /*
@@ -6557,7 +6566,7 @@ void manageBathGame() {
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
-      Serial.println(">> manageBathGame() - key pressed");
+      // Serial.println(">> manageBathGame() - key pressed");
       uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
       if (key == 13 || key == 40 || key == ' ') {
         buttonPressed = true;
@@ -6703,8 +6712,9 @@ void drawDialogBubble(const String& dialogText) {
   }
 
   // Helper text at the bottom
-  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("Press any key to continue", 120, 131, true, WHITE, 1);
+  // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  // drawText("Press any key to continue", 120, 131, true, WHITE, 1);
+  drawHelper("Press any key to continue");
 }
 
 void drawLibraryProgressBar() {
@@ -6833,7 +6843,7 @@ void manageFlowersMarket() {
         case 13: case 40:
           flowersPrice = prices[flowerMarketSelection];
           flowersSaleHandicap = flowerMarketSelection;
-          Serial.println("> manageFlowersMarket - flowersPrice=" + String(flowersPrice));
+          // Serial.println("> manageFlowersMarket - flowersPrice=" + String(flowersPrice));
           flowerMarketInitialized = false;
           overlayActive = false;
           flowersSaleInProgress = true;
@@ -6873,8 +6883,9 @@ void manageFlowersMarket() {
       drawText("$" + String(prices[i]), x + (buttonW / 2), startY + 9, true, textColor, 1);
     }
 
-    M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-    drawText("LEFT/RIGHT: Price  ENTER: Sell  ESC: Home", 120, 131, true, WHITE, 1);
+    // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+    // drawText("LEFT/RIGHT: Price  ENTER: Sell  ESC: Home", 120, 131, true, WHITE, 1);
+    drawHelper("LEFT/RIGHT: Price  ENTER: Sell  ESC: Home");
     flowerMarketNeedsRedraw = false;
   }
 }
@@ -6927,7 +6938,7 @@ void manageFlowersSale() {
         flowersRevenue += flowersPrice;
         notifyFlowersSold(1);
       }
-      Serial.println("> manageFlowersSale - flowersRevenue=" + String(flowersRevenue));
+      // Serial.println("> manageFlowersSale - flowersRevenue=" + String(flowersRevenue));
       flowerSaleNeedsRedraw = true;
     }
   }
@@ -6957,8 +6968,9 @@ void manageFlowersSale() {
         );
       }
     }
-    M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-    drawText("Selling: " + String(natsumi.flowers) + " left, " + String(flowersRevenue) + "$ profit", 120, 131, true, WHITE, 1);
+    // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+    // drawText("Selling: " + String(natsumi.flowers) + " left, " + String(flowersRevenue) + "$ profit", 120, 131, true, WHITE, 1);
+    drawHelper("Selling: " + String(natsumi.flowers) + " left, " + String(flowersRevenue) + "$ profit");
     flowerSaleNeedsRedraw = false;
   }
 }
@@ -7351,15 +7363,16 @@ void drawCharacter() {
   // Draw the character(s) on the screen (layer 1)
   // Serial.println("> Entering drawCharacter() L1 with characterEnabled set to " + String(characterEnabled));
   if (l1NeedsRedraw) {
-    Serial.println(">> drawCharacter() - l1NeedsRedraw TRUE");
+    // Serial.println(">> drawCharacter() - l1NeedsRedraw TRUE");
     if (characterEnabled) {
-      Serial.println(">> drawCharacter() - characterEnabled TRUE");
+      // Serial.println(">> drawCharacter() - characterEnabled TRUE");
       drawImage(currentCharacter);
       if (!menuOpened && !overlayActive && menuEnabled) {
         // Helper text at the bottom
-        Serial.println(">> drawCharacter() - menuEnabled TRUE");
-        M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-        drawText("TAB: Open menu", 120, 131, true, WHITE, 1);
+        // Serial.println(">> drawCharacter() - menuEnabled TRUE");
+        // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+        // drawText("TAB: Open menu", 120, 131, true, WHITE, 1);
+        drawHelper("TAB: Open menu");
       }
     }
     l1NeedsRedraw = false;
@@ -7438,7 +7451,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       if (keyList.size() > 0) {
         key = M5Cardputer.Keyboard.getKey(keyList[0]);
       }
-      Serial.println(">> drawMenu() - KEY: " + String(key));
+      // Serial.println(">> drawMenu() - KEY: " + String(key));
     }
   
     if (menuType == "home") {
@@ -8375,8 +8388,9 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       }
   
       // Helper text at the bottom
-      M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-      drawText("UP/DOWN: Navigate, ENTER: Validate", 120, 131, true, WHITE, 1);
+      // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+      // drawText("UP/DOWN: Navigate, ENTER: Validate", 120, 131, true, WHITE, 1);
+      drawHelper("UP/DOWN: Navigate, ENTER: Validate");
       l4NeedsRedraw = false;
     }
   } else {
@@ -8758,8 +8772,9 @@ void drawFoodGrid(const std::vector<FoodDisplayItem> &items, int selectedIndex) 
     M5Cardputer.Display.drawString(String("x") + String(items[i].quantity), cellX + cellW / 2, cellY + cellH - 4);
   }
 
-  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("Green: Can cook  ENTER +/-  SPACE Eat", 120, 131, true, WHITE, 1);
+  // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  // drawText("Green: Can cook  ENTER +/-  SPACE Eat", 120, 131, true, WHITE, 1);
+  drawHelper("Green: Can cook  ENTER +/-  SPACE Eat");
 }
 
 int getConbimartTotal() {
@@ -8826,8 +8841,9 @@ void drawConbimartOverlay() {
   M5Cardputer.Display.print("Cash: " + String(natsumi.money));
   // M5Cardputer.Display.print();
 
-  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("+/-: Qty  ENTER: Buy  ESC: Cancel", 120, 131, true, WHITE, 1);
+  // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  // drawText("+/-: Qty  ENTER: Buy  ESC: Cancel", 120, 131, true, WHITE, 1);
+  drawHelper("+/-: Qty  ENTER: Buy  ESC: Cancel");
   Serial.println(">> drawConbimartOverlay -  Cart: " + String(total));
   Serial.println(">> drawConbimartOverlay -  Cash: " + String(natsumi.money));
 }
@@ -9496,8 +9512,9 @@ void drawOverlay() {
 
 void playGame() {
   // Play one of the mini-games
-  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("Mini-game", 120, 131, true, WHITE, 1);
+  // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  // drawText("Mini-game", 120, 131, true, WHITE, 1);
+  drawHelper("Mini-game");
 }
 
 void allocateTickets() {
@@ -9556,8 +9573,9 @@ void allocateTickets() {
   drawText("Matsuri tickets", centerX, startY + amountHeight + lineSpacing + (statHeight / 2), true, smallTextColor, statTextSize, panelColor);
 
   // Helper text at the bottom
-  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("Total: " + String (natsumi.tickets) + " tickets", 120, 131, true, WHITE, 1);
+  // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  // drawText("Total: " + String (natsumi.tickets) + " tickets", 120, 131, true, WHITE, 1);
+  drawHelper("Total: " + String (natsumi.tickets) + " tickets");
   return;
 }
 
@@ -11773,7 +11791,8 @@ void challengeDone() {
           changeState(0, CHALLENGE_DONE3, 0);
           break;
         case CHALLENGE_DONE3:
-          changeState(0, ACTION_OUTCOME, 0);
+          // changeState(0, ACTION_OUTCOME, 0);
+          changeState(0, HOME_LOOP, 0);
           break;
         default:
           changeState(0, HOME_LOOP, 0);
