@@ -395,6 +395,7 @@ bool foodGridInitialized = false;
 int inventoryPageIndex = 0;
 FoodId recipeSelection[4] = {FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE};
 uint8_t recipeSelectionCount = 0;
+uint8_t lastCookHungerBonus = 0;
 
 void clearFoodGrid();
 
@@ -8627,8 +8628,8 @@ bool cookSelectedRecipe() {
     item->quantity = *(item->quantityPtr);
   }
 
-  // natsumi.hunger = 4;
-  natsumi.hunger += recipeSelectionCount;
+  lastCookHungerBonus = recipeSelectionCount;
+  natsumi.hunger += lastCookHungerBonus;
   if (natsumi.hunger > 4) {
     natsumi.hunger = 4;
   }
@@ -9326,7 +9327,7 @@ void drawOverlay() {
       case ACTION_OUTCOME:
         switch(previousState) {
           case FOOD_COOK2:
-            drawOutcome("+" + String(recipeSelectionCount), "Hunger");
+            drawOutcome("+" + String(lastCookHungerBonus), "Hunger");
             break;
           case FOOD_ORDER8:
             if (natsumi.grace < 4) {
