@@ -8627,7 +8627,11 @@ bool cookSelectedRecipe() {
     item->quantity = *(item->quantityPtr);
   }
 
-  natsumi.hunger = 4;
+  // natsumi.hunger = 4;
+  natsumi.hunger += recipeSelectionCount;
+  if (natsumi.hunger > 4) {
+    natsumi.hunger = 4;
+  }
   notifyRecipeCooked(recipe ? static_cast<uint8_t>(recipe - cookRecipes) : 255);
   saveRequired = true;
   FoodDisplayItem* previewItem = findFoodGridItem(recipeSelection[0]);
@@ -9322,7 +9326,7 @@ void drawOverlay() {
       case ACTION_OUTCOME:
         switch(previousState) {
           case FOOD_COOK2:
-            drawOutcome("MAX", "Hunger");
+            drawOutcome("+" + String(recipeSelectionCount), "Hunger");
             break;
           case FOOD_ORDER8:
             if (natsumi.grace < 4) {
