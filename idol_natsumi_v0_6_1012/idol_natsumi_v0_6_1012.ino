@@ -9326,7 +9326,7 @@ void drawOverlay() {
       case ACTION_OUTCOME:
         switch(previousState) {
           case FOOD_COOK2:
-            drawOutcome("+" + String(recipeSelectionCount), "Hunger");
+            drawOutcome("+" + String(cookRecipeCount), "Hunger");
             break;
           case FOOD_ORDER8:
             if (natsumi.grace < 4) {
