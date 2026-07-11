@@ -7,7 +7,7 @@
 #include <vector>
 
 #define SAVE_MAGIC 0x4E49 // "NI" for Natsumi Idol
-#define SAVE_VERSION 17
+#define SAVE_VERSION 18
 
 // === Game state definitions ===
 enum GameState {
@@ -182,7 +182,26 @@ enum GameState {
   CHALLENGES_SCREEN,
   CHALLENGE_DONE,
   CHALLENGE_DONE2,
-  CHALLENGE_DONE3
+  CHALLENGE_DONE3,
+  NEKO_CAFE,
+  NEKO_CAFE2,
+  NEKO_CAFE3,
+  NEKO_CAFE4,
+  NEKO_CAFE5,
+  NEKO_CAFE6,
+  NEKO_CAFE7,
+  NEKO_CAFE8,
+  NEKO_CAFE9,
+  NEKO_CAFE10,
+  NEKO_CAFE11,
+  NEKO_CAFE12,
+  NEKO_CAFE13,
+  NEKO_CAFE14,
+  NEKO_CAFE15,
+  NEKO_CAFE16,
+  NEKO_CAFE17,
+  NEKO_CAFE18,
+  NEKO_CAFE19
 };
 
 GameState currentState = VERSION_SCREEN;
@@ -747,7 +766,7 @@ unsigned long libraryStartTime = 0;
 String currentMenuType = "main";
 const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: INTRO"};
 const char* homeMenuItems[] = {"0: STATS", "1: INVENTORY", "2: FOOD", "3: TRAINING", "4: COMPETITION", "5: HEALTH", "6: REST", "7: GARDEN", "8: EVENTS", "9: CARDS"};
-const char* foodMenuItems[] = {"0: COOKING", "1: RESTAURANT", "2: ORDER", "3: CONBINI"};
+const char* foodMenuItems[] = {"0: COOKING", "1: RESTAURANT", "2: ORDER", "3: CONBINI", "4: CAFE"};
 const char* trainingMenuItems[] = {"0: SING", "1: DANCE", "2: SWIM", "3: GYM", "4: RUN", "5: LIBRARY", "6: MARKET"};
 const char* competitionMenuItems[] = {"0: LOCAL", "1: DEPARTMENTAL", "2: REGIONAL", "3: NATIONAL"};
 const char* healthMenuItems[] = {"0: WASH", "1: DOCTOR", "2: TEMPLE", "3: ONSEN"};
@@ -757,7 +776,7 @@ const char* eventsMenuItems[] = {"0: MATSURI", "1: JOBS", "2: CHALLENGES", "3: F
 const char** currentMenuItems = nullptr;
 const int mainMenuItemCount = 3;
 const int homeMenuItemCount = 10;
-const int foodMenuItemCount = 4;
+const int foodMenuItemCount = 5;
 const int trainingMenuItemCount = 7;
 const int competitionMenuItemCount = 4;
 const int healthMenuItemCount = 4;
@@ -1222,6 +1241,25 @@ const char* gameStateToString(GameState state) {
     case CHALLENGE_DONE:   return "CHALLENGE_DONE";
     case CHALLENGE_DONE2:  return "CHALLENGE_DONE2";
     case CHALLENGE_DONE3:  return "CHALLENGE_DONE3";
+    case NEKO_CAFE:        return "NEKO_CAFE";
+    case NEKO_CAFE2:       return "NEKO_CAFE2";
+    case NEKO_CAFE3:       return "NEKO_CAFE3";
+    case NEKO_CAFE4:       return "NEKO_CAFE4";
+    case NEKO_CAFE5:       return "NEKO_CAFE5";
+    case NEKO_CAFE6:       return "NEKO_CAFE6";
+    case NEKO_CAFE7:       return "NEKO_CAFE7";
+    case NEKO_CAFE8:       return "NEKO_CAFE8";
+    case NEKO_CAFE9:       return "NEKO_CAFE9";
+    case NEKO_CAFE10:      return "NEKO_CAFE10";
+    case NEKO_CAFE11:      return "NEKO_CAFE11";
+    case NEKO_CAFE12:      return "NEKO_CAFE12";
+    case NEKO_CAFE13:      return "NEKO_CAFE13";
+    case NEKO_CAFE14:      return "NEKO_CAFE14";
+    case NEKO_CAFE15:      return "NEKO_CAFE15";
+    case NEKO_CAFE16:      return "NEKO_CAFE16";
+    case NEKO_CAFE17:      return "NEKO_CAFE17";
+    case NEKO_CAFE18:      return "NEKO_CAFE18";
+    case NEKO_CAFE19:      return "NEKO_CAFE19";
     default:               return "UNKNOWN";
   }
 }
@@ -7638,6 +7676,15 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             showToast("Wait for food delivery");
           }
           break;
+        case 52:
+          // 4: CAFE
+          if (!waitingForFoodDelivery) {
+            menuOpened = false;
+            changeState(0, NEKO_CAFE, 0);
+          } else {
+            showToast("Wait for food delivery");
+          }
+          break;
         case 57:
           // 9: DEBUG
           if (debugActive) {
@@ -7707,6 +7754,12 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           } else if (selection == 3) {
             if (!waitingForFoodDelivery) {
               changeState(0, FOOD_CONBINI, 0);
+            } else {
+              showToast("Wait for food delivery");
+            }
+          } else if (selection == 4) {
+            if (!waitingForFoodDelivery) {
+              changeState(0, NEKO_CAFE, 0);
             } else {
               showToast("Wait for food delivery");
             }
