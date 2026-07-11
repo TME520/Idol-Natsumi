@@ -6,6 +6,9 @@
 #include <cstring>
 #include <vector>
 
+#define SAVE_MAGIC 0x4E49 // "NI" for Natsumi Idol
+#define SAVE_VERSION 17
+
 // === Game state definitions ===
 enum GameState {
   VERSION_SCREEN,
@@ -175,7 +178,11 @@ enum GameState {
   PFC_GAME6,
   PFC_GAME7,
   PFC_GAME8,
-  PFC_GAME9
+  PFC_GAME9,
+  CHALLENGES_SCREEN,
+  CHALLENGE_DONE,
+  CHALLENGE_DONE2,
+  CHALLENGE_DONE3
 };
 
 GameState currentState = VERSION_SCREEN;
@@ -341,10 +348,38 @@ struct CookRecipe {
 };
 
 const CookRecipe cookRecipes[] = {
+  {"Sweets", 1, {FOOD_ID_SWEETS, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Red Apple", 1, {FOOD_ID_RED_APPLE, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Green Apple", 1, {FOOD_ID_GREEN_APPLE, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Coconut", 1, {FOOD_ID_COCONUT, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Coconut Juice", 1, {FOOD_ID_COCONUT_JUICE, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Avocado", 1, {FOOD_ID_AVOCADO, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Bread", 1, {FOOD_ID_BREAD, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Banana", 1, {FOOD_ID_BANANA, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Broccoli", 1, {FOOD_ID_BROCCOLI, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Carrot", 1, {FOOD_ID_CARROT, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Meat", 1, {FOOD_ID_MEAT, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Coffee", 1, {FOOD_ID_COFFEE, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Biscuit", 1, {FOOD_ID_BISCUIT, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Corn", 1, {FOOD_ID_CORN, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Croissant", 1, {FOOD_ID_CROISSANT, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Fried Egg", 1, {FOOD_ID_FRIED_EGG, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Grape", 1, {FOOD_ID_GRAPE, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Kiwi", 1, {FOOD_ID_KIWI, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Milk", 1, {FOOD_ID_MILK, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Orange", 1, {FOOD_ID_ORANGE, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Peach", 1, {FOOD_ID_PEACH, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Pear", 1, {FOOD_ID_PEAR, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Strawberries", 1, {FOOD_ID_STRAWBERRIES, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Maki", 1, {FOOD_ID_MAKI, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Sushi", 1, {FOOD_ID_SUSHI, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Watermelon", 1, {FOOD_ID_WATERMELON, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
   {"Avocado Toast", 2, {FOOD_ID_BREAD, FOOD_ID_AVOCADO, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Carbunkle Cocktail", 2, {FOOD_ID_COCONUT_JUICE, FOOD_ID_ORANGE, FOOD_ID_NONE, FOOD_ID_NONE}},
   {"Egg Toast", 2, {FOOD_ID_BREAD, FOOD_ID_FRIED_EGG, FOOD_ID_NONE, FOOD_ID_NONE}},
   {"Banana Milk", 2, {FOOD_ID_BANANA, FOOD_ID_MILK, FOOD_ID_NONE, FOOD_ID_NONE}},
   {"Strawberry Milk", 2, {FOOD_ID_STRAWBERRIES, FOOD_ID_MILK, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Cafe Latte", 2, {FOOD_ID_COFFEE, FOOD_ID_MILK, FOOD_ID_NONE, FOOD_ID_NONE}},
   {"Avocado Egg Toast", 3, {FOOD_ID_BREAD, FOOD_ID_AVOCADO, FOOD_ID_FRIED_EGG, FOOD_ID_NONE}},
   {"Meat Veggie Plate", 3, {FOOD_ID_MEAT, FOOD_ID_BROCCOLI, FOOD_ID_CARROT, FOOD_ID_NONE}},
   {"Natsumi Bento", 4, {FOOD_ID_MAKI, FOOD_ID_FRIED_EGG, FOOD_ID_BROCCOLI, FOOD_ID_CARROT}},
@@ -360,6 +395,7 @@ bool foodGridInitialized = false;
 int inventoryPageIndex = 0;
 FoodId recipeSelection[4] = {FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE};
 uint8_t recipeSelectionCount = 0;
+uint8_t lastCookHungerBonus = 0;
 
 void clearFoodGrid();
 
@@ -373,6 +409,262 @@ struct ConbimartItem {
 std::vector<ConbimartItem> conbimartItems;
 int conbimartSelectionIndex = 0;
 bool conbimartInitialized = false;
+
+extern bool saveRequired;
+
+// === Challenges system ===
+// challengeFlags bit layout:
+// bits 0-2: completed steps, bit 3: unlocked, bit 4: reward claimed
+#define CHALLENGE_STEP_0_DONE 0b00000001
+#define CHALLENGE_STEP_1_DONE 0b00000010
+#define CHALLENGE_STEP_2_DONE 0b00000100
+#define CHALLENGE_UNLOCKED    0b00001000
+#define CHALLENGE_REWARDED    0b00010000
+
+#define MAX_CHALLENGES 3
+#define CHALLENGE_STEP_COUNT 3
+
+void printByteBinary(uint8_t value) {
+  for (int i = 7; i >= 0; i--) {
+    Serial.print((value >> i) & 1);
+  }
+}
+
+enum ChallengeId : uint8_t {
+  CHALLENGE_GARDENING_1,
+  CHALLENGE_GARDENING_2,
+  CHALLENGE_TRAINING_1
+};
+
+enum ChallengeType : uint8_t {
+  CHALLENGE_TYPE_GARDENING,
+  CHALLENGE_TYPE_TRAINING
+};
+
+enum PlaceId : uint8_t {
+  PLACE_CONBIMART
+};
+
+enum LessonType : uint8_t {
+  LESSON_SINGING,
+  LESSON_DANCING,
+  LESSON_SWIMMING
+};
+
+struct ChallengeDefinition {
+  const char* title;
+  ChallengeType type;
+  const char* steps[CHALLENGE_STEP_COUNT];
+};
+
+const ChallengeDefinition challengeDefinitions[MAX_CHALLENGES] = {
+  {"Gardening 1", CHALLENGE_TYPE_GARDENING, {"Grow 9 flowers", "Sell 9 flowers", "Go to Conbimart"}},
+  {"Gardening 2", CHALLENGE_TYPE_GARDENING, {"Grow 24 flowers", "Sell 24 flowers", "Cook a recipe"}},
+  {"Training 1", CHALLENGE_TYPE_TRAINING, {"Perfect singing lesson", "Perfect dancing lesson", "Perfect swimming lesson"}}
+};
+
+uint8_t challengeFlags[MAX_CHALLENGES] = {};
+uint16_t flowersGrownTotal = 0;
+uint16_t flowersSoldTotal = 0;
+uint16_t conbimartVisitsTotal = 0;
+uint16_t recipesCookedTotal = 0;
+uint16_t perfectSingingLessons = 0;
+uint16_t perfectDancingLessons = 0;
+uint16_t perfectSwimmingLessons = 0;
+uint8_t challengeSelection = 0;
+bool announceChallengeCompletion = false;
+
+uint8_t challengeStepMask(uint8_t stepIndex) {
+  if (stepIndex >= CHALLENGE_STEP_COUNT) {
+    return 0;
+  }
+  return (1 << stepIndex);
+}
+
+bool isChallengeUnlocked(uint8_t challengeId) {
+  Serial.println("> isChallengeUnlocked() - Returning " + String(challengeId < MAX_CHALLENGES && (challengeFlags[challengeId] & CHALLENGE_UNLOCKED)));
+  return challengeId < MAX_CHALLENGES && (challengeFlags[challengeId] & CHALLENGE_UNLOCKED);
+}
+
+bool isChallengeStepDone(uint8_t challengeId, uint8_t stepIndex) {
+  Serial.println("> isChallengeStepDone() - challengeId: " + String(challengeId) + " - stepIndex: " + String(stepIndex) + " - MAX_CHALLENGES: " + String(MAX_CHALLENGES) + " - CHALLENGE_STEP_COUNT: " + String(CHALLENGE_STEP_COUNT));
+  // Serial.println(">> isChallengeStepDone() - Returns " + String(challengeId < MAX_CHALLENGES && stepIndex < CHALLENGE_STEP_COUNT && (challengeFlags[challengeId] & challengeStepMask(stepIndex))));
+  uint8_t flags = challengeFlags[challengeId];
+  uint8_t mask  = challengeStepMask(stepIndex);
+  
+  // Serial.print("challengeFlags[");
+  // Serial.print(challengeId);
+  // Serial.print("] = ");
+  printByteBinary(flags);
+  
+  // Serial.print(" | challengeStepMask(");
+  // Serial.print(stepIndex);
+  // Serial.print(") = ");
+  printByteBinary(mask);
+  
+  // Serial.print(" | result = ");
+  // Serial.println((flags & mask) ? "DONE" : "NOT DONE");
+  return challengeId < MAX_CHALLENGES && stepIndex < CHALLENGE_STEP_COUNT && (challengeFlags[challengeId] & challengeStepMask(stepIndex));
+}
+
+bool isChallengeComplete(uint8_t challengeId) {
+  Serial.println("> isChallengeComplete()");
+  return challengeId < MAX_CHALLENGES && ((challengeFlags[challengeId] & 0b00000111) == 0b00000111);
+}
+
+uint8_t getCurrentChallengeStep(uint8_t challengeId) {
+  if (challengeId >= MAX_CHALLENGES || !isChallengeUnlocked(challengeId)) {
+    return CHALLENGE_STEP_COUNT;
+  }
+  for (uint8_t step = 0; step < CHALLENGE_STEP_COUNT; ++step) {
+    if (!isChallengeStepDone(challengeId, step)) {
+      return step;
+    }
+  }
+  return CHALLENGE_STEP_COUNT;
+}
+
+bool canCompleteChallengeStep(uint8_t challengeId, uint8_t stepIndex) {
+  Serial.println("> canCompleteChallengeStep() - conbimartVisitsTotal: " + String(conbimartVisitsTotal));
+  if (challengeId >= MAX_CHALLENGES || stepIndex >= CHALLENGE_STEP_COUNT || !isChallengeUnlocked(challengeId)) {
+    // Serial.println(">> canCompleteChallengeStep() - FALSE");
+    return false;
+  }
+  if (getCurrentChallengeStep(challengeId) != stepIndex) {
+    // Serial.println(">> canCompleteChallengeStep() - FALSE");
+    return false;
+  }
+
+  switch (challengeId) {
+    case CHALLENGE_GARDENING_1:
+      // Serial.println(">> canCompleteChallengeStep() - CHALLENGE_GARDENING_1 - stepIndex: " + String(stepIndex));
+      if (stepIndex == 0) return flowersGrownTotal >= 9;
+      if (stepIndex == 1) return flowersSoldTotal >= 9;
+      if (stepIndex == 2) return conbimartVisitsTotal > 0;
+      // if (stepIndex == 2) return true;
+      return false;
+    case CHALLENGE_GARDENING_2:
+      // Serial.println(">> canCompleteChallengeStep() - CHALLENGE_GARDENING_2");
+      if (stepIndex == 0) return flowersGrownTotal >= 24;
+      if (stepIndex == 1) return flowersSoldTotal >= 24;
+      if (stepIndex == 2) return recipesCookedTotal >= 1;
+      return false;
+    case CHALLENGE_TRAINING_1:
+      // Serial.println(">> canCompleteChallengeStep() - CHALLENGE_TRAINING_1");
+      if (stepIndex == 0) return perfectSingingLessons >= 1;
+      if (stepIndex == 1) return perfectDancingLessons >= 1;
+      if (stepIndex == 2) return perfectSwimmingLessons >= 1;
+      return false;
+    default:
+      Serial.println(">> canCompleteChallengeStep() - Went the default route...");
+      return false;
+  }
+}
+
+void completeChallengeStep(uint8_t challengeId, uint8_t stepIndex) {
+  // Serial.println("> completeChallengeStep()");
+  if (canCompleteChallengeStep(challengeId, stepIndex)) {
+    challengeFlags[challengeId] |= challengeStepMask(stepIndex);
+    saveRequired = true;
+    // Serial.println(">> completeChallengeStep() - challengeId: " + String(challengeId) + " - stepIndex: " + String(stepIndex) + " - COMPLETED");
+    announceChallengeCompletion = true;
+    Serial.println(">> completeChallengeStep() - announceChallengeCompletion set to TRUE");
+  } else {
+    Serial.println(">> completeChallengeStep() - challengeId: " + String(challengeId) + " - stepIndex: " + String(stepIndex) + " - NOT COMPLETED");
+  }
+}
+
+void updateChallengeProgress() {
+  Serial.println("> updateChallengeProgress()");
+  for (uint8_t pass = 0; pass < 2; ++pass) {
+    // Serial.println(">> updateChallengeProgress() - pass: " + String(pass));
+    for (uint8_t challengeId = 0; challengeId < MAX_CHALLENGES; ++challengeId) {
+      // Serial.println(">>> updateChallengeProgress() - challengeId: " + String(challengeId));
+      uint8_t step = getCurrentChallengeStep(challengeId);
+      if (step < CHALLENGE_STEP_COUNT) {
+        completeChallengeStep(challengeId, step);
+        Serial.println(">>> updateChallengeProgress() - Completed challenge " + String(challengeId) + " (step: " + String(step) +")");
+      }
+    }
+
+    if (isChallengeComplete(CHALLENGE_GARDENING_1)) {
+      challengeFlags[CHALLENGE_GARDENING_2] |= CHALLENGE_UNLOCKED;
+      // Serial.println(">> updateChallengeProgress() - Challenge CHALLENGE_GARDENING_1 complete");
+    }
+  }
+}
+
+void initializeChallengeProgress() {
+  Serial.println("> initializeChallengeProgress()");
+  for (uint8_t i = 0; i < MAX_CHALLENGES; ++i) {
+    challengeFlags[i] = 0;
+  }
+  challengeFlags[CHALLENGE_GARDENING_1] = CHALLENGE_UNLOCKED;
+  challengeFlags[CHALLENGE_TRAINING_1] = CHALLENGE_UNLOCKED;
+  flowersGrownTotal = 0;
+  flowersSoldTotal = 0;
+  conbimartVisitsTotal = 0;
+  recipesCookedTotal = 0;
+  perfectSingingLessons = 0;
+  perfectDancingLessons = 0;
+  perfectSwimmingLessons = 0;
+  challengeSelection = 0;
+}
+
+void notifyFlowersGrown(uint16_t count) {
+  Serial.println("> notifyFlowersGrown()");
+  flowersGrownTotal += count;
+  Serial.println(">> notifyFlowersGrown() - Grown flowers: " + String(flowersGrownTotal));
+  updateChallengeProgress();
+}
+
+void notifyFlowersSold(uint16_t count) {
+  Serial.println("> notifyFlowersSold()");
+  flowersSoldTotal += count;
+  updateChallengeProgress();
+}
+
+void notifyVisitedPlace(uint8_t placeId) {
+  Serial.println("> notifyVisitedPlace() - placeId: " + String(placeId));
+  Serial.println(">> notifyVisitedPlace() - Before SWITCH");
+  switch(placeId) {
+    case PLACE_CONBIMART:
+      conbimartVisitsTotal += 1;
+      if (canCompleteChallengeStep(CHALLENGE_GARDENING_1, 2)) {
+        completeChallengeStep(CHALLENGE_GARDENING_1, 2);
+        updateChallengeProgress();
+        Serial.println(">> notifyVisitedPlace() - conbimartVisitsTotal: " + String(conbimartVisitsTotal));
+      }
+      break;
+    default:
+      Serial.println(">> notifyVisitedPlace() - Went the default route...");
+      break;
+  }
+  Serial.println(">> notifyVisitedPlace() - After SWITCH");
+}
+
+void notifyRecipeCooked(uint8_t recipeId) {
+  Serial.println("> notifyRecipeCooked()");
+  (void)recipeId;
+  recipesCookedTotal += 1;
+  updateChallengeProgress();
+}
+
+void notifyPerfectLesson(uint8_t lessonType) {
+  Serial.println("> notifyPerfectLesson()");
+  switch (lessonType) {
+    case LESSON_SINGING:
+      perfectSingingLessons += 1;
+      break;
+    case LESSON_DANCING:
+      perfectDancingLessons += 1;
+      break;
+    case LESSON_SWIMMING:
+      perfectSwimmingLessons += 1;
+      break;
+  }
+  updateChallengeProgress();
+}
 
 // === Game Time Tracking ===
 // 60000 milliseconds in a minute
@@ -455,13 +747,13 @@ unsigned long libraryStartTime = 0;
 String currentMenuType = "main";
 const char* mainMenuItems[] = {"0: NEW GAME", "1: CONTINUE", "2: INTRO"};
 const char* homeMenuItems[] = {"0: STATS", "1: INVENTORY", "2: FOOD", "3: TRAINING", "4: COMPETITION", "5: HEALTH", "6: REST", "7: GARDEN", "8: EVENTS", "9: CARDS"};
-const char* foodMenuItems[] = {"0: FRIDGE", "1: RESTAURANT", "2: ORDER", "3: CONBINI"};
+const char* foodMenuItems[] = {"0: COOKING", "1: RESTAURANT", "2: ORDER", "3: CONBINI"};
 const char* trainingMenuItems[] = {"0: SING", "1: DANCE", "2: SWIM", "3: GYM", "4: RUN", "5: LIBRARY", "6: MARKET"};
 const char* competitionMenuItems[] = {"0: LOCAL", "1: DEPARTMENTAL", "2: REGIONAL", "3: NATIONAL"};
 const char* healthMenuItems[] = {"0: WASH", "1: DOCTOR", "2: TEMPLE", "3: ONSEN"};
 const char* restMenuItems[] = {"0: MEDITATE", "1: SLEEP"};
 const char* gardenMenuItems[] = {"0: PLANT", "1: WATER", "2: PICK", "3: CLEANUP"};
-const char* eventsMenuItems[] = {"0: MATSURI", "1: JOBS", "2: QUESTS", "3: FESTIVALS"};
+const char* eventsMenuItems[] = {"0: MATSURI", "1: JOBS", "2: CHALLENGES", "3: FESTIVALS"};
 const char** currentMenuItems = nullptr;
 const int mainMenuItemCount = 3;
 const int homeMenuItemCount = 10;
@@ -747,7 +1039,7 @@ int natsumiHand = 0;
 int pfcOutcome = 0;
 
 String copyright = "(c) 2026 - Pantzumatic";
-String versionNumber = "Update 16";
+String versionNumber = "Update " + String(SAVE_VERSION);
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
@@ -926,6 +1218,10 @@ const char* gameStateToString(GameState state) {
     case PFC_GAME7:        return "PFC_GAME7";
     case PFC_GAME8:        return "PFC_GAME8";
     case PFC_GAME9:        return "PFC_GAME9";
+    case CHALLENGES_SCREEN:     return "CHALLENGES_SCREEN";
+    case CHALLENGE_DONE:   return "CHALLENGE_DONE";
+    case CHALLENGE_DONE2:  return "CHALLENGE_DONE2";
+    case CHALLENGE_DONE3:  return "CHALLENGE_DONE3";
     default:               return "UNKNOWN";
   }
 }
@@ -981,6 +1277,8 @@ bool saveGameToSd() {
 
   saveFile.println("[version]");
   saveFile.println(String(versionNumber));
+  saveFile.println("magic=" + String(SAVE_MAGIC));
+  saveFile.println("save_version=" + String(SAVE_VERSION));
   
   saveFile.println("[natsumi]");
   saveFile.println("age=" + String(natsumi.age));
@@ -1076,6 +1374,22 @@ bool saveGameToSd() {
   saveFile.println("silverOne=" + String(cards.silverOne));
   saveFile.println("goldOne=" + String(cards.goldOne));
   saveFile.println("platinumOne=" + String(cards.platinumOne));
+
+  saveFile.println("[challenges]");
+  saveFile.print("challenge_flags=");
+  for (uint8_t i = 0; i < MAX_CHALLENGES; ++i) {
+    if (i > 0) {
+      saveFile.print(",");
+    }
+    saveFile.print(challengeFlags[i]);
+  }
+  saveFile.println();
+  saveFile.println("flowers_grown_total=" + String(flowersGrownTotal));
+  saveFile.println("flowers_sold_total=" + String(flowersSoldTotal));
+  saveFile.println("recipes_cooked_total=" + String(recipesCookedTotal));
+  saveFile.println("perfect_singing_lessons=" + String(perfectSingingLessons));
+  saveFile.println("perfect_dancing_lessons=" + String(perfectDancingLessons));
+  saveFile.println("perfect_swimming_lessons=" + String(perfectSwimmingLessons));
   
   saveFile.println("[meta]");
   saveFile.println("current_state=" + String(gameStateToString(currentState)));
@@ -1112,6 +1426,7 @@ bool saveGameToSd() {
 bool loadGameFromSd() {
   Serial.println(">> loadGameFromSd: Loading save data");
   loadedContinueState = HOME_LOOP;
+  initializeChallengeProgress();
 
   const char* loadPath = saveGamePath;
   if (!SD.exists(loadPath)) {
@@ -1269,6 +1584,29 @@ bool loadGameFromSd() {
       else if (key == "silverOne") cards.silverOne = value.toInt();
       else if (key == "goldOne") cards.goldOne = value.toInt();
       else if (key == "platinumOne") cards.platinumOne = value.toInt();
+    } else if (section == "[challenges]") {
+      if (key == "challenge_flags") {
+        int flagIndex = 0;
+        int startIndex = 0;
+        while (startIndex < value.length() && flagIndex < MAX_CHALLENGES) {
+          int commaIndex = value.indexOf(',', startIndex);
+          String token = (commaIndex == -1) ? value.substring(startIndex) : value.substring(startIndex, commaIndex);
+          token.trim();
+          if (token.length() > 0) {
+            challengeFlags[flagIndex] = static_cast<uint8_t>(token.toInt());
+            flagIndex++;
+          }
+          if (commaIndex == -1) {
+            break;
+          }
+          startIndex = commaIndex + 1;
+        }
+      } else if (key == "flowers_grown_total") flowersGrownTotal = static_cast<uint16_t>(value.toInt());
+      else if (key == "flowers_sold_total") flowersSoldTotal = static_cast<uint16_t>(value.toInt());
+      else if (key == "recipes_cooked_total") recipesCookedTotal = static_cast<uint16_t>(value.toInt());
+      else if (key == "perfect_singing_lessons") perfectSingingLessons = static_cast<uint16_t>(value.toInt());
+      else if (key == "perfect_dancing_lessons") perfectDancingLessons = static_cast<uint16_t>(value.toInt());
+      else if (key == "perfect_swimming_lessons") perfectSwimmingLessons = static_cast<uint16_t>(value.toInt());
     } else if (section == "[meta]") {
       if (key == "current_state") loadedContinueState = gameStateFromString(value);
       else if (key == "playtime_total_ms") playtimeTotalMs = strtoul(value.c_str(), nullptr, 10);
@@ -1280,6 +1618,7 @@ bool loadGameFromSd() {
   }
 
   saveFile.close();
+  updateChallengeProgress();
   sessionStart = millis();
   Serial.println(">> loadGameFromSd: Load complete");
   Serial.println(">>> loadGameFromSd - natsumi.ageMilliseconds: " + String(natsumi.ageMilliseconds));
@@ -1977,6 +2316,15 @@ void preloadImages() {
       }
       break;
     case PFC_GAME9:
+      preloadImage("/idolnat/screens/outcome_bg.png", currentBackground);
+      break;
+    case CHALLENGES_SCREEN:
+      preloadImage("/idolnat/screens/outcome_bg.png", currentBackground);
+      break;
+    case CHALLENGE_DONE:
+      preloadImage("/idolnat/screens/challenge_complete.png", currentBackground);
+      break;
+    case CHALLENGE_DONE2: case CHALLENGE_DONE3:
       preloadImage("/idolnat/screens/outcome_bg.png", currentBackground);
       break;
   }
@@ -2853,7 +3201,7 @@ void loop() {
   Serial.println("debugEnabled: " + String(debugEnabled) + " - menuOpened: " + String(menuOpened) + " - toastActive: " + String(toastActive));
   Serial.println("changeStateCounter: " + String(changeStateCounter) + " - l5NeedsRedraw: " + String(l5NeedsRedraw));
 */
-  Serial.println("> currentState = " + String(gameStateToString(currentState)));
+  // Serial.println("> currentState = " + String(gameStateToString(currentState)));
   // Serial.println("loop - natsumi.ageMilliseconds: " + String(natsumi.ageMilliseconds));
   // Serial.println("loop - playtimeTotalMs: " + String(playtimeTotalMs));
   switch (screenConfig) {
@@ -3097,6 +3445,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         playtimeTotalMs = 0;
         sessionStart = millis();
         lastAgeTick = 0;
+        initializeChallengeProgress();
         break;
       case CONTINUE_GAME:
         setScreenConfig(CARD);
@@ -3184,6 +3533,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           playtimeTotalMs = 0;
           sessionStart = millis();
           lastAgeTick = 0;
+          initializeChallengeProgress();
         }
         break;
       case INTRO: case INTRO2: case INTRO3: case INTRO4: case INTRO5: case INTRO6:
@@ -3225,6 +3575,13 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         inventoryPageIndex = 0;
         menuOpened = false;
         break;
+      case CHALLENGES_SCREEN:
+        setScreenConfig(GAME);
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        toastEnabled = false;
+        menuOpened = false;
+        break;
       case FLOWERS_MARKET:
         setScreenConfig(IDLE);
         characterEnabled = false;
@@ -3238,6 +3595,8 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         overlayActive = true;
         l5NeedsRedraw = true;
         toastEnabled = false;
+        menuOpened = false;
+        menuEnabled = false;
         break;
       case FLOWERS_MARKET7:
         setScreenConfig(DIALOG);
@@ -3298,6 +3657,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case FOOD_ORDER6: case FOOD_ORDER7:
         setScreenConfig(ROOM);
+        menuOpened = false;
         break;
       case FOOD_ORDER8:
         setScreenConfig(DIALOG);
@@ -3605,7 +3965,6 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           characterEnabled = true;
         }
         break;
-        break;
       case VISITOR_PORTRAIT:
         setScreenConfig(IDLE);
         characterEnabled = false;
@@ -3616,12 +3975,25 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         l5NeedsRedraw = true;
         toastEnabled = false;
         break;
+      case CHALLENGE_DONE:
+        setScreenConfig(CARD);
+        characterEnabled = false;
+        break;
+      case CHALLENGE_DONE2:
+        setScreenConfig(DIALOG);
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        break;
+      case CHALLENGE_DONE3:
+        setScreenConfig(IDLE);
+        // characterEnabled = true;
+        break;
       default:
         break;
     }
   } else {
-    Serial.println("Delay transition");
     changeStateCounter += 1;
+    // Serial.println("Delay transition (" + String(changeStateCounter) + "/" + String(delay) + ")");
   }
   return;
 }
@@ -4028,7 +4400,17 @@ void manageCard() {
       changeState(0, MATSURI_TICKETS2, microWait);
       break;
     case MATSURI_TICKETS3:
-      changeState(0, HOME_LOOP, 0);
+      // changeState(0, HOME_LOOP, 0);
+      if (announceChallengeCompletion) {
+        changeState(0, CHALLENGE_DONE, 0);
+      } else {
+        changeState(0, HOME_LOOP, 0);
+      }
+      break;
+    case CHALLENGE_DONE:
+      characterEnabled = false;
+      announceChallengeCompletion = false;
+      changeState(0, CHALLENGE_DONE2, microWait);
       break;
   }
   drawBackground(currentBackground);
@@ -4112,6 +4494,9 @@ void manageDialog() {
     case DOOR_KNOCK2: case DOOR_KNOCK3: case DOOR_KNOCK4: case DOOR_KNOCK5: case DOOR_KNOCK6: case DOOR_KNOCK8: case DOOR_KNOCK10:
       manageFriendsVisits();
       break;
+    case CHALLENGE_DONE2:
+      challengeDone();
+      break;
     default:
       break;
   }
@@ -4175,6 +4560,9 @@ void manageGame() {
       break;
     case PFC_GAME: case PFC_GAME2: case PFC_GAME3: case PFC_GAME4: case PFC_GAME5: case PFC_GAME6: case PFC_GAME7: case PFC_GAME8: case PFC_GAME9:
       managePFCGame();
+      break;
+    case CHALLENGES_SCREEN:
+      manageChallenges();
       break;
     default:
       playGame();
@@ -4302,6 +4690,9 @@ void manageIdle() {
     case VISITOR_PORTRAIT:
       manageFriendsVisits();
       break;
+    case CHALLENGE_DONE3:
+      challengeDone();
+      break;
     default:
       break;
   }
@@ -4366,6 +4757,7 @@ void manageRoom() {
       break;
     case FOOD_ORDER6:
       waitingForFoodDelivery = true;
+      saveRequired = true;
       changeState(0, HOME_LOOP, 0);
       break;
     case FOOD_ORDER7:
@@ -4505,7 +4897,7 @@ void displayVersionScreen() {
 }
 
 void manageHomeScreen() {
-  Serial.println("> Entering manageHomeScreen()");
+  // Serial.println("> Entering manageHomeScreen()");
   // Serial.print("natsumi.age: ");
   // Serial.println(natsumi.age);
   // Serial.print("currentAge: ");
@@ -4620,8 +5012,9 @@ void drawGardenPlanter(String helperText) {
   }
 
   if (!menuOpened) {
-    M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-    drawText(helperText, 120, 131, true, WHITE, 1);
+    // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+    // drawText(helperText, 120, 131, true, WHITE, 1);
+    drawHelper(helperText);
   }
 }
 
@@ -4634,7 +5027,7 @@ void manageGarden() {
   gardeningHelperText = "ARROWS: Move  ENTER: Menu  ESC: Home";
 
   int &tile = gardenTiles[gardenCursorRow][gardenCursorCol];
-  Serial.println(">> tile: " + String(tile));
+  // Serial.println(">> tile: " + String(tile));
   switch (currentState) {
     case GARDEN_PLANT:
       // Serial.println(">> GARDEN_PLANT");
@@ -4666,6 +5059,7 @@ void manageGarden() {
         if (natsumi.flowers < 24) {
           tile = 0;
           natsumi.flowers += 1;
+          notifyFlowersGrown(1);
           gardeningHelperText = "Natsumi now has " + String(natsumi.flowers) + " flowers";
           saveRequired = true;
           isPlayerGardening = true;
@@ -4690,12 +5084,13 @@ void manageGarden() {
       if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
         auto keyList = M5Cardputer.Keyboard.keyList();
         if (keyList.size() > 0) {
+          // Serial.println(">> manageGarden() - key pressed");
           key = M5Cardputer.Keyboard.getKey(keyList[0]);
           bool moved = false;
           switch (key) {
             // UP
             case 181: case 59: case 'w': case 'W':
-              Serial.println(">>> UP");
+              // Serial.println(">>> UP");
               if (gardenCursorRow > 0) {
                 gardenCursorRow--;
                 moved = true;
@@ -4704,7 +5099,7 @@ void manageGarden() {
               break;
             // DOWN
             case 182: case 46: case 's': case 'S':
-              Serial.println(">>> DOWN");
+              // Serial.println(">>> DOWN");
               if (gardenCursorRow < gardenRows - 1) {
                 gardenCursorRow++;
                 moved = true;
@@ -4713,7 +5108,7 @@ void manageGarden() {
               break;
             // LEFT
             case 180: case 44: case 'a': case 'A':
-              Serial.println(">>> LEFT");
+              // Serial.println(">>> LEFT");
               if (gardenCursorCol > 0) {
                 gardenCursorCol--;
                 moved = true;
@@ -4722,7 +5117,7 @@ void manageGarden() {
               break;
             // RIGHT
             case 183: case 47: case 'd': case 'D':
-              Serial.println(">>> RIGHT");
+              // Serial.println(">>> RIGHT");
               if (gardenCursorCol < gardenCols - 1) {
                 gardenCursorCol++;
                 moved = true;
@@ -4730,8 +5125,8 @@ void manageGarden() {
               }
               break;
             // ENTER
-            case 13: case 40: case ' ': {
-              Serial.println(">>> ENTER");
+            case 13: case 40: {
+              // Serial.println(">>> ENTER");
               menuOpened = true;
               int tileValue = gardenTiles[gardenCursorRow][gardenCursorCol];
               if (tileValue == 0) {
@@ -4748,9 +5143,14 @@ void manageGarden() {
             }
             // ESC
             case 96:
-              Serial.println(">>> ESC");
+              // Serial.println(">>> ESC");
               menuOpened = false;
-              changeState(0, HOME_LOOP, 0);
+              // changeState(0, HOME_LOOP, 0);
+              if (announceChallengeCompletion) {
+                changeState(0, CHALLENGE_DONE, 0);
+              } else {
+                changeState(0, HOME_LOOP, 0);
+              }
               return;
           }
           if (moved) {
@@ -5545,6 +5945,7 @@ void manageTrainSwimGame() {
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
+      Serial.println(">> manageTrainSwimGame() - key pressed");
       uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
       if ((key == 59 || key == 'w' || key == 'W') && swimPlayerLane > 0) { // UP
         swimPlayerLane--;
@@ -6041,8 +6442,9 @@ void drawBathStaticLayout() {
   const int innerX = thermometerX + thermometerInnerPadding;
   const int innerWidth = thermometerWidth - thermometerInnerPadding * 2;
 
-  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("Press ENTER at right temperature", 120, 131, true, WHITE, 1);
+  // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  // drawText("Press ENTER at right temperature", 120, 131, true, WHITE, 1);
+  drawHelper("Press ENTER at right temperature");
 
   M5Cardputer.Display.drawRect(thermometerX, thermometerY, thermometerWidth, thermometerHeight, frameColor);
   M5Cardputer.Display.fillRect(innerX, thermometerY + thermometerInnerPadding, innerWidth, thermometerHeight - thermometerInnerPadding * 2, fillColor);
@@ -6081,8 +6483,9 @@ void drawBathSlider(int y) {
 void finalizeBathOutcome(String outcomeText) {
   bathOutcomeTime = millis();
   bathGameRunning = false;
-  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("Shower temperature is " + outcomeText, 120, 131, true, WHITE, 1);
+  // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  // drawText("Shower temperature is " + outcomeText, 120, 131, true, WHITE, 1);
+  drawHelper("Shower temperature is " + outcomeText);
   showToast("Shower is " + outcomeText);
 
   /*
@@ -6158,6 +6561,7 @@ void manageBathGame() {
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
+      // Serial.println(">> manageBathGame() - key pressed");
       uint8_t key = M5Cardputer.Keyboard.getKey(keyList[0]);
       if (key == 13 || key == 40 || key == ' ') {
         buttonPressed = true;
@@ -6303,8 +6707,9 @@ void drawDialogBubble(const String& dialogText) {
   }
 
   // Helper text at the bottom
-  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("Press any key to continue", 120, 131, true, WHITE, 1);
+  // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  // drawText("Press any key to continue", 120, 131, true, WHITE, 1);
+  drawHelper("Press any key to continue");
 }
 
 void drawLibraryProgressBar() {
@@ -6430,10 +6835,10 @@ void manageFlowersMarket() {
           changeState(0, HOME_LOOP, 0);
           return;
         // ENTER
-        case 13: case 40: case ' ':
+        case 13: case 40:
           flowersPrice = prices[flowerMarketSelection];
           flowersSaleHandicap = flowerMarketSelection;
-          Serial.println("> manageFlowersMarket - flowersPrice=" + String(flowersPrice));
+          // Serial.println("> manageFlowersMarket - flowersPrice=" + String(flowersPrice));
           flowerMarketInitialized = false;
           overlayActive = false;
           flowersSaleInProgress = true;
@@ -6473,8 +6878,9 @@ void manageFlowersMarket() {
       drawText("$" + String(prices[i]), x + (buttonW / 2), startY + 9, true, textColor, 1);
     }
 
-    M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-    drawText("LEFT/RIGHT: Price  ENTER: Sell  ESC: Home", 120, 131, true, WHITE, 1);
+    // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+    // drawText("LEFT/RIGHT: Price  ENTER: Sell  ESC: Home", 120, 131, true, WHITE, 1);
+    drawHelper("LEFT/RIGHT: Price  ENTER: Sell  ESC: Home");
     flowerMarketNeedsRedraw = false;
   }
 }
@@ -6525,8 +6931,9 @@ void manageFlowersSale() {
         natsumi.flowers -= 1;
         natsumi.money += flowersPrice;
         flowersRevenue += flowersPrice;
+        notifyFlowersSold(1);
       }
-      Serial.println("> manageFlowersSale - flowersRevenue=" + String(flowersRevenue));
+      // Serial.println("> manageFlowersSale - flowersRevenue=" + String(flowersRevenue));
       flowerSaleNeedsRedraw = true;
     }
   }
@@ -6556,8 +6963,9 @@ void manageFlowersSale() {
         );
       }
     }
-    M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-    drawText("Selling: " + String(natsumi.flowers) + " left, " + String(flowersRevenue) + "$ profit", 120, 131, true, WHITE, 1);
+    // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+    // drawText("Selling: " + String(natsumi.flowers) + " left, " + String(flowersRevenue) + "$ profit", 120, 131, true, WHITE, 1);
+    drawHelper("Selling: " + String(natsumi.flowers) + " left, " + String(flowersRevenue) + "$ profit");
     flowerSaleNeedsRedraw = false;
   }
 }
@@ -6895,6 +7303,7 @@ void sleep() {
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
+      Serial.println(">> sleep() - key pressed");
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       overlayActive = false;
       changeState(0, HOME_LOOP, 0);
@@ -6949,15 +7358,16 @@ void drawCharacter() {
   // Draw the character(s) on the screen (layer 1)
   // Serial.println("> Entering drawCharacter() L1 with characterEnabled set to " + String(characterEnabled));
   if (l1NeedsRedraw) {
-    Serial.println(">> drawCharacter() - l1NeedsRedraw TRUE");
+    // Serial.println(">> drawCharacter() - l1NeedsRedraw TRUE");
     if (characterEnabled) {
-      Serial.println(">> drawCharacter() - characterEnabled TRUE");
+      // Serial.println(">> drawCharacter() - characterEnabled TRUE");
       drawImage(currentCharacter);
       if (!menuOpened && !overlayActive && menuEnabled) {
         // Helper text at the bottom
-        Serial.println(">> drawCharacter() - menuEnabled TRUE");
-        M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-        drawText("TAB: Open menu", 120, 131, true, WHITE, 1);
+        // Serial.println(">> drawCharacter() - menuEnabled TRUE");
+        // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+        // drawText("TAB: Open menu", 120, 131, true, WHITE, 1);
+        drawHelper("TAB: Open menu");
       }
     }
     l1NeedsRedraw = false;
@@ -7028,7 +7438,7 @@ void drawToast() {
 void drawMenu(String menuType, const char* items[], int itemCount, int &selection) {
   // Draw menus on the screen (layer 4)
   // Serial.println("> Entering drawMenu() L4 with menuEnabled set to " + String(menuEnabled));
-  // Serial.println(">> menuType set to " + String(menuType));
+  // Serial.println(">> drawMenu() - menuType set to " + String(menuType));
   if (menuEnabled) {
     uint8_t key = 0;
     if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -7036,10 +7446,16 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       if (keyList.size() > 0) {
         key = M5Cardputer.Keyboard.getKey(keyList[0]);
       }
+      // Serial.println(">> drawMenu() - KEY: " + String(key));
     }
   
     if (menuType == "home") {
       switch (key) {
+        case 32:
+          // SPACE (Challenges screen)
+          menuOpened = false;
+          changeState(0, CHALLENGES_SCREEN, 0);
+          break;
         case 48:
           // 0: STATS
           menuOpened = false;
@@ -7135,7 +7551,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           selection = (selection + 1) % homeMenuItemCount;
           l4NeedsRedraw = true;
           break;
-        case 13: case 40: case ' ':
+        case 13: case 40:
           // VALIDATE
           if (selection == 0) {
             changeState(0, STATS_SCREEN, 0);
@@ -7262,7 +7678,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           selection = (selection + 1) % foodMenuItemCount;
           l4NeedsRedraw = true;
           break;
-        case 13: case 40: case ' ':
+        case 13: case 40:
           // VALIDATE
           if (selection == 0) {
             changeState(0, FOOD_COOK, 0);
@@ -7375,7 +7791,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           selection = (selection + 1) % trainingMenuItemCount;
           l4NeedsRedraw = true;
           break;
-        case 13: case 40: case ' ':
+        case 13: case 40:
           // VALIDATE
           if (selection == 0) {
             changeState(0, TRAIN_SING, 0);
@@ -7510,7 +7926,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           selection = (selection + 1) % competitionMenuItemCount;
           l4NeedsRedraw = true;
           break;
-        case 13: case 40: case ' ':
+        case 13: case 40:
           // VALIDATE
           if (selection == 0) {
             if (isCompetitionEnabled()) {
@@ -7634,7 +8050,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           selection = (selection + 1) % healthMenuItemCount;
           l4NeedsRedraw = true;
           break;
-        case 13: case 40: case ' ':
+        case 13: case 40:
           // VALIDATE
           if (selection == 0) {
             changeState(0, HEALTH_WASH, 0);
@@ -7700,7 +8116,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           selection = (selection + 1) % restMenuItemCount;
           l4NeedsRedraw = true;
           break;
-        case 13: case 40: case ' ':
+        case 13: case 40:
           // VALIDATE
           if (selection == 0) {
             changeState(0, REST_MEDITATE, 0);
@@ -7737,7 +8153,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           selection = (selection + 1) % mainMenuItemCount;
           l4NeedsRedraw = true;
           break;
-        case 13: case 40: case ' ':
+        case 13: case 40:
           // VALIDATE
           if (selection == 0) {
             menuOpened = false;
@@ -7752,29 +8168,29 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           }
       }
     } else if (menuType == "garden") {
-      Serial.println(">> drawMenu - garden menuType");
+      // Serial.println(">> drawMenu - garden menuType");
       switch (key) {
         case 48:
           // 0: PLANT
-          Serial.println(">>> drawMenu - 0: PLANT");
+          // Serial.println(">>> drawMenu - 0: PLANT");
           menuOpened = false;
           changeState(0, GARDEN_PLANT, 0);
           break;
         case 49:
           // 1: WATER
-          Serial.println(">>> drawMenu - 1: WATER");
+          // Serial.println(">>> drawMenu - 1: WATER");
           menuOpened = false;
           changeState(0, GARDEN_WATER, 0);
           break;
         case 50:
           // 2: PICK
-          Serial.println(">>> drawMenu - 2: PICK");
+          // Serial.println(">>> drawMenu - 2: PICK");
           menuOpened = false;
           changeState(0, GARDEN_PICK, 0);
           break;
         case 51:
           // 3: CLEANUP
-          Serial.println(">>> drawMenu - 3: CLEANUP");
+          // Serial.println(">>> drawMenu - 3: CLEANUP");
           menuOpened = false;
           changeState(0, GARDEN_CLEANUP, 0);
           break;
@@ -7820,7 +8236,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           selection = (selection + 1) % gardenMenuItemCount;
           l4NeedsRedraw = true;
           break;
-        case 13: case 40: case ' ':
+        case 13: case 40:
           // VALIDATE
           if (selection == 0) {
             changeState(0, GARDEN_PLANT, 0);
@@ -7844,16 +8260,16 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           changeState(0, MATSURI_TITLE, 0);
           break;
         case 49:
-          // 1: GIGS
-          // Serial.println(">>> drawMenu - 1: GIGS");
+          // 1: JOBS
+          // Serial.println(">>> drawMenu - 1: JOBS");
           menuOpened = false;
           changeState(0, HOME_LOOP, 0);
           break;
         case 50:
-          // 2: JOBS
-          // Serial.println(">>> drawMenu - 2: JOBS");
+          // 2: CHALLENGES
+          // Serial.println(">>> drawMenu - 2: CHALLENGES");
           menuOpened = false;
-          changeState(0, HOME_LOOP, 0);
+          changeState(0, CHALLENGES_SCREEN, 0);
           break;
         case 51:
           // 3: FESTIVALS
@@ -7893,24 +8309,24 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           break;
         case 181: case 'w': case 'W': case 59:
           // UP
-          Serial.println(">>> drawMenu - UP");
+          // Serial.println(">>> drawMenu - UP");
           selection = (selection - 1 + eventsMenuItemCount) % eventsMenuItemCount;
           l4NeedsRedraw = true;
           break;
         case 182: case 's': case 'S': case 46:
           // DOWN
-          Serial.println(">>> drawMenu - DOWN");
+          // Serial.println(">>> drawMenu - DOWN");
           selection = (selection + 1) % eventsMenuItemCount;
           l4NeedsRedraw = true;
           break;
-        case 13: case 40: case ' ':
+        case 13: case 40:
           // VALIDATE
           if (selection == 0) {
             changeState(0, MATSURI_TITLE, 0);
           } else if (selection == 1) {
             changeState(0, HOME_LOOP, 0);
           } else if (selection == 2) {
-            changeState(0, HOME_LOOP, 0);
+            changeState(0, CHALLENGES_SCREEN, 0);
           } else if (selection == 3) {
             changeState(0, HOME_LOOP, 0);
           }
@@ -7967,8 +8383,9 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
       }
   
       // Helper text at the bottom
-      M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-      drawText("UP/DOWN: Navigate, ENTER: Validate", 120, 131, true, WHITE, 1);
+      // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+      // drawText("UP/DOWN: Navigate, ENTER: Validate", 120, 131, true, WHITE, 1);
+      drawHelper("UP/DOWN: Navigate, ENTER: Validate");
       l4NeedsRedraw = false;
     }
   } else {
@@ -8179,8 +8596,8 @@ FoodDisplayItem* findFoodGridItem(FoodId id) {
 }
 
 bool cookSelectedRecipe() {
-  if (recipeSelectionCount < 2 || recipeSelectionCount > 4) {
-    showToast("Pick 2-4 items");
+  if (recipeSelectionCount < 1 || recipeSelectionCount > 4) {
+    showToast("Pick 1-4 items");
     return false;
   }
 
@@ -8211,7 +8628,12 @@ bool cookSelectedRecipe() {
     item->quantity = *(item->quantityPtr);
   }
 
-  natsumi.hunger = std::min(4, natsumi.hunger + 1);
+  lastCookHungerBonus = recipeSelectionCount;
+  natsumi.hunger += lastCookHungerBonus;
+  if (natsumi.hunger > 4) {
+    natsumi.hunger = 4;
+  }
+  notifyRecipeCooked(recipe ? static_cast<uint8_t>(recipe - cookRecipes) : 255);
   saveRequired = true;
   FoodDisplayItem* previewItem = findFoodGridItem(recipeSelection[0]);
   selectedFood = previewItem ? String(previewItem->label) : "None";
@@ -8349,8 +8771,9 @@ void drawFoodGrid(const std::vector<FoodDisplayItem> &items, int selectedIndex) 
     M5Cardputer.Display.drawString(String("x") + String(items[i].quantity), cellX + cellW / 2, cellY + cellH - 4);
   }
 
-  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("Green: Combines  ENTER +/-  SPACE Cook", 120, 131, true, WHITE, 1);
+  // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  // drawText("Green: Can cook  ENTER +/-  SPACE Eat", 120, 131, true, WHITE, 1);
+  drawHelper("Green: Can cook  ENTER +/-  SPACE Eat");
 }
 
 int getConbimartTotal() {
@@ -8417,8 +8840,9 @@ void drawConbimartOverlay() {
   M5Cardputer.Display.print("Cash: " + String(natsumi.money));
   // M5Cardputer.Display.print();
 
-  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("+/-: Qty  ENTER: Buy  ESC: Cancel", 120, 131, true, WHITE, 1);
+  // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  // drawText("+/-: Qty  ENTER: Buy  ESC: Cancel", 120, 131, true, WHITE, 1);
+  drawHelper("+/-: Qty  ENTER: Buy  ESC: Cancel");
   Serial.println(">> drawConbimartOverlay -  Cart: " + String(total));
   Serial.println(">> drawConbimartOverlay -  Cash: " + String(natsumi.money));
 }
@@ -8498,7 +8922,8 @@ void drawOverlay() {
         if (currentState != FOOD_COOK && currentState != FOOD_CONBINI3 &&
             currentState != GARDEN_LOOP && currentState != GARDEN_PLANT &&
             currentState != GARDEN_WATER && currentState != GARDEN_PICK &&
-            currentState != GARDEN_CLEANUP && currentState != GARDEN_MENU) {
+            currentState != GARDEN_CLEANUP && currentState != GARDEN_MENU &&
+            currentState != CHALLENGES_SCREEN && currentState != FLOWERS_MARKET6) {
           overlayActive = false;
           changeState(0, HOME_LOOP, 0);
           return;
@@ -8517,6 +8942,9 @@ void drawOverlay() {
       case INVENTORY_SCREEN:
         // Serial.println(">>> drawOverlay: INVENTORY_SCREEN");
         drawInventory();
+        break;
+      case CHALLENGES_SCREEN:
+        drawChallengesScreen();
         break;
       case TRAIN_DANCE: case TRAIN_SING: case TRAIN_SWIM: case TRAIN_GYM: case TRAIN_RUN: case COMP_LOCAL4: case COMP_DEPT: case COMP_REG4: case COMP_NAT4:
         drawMiniGameCountdown();
@@ -8898,6 +9326,9 @@ void drawOverlay() {
         break;
       case ACTION_OUTCOME:
         switch(previousState) {
+          case FOOD_COOK2:
+            drawOutcome("+" + String(lastCookHungerBonus), "Hunger");
+            break;
           case FOOD_ORDER8:
             if (natsumi.grace < 4) {
               Serial.println(">> actionOutcome() - natsumi.grace < 4");
@@ -9047,10 +9478,10 @@ void drawOverlay() {
         // Helper text
         drawHelper(pfcHelperText);
         break;
-      case PFC_GAME9:
+      case PFC_GAME9: {
         // Bg
         M5Cardputer.Display.drawPng(currentBackground.data, currentBackground.length, 0, 0);
-
+      
         // Character (center current PNG horizontally)
         int characterX = 100;
         if (currentCharacter.data != nullptr && currentCharacter.length >= 24) {
@@ -9061,9 +9492,17 @@ void drawOverlay() {
           }
         }
         M5Cardputer.Display.drawPng(currentCharacter.data, currentCharacter.length, characterX, 0);
-
+      
         // Helper text
         drawHelper(pfcHelperText);
+        break;
+      }
+      case CHALLENGE_DONE2:
+        drawDialogBubble("Congratulations, you completed a challenge!!");
+        break;
+      case CHALLENGE_DONE3:
+        natsumi.spirit = 4;
+        drawOutcome("MAX", "Spirit");
         break;
     }
   }
@@ -9072,8 +9511,9 @@ void drawOverlay() {
 
 void playGame() {
   // Play one of the mini-games
-  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("Mini-game", 120, 131, true, WHITE, 1);
+  // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  // drawText("Mini-game", 120, 131, true, WHITE, 1);
+  drawHelper("Mini-game");
 }
 
 void allocateTickets() {
@@ -9132,8 +9572,9 @@ void allocateTickets() {
   drawText("Matsuri tickets", centerX, startY + amountHeight + lineSpacing + (statHeight / 2), true, smallTextColor, statTextSize, panelColor);
 
   // Helper text at the bottom
-  M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
-  drawText("Total: " + String (natsumi.tickets) + " tickets", 120, 131, true, WHITE, 1);
+  // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
+  // drawText("Total: " + String (natsumi.tickets) + " tickets", 120, 131, true, WHITE, 1);
+  drawHelper("Total: " + String (natsumi.tickets) + " tickets");
   return;
 }
 
@@ -9546,7 +9987,7 @@ void cookFood() {
       auto keyList = M5Cardputer.Keyboard.keyList();
       if (keyList.size() > 0) {
         key = M5Cardputer.Keyboard.getKey(keyList[0]);
-        Serial.println(">> [KEY] = " + String(key));
+        // Serial.println(">> [KEY] = " + String(key));
         int currentCol = foodSelectionIndex % 4;
         int currentRow = foodSelectionIndex / 4;
 
@@ -9600,7 +10041,7 @@ void cookFood() {
             }
             return;
             break;
-          // SPACE cooks the current 2-4 ingredient selection.
+          // SPACE cooks the current 1-4 ingredient selection.
           case ' ':
             if (cookSelectedRecipe()) {
               return;
@@ -9687,7 +10128,7 @@ void matsuriSale() {
           Serial.println(">> matsuriSale() - RIGHT - selection: 1");
           break;
         // ENTER
-        case 13: case 40: case ' ':
+        case 13: case 40:
           Serial.println(">> matsuriSale() - ENTER");
           switch(previousState) {
             case MATSURI_SAVORY: case MATSURI_SAVORY2:
@@ -9786,7 +10227,12 @@ void actionOutcome() {
             addOneMatsuriTicket = false;
             changeState(0, MATSURI_TICKETS, 0);
           } else {
-            changeState(0, HOME_LOOP, 0);
+            // changeState(0, HOME_LOOP, 0);
+            if (announceChallengeCompletion) {
+              changeState(0, CHALLENGE_DONE, 0);
+            } else {
+              changeState(0, HOME_LOOP, 0);
+            }
           }
           break;
         case MATSURI_SAVORY5: case MATSURI_SUGARY4:
@@ -9799,7 +10245,12 @@ void actionOutcome() {
           changeState(0, DOOR_KNOCK8, 0);
           break;
         default:
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          if (announceChallengeCompletion) {
+            changeState(0, CHALLENGE_DONE, 0);
+          } else {
+            changeState(0, HOME_LOOP, 0);
+          }
           break;
       }
     }
@@ -9895,7 +10346,12 @@ void manageTrainingStatus() {
         addOneMatsuriTicket = false;
         changeState(0, MATSURI_TICKETS, 0);
       } else {
-        changeState(0, HOME_LOOP, 0);
+        // changeState(0, HOME_LOOP, 0);
+        if (announceChallengeCompletion) {
+          changeState(0, CHALLENGE_DONE, 0);
+        } else {
+          changeState(0, HOME_LOOP, 0);
+        }
       }
       return;
     }
@@ -10020,7 +10476,12 @@ void manageFriendsVisits() {
           changeState(0, DOOR_KNOCK10, 0);
           break;
         case DOOR_KNOCK10:
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          if (announceChallengeCompletion) {
+            changeState(0, CHALLENGE_DONE, 0);
+          } else {
+            changeState(0, HOME_LOOP, 0);
+          }
           break;
         case VISITOR_PORTRAIT:
           changeState(0, DOOR_KNOCK3, 0);
@@ -10081,6 +10542,7 @@ void cashier() {
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       overlayActive = false;
+      notifyVisitedPlace(PLACE_CONBIMART);
       changeState(0, HOME_LOOP, 0);
     }
   }
@@ -10289,22 +10751,30 @@ void miniGameDebrief() {
         case FLOWERS_MARKET7:
           saveRequired = true;
           // isNatsumiHappy = true;
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          if (announceChallengeCompletion) {
+            changeState(0, CHALLENGE_DONE, 0);
+          } else {
+            changeState(0, HOME_LOOP, 0);
+          }
           break;
         case TRAIN_SING3:
           Serial.println(">> miniGameDebrief() - Changing state to ACTION_OUTCOME");
+          if (isLatestTrainingPerfect) notifyPerfectLesson(LESSON_SINGING);
           saveRequired = true;
           // isNatsumiHappy = true;
           // changeState(0, HOME_LOOP, 0);
           changeState(0, ACTION_OUTCOME, 0);
           break;
         case TRAIN_DANCE3:
+          if (isLatestTrainingPerfect) notifyPerfectLesson(LESSON_DANCING);
           saveRequired = true;
           // isNatsumiHappy = true;
           // changeState(0, HOME_LOOP, 0);
           changeState(0, ACTION_OUTCOME, 0);
           break;
         case TRAIN_SWIM3:
+          if (isLatestTrainingPerfect) notifyPerfectLesson(LESSON_SWIMMING);
           saveRequired = true;
           // isNatsumiHappy = true;
           // changeState(0, HOME_LOOP, 0);
@@ -10383,7 +10853,7 @@ void gotoConbimart() {
           }
           break;
         // CONFIRM PURCHASE
-        case 13: case 40: case ' ':
+        case 13: case 40:
           {
             int total = getConbimartTotal();
             if (total == 0) {
@@ -10447,8 +10917,7 @@ void manageOnsen() {
 }
 
 void showFood() {
-  //
-  changeState(0, HOME_LOOP, microWait);
+  changeState(0, ACTION_OUTCOME, microWait);
   return;
 }
 
@@ -10472,7 +10941,7 @@ void restaurantFoodSelection() {
               changeState(0, FOOD_REST3, 0);
               break;
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40:
               restaurantSelection = 0;
               if (natsumi.money >= 700) {
                 natsumi.money -= 700;
@@ -10504,7 +10973,7 @@ void restaurantFoodSelection() {
               changeState(0, FOOD_REST4, 0);
               break;
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40:
               restaurantSelection = 1;
               if (natsumi.money >= 800) {
                 natsumi.money -= 800;
@@ -10536,7 +11005,7 @@ void restaurantFoodSelection() {
               changeState(0, FOOD_REST2, 0);
               break;
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40:
               restaurantSelection = 2;
               if (natsumi.money >= 900) {
                 natsumi.money -= 900;
@@ -10592,7 +11061,7 @@ void matsuriFoodSelection() {
               changeState(0, MATSURI_SAVORY2, 0);
               break;
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40:
               if (natsumi.tickets >= 1) {
                 natsumi.tickets -= 1;
                 natsumi.hunger = 4;
@@ -10621,7 +11090,7 @@ void matsuriFoodSelection() {
               changeState(0, MATSURI_SAVORY, 0);
               break;
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40:
               if (natsumi.tickets >= 1) {
                 natsumi.tickets -= 1;
                 natsumi.hunger = 4;
@@ -10641,7 +11110,7 @@ void matsuriFoodSelection() {
         case MATSURI_SUGARY:
           switch (key) {
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40:
               if (natsumi.tickets >= 1) {
                 natsumi.tickets -= 1;
                 natsumi.hunger = 4;
@@ -10688,7 +11157,7 @@ void matsuriMainMenu() {
               changeState(0, MATSURI_MENU2, 0);
               break;
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40:
               changeState(0, MATSURI_SAVORY, 0);
               break;
             // ESC
@@ -10708,7 +11177,7 @@ void matsuriMainMenu() {
               changeState(0, MATSURI_MENU3, 0);
               break;
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40:
               changeState(0, MATSURI_SUGARY, 0);
               break;
             // ESC
@@ -10728,7 +11197,7 @@ void matsuriMainMenu() {
               changeState(0, MATSURI_MENU, 0);
               break;
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40:
               if (natsumi.tickets >= 1) {
                 natsumi.tickets -= 1;
                 changeState(0, MATSURI_GARAPON, 0);
@@ -10785,7 +11254,7 @@ void managePFCGame() {
         case PFC_GAME: case PFC_GAME2: case PFC_GAME4: case PFC_GAME6: case PFC_GAME8: case PFC_GAME9:
           // TITLE, ROUND 1, ROUND 2, ROUND 3
           switch(key) {
-            case 13: case 40: case ' ':
+            case 13: case 40:
               pfcCurrentStage += 1;
               l5NeedsRedraw = true;
               break;
@@ -10997,7 +11466,7 @@ void orderibiFoodSelection() {
               changeState(0, FOOD_ORDER3, 0);
               break;
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40:
               orderibiSelection = 0;
               if (natsumi.money >= 600) {
                 natsumi.money -= 600;
@@ -11023,7 +11492,7 @@ void orderibiFoodSelection() {
               changeState(0, FOOD_ORDER4, 0);
               break;
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40:
               orderibiSelection = 1;
               if (natsumi.money >= 750) {
                 natsumi.money -= 750;
@@ -11049,7 +11518,7 @@ void orderibiFoodSelection() {
               changeState(0, FOOD_ORDER2, 0);
               break;
             // ENTER
-            case 13: case 40: case ' ':
+            case 13: case 40:
               orderibiSelection = 2;
               if (natsumi.money >= 1200) {
                 natsumi.money -= 1200;
@@ -11216,5 +11685,124 @@ void browseCards() {
     }
   }
 
+  return;
+}
+
+void drawChallengesScreen() {
+  M5Cardputer.Display.fillScreen(BLACK);
+
+  const ChallengeDefinition &challenge = challengeDefinitions[challengeSelection];
+  const bool unlocked = isChallengeUnlocked(challengeSelection);
+  const uint16_t panelBg = M5Cardputer.Display.color565(12, 16, 24);
+  const uint16_t panelFrame = M5Cardputer.Display.color565(90, 140, 210);
+  const uint16_t doneColor = M5Cardputer.Display.color565(170, 170, 170);
+  const uint16_t activeColor = M5Cardputer.Display.color565(255, 220, 80);
+
+  M5Cardputer.Display.fillRoundRect(4, 4, 232, 126, 6, panelBg);
+  M5Cardputer.Display.drawRoundRect(4, 4, 232, 126, 6, panelFrame);
+
+  M5Cardputer.Display.setTextSize(1);
+  M5Cardputer.Display.setTextColor(panelFrame, panelBg);
+  // M5Cardputer.Display.setCursor(10, 9);
+  M5Cardputer.Display.setCursor(12, 11);
+  M5Cardputer.Display.print("Challenges");
+  // M5Cardputer.Display.setCursor(182, 9);
+  M5Cardputer.Display.setCursor(210, 11);
+  M5Cardputer.Display.print(String(challengeSelection + 1) + "/" + String(MAX_CHALLENGES));
+
+  M5Cardputer.Display.setTextSize(2);
+  M5Cardputer.Display.setTextColor(unlocked ? WHITE : doneColor, panelBg);
+  // M5Cardputer.Display.setCursor(10, 24);
+  M5Cardputer.Display.setCursor(10, 28);
+  M5Cardputer.Display.print(challenge.title);
+
+  M5Cardputer.Display.setTextSize(1);
+  if (!unlocked) {
+    M5Cardputer.Display.setTextColor(doneColor, panelBg);
+    M5Cardputer.Display.setCursor(10, 50);
+    M5Cardputer.Display.print("Locked");
+  }
+
+  uint8_t currentStep = getCurrentChallengeStep(challengeSelection);
+  for (uint8_t step = 0; step < CHALLENGE_STEP_COUNT; ++step) {
+    int y = 52 + (step * 18);
+    bool done = isChallengeStepDone(challengeSelection, step);
+    uint16_t textColor = done ? doneColor : (step == currentStep ? activeColor : WHITE);
+
+    M5Cardputer.Display.setTextColor(textColor, panelBg);
+    // M5Cardputer.Display.setCursor(12, y);
+    M5Cardputer.Display.setCursor(16, y);
+    M5Cardputer.Display.print(done ? "[x] " : "[ ] ");
+    M5Cardputer.Display.print(challenge.steps[step]);
+
+    if (done) {
+      // M5Cardputer.Display.drawFastHLine(14, y + 5, 188, RED);
+      // M5Cardputer.Display.drawFastHLine(28, y + 2, 188, RED);
+    }
+  }
+
+  M5Cardputer.Display.setTextColor(panelFrame, panelBg);
+  // M5Cardputer.Display.setCursor(10, 116);
+  M5Cardputer.Display.setCursor(44, 124);
+  M5Cardputer.Display.print("UP/DOWN: Select  ESC: Home");
+}
+
+void manageChallenges() {
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (key) {
+        // UP
+        case 181: case 59: case 'w': case 'W':
+          if (challengeSelection > 0) {
+            challengeSelection--;
+            l5NeedsRedraw = true;
+          }
+          break;
+        // DOWN
+        case 182: case 46: case 's': case 'S':
+          if (challengeSelection + 1 < MAX_CHALLENGES) {
+            challengeSelection++;
+            l5NeedsRedraw = true;
+          }
+          break;
+        // ESC
+        case 96: case 43:
+          overlayActive = false;
+          changeState(0, HOME_LOOP, 0);
+          return;
+        default:
+          break;
+      }
+    }
+  }
+}
+
+void challengeDone() {
+  Serial.println("> Entering challengeDone()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      Serial.println(">> challengeDone() - key pressed");
+      switch(currentState) {
+        case CHALLENGE_DONE:
+          changeState(0, CHALLENGE_DONE2, 0);
+          break;
+        case CHALLENGE_DONE2:
+          changeState(0, CHALLENGE_DONE3, 0);
+          break;
+        case CHALLENGE_DONE3:
+          // changeState(0, ACTION_OUTCOME, 0);
+          changeState(0, HOME_LOOP, 0);
+          break;
+        default:
+          changeState(0, HOME_LOOP, 0);
+          break;
+      }
+    }
+  }
   return;
 }
