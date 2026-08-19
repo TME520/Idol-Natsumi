@@ -321,6 +321,94 @@ struct ImageBuffer {
   size_t length = 0;
 };
 
+// Streams a single blink frame from SD when it changes.  No complete PNG is
+// retained in RAM, which is important on the Cardputer (it has no PSRAM).
+class NatsumiBlink {
+ public:
+  NatsumiBlink(int16_t x = 0, int16_t y = 0) : x_(x), y_(y) {}
+
+  void setPosition(int16_t x, int16_t y) {
+    x_ = x;
+    y_ = y;
+  }
+
+  void reset() {
+    active_ = true;
+    sequenceIndex_ = 0;
+    displayedFrame_ = -1;
+    nextChangeAt_ = millis();
+  }
+
+  void stop() {
+    active_ = false;
+    displayedFrame_ = -1;
+  }
+
+  void update() {
+    if (!active_) reset();
+
+    const uint32_t now = millis();
+    if (static_cast<int32_t>(now - nextChangeAt_) < 0) return;
+
+    const uint8_t frame = kSequence[sequenceIndex_];
+    if (frame != displayedFrame_) {
+      drawFrame(frame);
+      displayedFrame_ = frame;  // Do not repeatedly retry a missing file.
+    }
+
+    if (sequenceIndex_ == 0) {
+      // Eyes normally stay open for a slightly different period each time.
+      sequenceIndex_ = 1;
+      nextChangeAt_ = now + random(kMinBlinkIntervalMs, kMaxBlinkIntervalMs + 1);
+    } else if (sequenceIndex_ < kSequenceLength - 1) {
+      ++sequenceIndex_;
+      nextChangeAt_ = now + kTransitionMs;
+    } else {
+      sequenceIndex_ = 0;
+      nextChangeAt_ = now;  // Frame 0 is already displayed; schedule its hold.
+    }
+  }
+
+ private:
+  static constexpr uint8_t kSequenceLength = 5;
+  static constexpr uint16_t kTransitionMs = 70;
+  static constexpr uint32_t kMinBlinkIntervalMs = 3000;
+  static constexpr uint32_t kMaxBlinkIntervalMs = 6500;
+  static constexpr uint8_t kSequence[kSequenceLength] = {0, 1, 2, 1, 0};
+  static constexpr const char* kFramePaths[3] = {
+    "/idolnat/sprites/natsumi_11yo_blink1_90x135.png",
+    "/idolnat/sprites/natsumi_11yo_blink2_90x135.png",
+    "/idolnat/sprites/natsumi_11yo_blink3_90x135.png"
+  };
+
+  void drawFrame(uint8_t frame) {
+    if (!SD.exists(kFramePaths[frame])) {
+      Serial.print("Blink frame missing: ");
+      Serial.println(kFramePaths[frame]);
+      return;
+    }
+
+    // M5GFX decodes from the open SD file directly instead of malloc'ing the
+    // complete compressed image (as preloadImage() does for static screens).
+    if (!M5Cardputer.Display.drawPngFile(SD, kFramePaths[frame], x_, y_)) {
+      Serial.print("Blink frame draw failed: ");
+      Serial.println(kFramePaths[frame]);
+    }
+  }
+
+  int16_t x_;
+  int16_t y_;
+  uint32_t nextChangeAt_ = 0;
+  uint8_t sequenceIndex_ = 0;
+  int8_t displayedFrame_ = -1;
+  bool active_ = false;
+};
+
+constexpr uint8_t NatsumiBlink::kSequence[NatsumiBlink::kSequenceLength];
+constexpr const char* NatsumiBlink::kFramePaths[3];
+
+NatsumiBlink natsumiBlink(0, 0);
+
 enum FoodId : uint8_t {
   FOOD_ID_RED_APPLE,
   FOOD_ID_GREEN_APPLE,
@@ -3354,6 +3442,11 @@ void changeState(int baseLayer, GameState targetState, int delay) {
     Serial.println("> currentState = " + String(gameStateToString(currentState)));
     Serial.println("> targetState = " + String(gameStateToString(targetState)));
     changeStateCounter = 0;
+    if (targetState == HOME_LOOP) {
+      natsumiBlink.reset();
+    } else if (currentState == HOME_LOOP) {
+      natsumiBlink.stop();
+    }
     previousState = currentState;
     currentState = targetState;
     preloadImages();
@@ -4867,6 +4960,18 @@ void manageRoom() {
   // Draw required layers for ROOM screens
   drawBackground(currentBackground);
   drawCharacter();
+  // Blink only on the unobstructed home screen with Natsumi's neutral 11yo
+  // sprite.  Pausing while UI is on top prevents a frame from erasing it.
+  const bool canBlink = currentState == HOME_LOOP && natsumi.age <= 12
+                        && !isNatsumiHappy && natsumi.hunger >= 1
+                        && natsumi.hygiene >= 1 && natsumi.energy >= 1
+                        && natsumi.spirit >= 1 && !menuOpened
+                        && !overlayActive && !toastActive && !debugActive;
+  if (canBlink) {
+    natsumiBlink.update();
+  } else if (currentState == HOME_LOOP) {
+    natsumiBlink.stop();
+  }
   drawDebug();
   drawToast();
   drawOverlay();
