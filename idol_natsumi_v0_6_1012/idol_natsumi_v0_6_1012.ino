@@ -321,8 +321,9 @@ struct ImageBuffer {
   size_t length = 0;
 };
 
-// Streams a single blink frame from SD when it changes.  No complete PNG is
-// retained in RAM, which is important on the Cardputer (it has no PSRAM).
+// Loads, draws, and immediately releases one compressed blink frame at a time.
+// The three frames are never held in RAM together, which is important on the
+// Cardputer (it has no PSRAM).
 class NatsumiBlink {
  public:
   NatsumiBlink(int16_t x = 0, int16_t y = 0) : x_(x), y_(y) {}
@@ -382,22 +383,43 @@ class NatsumiBlink {
   };
 
   void drawFrame(uint8_t frame) {
-    if (!SD.exists(kFramePaths[frame])) {
+    File frameFile = SD.open(kFramePaths[frame], FILE_READ);
+    if (!frameFile) {
       Serial.print("Blink frame missing: ");
       Serial.println(kFramePaths[frame]);
       return;
     }
 
-    // M5GFX decodes from the open SD file directly instead of malloc'ing the
-    // complete compressed image (as preloadImage() does for static screens).
-    // ESP32 Arduino 3.x declares SD as fs::SDFS.  M5GFX 0.2.27 only provides
-    // its file-decoder wrapper specialization for the fs::FS base type, so
-    // passing SD directly selects an unusable generic DataWrapperT<fs::SDFS>.
-    fs::FS& sdFileSystem = SD;
-    if (!M5Cardputer.Display.drawPngFile(sdFileSystem, kFramePaths[frame], x_, y_)) {
+    const size_t frameLength = frameFile.size();
+    if (frameLength == 0) {
+      frameFile.close();
+      Serial.print("Blink frame is empty: ");
+      Serial.println(kFramePaths[frame]);
+      return;
+    }
+
+    uint8_t* frameData = static_cast<uint8_t*>(malloc(frameLength));
+    if (!frameData) {
+      frameFile.close();
+      Serial.print("Not enough RAM for blink frame: ");
+      Serial.println(kFramePaths[frame]);
+      return;
+    }
+
+    const size_t bytesRead = frameFile.read(frameData, frameLength);
+    frameFile.close();
+    if (bytesRead != frameLength) {
+      free(frameData);
+      Serial.print("Blink frame read failed: ");
+      Serial.println(kFramePaths[frame]);
+      return;
+    }
+
+    if (!M5Cardputer.Display.drawPng(frameData, frameLength, x_, y_)) {
       Serial.print("Blink frame draw failed: ");
       Serial.println(kFramePaths[frame]);
     }
+    free(frameData);
   }
 
   int16_t x_;
