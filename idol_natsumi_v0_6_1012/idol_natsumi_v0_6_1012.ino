@@ -315,6 +315,8 @@ struct CollectibleCards {
 
 CollectibleCards cards;
 
+void unloadAllImages();
+
 // === Image preload system ===
 struct ImageBuffer {
   uint8_t* data = nullptr;
@@ -375,14 +377,22 @@ class NatsumiBlink {
   static constexpr uint16_t kTransitionMs = 70;
   static constexpr uint32_t kMinBlinkIntervalMs = 3000;
   static constexpr uint32_t kMaxBlinkIntervalMs = 6500;
-  static constexpr uint8_t kSequence[kSequenceLength] = {0, 1, 2, 1, 0};
+  // static constexpr uint8_t kSequence[kSequenceLength] = {0, 1, 2, 1, 0};
+  static constexpr uint8_t kSequence[kSequenceLength] = {0, 1, 1, 1, 0};
+  /*
   static constexpr const char* kFramePaths[3] = {
     "/idolnat/sprites/natsumi_11yo_blink1_90x135.png",
     "/idolnat/sprites/natsumi_11yo_blink2_90x135.png",
     "/idolnat/sprites/natsumi_11yo_blink3_90x135.png"
   };
+  */
+  static constexpr const char* kFramePaths[2] = {
+    "/idolnat/sprites/natsumi_11yo_blink1_90x135.png",
+    "/idolnat/sprites/natsumi_11yo_blink3_90x135.png"
+  };
 
   void drawFrame(uint8_t frame) {
+    unloadAllImages();
     File frameFile = SD.open(kFramePaths[frame], FILE_READ);
     if (!frameFile) {
       Serial.print("Blink frame missing: ");
@@ -431,7 +441,8 @@ class NatsumiBlink {
 };
 
 constexpr uint8_t NatsumiBlink::kSequence[NatsumiBlink::kSequenceLength];
-constexpr const char* NatsumiBlink::kFramePaths[3];
+// constexpr const char* NatsumiBlink::kFramePaths[3];
+constexpr const char* NatsumiBlink::kFramePaths[2];
 
 NatsumiBlink natsumiBlink(0, 0);
 
@@ -4994,8 +5005,10 @@ void manageRoom() {
                         && natsumi.spirit >= 1 && !menuOpened
                         && !overlayActive && !toastActive && !debugActive;
   if (canBlink) {
+    Serial.println("> Natsumi can blink");
     natsumiBlink.update();
   } else if (currentState == HOME_LOOP) {
+    Serial.println("> Natsumi cannot blink");
     natsumiBlink.stop();
   }
   drawDebug();
