@@ -1057,6 +1057,11 @@ int emilyHand = 0;
 int natsumiHand = 0;
 int pfcOutcome = 0;
 
+// Neko Cafe
+int selectedDrink = 0;
+int selectedSize = 0;
+int selectedSeat = 0;
+
 String copyright = "(c) 2026 - Pantzumatic";
 String versionNumber = "Update " + String(SAVE_VERSION);
 
@@ -2366,7 +2371,43 @@ void preloadImages() {
       preloadImage("/idolnat/screens/outcome_bg.png", currentBackground);
       break;
     case NEKO_CAFE:
-      preloadImage("/idolnat/screens/outcome_bg.png", currentBackground);
+      preloadImage("/idolnat/screens/neko_cafe_front.png", currentBackground);
+      break;
+    case NEKO_CAFE2:
+      preloadImage("/idolnat/screens/neko_cafe_counter.png", currentBackground);
+      break;
+    case NEKO_CAFE3:
+      preloadImage("/idolnat/screens/neko_cafe_drink_selection_matcha.png", currentBackground);
+      break;
+    case NEKO_CAFE4:
+      preloadImage("/idolnat/screens/neko_cafe_drink_selection_hojicha.png", currentBackground);
+      break;
+    case NEKO_CAFE5:
+      preloadImage("/idolnat/screens/neko_cafe_drink_selection_soda.png", currentBackground);
+      break;
+    case NEKO_CAFE6:
+      preloadImage("/idolnat/screens/neko_cafe_size_selection_small.png", currentBackground);
+      break;
+    case NEKO_CAFE7:
+      preloadImage("/idolnat/screens/neko_cafe_size_selection_large.png", currentBackground);
+      break;
+    case NEKO_CAFE8:
+      preloadImage("/idolnat/screens/neko_cafe_lounge.png", currentBackground);
+      break;
+    case NEKO_CAFE9:
+      preloadImage("/idolnat/screens/neko_cafe_table.png", currentBackground);
+      break;
+    case NEKO_CAFE10: case NEKO_CAFE11:
+      switch (selectedSeat) {
+        case 0:
+          preloadImage("/idolnat/screens/neko_cafe_lounge.png", currentBackground);
+          break;
+        case 1:
+          preloadImage("/idolnat/screens/neko_cafe_table.png", currentBackground);
+          break;
+        default:
+          break;
+      }
       break;
   }
   // Load portraits
@@ -4029,6 +4070,19 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         setScreenConfig(IDLE);
         // characterEnabled = true;
         break;
+      case NEKO_CAFE: case NEKO_CAFE3: case NEKO_CAFE4: case NEKO_CAFE5: case NEKO_CAFE6: case NEKO_CAFE7: case NEKO_CAFE8: case NEKO_CAFE9:
+        setScreenConfig(IDLE);
+        characterEnabled = false;
+        break;
+      case NEKO_CAFE2:
+        setScreenConfig(DIALOG);
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        break;
+      case NEKO_CAFE10: case NEKO_CAFE11:
+        setScreenConfig(CARD);
+        characterEnabled = false;
+        break;
       default:
         break;
     }
@@ -4733,6 +4787,9 @@ void manageIdle() {
       break;
     case CHALLENGE_DONE3:
       challengeDone();
+      break;
+    case NEKO_CAFE:
+      changeState(0, NEKO_CAFE2, microWait);
       break;
     default:
       break;
