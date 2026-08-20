@@ -390,7 +390,11 @@ class NatsumiBlink {
 
     // M5GFX decodes from the open SD file directly instead of malloc'ing the
     // complete compressed image (as preloadImage() does for static screens).
-    if (!M5Cardputer.Display.drawPngFile(SD, kFramePaths[frame], x_, y_)) {
+    // ESP32 Arduino 3.x declares SD as fs::SDFS.  M5GFX 0.2.27 only provides
+    // its file-decoder wrapper specialization for the fs::FS base type, so
+    // passing SD directly selects an unusable generic DataWrapperT<fs::SDFS>.
+    fs::FS& sdFileSystem = SD;
+    if (!M5Cardputer.Display.drawPngFile(sdFileSystem, kFramePaths[frame], x_, y_)) {
       Serial.print("Blink frame draw failed: ");
       Serial.println(kFramePaths[frame]);
     }
