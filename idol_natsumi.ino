@@ -2365,6 +2365,9 @@ void preloadImages() {
     case CHALLENGE_DONE2: case CHALLENGE_DONE3:
       preloadImage("/idolnat/screens/outcome_bg.png", currentBackground);
       break;
+    case NEKO_CAFE:
+      preloadImage("/idolnat/screens/outcome_bg.png", currentBackground);
+      break;
   }
   // Load portraits
   switch(natsumi.age) {
