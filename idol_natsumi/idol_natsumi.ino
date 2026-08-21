@@ -2417,6 +2417,9 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_11yo_meditate-90x135.png", currentCharacter);
           break;
+        case NEKO_CAFE2:
+          preloadImage("/idolnat/sprites/barmaid-90x135.png", currentCharacter);
+          break;
         case FOOD_CONBINI3:
           preloadImage("/idolnat/sprites/cashier01-90x135.png", currentCharacter);
           break;
@@ -2579,6 +2582,9 @@ void preloadImages() {
       switch(currentState) {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_13yo_meditate-90x135.png", currentCharacter);
+          break;
+        case NEKO_CAFE2:
+          preloadImage("/idolnat/sprites/barmaid-90x135.png", currentCharacter);
           break;
         case FOOD_CONBINI3:
           preloadImage("/idolnat/sprites/cashier01-90x135.png", currentCharacter);
@@ -2743,6 +2749,9 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_15yo_meditate-90x135.png", currentCharacter);
           break;
+        case NEKO_CAFE2:
+          preloadImage("/idolnat/sprites/barmaid-90x135.png", currentCharacter);
+          break;
         case FOOD_CONBINI3:
           preloadImage("/idolnat/sprites/cashier01-90x135.png", currentCharacter);
           break;
@@ -2906,6 +2915,9 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_18yo_meditate-90x135.png", currentCharacter);
           break;
+        case NEKO_CAFE2:
+          preloadImage("/idolnat/sprites/barmaid-90x135.png", currentCharacter);
+          break;
         case FOOD_CONBINI3:
           preloadImage("/idolnat/sprites/cashier01-90x135.png", currentCharacter);
           break;
@@ -3068,6 +3080,9 @@ void preloadImages() {
       switch(currentState) {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_21yo_meditate-90x135.png", currentCharacter);
+          break;
+        case NEKO_CAFE2:
+          preloadImage("/idolnat/sprites/barmaid-90x135.png", currentCharacter);
           break;
         case FOOD_CONBINI3:
           preloadImage("/idolnat/sprites/cashier01-90x135.png", currentCharacter);
@@ -4592,6 +4607,9 @@ void manageDialog() {
     case CHALLENGE_DONE2:
       challengeDone();
       break;
+    case NEKO_CAFE2:
+      neko_cafe();
+      break;
     default:
       break;
   }
@@ -4701,6 +4719,9 @@ void manageIdle() {
       break;
     case FOOD_REST2: case FOOD_REST3: case FOOD_REST4:
       restaurantFoodSelection();
+      break;
+    case NEKO_CAFE3: case NEKO_CAFE4:: case NEKO_CAFE5:
+      nekoCafeDrinkSelection();
       break;
     case MATSURI_SAVORY: case MATSURI_SAVORY2:
     case MATSURI_SUGARY:
@@ -9437,6 +9458,9 @@ void drawOverlay() {
             break;
         }
         break;
+      case NEKO_CAFE2:
+        drawDialogBubble("Welcome to Neko Cafe!! Choose a drink and pick a seat!");
+        break;
       case ACTION_OUTCOME:
         switch(previousState) {
           case FOOD_COOK2:
@@ -10662,6 +10686,21 @@ void cashier() {
   return;
 }
 
+void neko_cafe() {
+  // Serial.println("> Entering neko_cafe()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      overlayActive = false;
+      // notifyVisitedPlace(PLACE_CONBIMART);
+      changeState(0, NEKO_CAFE3, 0);
+    }
+  }
+  return;
+}
+
 void introduction() {
   // Serial.println("> Entering introduction()");
   uint8_t key = 0;
@@ -11108,6 +11147,118 @@ void restaurantFoodSelection() {
           }
           break;
         case FOOD_REST4:
+          switch (key) {
+            // LEFT
+            case 44: case 'a': case 'A':
+              changeState(0, FOOD_REST3, 0);
+              break;
+            // RIGHT
+            case 47: case 'd': case 'D':
+              changeState(0, FOOD_REST2, 0);
+              break;
+            // ENTER
+            case 13: case 40:
+              restaurantSelection = 2;
+              if (natsumi.money >= 900) {
+                natsumi.money -= 900;
+                natsumi.hunger = 4;
+                if (natsumi.grace < 4) {
+                  natsumi.grace += 1;
+                }
+                saveRequired = true;
+                // isNatsumiHappy = true;
+              } else {
+                showToast("Not enough money :(");
+              }
+              changeState(0, FOOD_REST5, 0);
+              break;
+            // ESC
+            case 96:
+              changeState(0, HOME_LOOP, 0);
+              return;
+          }
+          break;
+        default:
+          changeState(0, HOME_LOOP, 0);
+          break;
+      }
+    }
+  }
+
+  /*
+  // Stats management
+  updateAging();
+  updateStats();
+  */
+  return;
+}
+
+void nekoCafeDrinkSelection() {
+  Serial.println("> Entering nekoCafeDrinkSelection()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      Serial.println(">> nekoCafeDrinkSelection() Key pressed");
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (currentState) {
+        case NEKO_CAFE3:
+          // Matcha
+          switch (key) {
+            // LEFT
+            case 44: case 'a': case 'A':
+              changeState(0, NEKO_CAFE5, 0);
+              break;
+            // RIGHT
+            case 47: case 'd': case 'D':
+              changeState(0, NEKO_CAFE4, 0);
+              break;
+            // ENTER
+            case 13: case 40:
+              selectedDrink = 0;
+              changeState(0, NEKO_CAFE6, 0);
+              break;
+            // ESC
+            case 96:
+              changeState(0, HOME_LOOP, 0);
+              return;
+          }
+          break;
+        case NEKO_CAFE4:
+          // Hojicha
+          switch (key) {
+            // LEFT
+            case 44: case 'a': case 'A':
+              changeState(0, FOOD_REST2, 0);
+              break;
+            // RIGHT
+            case 47: case 'd': case 'D':
+              changeState(0, FOOD_REST4, 0);
+              break;
+            // ENTER
+            case 13: case 40:
+              restaurantSelection = 1;
+              if (natsumi.money >= 800) {
+                natsumi.money -= 800;
+                natsumi.hunger = 4;
+                if (natsumi.grace < 4) {
+                  natsumi.grace += 1;
+                }
+                saveRequired = true;
+                // isNatsumiHappy = true;
+              } else {
+                showToast("Not enough money :(");
+              }
+              changeState(0, FOOD_REST5, 0);
+              break;
+            // ESC
+            case 96:
+              changeState(0, HOME_LOOP, 0);
+              return;
+          }
+          break;
+        case NEKO_CAFE5:
+          // Cream soda
           switch (key) {
             // LEFT
             case 44: case 'a': case 'A':
