@@ -4720,7 +4720,7 @@ void manageIdle() {
     case FOOD_REST2: case FOOD_REST3: case FOOD_REST4:
       restaurantFoodSelection();
       break;
-    case NEKO_CAFE3: case NEKO_CAFE4:: case NEKO_CAFE5:
+    case NEKO_CAFE3: case NEKO_CAFE4: case NEKO_CAFE5:
       nekoCafeDrinkSelection();
       break;
     case MATSURI_SAVORY: case MATSURI_SAVORY2:
@@ -11229,27 +11229,16 @@ void nekoCafeDrinkSelection() {
           switch (key) {
             // LEFT
             case 44: case 'a': case 'A':
-              changeState(0, FOOD_REST2, 0);
+              changeState(0, NEKO_CAFE3, 0);
               break;
             // RIGHT
             case 47: case 'd': case 'D':
-              changeState(0, FOOD_REST4, 0);
+              changeState(0, NEKO_CAFE5, 0);
               break;
             // ENTER
             case 13: case 40:
               restaurantSelection = 1;
-              if (natsumi.money >= 800) {
-                natsumi.money -= 800;
-                natsumi.hunger = 4;
-                if (natsumi.grace < 4) {
-                  natsumi.grace += 1;
-                }
-                saveRequired = true;
-                // isNatsumiHappy = true;
-              } else {
-                showToast("Not enough money :(");
-              }
-              changeState(0, FOOD_REST5, 0);
+              changeState(0, NEKO_CAFE6, 0);
               break;
             // ESC
             case 96:
@@ -11262,27 +11251,16 @@ void nekoCafeDrinkSelection() {
           switch (key) {
             // LEFT
             case 44: case 'a': case 'A':
-              changeState(0, FOOD_REST3, 0);
+              changeState(0, NEKO_CAFE4, 0);
               break;
             // RIGHT
             case 47: case 'd': case 'D':
-              changeState(0, FOOD_REST2, 0);
+              changeState(0, NEKO_CAFE3, 0);
               break;
             // ENTER
             case 13: case 40:
               restaurantSelection = 2;
-              if (natsumi.money >= 900) {
-                natsumi.money -= 900;
-                natsumi.hunger = 4;
-                if (natsumi.grace < 4) {
-                  natsumi.grace += 1;
-                }
-                saveRequired = true;
-                // isNatsumiHappy = true;
-              } else {
-                showToast("Not enough money :(");
-              }
-              changeState(0, FOOD_REST5, 0);
+              changeState(0, NEKO_CAFE6, 0);
               break;
             // ESC
             case 96:
