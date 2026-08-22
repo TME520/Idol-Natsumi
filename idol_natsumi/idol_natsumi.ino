@@ -4087,6 +4087,8 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case NEKO_CAFE: case NEKO_CAFE3: case NEKO_CAFE4: case NEKO_CAFE5: case NEKO_CAFE6: case NEKO_CAFE7: case NEKO_CAFE8: case NEKO_CAFE9:
         setScreenConfig(IDLE);
+        overlayActive = true;
+        l5NeedsRedraw = true;
         characterEnabled = false;
         break;
       case NEKO_CAFE2:
@@ -9077,6 +9079,7 @@ void drawOverlay() {
       }
     }
   }
+  int tmpNekoCafePrice = 0;
   if (l5NeedsRedraw && overlayActive && overlayEnabled) {
     switch (currentState) {
       case HOME_LOOP:
@@ -9496,6 +9499,52 @@ void drawOverlay() {
         } else {
           drawText("Price: $500(S) / $650(L)", 5, 2, false, RED, 1);
         }
+        break;
+      case NEKO_CAFE6:
+        M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
+        switch(selectedDrink) {
+          case 0:
+            tmpNekoCafePrice = 450;
+            break;
+          case 1:
+            tmpNekoCafePrice = 400;
+            break;
+          case 2:
+            tmpNekoCafePrice = 500;
+            break;
+        }
+        if (natsumi.money >= tmpNekoCafePrice) {
+          drawText("Price: " + String(tmpNekoCafePrice), 5, 2, false, GREEN, 1);
+        } else {
+          drawText("Price: " + String(tmpNekoCafePrice), 5, 2, false, RED, 1);
+        }
+        break;
+      case NEKO_CAFE7:
+        M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
+        switch(selectedDrink) {
+          case 0:
+            tmpNekoCafePrice = 600;
+            break;
+          case 1:
+            tmpNekoCafePrice = 550;
+            break;
+          case 2:
+            tmpNekoCafePrice = 650;
+            break;
+        }
+        if (natsumi.money >= tmpNekoCafePrice) {
+          drawText("Price: " + String(tmpNekoCafePrice), 5, 2, false, GREEN, 1);
+        } else {
+          drawText("Price: " + String(tmpNekoCafePrice), 5, 2, false, RED, 1);
+        }
+        break;
+      case NEKO_CAFE8:
+        M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
+        drawText("Sofa (drink, nap)", 5, 2, false, WHITE, 1);
+        break;
+      case NEKO_CAFE9:
+        M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
+        drawText("Table (drink, read)", 5, 2, false, WHITE, 1);
         break;
       case ACTION_OUTCOME:
         switch(previousState) {
