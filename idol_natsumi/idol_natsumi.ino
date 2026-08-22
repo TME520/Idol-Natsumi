@@ -4723,6 +4723,12 @@ void manageIdle() {
     case NEKO_CAFE3: case NEKO_CAFE4: case NEKO_CAFE5:
       nekoCafeDrinkSelection();
       break;
+    case NEKO_CAFE6: case NEKO_CAFE7:
+      nekoCafeSizeSelection();
+      break;
+    case NEKO_CAFE8: case NEKO_CAFE9:
+      nekoCafeSeatSelection();
+      break;
     case MATSURI_SAVORY: case MATSURI_SAVORY2:
     case MATSURI_SUGARY:
       matsuriFoodSelection();
@@ -11237,7 +11243,7 @@ void nekoCafeDrinkSelection() {
               break;
             // ENTER
             case 13: case 40:
-              restaurantSelection = 1;
+              selectedDrink = 1;
               changeState(0, NEKO_CAFE6, 0);
               break;
             // ESC
@@ -11259,12 +11265,148 @@ void nekoCafeDrinkSelection() {
               break;
             // ENTER
             case 13: case 40:
-              restaurantSelection = 2;
+              selectedDrink = 2;
               changeState(0, NEKO_CAFE6, 0);
               break;
             // ESC
             case 96:
               changeState(0, HOME_LOOP, 0);
+              return;
+          }
+          break;
+        default:
+          changeState(0, HOME_LOOP, 0);
+          break;
+      }
+    }
+  }
+
+  /*
+  // Stats management
+  updateAging();
+  updateStats();
+  */
+  return;
+}
+
+void nekoCafeSizeSelection() {
+  Serial.println("> Entering nekoCafeSizeSelection()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      Serial.println(">> nekoCafeSizeSelection() Key pressed");
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (currentState) {
+        case NEKO_CAFE6:
+          // Small
+          switch (key) {
+            // LEFT
+            case 44: case 'a': case 'A':
+              changeState(0, NEKO_CAFE7, 0);
+              break;
+            // RIGHT
+            case 47: case 'd': case 'D':
+              changeState(0, NEKO_CAFE7, 0);
+              break;
+            // ENTER
+            case 13: case 40:
+              selectedDrink = 0;
+              changeState(0, NEKO_CAFE8, 0);
+              break;
+            // ESC
+            case 96:
+              changeState(0, NEKO_CAFE3, 0);
+              return;
+          }
+          break;
+        case NEKO_CAFE7:
+          // Large
+          switch (key) {
+            // LEFT
+            case 44: case 'a': case 'A':
+              changeState(0, NEKO_CAFE6, 0);
+              break;
+            // RIGHT
+            case 47: case 'd': case 'D':
+              changeState(0, NEKO_CAFE6, 0);
+              break;
+            // ENTER
+            case 13: case 40:
+              selectedDrink = 1;
+              changeState(0, NEKO_CAFE8, 0);
+              break;
+            // ESC
+            case 96:
+              changeState(0, NEKO_CAFE3, 0);
+              return;
+          }
+          break;
+        default:
+          changeState(0, HOME_LOOP, 0);
+          break;
+      }
+    }
+  }
+
+  /*
+  // Stats management
+  updateAging();
+  updateStats();
+  */
+  return;
+}
+
+void nekoCafeSeatSelection() {
+  Serial.println("> Entering nekoCafeSeatSelection()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      Serial.println(">> nekoCafeSeatSelection() Key pressed");
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (currentState) {
+        case NEKO_CAFE8:
+          // Sofa
+          switch (key) {
+            // LEFT
+            case 44: case 'a': case 'A':
+              changeState(0, NEKO_CAFE9, 0);
+              break;
+            // RIGHT
+            case 47: case 'd': case 'D':
+              changeState(0, NEKO_CAFE9, 0);
+              break;
+            // ENTER
+            case 13: case 40:
+              selectedSeat = 0;
+              changeState(0, NEKO_CAFE10, 0);
+              break;
+            // ESC
+            case 96:
+              changeState(0, NEKO_CAFE6, 0);
+              return;
+          }
+          break;
+        case NEKO_CAFE9:
+          // Table
+          switch (key) {
+            // LEFT
+            case 44: case 'a': case 'A':
+              changeState(0, NEKO_CAFE8, 0);
+              break;
+            // RIGHT
+            case 47: case 'd': case 'D':
+              changeState(0, NEKO_CAFE8, 0);
+              break;
+            // ENTER
+            case 13: case 40:
+              selectedSeat = 1;
+              changeState(0, NEKO_CAFE10, 0);
+              break;
+            // ESC
+            case 96:
+              changeState(0, NEKO_CAFE6, 0);
               return;
           }
           break;
