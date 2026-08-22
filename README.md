@@ -176,18 +176,18 @@ Stat caps: 0 is the lowest while 4 is the highest.
 * **Grace** (integer; 0 to 4; shows how well-mannered and likeable Natsumi is)
 
 
-| STAT          | TYPE       | RANGE | UP (activities or events that raise it)                                   | DOWN (causes that lower it)                                      |
-|----------------|------------|--------|----------------------------------------------------------------------------|------------------------------------------------------------------|
-| **Age**        | Passive    | 0–∞    | Increases automatically every `agingInterval` ms                          | —                                                                |
-| **Hunger**     | Passive    | 0–4    | COOK, RESTAURANT, ORDER                                                   | Decreases by 1 every `hungerInterval` ms                         |
-| **Hygiene**    | Passive    | 0–4    | WASH, ONSEN                                                               | Decreases by 1 every `hygieneInterval` ms                        |
-| **Energy**     | Passive    | 0–4    | GARDEN, TEMPLE, ONSEN, NAP, BEDTIME                                       | Decreases by 1 every `energyInterval` ms                         |
-| **Spirit**     | Derived    | 0–4    | Improves when Hygiene, Energy, Hunger, Performance, or Popularity are high or through meditation | Declines when those stats are low                                |
-| **Popularity** | Active     | 0–4    | COMPETITION (LOCAL, DEPARTMENTAL, REGIONAL, NATIONAL)                     | —                                                                |
-| **Performance**| Active     | 0–4    | TRAINING → SING, DANCE                                                   | —                                                                |
-| **Fitness**    | Passive    | 0–4    | TRAINING → SWIM, GYM, RUN                                               | Decreases by 1 every time Age increases by 1 year                |
-| **Culture**    | Active     | 0–4    | TRAINING → LIBRARY, MARKET                                                      | —                                                                |
-| **Grace**      | Active     | 0–4    | FOOD → COOK, RESTAURANT, ORDER, MARKET                                           | —                                                                |
+| STAT          | TYPE       | RANGE | HOW TO INCREASE IT | DOWN (causes that lower it) |
+|----------------|------------|-------|--------------------|-----------------------------|
+| **Age**        | Passive    | 0–∞   | Increases automatically every `agingInterval` ms | — |
+| **Hunger**     | Passive    | 0–4   | **COOKING:** +1 per selected ingredient, capped at 4. **RESTAURANT / ORDER / MATSURI food:** set Hunger directly to 4. Some visitor events can also set it to 4. | Decreases by 1 every `hungerInterval` ms |
+| **Hygiene**    | Passive    | 0–4   | **WASH:** a successful shower sets Hygiene to 4. **ONSEN:** sets Hygiene to 4. | Decreases by 1 every `hygieneInterval` ms |
+| **Energy**     | Passive    | 0–4   | **SLEEP / ONSEN:** can add +1 on five-second pulses until Energy reaches 4. The increase is probabilistic and depends on Natsumi's other condition stats. | Decreases by 1 every `energyInterval` ms |
+| **Spirit**     | Derived / Active | 0–4 | **MEDITATE:** +1, capped at 4. Completing a **CHALLENGE** sets Spirit to 4, and a visitor event can also set it to 4. `updateSpirit()` recalculates Spirit from Hygiene + Energy + Hunger + Performance + Popularity when Natsumi ages. | Can be reduced when `updateSpirit()` recalculates it from lower contributing stats |
+| **Popularity** | Active     | 0–4   | Completing a **COMPETITION perfectly** (no missed notes) sets Popularity directly to 4. | — |
+| **Performance**| Active     | 0–4   | Completing **SING** or **DANCE** training adds +1, capped at 4. | — |
+| **Fitness**    | Active     | 0–4   | Completing **SWIM**, **GYM** or **RUN** adds +1, capped at 4. Note: in the current implementation, RUN also awards +1 when the run ends in failure. | — |
+| **Culture**    | Active     | 0–4   | Completing **LIBRARY** adds +1, capped at 4. | — |
+| **Grace**      | Active     | 0–4   | Eating at the **RESTAURANT** or receiving an **ORDER** adds +1, capped at 4. | — |
 
 ### Keep Natsumi fed
 
@@ -294,11 +294,13 @@ Go to the local swimming pool and avoid 30 sharks to increase your Fitness. Yes,
 
 #### Gym
 
-Hit the gym to increase your Fitness. This mini game will test your skills and reflexes, so warm up and go for it!
+Hit the gym to increase your Fitness. This mini game will test your skills and reflexes, so warm up and go for it! Completing the training increases **Fitness by 1**, up to the maximum of 4.
 
 #### Run
 
-Go for a run in the forest and increase your Fitness.
+Go for a run in the forest and increase your Fitness by **1**, up to the maximum of 4.
+
+> **Current implementation note:** RUN awards the Fitness point when the run ends, including when `runGameFailed` is true.
 
 ### Go to the temple
 
@@ -337,7 +339,7 @@ How to cook:
 * Press **ENTER** to add or remove the highlighted fridge item from the current recipe.
 * Pick **1 to 4 ingredients**. Selected ingredients are marked on the cooking grid.
 * Green-highlighted ingredients can combine with the current selection.
-* Press **SPACE** to cook/eat the selected recipe. Cooking consumes one of each selected ingredient and raises Hunger by 1, up to the maximum of 4.
+* Press **SPACE** to cook/eat the selected recipe. Cooking consumes one of each selected ingredient and raises Hunger by **1 per selected ingredient**, up to the maximum of 4.
 * If the selected ingredients do not match a known recipe while a known recipe is available, the game rejects the mix. If no known recipe can be made from the fridge stock, a generic **Pantry Snack** can still be cooked so Natsumi is not blocked from eating.
 
 Available recipes:
@@ -359,11 +361,15 @@ Shortcut: 2, 0
 
 Go to the restaurant; Natsumi must be at least 16.
 
+Eating at the restaurant sets **Hunger to 4** and increases **Grace by 1**, up to the maximum of 4.
+
 Shortcut: 2, 1
 
 #### ORDER
 
 Order food using the *Orderibi* phone app.
+
+Receiving the order sets **Hunger to 4** and increases **Grace by 1**, up to the maximum of 4.
 
 Shortcut: 2, 2
 
@@ -379,17 +385,23 @@ Shortcut: 2, 3
 
 Go to the singing school for a lesson. Catch 30 notes and you're good!
 
+Completing the training increases **Performance by 1**, up to the maximum of 4.
+
 Shortcut: 3, 0
 
 #### DANCE
 
 Walk to the dance school and work on your moves. Get it right 30 times in a row to score a perfect training.
 
+Completing the training increases **Performance by 1**, up to the maximum of 4.
+
 Shortcut: 3, 1
 
 #### SWIM
 
 Go to the swimming pool and dodge 30 sharks.
+
+Completing the training increases **Fitness by 1**, up to the maximum of 4.
 
 Shortcut: 3, 2
 
@@ -403,11 +415,15 @@ Shortcut: 3, 3
 
 Jogging is always good, especially early in the morning.
 
+When the run ends, **Fitness increases by 1**, up to the maximum of 4. In the current implementation this also happens after a failed run.
+
 Shortcut: 3, 4
 
 #### LIBRARY
 
 It's not all about sport, the mind also needs exercise. Go to the local library to read a book.
+
+Completing the library activity increases **Culture by 1**, up to the maximum of 4.
 
 Shortcut: 3, 5
 
@@ -427,6 +443,7 @@ Access to competition is only possible when the following conditions are met:
 * The competition level you are trying to enter has been unlocked,
 * Natsumi has to become the best version of herself by maxxing out her stats,
 * She must also train a lot and be good at it, as 3 perfect (no miss) training sessions are required to unlock a competition level
+* Completing a competition with **no missed notes** sets **Popularity directly to 4**
 
 Shortcuts:
 
@@ -440,6 +457,8 @@ Shortcuts:
 #### WASH
 
 Set the temperature of the shower right before Natsumi steps in.
+
+A successful shower sets **Hygiene to 4**.
 
 Shortcut: 5, 0
 
@@ -459,6 +478,8 @@ Shortcut: 5, 2
 
 Take Natsumi to the public hot bath (*onsen*) so she can regain her energy (and wash herself).
 
+Entering the Onsen sets **Hygiene to 4**. While Natsumi remains there, **Energy can increase by 1 on five-second pulses** until it reaches 4; recovery is probabilistic.
+
 Shortcut: 5, 3
 
 ### REST
@@ -467,11 +488,15 @@ Shortcut: 5, 3
 
 Natsumi can sit in the lotus pose and slowly let her spirit regain strength.
 
+Completing meditation increases **Spirit by 1**, up to the maximum of 4.
+
 Shortcut: 6, 0
 
 #### SLEEP
 
 Natsumi goes to bed for a good nap so she can be full of energy again.
+
+While sleeping, **Energy can increase by 1 on five-second pulses** until it reaches 4; recovery is probabilistic.
 
 Shortcut: 6, 1
 
@@ -491,7 +516,7 @@ Shortcut: 7
 
 ![Matsuri](./screens/matsuri_banner01.png "Matsuri festival")
 
-Enter the local Matsuri festival where you can taste some traditional street food, enjoy a Kakigori or play Garapon, a gambling game with nice prizes (Matsuri tickets, money, food, drinks, cards...).
+Enter the local Matsuri festival where you can taste some traditional street food, enjoy a Kakigori or play Garapon, a gambling game with nice prizes (Matsuri tickets, money, food, drinks, cards...). Eating the available Matsuri food sets **Hunger to 4**.
 
 Shortcut: 8
 
