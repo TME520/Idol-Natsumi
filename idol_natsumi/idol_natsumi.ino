@@ -4522,6 +4522,12 @@ void manageCard() {
       announceChallengeCompletion = false;
       changeState(0, CHALLENGE_DONE2, microWait);
       break;
+    case NEKO_CAFE10:
+      nekoCafeDrink();
+      break;
+    case NEKO_CAFE11:
+      // nekoCafeActivity();
+      break;
   }
   drawBackground(currentBackground);
   drawDebug();
@@ -9467,6 +9473,30 @@ void drawOverlay() {
       case NEKO_CAFE2:
         drawDialogBubble("Welcome to Neko Cafe!! Choose a drink and pick a seat!");
         break;
+      case NEKO_CAFE3:
+        M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
+        if (natsumi.money >= 450) {
+          drawText("Price: $450(S) / $600(L)", 5, 2, false, GREEN, 1);
+        } else {
+          drawText("Price: $450(S) / $600(L)", 5, 2, false, RED, 1);
+        }
+        break;
+      case NEKO_CAFE4:
+        M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
+        if (natsumi.money >= 400) {
+          drawText("Price: $400(S) / $550(L)", 5, 2, false, GREEN, 1);
+        } else {
+          drawText("Price: $450(S) / $550(L)", 5, 2, false, RED, 1);
+        }
+        break;
+      case NEKO_CAFE5:
+        M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
+        if (natsumi.money >= 500) {
+          drawText("Price: $500(S) / $650(L)", 5, 2, false, GREEN, 1);
+        } else {
+          drawText("Price: $500(S) / $650(L)", 5, 2, false, RED, 1);
+        }
+        break;
       case ACTION_OUTCOME:
         switch(previousState) {
           case FOOD_COOK2:
@@ -10702,6 +10732,21 @@ void neko_cafe() {
       overlayActive = false;
       // notifyVisitedPlace(PLACE_CONBIMART);
       changeState(0, NEKO_CAFE3, 0);
+    }
+  }
+  return;
+}
+
+void nekoCafeDrink() {
+  // Serial.println("> Entering nekoCafeDrink()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      overlayActive = false;
+      // notifyVisitedPlace(PLACE_CONBIMART);
+      changeState(0, HOME_LOOP, 0);
     }
   }
   return;
