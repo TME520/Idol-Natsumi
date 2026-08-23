@@ -2382,7 +2382,7 @@ void preloadImages() {
     case NEKO_CAFE:
       preloadImage("/idolnat/screens/neko_cafe_front.png", currentBackground);
       break;
-    case NEKO_CAFE2:  case NEKO_CAFE12:
+    case NEKO_CAFE2:  case NEKO_CAFE12: case NEKO_CAFE13:
       preloadImage("/idolnat/screens/neko_cafe_counter.png", currentBackground);
       break;
     case NEKO_CAFE3:
@@ -2467,7 +2467,7 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_11yo_meditate-90x135.png", currentCharacter);
           break;
-        case NEKO_CAFE2: case NEKO_CAFE12:
+        case NEKO_CAFE2: case NEKO_CAFE12: case NEKO_CAFE13:
           preloadImage("/idolnat/sprites/barmaid-90x135.png", currentCharacter);
           break;
         case FOOD_CONBINI3:
@@ -2633,7 +2633,7 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_13yo_meditate-90x135.png", currentCharacter);
           break;
-        case NEKO_CAFE2: case NEKO_CAFE12:
+        case NEKO_CAFE2: case NEKO_CAFE12: case NEKO_CAFE13:
           preloadImage("/idolnat/sprites/barmaid-90x135.png", currentCharacter);
           break;
         case FOOD_CONBINI3:
@@ -2799,7 +2799,7 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_15yo_meditate-90x135.png", currentCharacter);
           break;
-        case NEKO_CAFE2: case NEKO_CAFE12:
+        case NEKO_CAFE2: case NEKO_CAFE12: case NEKO_CAFE13:
           preloadImage("/idolnat/sprites/barmaid-90x135.png", currentCharacter);
           break;
         case FOOD_CONBINI3:
@@ -2965,7 +2965,7 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_18yo_meditate-90x135.png", currentCharacter);
           break;
-        case NEKO_CAFE2: case NEKO_CAFE12:
+        case NEKO_CAFE2: case NEKO_CAFE12: case NEKO_CAFE13:
           preloadImage("/idolnat/sprites/barmaid-90x135.png", currentCharacter);
           break;
         case FOOD_CONBINI3:
@@ -3131,7 +3131,7 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_21yo_meditate-90x135.png", currentCharacter);
           break;
-        case NEKO_CAFE2: case NEKO_CAFE12:
+        case NEKO_CAFE2: case NEKO_CAFE12: case NEKO_CAFE13:
           preloadImage("/idolnat/sprites/barmaid-90x135.png", currentCharacter);
           break;
         case FOOD_CONBINI3:
@@ -4141,7 +4141,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         l5NeedsRedraw = true;
         characterEnabled = false;
         break;
-      case NEKO_CAFE2: case NEKO_CAFE12:
+      case NEKO_CAFE2: case NEKO_CAFE12: case NEKO_CAFE13:
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
@@ -4671,7 +4671,7 @@ void manageDialog() {
     case CHALLENGE_DONE2:
       challengeDone();
       break;
-    case NEKO_CAFE2: case NEKO_CAFE12:
+    case NEKO_CAFE2: case NEKO_CAFE12: case NEKO_CAFE13:
       neko_cafe();
       break;
     default:
@@ -9664,6 +9664,9 @@ void drawOverlay() {
       case NEKO_CAFE12:
         drawDialogBubble("Enjoy your drink!!");
         break;
+      case NEKO_CAFE13:
+        drawDialogBubble("Gomen nasai, you do not have enough money...");
+        break;
       case ACTION_OUTCOME:
         switch(previousState) {
           case FOOD_COOK2:
@@ -10915,6 +10918,10 @@ void neko_cafe() {
           overlayActive = false;
           changeState(0, NEKO_CAFE8, 0);
           break;
+        case NEKO_CAFE13:
+          overlayActive = false;
+          changeState(0, NEKO_CAFE3, 0);
+          break;
       }
     }
   }
@@ -11548,7 +11555,11 @@ void nekoCafeSizeSelection() {
             case 13: case 40:
               selectedDrink = 0;
               returnTo = NEKO_CAFE12;
-              changeState(0, PAY_SCREEN, 0);
+              if (amountToPay <= natsumi.money) {
+                changeState(0, PAY_SCREEN, 0);
+              } else {
+                changeState(0, NEKO_CAFE13, 0);
+              }
               break;
             // ESC
             case 96:
@@ -11572,7 +11583,11 @@ void nekoCafeSizeSelection() {
               selectedDrink = 1;
               returnTo = NEKO_CAFE12;
               amountToPay += 150;
-              changeState(0, PAY_SCREEN, 0);
+              if (amountToPay <= natsumi.money) {
+                changeState(0, PAY_SCREEN, 0);
+              } else {
+                changeState(0, NEKO_CAFE13, 0);
+              }
               break;
             // ESC
             case 96:
