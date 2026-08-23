@@ -9559,6 +9559,14 @@ void drawOverlay() {
               drawOutcome("MAX", "Grace");
             }
             break;
+          case FLOWERS_MARKET7:
+            if (natsumi.grace < 4) {
+              Serial.println(">> actionOutcome() - natsumi.grace < 4");
+              drawOutcome("+1", "Grace");
+            } else {
+              drawOutcome("MAX", "Grace");
+            }
+            break;
           case TRAIN_SING3: case TRAIN_DANCE3:
             if (natsumi.performance < 4) {
               Serial.println(">> actionOutcome() - natsumi.performance < 4");
@@ -11004,11 +11012,14 @@ void miniGameDebrief() {
           saveRequired = true;
           // isNatsumiHappy = true;
           // changeState(0, HOME_LOOP, 0);
+          changeState(0, ACTION_OUTCOME, 0);
+          /*
           if (announceChallengeCompletion) {
             changeState(0, CHALLENGE_DONE, 0);
           } else {
             changeState(0, HOME_LOOP, 0);
           }
+          */
           break;
         case TRAIN_SING3:
           Serial.println(">> miniGameDebrief() - Changing state to ACTION_OUTCOME");
