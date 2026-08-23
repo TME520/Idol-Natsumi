@@ -4883,12 +4883,15 @@ void manageIdle() {
       changeState(0, NEKO_CAFE2, microWait);
       break;
     case PAY_SCREEN:
+      managePayment();
       changeState(0, PAY_SCREEN2, microWait);
       break;
     case PAY_SCREEN2:
+      managePayment();
       changeState(0, PAY_SCREEN3, microWait);
       break;
     case PAY_SCREEN3:
+      managePayment();
       changeState(0, returnTo, microWait);
       break;
     default:
@@ -5096,7 +5099,43 @@ void displayVersionScreen() {
 
 void managePayment() {
   // Serial.println("> Entering managePayment()");
+  // Apply the transaction once, as soon as the deduction step is entered.
+  if (currentState == PAY_SCREEN2 && changeStateCounter == 0) {
+    natsumi.money -= amountToPay;
+    saveRequired = true;
+  }
   return;
+}
+
+void drawPaymentDialog() {
+  const int dialogW = 200;
+  const int dialogH = 90;
+  const int dialogX = (M5Cardputer.Display.width() - dialogW) / 2;
+  const int dialogY = (M5Cardputer.Display.height() - dialogH) / 2;
+  const int dialogCenterX = dialogX + (dialogW / 2);
+  const int dialogCenterY = dialogY + (dialogH / 2);
+  const uint16_t panelColor = TFT_NAVY;
+
+  // Keep the same panel geometry throughout the three-step animation.
+  M5Cardputer.Display.fillRoundRect(dialogX, dialogY, dialogW, dialogH, 10, panelColor);
+  M5Cardputer.Display.drawRoundRect(dialogX, dialogY, dialogW, dialogH, 10, WHITE);
+
+  switch (currentState) {
+    case PAY_SCREEN:
+      drawText("Payment", dialogCenterX, dialogY + 22, true, WHITE, 3, panelColor);
+      drawText("$" + String(natsumi.money), dialogCenterX, dialogY + 61, true, WHITE, 2, panelColor);
+      break;
+    case PAY_SCREEN2:
+      drawText("Payment", dialogCenterX, dialogY + 22, true, WHITE, 3, panelColor);
+      drawText("-" + String(amountToPay), dialogCenterX, dialogY + 61, true, RED, 2, panelColor);
+      break;
+    case PAY_SCREEN3:
+      drawText("Payment done", dialogCenterX, dialogY + 17, true, WHITE, 2, panelColor);
+      drawText(String(natsumi.money), dialogCenterX, dialogCenterY, true, WHITE, 2, panelColor);
+      break;
+    default:
+      break;
+  }
 }
 
 void manageHomeScreen() {
@@ -9170,6 +9209,9 @@ void drawOverlay() {
         break;
       case TRAIN_LIBRARY:
         drawLibraryProgressBar();
+        break;
+      case PAY_SCREEN: case PAY_SCREEN2: case PAY_SCREEN3:
+        drawPaymentDialog();
         break;
       case TRAIN_DANCE3: {
         int missedDanceCues = danceCuesShown - danceScore;
