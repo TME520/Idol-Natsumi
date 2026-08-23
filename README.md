@@ -187,7 +187,7 @@ Stat caps: 0 is the lowest while 4 is the highest.
 | **Performance**| Active     | 0–4   | Completing **SING** or **DANCE** training adds +1, capped at 4. | — |
 | **Fitness**    | Active     | 0–4   | Completing **SWIM**, **GYM** or **RUN** adds +1, capped at 4. Note: in the current implementation, RUN also awards +1 when the run ends in failure. | — |
 | **Culture**    | Active     | 0–4   | Completing **LIBRARY** adds +1, capped at 4. | — |
-| **Grace**      | Active     | 0–4   | Eating at the **RESTAURANT** or receiving an **ORDER** adds +1, capped at 4. | — |
+| **Grace**      | Active     | 0–4   | Selling flowers, eating at the **RESTAURANT** or receiving an **ORDER** adds +1, capped at 4. | — |
 
 ### Keep Natsumi fed
 
