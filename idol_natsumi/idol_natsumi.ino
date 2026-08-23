@@ -201,7 +201,10 @@ enum GameState {
   NEKO_CAFE16,
   NEKO_CAFE17,
   NEKO_CAFE18,
-  NEKO_CAFE19
+  NEKO_CAFE19,
+  PAY_SCREEN,
+  PAY_SCREEN2,
+  PAY_SCREEN3
 };
 
 GameState currentState = VERSION_SCREEN;
@@ -209,6 +212,7 @@ GameState previousState = VERSION_SCREEN;
 GameState doctorState = HOME_LOOP;
 GameState priestState = HOME_LOOP;
 GameState loadedContinueState = HOME_LOOP;
+GameState returnTo = HOME_LOOP;
 bool continueStateLoaded = false;
 
 // === Screen configs definitions ===
@@ -1062,6 +1066,8 @@ int selectedDrink = 0;
 int selectedSize = 0;
 int selectedSeat = 0;
 
+int amountToPay = 0;
+
 String copyright = "(c) 2026 - Pantzumatic";
 String versionNumber = "Update " + String(SAVE_VERSION);
 
@@ -1265,6 +1271,9 @@ const char* gameStateToString(GameState state) {
     case NEKO_CAFE17:      return "NEKO_CAFE17";
     case NEKO_CAFE18:      return "NEKO_CAFE18";
     case NEKO_CAFE19:      return "NEKO_CAFE19";
+    case PAY_SCREEN:       return "PAY_SCREEN";
+    case PAY_SCREEN2:      return "PAY_SCREEN2";
+    case PAY_SCREEN3:      return "PAY_SCREEN3";
     default:               return "UNKNOWN";
   }
 }
@@ -2446,6 +2455,9 @@ void preloadImages() {
         default:
           break;
       }
+      break;
+    case PAY_SCREEN: case PAY_SCREEN2: case PAY_SCREEN3:
+      preloadImage("/idolnat/screens/pay_screen.png", currentBackground);
       break;
   }
   // Load portraits
@@ -4138,6 +4150,12 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         setScreenConfig(CARD);
         characterEnabled = false;
         break;
+      case PAY_SCREEN: case PAY_SCREEN2: case PAY_SCREEN3:
+        setScreenConfig(IDLE);
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        characterEnabled = false;
+        break;
       default:
         break;
     }
@@ -4864,6 +4882,15 @@ void manageIdle() {
     case NEKO_CAFE:
       changeState(0, NEKO_CAFE2, microWait);
       break;
+    case PAY_SCREEN:
+      changeState(0, PAY_SCREEN2, microWait);
+      break;
+    case PAY_SCREEN2:
+      changeState(0, PAY_SCREEN3, microWait);
+      break;
+    case PAY_SCREEN3:
+      changeState(0, returnTo, microWait);
+      break;
     default:
       break;
   }
@@ -5064,6 +5091,11 @@ void displayVersionScreen() {
     drawText(versionNumber, 120, 110, true, WHITE, 1); // centered
   }
   changeState(0, M5_SCREEN, microWait);
+  return;
+}
+
+void managePayment() {
+  // Serial.println("> Entering managePayment()");
   return;
 }
 
@@ -11365,6 +11397,7 @@ void nekoCafeDrinkSelection() {
             // ENTER
             case 13: case 40:
               selectedDrink = 0;
+              amountToPay = 450;
               changeState(0, NEKO_CAFE6, 0);
               break;
             // ESC
@@ -11387,6 +11420,7 @@ void nekoCafeDrinkSelection() {
             // ENTER
             case 13: case 40:
               selectedDrink = 1;
+              amountToPay = 400;
               changeState(0, NEKO_CAFE6, 0);
               break;
             // ESC
@@ -11409,6 +11443,7 @@ void nekoCafeDrinkSelection() {
             // ENTER
             case 13: case 40:
               selectedDrink = 2;
+              amountToPay = 500;
               changeState(0, NEKO_CAFE6, 0);
               break;
             // ESC
@@ -11455,7 +11490,8 @@ void nekoCafeSizeSelection() {
             // ENTER
             case 13: case 40:
               selectedDrink = 0;
-              changeState(0, NEKO_CAFE8, 0);
+              returnTo = NEKO_CAFE8;
+              changeState(0, PAY_SCREEN, 0);
               break;
             // ESC
             case 96:
@@ -11477,7 +11513,9 @@ void nekoCafeSizeSelection() {
             // ENTER
             case 13: case 40:
               selectedDrink = 1;
-              changeState(0, NEKO_CAFE8, 0);
+              returnTo = NEKO_CAFE8;
+              amountToPay += 150;
+              changeState(0, PAY_SCREEN, 0);
               break;
             // ESC
             case 96:
