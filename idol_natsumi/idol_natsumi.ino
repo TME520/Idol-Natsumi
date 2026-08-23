@@ -2400,10 +2400,48 @@ void preloadImages() {
     case NEKO_CAFE10: case NEKO_CAFE11:
       switch (selectedSeat) {
         case 0:
-          preloadImage("/idolnat/screens/neko_cafe_lounge.png", currentBackground);
+          switch(natsumi.age) {
+            case 11: case 12:
+              preloadImage("/idolnat/screens/neko_cafe_lounge_11yo.png", currentBackground);
+              break;
+            case 13: case 14:
+              preloadImage("/idolnat/screens/neko_cafe_sofa_13yo.png", currentBackground);
+              break;
+            case 15: case 16: case 17:
+              preloadImage("/idolnat/screens/neko_cafe_sofa_15yo.png", currentBackground);
+              break;
+            case 18: case 19: case 20:
+              preloadImage("/idolnat/screens/neko_cafe_lounge_18yo.png", currentBackground);
+              break;
+            case 21: case 22:
+              preloadImage("/idolnat/screens/neko_cafe_sofa_21yo.png", currentBackground);
+              break;
+            default:
+              preloadImage("/idolnat/screens/neko_cafe_lounge.png", currentBackground);
+              break;
+          }
           break;
         case 1:
-          preloadImage("/idolnat/screens/neko_cafe_table.png", currentBackground);
+          switch(natsumi.age) {
+            case 11: case 12:
+              preloadImage("/idolnat/screens/neko_cafe_table_11yo.png", currentBackground);
+              break;
+            case 13: case 14:
+              preloadImage("/idolnat/screens/neko_cafe_table_13yo.png", currentBackground);
+              break;
+            case 15: case 16: case 17:
+              preloadImage("/idolnat/screens/neko_cafe_table_15yo.png", currentBackground);
+              break;
+            case 18: case 19: case 20:
+              preloadImage("/idolnat/screens/neko_cafe_table_18yo.png", currentBackground);
+              break;
+            case 21: case 22:
+              preloadImage("/idolnat/screens/neko_cafe_table_21yo.png", currentBackground);
+              break;
+            default:
+              preloadImage("/idolnat/screens/neko_cafe_table.png", currentBackground);
+              break;
+          }
           break;
         default:
           break;
@@ -10803,7 +10841,7 @@ void nekoCafeDrink() {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       overlayActive = false;
       // notifyVisitedPlace(PLACE_CONBIMART);
-      changeState(0, HOME_LOOP, 0);
+      changeState(0, NEKO_CAFE3, 0);
     }
   }
   return;
