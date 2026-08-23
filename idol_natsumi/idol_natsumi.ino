@@ -2382,7 +2382,7 @@ void preloadImages() {
     case NEKO_CAFE:
       preloadImage("/idolnat/screens/neko_cafe_front.png", currentBackground);
       break;
-    case NEKO_CAFE2:
+    case NEKO_CAFE2:  case NEKO_CAFE12:
       preloadImage("/idolnat/screens/neko_cafe_counter.png", currentBackground);
       break;
     case NEKO_CAFE3:
@@ -2467,7 +2467,7 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_11yo_meditate-90x135.png", currentCharacter);
           break;
-        case NEKO_CAFE2:
+        case NEKO_CAFE2: case NEKO_CAFE12:
           preloadImage("/idolnat/sprites/barmaid-90x135.png", currentCharacter);
           break;
         case FOOD_CONBINI3:
@@ -2633,7 +2633,7 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_13yo_meditate-90x135.png", currentCharacter);
           break;
-        case NEKO_CAFE2:
+        case NEKO_CAFE2: case NEKO_CAFE12:
           preloadImage("/idolnat/sprites/barmaid-90x135.png", currentCharacter);
           break;
         case FOOD_CONBINI3:
@@ -2799,7 +2799,7 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_15yo_meditate-90x135.png", currentCharacter);
           break;
-        case NEKO_CAFE2:
+        case NEKO_CAFE2: case NEKO_CAFE12:
           preloadImage("/idolnat/sprites/barmaid-90x135.png", currentCharacter);
           break;
         case FOOD_CONBINI3:
@@ -2965,7 +2965,7 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_18yo_meditate-90x135.png", currentCharacter);
           break;
-        case NEKO_CAFE2:
+        case NEKO_CAFE2: case NEKO_CAFE12:
           preloadImage("/idolnat/sprites/barmaid-90x135.png", currentCharacter);
           break;
         case FOOD_CONBINI3:
@@ -3131,7 +3131,7 @@ void preloadImages() {
         case REST_MEDITATE:
           preloadImage("/idolnat/sprites/natsumi_21yo_meditate-90x135.png", currentCharacter);
           break;
-        case NEKO_CAFE2:
+        case NEKO_CAFE2: case NEKO_CAFE12:
           preloadImage("/idolnat/sprites/barmaid-90x135.png", currentCharacter);
           break;
         case FOOD_CONBINI3:
@@ -4141,7 +4141,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         l5NeedsRedraw = true;
         characterEnabled = false;
         break;
-      case NEKO_CAFE2:
+      case NEKO_CAFE2: case NEKO_CAFE12:
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
@@ -4671,7 +4671,7 @@ void manageDialog() {
     case CHALLENGE_DONE2:
       challengeDone();
       break;
-    case NEKO_CAFE2:
+    case NEKO_CAFE2: case NEKO_CAFE12:
       neko_cafe();
       break;
     default:
@@ -5122,16 +5122,19 @@ void drawPaymentDialog() {
 
   switch (currentState) {
     case PAY_SCREEN:
-      drawText("Payment", dialogCenterX, dialogY + 22, true, WHITE, 3, panelColor);
-      drawText("$" + String(natsumi.money), dialogCenterX, dialogY + 61, true, WHITE, 2, panelColor);
+      drawText("=Payment=", dialogCenterX, dialogY + 22, true, WHITE, 3, panelColor);
+      drawText("You have:", dialogCenterX, dialogY + 46, true, WHITE, 1, panelColor);
+      drawText("$" + String(natsumi.money), dialogCenterX, dialogY + 68, true, WHITE, 2, panelColor);
       break;
     case PAY_SCREEN2:
-      drawText("Payment", dialogCenterX, dialogY + 22, true, WHITE, 3, panelColor);
-      drawText("-" + String(amountToPay), dialogCenterX, dialogY + 61, true, RED, 2, panelColor);
+      drawText("=Payment=", dialogCenterX, dialogY + 22, true, WHITE, 3, panelColor);
+      drawText("Amount due:", dialogCenterX, dialogY + 46, true, WHITE, 1, panelColor);
+      drawText("$" + String(amountToPay), dialogCenterX, dialogY + 68, true, RED, 2, panelColor);
       break;
     case PAY_SCREEN3:
-      drawText("Payment done", dialogCenterX, dialogY + 17, true, WHITE, 2, panelColor);
-      drawText(String(natsumi.money), dialogCenterX, dialogCenterY, true, WHITE, 2, panelColor);
+      drawText("=Payment=", dialogCenterX, dialogY + 22, true, WHITE, 3, panelColor);
+      drawText("You now have:", dialogCenterX, dialogY + 46, true, WHITE, 1, panelColor);
+      drawText("$" + String(natsumi.money), dialogCenterX, dialogY + 68, true, GREEN, 2, panelColor);
       break;
     default:
       break;
@@ -9658,6 +9661,9 @@ void drawOverlay() {
         M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
         drawText("Table (drink, read)", 5, 2, false, WHITE, 1);
         break;
+      case NEKO_CAFE12:
+        drawDialogBubble("Enjoy your drink!!");
+        break;
       case ACTION_OUTCOME:
         switch(previousState) {
           case FOOD_COOK2:
@@ -10900,7 +10906,16 @@ void neko_cafe() {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       overlayActive = false;
       // notifyVisitedPlace(PLACE_CONBIMART);
-      changeState(0, NEKO_CAFE3, 0);
+      // changeState(0, NEKO_CAFE3, 0);
+      switch (currentState) {
+        case NEKO_CAFE2:
+          changeState(0, NEKO_CAFE3, 0);
+          break;
+        case NEKO_CAFE12:
+          overlayActive = false;
+          changeState(0, NEKO_CAFE8, 0);
+          break;
+      }
     }
   }
   return;
@@ -11532,7 +11547,7 @@ void nekoCafeSizeSelection() {
             // ENTER
             case 13: case 40:
               selectedDrink = 0;
-              returnTo = NEKO_CAFE8;
+              returnTo = NEKO_CAFE12;
               changeState(0, PAY_SCREEN, 0);
               break;
             // ESC
@@ -11555,7 +11570,7 @@ void nekoCafeSizeSelection() {
             // ENTER
             case 13: case 40:
               selectedDrink = 1;
-              returnTo = NEKO_CAFE8;
+              returnTo = NEKO_CAFE12;
               amountToPay += 150;
               changeState(0, PAY_SCREEN, 0);
               break;
