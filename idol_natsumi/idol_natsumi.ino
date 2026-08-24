@@ -2406,7 +2406,7 @@ void preloadImages() {
     case NEKO_CAFE9:
       preloadImage("/idolnat/screens/neko_cafe_table.png", currentBackground);
       break;
-    case NEKO_CAFE10: case NEKO_CAFE11:
+    case NEKO_CAFE10: case NEKO_CAFE11: case NEKO_CAFE14:
       switch (selectedSeat) {
         case 0:
           switch(natsumi.age) {
@@ -2455,6 +2455,7 @@ void preloadImages() {
         default:
           break;
       }
+      preloadImage("/idolnat/screens/cloud_bubble.png", natsumiSprite);
       break;
     case PAY_SCREEN: case PAY_SCREEN2: case PAY_SCREEN3:
       preloadImage("/idolnat/screens/pay_screen.png", currentBackground);
@@ -4146,9 +4147,11 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         overlayActive = true;
         l5NeedsRedraw = true;
         break;
-      case NEKO_CAFE10: case NEKO_CAFE11:
+      case NEKO_CAFE11:
+        setScreenConfig(IDLE);
+        break;
+      case NEKO_CAFE10: case NEKO_CAFE14:
         setScreenConfig(CARD);
-        characterEnabled = false;
         break;
       case PAY_SCREEN: case PAY_SCREEN2: case PAY_SCREEN3:
         setScreenConfig(IDLE);
@@ -4581,9 +4584,9 @@ void manageCard() {
       changeState(0, CHALLENGE_DONE2, microWait);
       break;
     case NEKO_CAFE10:
-      nekoCafeDrink();
+      changeState(0, NEKO_CAFE11, microWait);
       break;
-    case NEKO_CAFE11:
+    case NEKO_CAFE14:
       // nekoCafeActivity();
       break;
   }
@@ -4882,13 +4885,16 @@ void manageIdle() {
     case NEKO_CAFE:
       changeState(0, NEKO_CAFE2, microWait);
       break;
+    case NEKO_CAFE11:
+      nekoCafeDrink();
+      break;
     case PAY_SCREEN:
       managePayment();
-      changeState(0, PAY_SCREEN2, microWait);
+      changeState(0, PAY_SCREEN2, 30);
       break;
     case PAY_SCREEN2:
       managePayment();
-      changeState(0, PAY_SCREEN3, microWait);
+      changeState(0, PAY_SCREEN3, 30);
       break;
     case PAY_SCREEN3:
       managePayment();
@@ -9656,10 +9662,16 @@ void drawOverlay() {
       case NEKO_CAFE8:
         M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
         drawText("Sofa (drink, nap)", 5, 2, false, WHITE, 1);
+        drawHelper("[ENTER] Drink, then nap");
         break;
       case NEKO_CAFE9:
         M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
         drawText("Table (drink, read)", 5, 2, false, WHITE, 1);
+        drawHelper("[ENTER] Drink, then read");
+        break;
+      case NEKO_CAFE11:
+        drawImage(natsumiSprite);
+        drawHelper("Natsumi is drinking");
         break;
       case NEKO_CAFE12:
         drawDialogBubble("Enjoy your drink!!");
