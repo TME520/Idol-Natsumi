@@ -9610,28 +9610,37 @@ void drawOverlay() {
         drawDialogBubble("Welcome to Neko Cafe!! Choose a drink and pick a seat!");
         break;
       case NEKO_CAFE3:
+        /*
         M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
         if (natsumi.money >= 450) {
           drawText("Price: $450(S) / $600(L)", 5, 2, false, GREEN, 1);
         } else {
           drawText("Price: $450(S) / $600(L)", 5, 2, false, RED, 1);
         }
+        */
+        drawHelper("sml: $450   lge: $600    [$" + String(natsumi.money) + "]");
         break;
       case NEKO_CAFE4:
+        /*
         M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
         if (natsumi.money >= 400) {
           drawText("Price: $400(S) / $550(L)", 5, 2, false, GREEN, 1);
         } else {
           drawText("Price: $450(S) / $550(L)", 5, 2, false, RED, 1);
         }
+        */
+        drawHelper("sml: $400   lge: $550    [$" + String(natsumi.money) + "]");
         break;
       case NEKO_CAFE5:
+        /*
         M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
         if (natsumi.money >= 500) {
           drawText("Price: $500(S) / $650(L)", 5, 2, false, GREEN, 1);
         } else {
           drawText("Price: $500(S) / $650(L)", 5, 2, false, RED, 1);
         }
+        */
+        drawHelper("sml: $500   lge: $650    [$" + String(natsumi.money) + "]");
         break;
       case NEKO_CAFE6:
         M5Cardputer.Display.fillRect(0, 0, 72, 10, BLACK);
