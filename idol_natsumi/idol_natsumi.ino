@@ -9693,7 +9693,7 @@ void drawOverlay() {
       case NEKO_CAFE11:
         drawImage(natsumiSprite);
         if (currentIcon.data && currentIcon.length > 0) {
-          M5Cardputer.Display.drawPng(currentIcon.data, currentIcon.length, 126, 27);
+          M5Cardputer.Display.drawPng(currentIcon.data, currentIcon.length, 128, 15);
         }
         drawHelper("Natsumi is drinking");
         break;
@@ -10990,7 +10990,7 @@ void nekoCafeDrink() {
           break;
         case 2: if (natsumi.grace < 4) thoughtIcon = "/idolnat/sprites/flower_icon.png"; break;
         case 3: if (natsumi.culture < 4) thoughtIcon = "/idolnat/sprites/book_icon.png"; break;
-        case 4: if (natsumi.fitness < 4) thoughtIcon = "/idolnat/sprites/swimmer_icon.png"; break;
+        case 4: if (natsumi.fitness < 4) thoughtIcon = "/idolnat/sprites/runner_icon.png"; break;
         case 5: if (natsumi.performance < 4) thoughtIcon = "/idolnat/sprites/dancer_icon.png"; break;
         case 6: if (natsumi.popularity < 4) thoughtIcon = "/idolnat/sprites/singer_icon.png"; break;
         case 7: if (natsumi.spirit < 4) thoughtIcon = "/idolnat/sprites/prayer_icon.png"; break;
