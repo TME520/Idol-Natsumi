@@ -1065,6 +1065,9 @@ int pfcOutcome = 0;
 int selectedDrink = 0;
 int selectedSize = 0;
 int selectedSeat = 0;
+int nekoCafeDrinkTicks = 0;
+int nekoCafeThoughtIndex = 0;
+int nekoCafeCatIcon = 1;
 
 int amountToPay = 0;
 
@@ -1758,6 +1761,7 @@ void unloadAllImages() {
 
   unloadImage(currentBackground);
   unloadImage(currentCharacter);
+  unloadImage(currentIcon);
   unloadImage(natsumiSprite);
   unloadImage(enemySprite);
   unloadGardenFlowerSprites();
@@ -4149,6 +4153,14 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case NEKO_CAFE11:
         setScreenConfig(IDLE);
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        nekoCafeDrinkTicks = 0;
+        nekoCafeThoughtIndex = 0;
+        nekoCafeCatIcon = random(1, 7);
+        lastFiveSecondTick = millis();
+        fiveSecondPulse = false;
+        preloadImage("/idolnat/sprites/heart_icon.png", currentIcon);
         break;
       case NEKO_CAFE10: case NEKO_CAFE14:
         setScreenConfig(CARD);
@@ -9671,6 +9683,9 @@ void drawOverlay() {
         break;
       case NEKO_CAFE11:
         drawImage(natsumiSprite);
+        if (currentIcon.data && currentIcon.length > 0) {
+          M5Cardputer.Display.drawPng(currentIcon.data, currentIcon.length, 126, 27);
+        }
         drawHelper("Natsumi is drinking");
         break;
       case NEKO_CAFE12:
@@ -10942,15 +10957,48 @@ void neko_cafe() {
 
 void nekoCafeDrink() {
   // Serial.println("> Entering nekoCafeDrink()");
-  uint8_t key = 0;
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-    auto keyList = M5Cardputer.Keyboard.keyList();
-    if (keyList.size() > 0) {
-      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+  if (fiveSecondPulse) {
+    nekoCafeDrinkTicks++;
+    if (nekoCafeDrinkTicks >= (selectedSize == 0 ? 30 : 90)) {
       overlayActive = false;
-      // notifyVisitedPlace(PLACE_CONBIMART);
-      changeState(0, NEKO_CAFE3, 0);
+      changeState(0, NEKO_CAFE14, 0);
+      return;
     }
+
+    const char* thoughtIcon = nullptr;
+    do {
+      nekoCafeThoughtIndex++;
+      switch (nekoCafeThoughtIndex) {
+        case 1:
+          switch (nekoCafeCatIcon) {
+            case 1: thoughtIcon = "/idolnat/sprites/cat1_icon.png"; break;
+            case 2: thoughtIcon = "/idolnat/sprites/cat2_icon.png"; break;
+            case 3: thoughtIcon = "/idolnat/sprites/cat3_icon.png"; break;
+            case 4: thoughtIcon = "/idolnat/sprites/cat4_icon.png"; break;
+            case 5: thoughtIcon = "/idolnat/sprites/cat5_icon.png"; break;
+            default: thoughtIcon = "/idolnat/sprites/cat6_icon.png"; break;
+          }
+          break;
+        case 2: if (natsumi.grace < 4) thoughtIcon = "/idolnat/sprites/flower_icon.png"; break;
+        case 3: if (natsumi.culture < 4) thoughtIcon = "/idolnat/sprites/book_icon.png"; break;
+        case 4: if (natsumi.fitness < 4) thoughtIcon = "/idolnat/sprites/swimmer_icon.png"; break;
+        case 5: if (natsumi.performance < 4) thoughtIcon = "/idolnat/sprites/dancer_icon.png"; break;
+        case 6: if (natsumi.popularity < 4) thoughtIcon = "/idolnat/sprites/singer_icon.png"; break;
+        case 7: if (natsumi.spirit < 4) thoughtIcon = "/idolnat/sprites/prayer_icon.png"; break;
+        case 8: if (natsumi.energy < 4) thoughtIcon = "/idolnat/sprites/pillow_icon.png"; break;
+        case 9: if (natsumi.hygiene < 4) thoughtIcon = "/idolnat/sprites/shower_icon.png"; break;
+        case 10: if (natsumi.hunger < 4) thoughtIcon = "/idolnat/sprites/food_icon.png"; break;
+        default:
+          nekoCafeThoughtIndex = 0;
+          nekoCafeCatIcon = random(1, 7);
+          thoughtIcon = "/idolnat/sprites/heart_icon.png";
+          break;
+      }
+    } while (!thoughtIcon);
+
+    unloadImage(currentIcon);
+    preloadImage(thoughtIcon, currentIcon);
+    l5NeedsRedraw = true;
   }
   return;
 }
@@ -11565,7 +11613,7 @@ void nekoCafeSizeSelection() {
               break;
             // ENTER
             case 13: case 40:
-              selectedDrink = 0;
+              selectedSize = 0;
               returnTo = NEKO_CAFE12;
               if (amountToPay <= natsumi.money) {
                 changeState(0, PAY_SCREEN, 0);
@@ -11592,7 +11640,7 @@ void nekoCafeSizeSelection() {
               break;
             // ENTER
             case 13: case 40:
-              selectedDrink = 1;
+              selectedSize = 1;
               returnTo = NEKO_CAFE12;
               amountToPay += 150;
               if (amountToPay <= natsumi.money) {
