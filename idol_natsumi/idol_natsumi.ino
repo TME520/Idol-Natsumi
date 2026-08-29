@@ -11003,6 +11003,7 @@ void nekoCafeDrink() {
           nekoCafeThoughtIndex = 0;
           nekoCafeCatIcon = random(1, 7);
           thoughtIcon = "/idolnat/sprites/heart_icon.png";
+          nekoCafeThought = "I love that drink!!";
           break;
       }
     } while (!thoughtIcon);
@@ -11016,6 +11017,7 @@ void nekoCafeDrink() {
 
 void nekoCafeActivity() {
   // Serial.println("> Entering nekoCafeActivity()");
+  changeState(0, NEKO_CAFE2, microWait);
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
