@@ -1068,6 +1068,7 @@ int selectedSeat = 0;
 int nekoCafeDrinkTicks = 0;
 int nekoCafeThoughtIndex = 0;
 int nekoCafeCatIcon = 1;
+String nekoCafeThought = "Natsumi is enjoying her drink";
 
 int amountToPay = 0;
 
@@ -4599,7 +4600,7 @@ void manageCard() {
       changeState(0, NEKO_CAFE11, microWait);
       break;
     case NEKO_CAFE14:
-      // nekoCafeActivity();
+      nekoCafeActivity();
       break;
   }
   drawBackground(currentBackground);
@@ -9695,7 +9696,7 @@ void drawOverlay() {
         if (currentIcon.data && currentIcon.length > 0) {
           M5Cardputer.Display.drawPng(currentIcon.data, currentIcon.length, 128, 15);
         }
-        drawHelper("Natsumi is drinking");
+        drawHelper(nekoCafeThought);
         break;
       case NEKO_CAFE12:
         drawDialogBubble("Enjoy your drink!!");
@@ -10979,6 +10980,7 @@ void nekoCafeDrink() {
       nekoCafeThoughtIndex++;
       switch (nekoCafeThoughtIndex) {
         case 1:
+          nekoCafeThought = "I love cats so much!!";
           switch (nekoCafeCatIcon) {
             case 1: thoughtIcon = "/idolnat/sprites/cat1_icon.png"; break;
             case 2: thoughtIcon = "/idolnat/sprites/cat2_icon.png"; break;
@@ -10988,15 +10990,15 @@ void nekoCafeDrink() {
             default: thoughtIcon = "/idolnat/sprites/cat6_icon.png"; break;
           }
           break;
-        case 2: if (natsumi.grace < 4) thoughtIcon = "/idolnat/sprites/flower_icon.png"; break;
-        case 3: if (natsumi.culture < 4) thoughtIcon = "/idolnat/sprites/book_icon.png"; break;
-        case 4: if (natsumi.fitness < 4) thoughtIcon = "/idolnat/sprites/runner_icon.png"; break;
-        case 5: if (natsumi.performance < 4) thoughtIcon = "/idolnat/sprites/dancer_icon.png"; break;
-        case 6: if (natsumi.popularity < 4) thoughtIcon = "/idolnat/sprites/singer_icon.png"; break;
-        case 7: if (natsumi.spirit < 4) thoughtIcon = "/idolnat/sprites/prayer_icon.png"; break;
-        case 8: if (natsumi.energy < 4) thoughtIcon = "/idolnat/sprites/pillow_icon.png"; break;
-        case 9: if (natsumi.hygiene < 4) thoughtIcon = "/idolnat/sprites/shower_icon.png"; break;
-        case 10: if (natsumi.hunger < 4) thoughtIcon = "/idolnat/sprites/food_icon.png"; break;
+        case 2: if (natsumi.grace < 4) thoughtIcon = "/idolnat/sprites/flower_icon.png"; nekoCafeThought = "I should grow flowers"; break;
+        case 3: if (natsumi.culture < 4) thoughtIcon = "/idolnat/sprites/book_icon.png"; nekoCafeThought = "I should go to the library"; break;
+        case 4: if (natsumi.fitness < 4) thoughtIcon = "/idolnat/sprites/runner_icon.png"; nekoCafeThought = "I should do some sport"; break;
+        case 5: if (natsumi.performance < 4) thoughtIcon = "/idolnat/sprites/dancer_icon.png"; nekoCafeThought = "I should train a bit"; break;
+        case 6: if (natsumi.popularity < 4) thoughtIcon = "/idolnat/sprites/singer_icon.png"; nekoCafeThought = "I want to compete!"; break;
+        case 7: if (natsumi.spirit < 4) thoughtIcon = "/idolnat/sprites/prayer_icon.png"; nekoCafeThought = "I need to go to the temple"; break;
+        case 8: if (natsumi.energy < 4) thoughtIcon = "/idolnat/sprites/pillow_icon.png"; nekoCafeThought = "I need to sleep..."; break;
+        case 9: if (natsumi.hygiene < 4) thoughtIcon = "/idolnat/sprites/shower_icon.png"; nekoCafeThought = "I need a shower..."; break;
+        case 10: if (natsumi.hunger < 4) thoughtIcon = "/idolnat/sprites/food_icon.png"; nekoCafeThought = "I need to eat..."; break;
         default:
           nekoCafeThoughtIndex = 0;
           nekoCafeCatIcon = random(1, 7);
@@ -11008,6 +11010,24 @@ void nekoCafeDrink() {
     unloadImage(currentIcon);
     preloadImage(thoughtIcon, currentIcon);
     l5NeedsRedraw = true;
+  }
+  return;
+}
+
+void nekoCafeActivity() {
+  // Serial.println("> Entering nekoCafeActivity()");
+  uint8_t key = 0;
+  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    auto keyList = M5Cardputer.Keyboard.keyList();
+    if (keyList.size() > 0) {
+      key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      switch (currentState) {
+        case NEKO_CAFE14:
+          changeState(0, NEKO_CAFE2, 0);
+          break;
+      }
+      return;
+    }
   }
   return;
 }
