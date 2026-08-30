@@ -2411,7 +2411,7 @@ void preloadImages() {
     case NEKO_CAFE9:
       preloadImage("/idolnat/screens/neko_cafe_table.png", currentBackground);
       break;
-    case NEKO_CAFE10: case NEKO_CAFE11: case NEKO_CAFE14:
+    case NEKO_CAFE10: case NEKO_CAFE11:
       switch (selectedSeat) {
         case 0:
           switch(natsumi.age) {
@@ -2461,6 +2461,56 @@ void preloadImages() {
           break;
       }
       preloadImage("/idolnat/screens/cloud_bubble.png", natsumiSprite);
+      break;
+    case NEKO_CAFE14:
+      switch (selectedSeat) {
+        case 0:
+          switch(natsumi.age) {
+            case 11: case 12:
+              preloadImage("/idolnat/screens/neko_cafe_sofa_napping_11yo.png", currentBackground);
+              break;
+            case 13: case 14:
+              preloadImage("/idolnat/screens/neko_cafe_sofa_napping_13yo.png", currentBackground);
+              break;
+            case 15: case 16: case 17:
+              preloadImage("/idolnat/screens/neko_cafe_sofa_napping_15yo.png", currentBackground);
+              break;
+            case 18: case 19: case 20:
+              preloadImage("/idolnat/screens/neko_cafe_sofa_napping_18yo.png", currentBackground);
+              break;
+            case 21: case 22:
+              preloadImage("/idolnat/screens/neko_cafe_sofa_napping_21yo.png", currentBackground);
+              break;
+            default:
+              preloadImage("/idolnat/screens/neko_cafe_lounge.png", currentBackground);
+              break;
+          }
+          break;
+        case 1:
+          switch(natsumi.age) {
+            case 11: case 12:
+              preloadImage("/idolnat/screens/neko_cafe_table_11yo.png", currentBackground);
+              break;
+            case 13: case 14:
+              preloadImage("/idolnat/screens/neko_cafe_table_13yo.png", currentBackground);
+              break;
+            case 15: case 16: case 17:
+              preloadImage("/idolnat/screens/neko_cafe_table_15yo.png", currentBackground);
+              break;
+            case 18: case 19: case 20:
+              preloadImage("/idolnat/screens/neko_cafe_table_18yo.png", currentBackground);
+              break;
+            case 21: case 22:
+              preloadImage("/idolnat/screens/neko_cafe_table_21yo.png", currentBackground);
+              break;
+            default:
+              preloadImage("/idolnat/screens/neko_cafe_table.png", currentBackground);
+              break;
+          }
+          break;
+        default:
+          break;
+      }
       break;
     case PAY_SCREEN: case PAY_SCREEN2: case PAY_SCREEN3:
       preloadImage("/idolnat/screens/pay_screen.png", currentBackground);
@@ -10970,6 +11020,7 @@ void nekoCafeDrink() {
   if (fiveSecondPulse) {
     nekoCafeDrinkTicks++;
     if (nekoCafeDrinkTicks >= (selectedSize == 0 ? 30 : 90)) {
+      nekoCafeDrinkTicks = 0;
       overlayActive = false;
       changeState(0, NEKO_CAFE14, 0);
       return;
@@ -11017,17 +11068,12 @@ void nekoCafeDrink() {
 
 void nekoCafeActivity() {
   // Serial.println("> Entering nekoCafeActivity()");
-  changeState(0, NEKO_CAFE2, microWait);
-  uint8_t key = 0;
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-    auto keyList = M5Cardputer.Keyboard.keyList();
-    if (keyList.size() > 0) {
-      key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      switch (currentState) {
-        case NEKO_CAFE14:
-          changeState(0, NEKO_CAFE2, 0);
-          break;
-      }
+  if (fiveSecondPulse) {
+    nekoCafeDrinkTicks++;
+    if (nekoCafeDrinkTicks >= (selectedSize == 0 ? 30 : 90)) {
+      nekoCafeDrinkTicks = 0;
+      overlayActive = false;
+      changeState(0, NEKO_CAFE2, 0);
       return;
     }
   }
