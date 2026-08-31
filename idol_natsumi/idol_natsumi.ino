@@ -1069,6 +1069,8 @@ int nekoCafeDrinkTicks = 0;
 int nekoCafeThoughtIndex = 0;
 int nekoCafeCatIcon = 1;
 String nekoCafeThought = "Natsumi is enjoying her drink";
+int nekoCafeReadingFrame = 0;
+unsigned long nekoCafeReadingLastFrame = 0;
 
 int amountToPay = 0;
 
@@ -2510,6 +2512,9 @@ void preloadImages() {
           break;
         default:
           break;
+      }
+      if (selectedSeat == 1) {
+        preloadImage("/idolnat/sprites/natsumi_reading_11yo_left.png", natsumiSprite);
       }
       break;
     case PAY_SCREEN: case PAY_SCREEN2: case PAY_SCREEN3:
@@ -4215,6 +4220,10 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case NEKO_CAFE10: case NEKO_CAFE14:
         setScreenConfig(CARD);
+        if (targetState == NEKO_CAFE14 && selectedSeat == 1) {
+          nekoCafeReadingFrame = 0;
+          nekoCafeReadingLastFrame = millis();
+        }
         break;
       case PAY_SCREEN: case PAY_SCREEN2: case PAY_SCREEN3:
         setScreenConfig(IDLE);
@@ -4654,6 +4663,10 @@ void manageCard() {
       break;
   }
   drawBackground(currentBackground);
+  if (currentState == NEKO_CAFE14 && selectedSeat == 1 &&
+      natsumiSprite.data && natsumiSprite.length > 0) {
+    M5Cardputer.Display.drawPng(natsumiSprite.data, natsumiSprite.length, 70, 17);
+  }
   drawDebug();
   int *selectionPtr;
   if (currentMenuType == "home") {
@@ -11068,6 +11081,23 @@ void nekoCafeDrink() {
 
 void nekoCafeActivity() {
   // Serial.println("> Entering nekoCafeActivity()");
+  if (currentState == NEKO_CAFE14 && selectedSeat == 1) {
+    unsigned long now = millis();
+    if (now - nekoCafeReadingLastFrame >= 1000) {
+      static const char* readingFrames[] = {
+        "/idolnat/sprites/natsumi_reading_11yo_left.png",
+        "/idolnat/sprites/natsumi_reading_11yo_center.png",
+        "/idolnat/sprites/natsumi_reading_11yo_right.png"
+      };
+
+      nekoCafeReadingFrame = (nekoCafeReadingFrame + 1) % 3;
+      nekoCafeReadingLastFrame = now;
+      unloadImage(natsumiSprite);
+      preloadImage(readingFrames[nekoCafeReadingFrame], natsumiSprite);
+      l0NeedsRedraw = true;
+    }
+  }
+
   if (fiveSecondPulse) {
     nekoCafeDrinkTicks++;
     if (nekoCafeDrinkTicks >= (selectedSize == 0 ? 30 : 90)) {
