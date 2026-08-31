@@ -11425,7 +11425,7 @@ void gotoConbimart() {
               break;
             }
             if (natsumi.money >= total) {
-              natsumi.money -= total;
+              // natsumi.money -= total;
               for (auto &item : conbimartItems) {
                 *(item.stockPtr) += item.quantity;
               }
@@ -11434,7 +11434,10 @@ void gotoConbimart() {
               overlayActive = false;
               menuEnabled = true;
               saveRequired = true;
-              changeState(0, FOOD_CONBINI3, 0);
+              amountToPay = total;
+              returnTo = FOOD_CONBINI3;
+              // changeState(0, FOOD_CONBINI3, 0);
+              changeState(0, PAY_SCREEN, 0);
               return;
             } else {
               showToast("Not enough money :(");
