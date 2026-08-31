@@ -11511,7 +11511,7 @@ void restaurantFoodSelection() {
             case 13: case 40:
               restaurantSelection = 0;
               if (natsumi.money >= 700) {
-                natsumi.money -= 700;
+                // natsumi.money -= 700;
                 natsumi.hunger = 4;
                 if (natsumi.grace < 4) {
                   natsumi.grace += 1;
@@ -11521,7 +11521,10 @@ void restaurantFoodSelection() {
               } else {
                 showToast("Not enough money :(");
               }
-              changeState(0, FOOD_REST5, 0);
+              amountToPay = 700;
+              returnTo = FOOD_REST5;
+              changeState(0, PAY_SCREEN, 0);
+              // changeState(0, FOOD_REST5, 0);
               break;
             // ESC
             case 96:
@@ -11543,7 +11546,7 @@ void restaurantFoodSelection() {
             case 13: case 40:
               restaurantSelection = 1;
               if (natsumi.money >= 800) {
-                natsumi.money -= 800;
+                // natsumi.money -= 800;
                 natsumi.hunger = 4;
                 if (natsumi.grace < 4) {
                   natsumi.grace += 1;
@@ -11553,7 +11556,10 @@ void restaurantFoodSelection() {
               } else {
                 showToast("Not enough money :(");
               }
-              changeState(0, FOOD_REST5, 0);
+              amountToPay = 800;
+              returnTo = FOOD_REST5;
+              changeState(0, PAY_SCREEN, 0);
+              // changeState(0, FOOD_REST5, 0);
               break;
             // ESC
             case 96:
@@ -11575,7 +11581,7 @@ void restaurantFoodSelection() {
             case 13: case 40:
               restaurantSelection = 2;
               if (natsumi.money >= 900) {
-                natsumi.money -= 900;
+                // natsumi.money -= 900;
                 natsumi.hunger = 4;
                 if (natsumi.grace < 4) {
                   natsumi.grace += 1;
@@ -11585,7 +11591,10 @@ void restaurantFoodSelection() {
               } else {
                 showToast("Not enough money :(");
               }
-              changeState(0, FOOD_REST5, 0);
+              amountToPay = 900;
+              returnTo = FOOD_REST5;
+              changeState(0, PAY_SCREEN, 0);
+              // changeState(0, FOOD_REST5, 0);
               break;
             // ESC
             case 96:
@@ -12276,11 +12285,14 @@ void orderibiFoodSelection() {
             case 13: case 40:
               orderibiSelection = 0;
               if (natsumi.money >= 600) {
-                natsumi.money -= 600;
+                // natsumi.money -= 600;
               } else {
                 showToast("Not enough money :(");
               }
-              changeState(0, FOOD_ORDER5, 0);
+              amountToPay = 600;
+              returnTo = FOOD_ORDER5;
+              changeState(0, PAY_SCREEN, 0);
+              // changeState(0, FOOD_ORDER5, 0);
               break;
             // ESC
             case 96:
@@ -12302,11 +12314,14 @@ void orderibiFoodSelection() {
             case 13: case 40:
               orderibiSelection = 1;
               if (natsumi.money >= 750) {
-                natsumi.money -= 750;
+                // natsumi.money -= 750;
               } else {
                 showToast("Not enough money :(");
               }
-              changeState(0, FOOD_ORDER5, 0);
+              amountToPay = 750;
+              returnTo = FOOD_ORDER5;
+              changeState(0, PAY_SCREEN, 0);
+              // changeState(0, FOOD_ORDER5, 0);
               break;
             // ESC
             case 96:
@@ -12328,11 +12343,14 @@ void orderibiFoodSelection() {
             case 13: case 40:
               orderibiSelection = 2;
               if (natsumi.money >= 1200) {
-                natsumi.money -= 1200;
+                // natsumi.money -= 1200;
               } else {
                 showToast("Not enough money :(");
               }
-              changeState(0, FOOD_ORDER5, 0);
+              amountToPay = 1200;
+              returnTo = FOOD_ORDER5;
+              changeState(0, PAY_SCREEN, 0);
+              // changeState(0, FOOD_ORDER5, 0);
               break;
             // ESC
             case 96:
