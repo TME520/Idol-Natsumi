@@ -1679,6 +1679,7 @@ bool loadGameFromSd() {
   updateChallengeProgress();
   sessionStart = millis();
   Serial.println(">> loadGameFromSd: Load complete");
+  Serial.println(">>> loadGameFromSd - natsumi.age: " + String(natsumi.age));
   Serial.println(">>> loadGameFromSd - natsumi.ageMilliseconds: " + String(natsumi.ageMilliseconds));
   Serial.println(">>> loadGameFromSd - playtimeTotalMs: " + String(playtimeTotalMs));
   if (loadPath == saveGameBackupPath) {
@@ -3412,6 +3413,7 @@ void loop() {
   // Serial.println("> currentState = " + String(gameStateToString(currentState)));
   // Serial.println("loop - natsumi.ageMilliseconds: " + String(natsumi.ageMilliseconds));
   // Serial.println("loop - playtimeTotalMs: " + String(playtimeTotalMs));
+  Serial.println("loop - natsumi.age: " + String(natsumi.age));
   switch (screenConfig) {
     case CARD:
       // Serial.println("> screenConfig: CARD");
@@ -4250,8 +4252,8 @@ void updateAging() {
   int currentAge = natsumi.age;
  
   natsumi.ageMilliseconds = totalMs;
-  // Serial.print("natsumi.age: ");
-  // Serial.println(natsumi.age);
+  // Serial.print(">> updateAging - natsumi.age before update: " + String(natsumi.age));
+  Serial.print(">> updateAging - natsumi.ageMilliseconds: " + String(natsumi.ageMilliseconds) + " || agingInterval: " + String(agingInterval));
   if (natsumi.ageMilliseconds < agingInterval) {
     natsumi.age = 11;
   } else if ((natsumi.ageMilliseconds >= agingInterval) && (natsumi.ageMilliseconds < (agingInterval * 2))) {
@@ -4277,8 +4279,7 @@ void updateAging() {
   } else if ((natsumi.ageMilliseconds >= (agingInterval * 11)) && (natsumi.ageMilliseconds < (agingInterval * 12))) {
     natsumi.age = 22;
   }
-  // Serial.print("natsumi.age: ");
-  // Serial.println(natsumi.age);
+  // Serial.print(">> updateAging - natsumi.age after update: " + String(natsumi.age));
   if (natsumi.age > currentAge) {
     // Load updated portrait
     preloadImages();
@@ -4974,6 +4975,7 @@ void manageIdle() {
       break;
     case PAY_SCREEN3:
       managePayment();
+      saveRequired = true;
       changeState(0, returnTo, microWait);
       break;
     default:
@@ -7932,7 +7934,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // 1: RESTAURANT
           menuOpened = false;
           if (!waitingForFoodDelivery) {
-            if (natsumi.age > 15) {
+            if (natsumi.age > 14) {
               changeState(0, FOOD_REST, 0);
             } else {
               changeState(0, HOME_LOOP, 0);
@@ -8020,7 +8022,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             changeState(0, FOOD_COOK, 0);
           } else if (selection == 1) {
             if (!waitingForFoodDelivery) {
-              if (natsumi.age > 15) {
+              if (natsumi.age > 14) {
                 changeState(0, FOOD_REST, 0);
               } else {
                 changeState(0, HOME_LOOP, 0);
@@ -9768,11 +9770,20 @@ void drawOverlay() {
         drawDialogBubble("Gomen nasai, you do not have enough money...");
         break;
       case ACTION_OUTCOME:
+        saveRequired = true;
         switch(previousState) {
           case FOOD_COOK2:
             drawOutcome("+" + String(lastCookHungerBonus), "Hunger");
             break;
           case FOOD_ORDER8:
+            if (natsumi.grace < 4) {
+              Serial.println(">> actionOutcome() - natsumi.grace < 4");
+              drawOutcome("+1", "Grace");
+            } else {
+              drawOutcome("MAX", "Grace");
+            }
+            break;
+          case FOOD_REST5:
             if (natsumi.grace < 4) {
               Serial.println(">> actionOutcome() - natsumi.grace < 4");
               drawOutcome("+1", "Grace");
@@ -10650,7 +10661,8 @@ void gotoRestaurant() {
           changeState(0, FOOD_REST2, 0);
           break;
         case FOOD_REST5:
-          changeState(0, FOOD_REST6, 0);
+          // changeState(0, FOOD_REST6, 0);
+          changeState(0, ACTION_OUTCOME, 0);
           break;
       }
     }
@@ -10694,6 +10706,9 @@ void actionOutcome() {
           break;
         case DOOR_KNOCK7:
           changeState(0, DOOR_KNOCK8, 0);
+          break;
+        case FOOD_REST5:
+          changeState(0, FOOD_REST6, 0);
           break;
         default:
           // changeState(0, HOME_LOOP, 0);
@@ -11548,11 +11563,17 @@ void restaurantFoodSelection() {
               if (natsumi.money >= 800) {
                 // natsumi.money -= 800;
                 natsumi.hunger = 4;
+                /*
                 if (natsumi.grace < 4) {
                   natsumi.grace += 1;
                 }
                 saveRequired = true;
+                */
                 // isNatsumiHappy = true;
+                amountToPay = 800;
+                returnTo = FOOD_REST5;
+                changeState(0, PAY_SCREEN, 0);
+                // changeState(0, FOOD_REST5, 0);
               } else {
                 showToast("Not enough money :(");
               }
@@ -11583,18 +11604,20 @@ void restaurantFoodSelection() {
               if (natsumi.money >= 900) {
                 // natsumi.money -= 900;
                 natsumi.hunger = 4;
+                /*
                 if (natsumi.grace < 4) {
                   natsumi.grace += 1;
                 }
                 saveRequired = true;
+                */
                 // isNatsumiHappy = true;
+                amountToPay = 900;
+                returnTo = FOOD_REST5;
+                changeState(0, PAY_SCREEN, 0);
+                // changeState(0, FOOD_REST5, 0);
               } else {
                 showToast("Not enough money :(");
               }
-              amountToPay = 900;
-              returnTo = FOOD_REST5;
-              changeState(0, PAY_SCREEN, 0);
-              // changeState(0, FOOD_REST5, 0);
               break;
             // ESC
             case 96:
