@@ -7644,7 +7644,11 @@ void meditate() {
     saveRequired = true;
     // isNatsumiHappy = true;
     showToast("Natsumi feels relaxed");
-    changeState(0, HOME_LOOP, 0);
+    if (meditationRewardApplied) {
+      changeState(0, ACTION_OUTCOME, 0);
+    } else {
+      changeState(0, HOME_LOOP, 0);
+    }
     return;
   }
 }
