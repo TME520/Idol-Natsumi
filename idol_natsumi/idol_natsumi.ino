@@ -4254,7 +4254,7 @@ void updateAging() {
  
   natsumi.ageMilliseconds = totalMs;
   // Serial.print(">> updateAging - natsumi.age before update: " + String(natsumi.age));
-  Serial.print(">> updateAging - natsumi.ageMilliseconds: " + String(natsumi.ageMilliseconds) + " || agingInterval: " + String(agingInterval));
+  // Serial.print(">> updateAging - natsumi.ageMilliseconds: " + String(natsumi.ageMilliseconds) + " || agingInterval: " + String(agingInterval));
   if (natsumi.ageMilliseconds < agingInterval) {
     natsumi.age = 11;
   } else if ((natsumi.ageMilliseconds >= agingInterval) && (natsumi.ageMilliseconds < (agingInterval * 2))) {
@@ -7591,10 +7591,13 @@ void drawMeditationOverlay() {
     M5Cardputer.Display.drawRoundRect(barX - 1, barY - 1, barW + 2, barH + 2, 7, borderColor);
   }
   if (remaining == 0) {
+    Serial.println(">> drawMeditationOverlay - remaining = 0");
     meditationActive = false;
     if (!meditationRewardApplied) {
+      Serial.println(">> drawMeditationOverlay - meditation reward available (spirit=" + String(natsumi.spirit) + ")");
       if (natsumi.spirit < 4 ) {
         natsumi.spirit += 1;
+        Serial.println(">> drawMeditationOverlay - Spirit bonus applied " + String(natsumi.spirit) + ")");
         saveRequired = true;
         // isNatsumiHappy = true;
       }
@@ -9765,6 +9768,9 @@ void drawOverlay() {
           case REST_SLEEP:
             drawOutcome("MAX", "Energy");
             break;
+          case REST_MEDITATE:
+            drawOutcome("MAX", "Spirit");
+            break;
           case FOOD_COOK2:
             drawOutcome("+" + String(lastCookHungerBonus), "Hunger");
             break;
@@ -10722,6 +10728,9 @@ void actionOutcome() {
           changeState(0, FOOD_ORDER9, 0);
           break;
         case FOOD_ORDER9:
+          changeState(0, HOME_LOOP, 0);
+          break;
+        case REST_MEDITATE:
           changeState(0, HOME_LOOP, 0);
           break;
         default:
