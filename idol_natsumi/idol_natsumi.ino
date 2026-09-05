@@ -9765,6 +9765,9 @@ void drawOverlay() {
       case ACTION_OUTCOME:
         saveRequired = true;
         switch(previousState) {
+          case COMP_LOCAL6: case COMP_DEPT6: case COMP_REG6: case COMP_NAT6:
+            drawOutcome("MAX", "Popularity");
+            break;
           case REST_SLEEP:
             drawOutcome("MAX", "Energy");
             break;
@@ -10733,6 +10736,9 @@ void actionOutcome() {
         case REST_MEDITATE:
           changeState(0, HOME_LOOP, 0);
           break;
+        case COMP_LOCAL5: case COMP_DEPT5: case COMP_REG5: case COMP_NAT5:
+          changeState(0, HOME_LOOP, 0);
+          break;
         default:
           // changeState(0, HOME_LOOP, 0);
           if (announceChallengeCompletion) {
@@ -11401,7 +11407,11 @@ void miniGameDebrief() {
         case COMP_LOCAL6: case COMP_DEPT6: case COMP_REG6:
           saveRequired = true;
           // isNatsumiHappy = true;
-          changeState(0, HOME_LOOP, 0);
+          if (unlockedNextCompetitionLevel) {
+            changeState(0, ACTION_OUTCOME, 0);
+          } else {
+            changeState(0, HOME_LOOP, 0);
+          }
           break;
         case COMP_NAT6:
           saveRequired = true;
