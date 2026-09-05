@@ -9058,16 +9058,37 @@ void prepareFoodGrid() {
     return a.quantity > b.quantity;
   });
 
-  size_t limit = std::min<size_t>(8, options.size());
-  for (size_t i = 0; i < limit; i++) {
+  // Keep every fridge item in the grid. drawFoodGrid() displays eight at a
+  // time; truncating this list made recipes impossible whenever one of their
+  // ingredients happened to sort below the first page.
+  for (size_t i = 0; i < options.size(); i++) {
     foodGridItems.push_back(options[i]);
-    preloadFoodIcon(foodGridItems.back());
+  }
+  // Only the visible page needs decoded icons; keeping all 26 PNGs resident is
+  // unnecessarily expensive on the Cardputer.
+  for (size_t i = 0; i < std::min<size_t>(8, foodGridItems.size()); i++) {
+    preloadFoodIcon(foodGridItems[i]);
   }
 
   foodSelectionIndex = 0;
   overlayActive = true;
   l5NeedsRedraw = true;
   foodGridInitialized = true;
+}
+
+void loadFoodGridPage(int page) {
+  const int itemsPerPage = 8;
+  const size_t pageStart = static_cast<size_t>(page * itemsPerPage);
+  const size_t pageEnd = std::min(pageStart + itemsPerPage, foodGridItems.size());
+
+  for (auto &item : foodGridItems) {
+    if (item.icon.data) {
+      unloadImage(item.icon);
+    }
+  }
+  for (size_t i = pageStart; i < pageEnd; i++) {
+    preloadFoodIcon(foodGridItems[i]);
+  }
 }
 
 void drawFoodGrid(const std::vector<FoodDisplayItem> &items, int selectedIndex) {
@@ -9079,7 +9100,7 @@ void drawFoodGrid(const std::vector<FoodDisplayItem> &items, int selectedIndex) 
   const uint16_t shadowColor = M5Cardputer.Display.color565(10, 14, 32);
   const uint16_t panelColor = M5Cardputer.Display.color565(16, 24, 44);
   const uint16_t accentColor = M5Cardputer.Display.color565(120, 200, 255);
-  const uint16_t combineColor = M5Cardputer.Display.color565(80, 235, 150);
+  const uint16_t recipeColor = M5Cardputer.Display.color565(255, 105, 180);
   const uint16_t cellColor = M5Cardputer.Display.color565(28, 40, 64);
   const uint16_t highlightColor = M5Cardputer.Display.color565(60, 90, 140);
 
@@ -9090,7 +9111,10 @@ void drawFoodGrid(const std::vector<FoodDisplayItem> &items, int selectedIndex) 
   M5Cardputer.Display.setTextDatum(middle_center);
   M5Cardputer.Display.setTextSize(1);
   M5Cardputer.Display.setTextColor(WHITE, panelColor);
-  M5Cardputer.Display.drawString(String("Cook with Natsumi ") + String(recipeSelectionCount) + String("/4"), panelX + panelW / 2, panelY + headerHeight / 2 + 1);
+  const int itemsPerPage = 8;
+  const int page = selectedIndex / itemsPerPage;
+  const int pageCount = std::max(1, (static_cast<int>(items.size()) + itemsPerPage - 1) / itemsPerPage);
+  M5Cardputer.Display.drawString(String("Cook ") + String(recipeSelectionCount) + String("/4  ") + String(page + 1) + String("/") + String(pageCount), panelX + panelW / 2, panelY + headerHeight / 2 + 1);
 
   const int cols = 4;
   const int rows = 2;
@@ -9098,23 +9122,26 @@ void drawFoodGrid(const std::vector<FoodDisplayItem> &items, int selectedIndex) 
   const int cellW = (panelW - padding * (cols + 1)) / cols;
   const int cellH = (panelH - headerHeight - padding * (rows + 1)) / rows;
 
-  for (size_t i = 0; i < items.size(); i++) {
-    int col = i % cols;
-    int row = i / cols;
+  const size_t pageStart = static_cast<size_t>(page * itemsPerPage);
+  const size_t pageEnd = std::min(pageStart + itemsPerPage, items.size());
+  for (size_t i = pageStart; i < pageEnd; i++) {
+    int pageIndex = static_cast<int>(i - pageStart);
+    int col = pageIndex % cols;
+    int row = pageIndex / cols;
     int cellX = panelX + padding + col * (cellW + padding);
     int cellY = panelY + headerHeight + padding + row * (cellH + padding);
     bool selected = (static_cast<int>(i) == selectedIndex);
     bool ingredientSelected = isRecipeItemSelected(items[i].id);
     bool combineCandidate = isPotentialRecipeIngredient(items[i].id);
     uint16_t fill = selected ? highlightColor : cellColor;
-    uint16_t border = ingredientSelected ? YELLOW : (combineCandidate ? combineColor : accentColor);
+    uint16_t border = ingredientSelected ? YELLOW : (combineCandidate ? recipeColor : accentColor);
 
     M5Cardputer.Display.fillRoundRect(cellX, cellY, cellW, cellH, 6, fill);
     M5Cardputer.Display.drawRoundRect(cellX, cellY, cellW, cellH, 6, border);
     if (ingredientSelected) {
       M5Cardputer.Display.fillCircle(cellX + cellW - 7, cellY + 7, 4, YELLOW);
     } else if (combineCandidate) {
-      M5Cardputer.Display.fillCircle(cellX + cellW - 7, cellY + 7, 3, combineColor);
+      M5Cardputer.Display.fillCircle(cellX + cellW - 7, cellY + 7, 3, recipeColor);
     }
 
     int iconOffset = (cellW - 32) / 2;
@@ -9133,7 +9160,7 @@ void drawFoodGrid(const std::vector<FoodDisplayItem> &items, int selectedIndex) 
 
   // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
   // drawText("Green: Can cook  ENTER +/-  SPACE Eat", 120, 131, true, WHITE, 1);
-  drawHelper("Green: Can cook  ENTER +/-  SPACE Eat");
+  drawHelper("Pink: recipe  ENTER +/-  SPACE cook");
 }
 
 int getConbimartTotal() {
@@ -10501,6 +10528,7 @@ void cookFood() {
 
     uint8_t key = 0;
     bool selectionChanged = false;
+    int previousPage = foodSelectionIndex / 8;
 
     if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
       auto keyList = M5Cardputer.Keyboard.keyList();
@@ -10520,7 +10548,7 @@ void cookFood() {
             break;
           // DOWN
           case 46: case 's': case 'S':
-            if (currentRow < 1 && foodSelectionIndex + 4 < static_cast<int>(foodGridItems.size())) {
+            if (foodSelectionIndex + 4 < static_cast<int>(foodGridItems.size())) {
               foodSelectionIndex += 4;
               selectionChanged = true;
             }
@@ -10550,7 +10578,9 @@ void cookFood() {
           case 13: case 40:
             if (!foodGridItems.empty()) {
               FoodDisplayItem &choice = foodGridItems[foodSelectionIndex];
-              if (toggleRecipeIngredient(choice)) {
+              if (!isRecipeItemSelected(choice.id) && !isPotentialRecipeIngredient(choice.id)) {
+                showToast("Not in this recipe");
+              } else if (toggleRecipeIngredient(choice)) {
                 l5NeedsRedraw = true;
               } else if (*(choice.quantityPtr) <= 0) {
                 showToast("No stock");
@@ -10573,6 +10603,10 @@ void cookFood() {
     }
 
     if (selectionChanged) {
+      int currentPage = foodSelectionIndex / 8;
+      if (currentPage != previousPage) {
+        loadFoodGridPage(currentPage);
+      }
       l5NeedsRedraw = true;
     }
   } else {
