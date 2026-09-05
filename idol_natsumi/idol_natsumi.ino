@@ -10578,14 +10578,18 @@ void cookFood() {
           case 13: case 40:
             if (!foodGridItems.empty()) {
               FoodDisplayItem &choice = foodGridItems[foodSelectionIndex];
-              if (!isRecipeItemSelected(choice.id) && !isPotentialRecipeIngredient(choice.id)) {
-                showToast("Not in this recipe");
-              } else if (toggleRecipeIngredient(choice)) {
+              bool alreadySelected = isRecipeItemSelected(choice.id);
+              if (alreadySelected) {
+                toggleRecipeIngredient(choice);
                 l5NeedsRedraw = true;
               } else if (*(choice.quantityPtr) <= 0) {
                 showToast("No stock");
-              } else {
+              } else if (recipeSelectionCount >= 4) {
                 showToast("Max 4 items");
+              } else if (!isPotentialRecipeIngredient(choice.id)) {
+                showToast("Not in this recipe");
+              } else if (toggleRecipeIngredient(choice)) {
+                l5NeedsRedraw = true;
               }
             }
             return;
