@@ -79,6 +79,7 @@ enum GameState {
   IDLE_STATS,
   REST_MENU,
   REST_MEDITATE,
+  REST_MEDITATE2,
   REST_SLEEP,
   REST_SLEEP2,
   STATS_SCREEN,
@@ -1156,6 +1157,7 @@ const char* gameStateToString(GameState state) {
     case IDLE_STATS:       return "IDLE_STATS";
     case REST_MENU:        return "REST_MENU";
     case REST_MEDITATE:    return "REST_MEDITATE";
+    case REST_MEDITATE2:   return "REST_MEDITATE2";
     case REST_SLEEP:       return "REST_SLEEP";
     case REST_SLEEP2:      return "REST_SLEEP2";
     case STATS_SCREEN:     return "STATS_SCREEN";
@@ -2050,7 +2052,7 @@ void preloadImages() {
     case HEALTH_TEMPLE5:
       preloadImage("/idolnat/screens/priest_step3.png", currentBackground);
       break;
-    case REST_MEDITATE: case REST_SLEEP2:
+    case REST_MEDITATE: case REST_MEDITATE2: case REST_SLEEP2:
       preloadImage("/idolnat/screens/bedroom.png", currentBackground);
       break;
     case REST_SLEEP:
@@ -3582,10 +3584,10 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         setScreenConfig(CARD);
         natsumi.age = 11;
         natsumi.ageMilliseconds = 0;
-        natsumi.hunger = 4;
-        natsumi.hygiene = 4;
-        natsumi.energy = 4;
-        natsumi.spirit = 4;
+        natsumi.hunger = 3;
+        natsumi.hygiene = 3;
+        natsumi.energy = 3;
+        natsumi.spirit = 3;
         natsumi.popularity = 0;
         natsumi.performance = 0;
         natsumi.fitness = 0;
@@ -3670,10 +3672,10 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         } else {
           natsumi.age = 11;
           natsumi.ageMilliseconds = 0;
-          natsumi.hunger = 4;
-          natsumi.hygiene = 4;
-          natsumi.energy = 4;
-          natsumi.spirit = 4;
+          natsumi.hunger = 3;
+          natsumi.hygiene = 3;
+          natsumi.energy = 3;
+          natsumi.spirit = 3;
           natsumi.popularity = 0;
           natsumi.performance = 0;
           natsumi.fitness = 0;
@@ -4068,6 +4070,11 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         l5NeedsRedraw = true;
         lastMeditationDisplayed = 0;
         toastEnabled = false;
+        break;
+      case REST_MEDITATE2:
+        setScreenConfig(DIALOG);
+        overlayActive = true;
+        l5NeedsRedraw = true;
         break;
       case REST_SLEEP:
         setScreenConfig(IDLE);
@@ -4762,6 +4769,8 @@ void manageDialog() {
       break;
     case NEKO_CAFE2: case NEKO_CAFE12: case NEKO_CAFE13:
       neko_cafe();
+      break;
+    case REST_MEDITATE2:
       break;
     case REST_SLEEP2:
       break;
@@ -9476,7 +9485,7 @@ void drawOverlay() {
           drawSleepEnergyOverlay();
         }
         break;
-      case REST_SLEEP2:
+      case REST_MEDITATE2: case REST_SLEEP2:
         drawDialogBubble("I feel much better!");
         break;
       case REST_MEDITATE:
@@ -9500,25 +9509,33 @@ void drawOverlay() {
           doctorHint += "You have good hygiene. ";
         } else {
           doctorHint += "You need better hygiene. ";
-          doctorState = HEALTH_MENU;
+          if (doctorState == HOME_LOOP) {
+            doctorState = HEALTH_MENU;
+          }
         }
         if (natsumi.energy == 4) {
           doctorHint += "You sleep properly. ";
         } else {
           doctorHint += "You need to sleep more. ";
-          doctorState = REST_MENU;
+          if (doctorState == HOME_LOOP) {
+            doctorState = REST_MENU;
+          }
         }
         if (natsumi.fitness == 4) {
           doctorHint += "You do enough sport. ";
         } else {
           doctorHint +=  "You need to exercise more. ";
-          doctorState = TRAIN_MENU;
+          if (doctorState == HOME_LOOP) {
+            doctorState = TRAIN_MENU;
+          }
         }
         if (natsumi.performance == 4) {
           doctorHint += "You train enough. ";
         } else {
           doctorHint += "You need to train more. ";
-          doctorState = TRAIN_MENU;
+          if (doctorState == HOME_LOOP) {
+            doctorState = TRAIN_MENU;
+          }
         }
         drawDialogBubble(doctorHint);
         break;
@@ -9538,20 +9555,26 @@ void drawOverlay() {
           priestHint += "You have good manners. ";
         } else {
           priestHint += "You need to go out more. ";
-          priestState = FOOD_MENU;
+          if (priestState == HOME_LOOP) {
+            priestState = FOOD_MENU;
+          }
         }
         if (isCompetitionEnabled()) {
           if (natsumi.popularity == 4) {
             priestHint += "The public likes you. ";
           } else {
             priestHint += "You need to compete more. ";
-            priestState = COMP_MENU;
+            if (priestState == HOME_LOOP) {
+              priestState = COMP_MENU;
+            }
           }
           if (natsumi.spirit == 4) {
             priestHint += "You are spiritually strong. ";
           } else {
             priestHint += "You need to keep working on yourself. ";
-            priestState = TRAIN_MENU;
+            if (priestState == HOME_LOOP) {
+              priestState = TRAIN_MENU;
+            }
           }
         } else {
           priestHint += "Train in order to get ready for competition later. ";
