@@ -80,6 +80,7 @@ enum GameState {
   REST_MENU,
   REST_MEDITATE,
   REST_SLEEP,
+  REST_SLEEP2,
   STATS_SCREEN,
   GARDEN_MENU,
   GARDEN_LOOP,
@@ -1156,6 +1157,7 @@ const char* gameStateToString(GameState state) {
     case REST_MENU:        return "REST_MENU";
     case REST_MEDITATE:    return "REST_MEDITATE";
     case REST_SLEEP:       return "REST_SLEEP";
+    case REST_SLEEP2:      return "REST_SLEEP2";
     case STATS_SCREEN:     return "STATS_SCREEN";
     case GARDEN_MENU:      return "GARDEN_MENU";
     case GARDEN_LOOP:      return "GARDEN_LOOP";
@@ -2048,7 +2050,7 @@ void preloadImages() {
     case HEALTH_TEMPLE5:
       preloadImage("/idolnat/screens/priest_step3.png", currentBackground);
       break;
-    case REST_MEDITATE:
+    case REST_MEDITATE: case REST_SLEEP2:
       preloadImage("/idolnat/screens/bedroom.png", currentBackground);
       break;
     case REST_SLEEP:
@@ -4074,6 +4076,11 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         l5NeedsRedraw = true;
         toastEnabled = false;
         break;
+      case REST_SLEEP2:
+        setScreenConfig(DIALOG);
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        break;
       case GARDEN_LOOP:
         setScreenConfig(ROOM);
         menuOpened = false;
@@ -4755,6 +4762,8 @@ void manageDialog() {
       break;
     case NEKO_CAFE2: case NEKO_CAFE12: case NEKO_CAFE13:
       neko_cafe();
+      break;
+    case REST_SLEEP2:
       break;
     default:
       break;
@@ -8408,7 +8417,11 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         case 49:
           // 1: SLEEP
           menuOpened = false;
-          changeState(0, REST_SLEEP, 0);
+          if (natsumi.energy < 4) {
+            changeState(0, REST_SLEEP, 0);
+          } else {
+            showToast("Natsumi is not tired");
+          }
           break;
         case 57:
           // 9: DEBUG
@@ -8455,7 +8468,11 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           if (selection == 0) {
             changeState(0, REST_MEDITATE, 0);
           } else if (selection == 1) {
-            changeState(0, REST_SLEEP, 0);
+            if (natsumi.energy < 4) {
+              changeState(0, REST_SLEEP, 0);
+            } else {
+              showToast("Natsumi is not tired");
+            }
           }
           menuOpened = false;
           break;
@@ -9458,6 +9475,9 @@ void drawOverlay() {
         if (natsumi.energy < 4) {
           drawSleepEnergyOverlay();
         }
+        break;
+      case REST_SLEEP2:
+        drawDialogBubble("I feel much better!");
         break;
       case REST_MEDITATE:
         // Serial.println(">>> drawOverlay: REST_MEDITATE");
@@ -10735,6 +10755,9 @@ void actionOutcome() {
           break;
         case REST_MEDITATE:
           changeState(0, HOME_LOOP, 0);
+          break;
+        case REST_SLEEP:
+          changeState(0, REST_SLEEP2, 0);
           break;
         case COMP_LOCAL5: case COMP_DEPT5: case COMP_REG5: case COMP_NAT5:
           changeState(0, HOME_LOOP, 0);
