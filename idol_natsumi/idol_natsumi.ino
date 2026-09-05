@@ -9782,7 +9782,7 @@ void drawOverlay() {
             break;
           case FOOD_ORDER9:
             if (natsumi.grace < 4) {
-              Serial.println(">> actionOutcome() - natsumi.grace < 4");
+              // Serial.println(">> actionOutcome() - natsumi.grace < 4");
               drawOutcome("+1", "Grace");
             } else {
               drawOutcome("MAX", "Grace");
@@ -9790,7 +9790,7 @@ void drawOverlay() {
             break;
           case FOOD_REST5:
             if (natsumi.grace < 4) {
-              Serial.println(">> actionOutcome() - natsumi.grace < 4");
+              // Serial.println(">> actionOutcome() - natsumi.grace < 4");
               drawOutcome("+1", "Grace");
             } else {
               drawOutcome("MAX", "Grace");
@@ -9801,7 +9801,7 @@ void drawOverlay() {
             break;
           case FLOWERS_MARKET7:
             if (natsumi.grace < 4) {
-              Serial.println(">> actionOutcome() - natsumi.grace < 4");
+              // Serial.println(">> actionOutcome() - natsumi.grace < 4");
               drawOutcome("+1", "Grace");
             } else {
               drawOutcome("MAX", "Grace");
@@ -9815,7 +9815,7 @@ void drawOverlay() {
             break;
           case TRAIN_SING3: case TRAIN_DANCE3:
             if (natsumi.performance < 4) {
-              Serial.println(">> actionOutcome() - natsumi.performance < 4");
+              // Serial.println(">> actionOutcome() - natsumi.performance < 4");
               drawOutcome("+1", "Performance");
             } else {
               drawOutcome("MAX", "Performance");
