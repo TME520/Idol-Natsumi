@@ -1684,10 +1684,12 @@ bool loadGameFromSd() {
   saveFile.close();
   updateChallengeProgress();
   sessionStart = millis();
+  /*
   Serial.println(">> loadGameFromSd: Load complete");
   Serial.println(">>> loadGameFromSd - natsumi.age: " + String(natsumi.age));
   Serial.println(">>> loadGameFromSd - natsumi.ageMilliseconds: " + String(natsumi.ageMilliseconds));
   Serial.println(">>> loadGameFromSd - playtimeTotalMs: " + String(playtimeTotalMs));
+  */
   if (loadPath == saveGameBackupPath) {
     showToast("Backup save loaded");
   } else {
@@ -1729,27 +1731,71 @@ void drawText(String text, int x, int y, bool centerAlign, uint16_t color = WHIT
 }
 
 bool preloadImage(const char* path, ImageBuffer &imgBuf) {
-  File f = SD.open(path, FILE_READ);
-  if (!f) return false;
-  Serial.print("SD load image: ");
-  Serial.println(path);
+  constexpr int MAX_RETRIES = 30;
+  constexpr unsigned long RETRY_DELAY_MS = 8000;
 
-  imgBuf.length = f.size();
-  imgBuf.data = (uint8_t*)malloc(imgBuf.length);
-  if (!imgBuf.data) {
-    f.close();
-    drawText("SD load image failed!", 120, 131, true, RED, 1); // centered
-    Serial.println("SD load image failed!");
-    return false;
+  // Extract filename from the full path.
+  const char* filename = strrchr(path, '/');
+  filename = filename ? filename + 1 : path;
+
+  for (int attempt = 0; attempt <= MAX_RETRIES; ++attempt) {
+    File f = SD.open(path, FILE_READ);
+
+    if (f) {
+      // Serial.print("SD load image: ");
+      // Serial.println(path);
+
+      imgBuf.length = f.size();
+      imgBuf.data = (uint8_t*)malloc(imgBuf.length);
+
+      if (!imgBuf.data) {
+        f.close();
+        drawText("SD load image failed!", 120, 131, true, RED, 1);
+        showToast("SD load image failed!");
+        // Serial.println("SD load image failed: insufficient memory");
+        return false; // Retrying cannot solve a memory shortage.
+      }
+
+      size_t bytesRead = f.read(imgBuf.data, imgBuf.length);
+      f.close();
+
+      if (bytesRead == imgBuf.length) {
+        // Serial.print("Free heap: ");
+        // Serial.println(ESP.getFreeHeap());
+        return true;
+      }
+
+      // Incomplete read: release memory before retrying.
+      free(imgBuf.data);
+      imgBuf.data = nullptr;
+      imgBuf.length = 0;
+
+      // Serial.println("SD load image failed: incomplete read");
+      showToast("SD load image failed: incomplete read");
+    } else {
+      // Serial.print("Missing file: ");
+      // Serial.println(path);
+      showToast("Missing file: " + String(path));
+    }
+
+    if (attempt < MAX_RETRIES) {
+      String message = "Missing file ";
+      message += filename;
+      message += "; will retry";
+      showToast(message.c_str());
+
+      Serial.print("Retry ");
+      Serial.print(attempt + 1);
+      Serial.print("/");
+      Serial.println(MAX_RETRIES);
+
+      delay(RETRY_DELAY_MS);
+    }
   }
 
-  f.read(imgBuf.data, imgBuf.length);
-  f.close();
-
-  // Show how much memory is left
-  Serial.print("Free heap: ");
-  Serial.println(ESP.getFreeHeap());
-  return true;
+  Serial.print("Giving up loading image: ");
+  Serial.println(path);
+  return false;
 }
 
 void unloadImage(ImageBuffer &imgBuf) {
@@ -8041,7 +8087,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             }
           } else if (selection == 2) {
             if (!waitingForFoodDelivery) {
-              if (natsumi.age > 13) {
+              if (natsumi.age > 10) {
                 changeState(0, FOOD_ORDER, 0);
               } else {
                 changeState(0, HOME_LOOP, 0);
@@ -11649,20 +11695,19 @@ void restaurantFoodSelection() {
             case 13: case 40:
               restaurantSelection = 0;
               if (natsumi.money >= 700) {
-                // natsumi.money -= 700;
                 natsumi.hunger = 4;
                 if (natsumi.grace < 4) {
                   natsumi.grace += 1;
                 }
                 saveRequired = true;
                 // isNatsumiHappy = true;
+                amountToPay = 700;
+                returnTo = FOOD_REST5;
+                changeState(0, PAY_SCREEN, 0);
               } else {
                 showToast("Not enough money :(");
+                changeState(0, HOME_LOOP, 0);
               }
-              amountToPay = 700;
-              returnTo = FOOD_REST5;
-              changeState(0, PAY_SCREEN, 0);
-              // changeState(0, FOOD_REST5, 0);
               break;
             // ESC
             case 96:
@@ -11684,7 +11729,6 @@ void restaurantFoodSelection() {
             case 13: case 40:
               restaurantSelection = 1;
               if (natsumi.money >= 800) {
-                // natsumi.money -= 800;
                 natsumi.hunger = 4;
                 if (natsumi.grace < 4) {
                   natsumi.grace += 1;
@@ -11694,14 +11738,10 @@ void restaurantFoodSelection() {
                 amountToPay = 800;
                 returnTo = FOOD_REST5;
                 changeState(0, PAY_SCREEN, 0);
-                // changeState(0, FOOD_REST5, 0);
               } else {
                 showToast("Not enough money :(");
+                changeState(0, HOME_LOOP, 0);
               }
-              amountToPay = 800;
-              returnTo = FOOD_REST5;
-              changeState(0, PAY_SCREEN, 0);
-              // changeState(0, FOOD_REST5, 0);
               break;
             // ESC
             case 96:
@@ -11723,7 +11763,6 @@ void restaurantFoodSelection() {
             case 13: case 40:
               restaurantSelection = 2;
               if (natsumi.money >= 900) {
-                // natsumi.money -= 900;
                 natsumi.hunger = 4;
                 if (natsumi.grace < 4) {
                   natsumi.grace += 1;
@@ -11733,9 +11772,9 @@ void restaurantFoodSelection() {
                 amountToPay = 900;
                 returnTo = FOOD_REST5;
                 changeState(0, PAY_SCREEN, 0);
-                // changeState(0, FOOD_REST5, 0);
               } else {
                 showToast("Not enough money :(");
+                changeState(0, HOME_LOOP, 0);
               }
               break;
             // ESC
