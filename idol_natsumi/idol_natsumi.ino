@@ -8669,6 +8669,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // 1: JOBS
           // Serial.println(">>> drawMenu - 1: JOBS");
           menuOpened = false;
+          showToast("Jobs: coming soon!");
           changeState(0, HOME_LOOP, 0);
           break;
         case 50:
@@ -8681,6 +8682,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // 3: FESTIVALS
           // Serial.println(">>> drawMenu - 3: FESTIVALS");
           menuOpened = false;
+          showToast("Festivals: coming soon!");
           changeState(0, HOME_LOOP, 0);
           break;
         case 57:
@@ -8730,10 +8732,12 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           if (selection == 0) {
             changeState(0, MATSURI_TITLE, 0);
           } else if (selection == 1) {
+            showToast("Jobs: coming soon!");
             changeState(0, HOME_LOOP, 0);
           } else if (selection == 2) {
             changeState(0, CHALLENGES_SCREEN, 0);
           } else if (selection == 3) {
+            showToast("Festivals: coming soon!");
             changeState(0, HOME_LOOP, 0);
           }
           menuOpened = false;
@@ -9659,7 +9663,8 @@ void drawOverlay() {
         break;
       case FOOD_COOK2:
         {
-          const float zoom = 2.0f;
+          // const float zoom = 2.0f;
+          const float zoom = 4.0f;
           const int iconWidth = 18;
           const int iconHeight = 18;
           const int centerX = M5Cardputer.Display.width() / 2;
@@ -11328,27 +11333,54 @@ void slideStats() {
     int* valuePtr;
   };
 
-  StatSlide slides[] = {
-    {"Hunger", "/idolnat/screens/slidestats_hunger.png", &natsumi.hunger},
-    {"Hygiene", "/idolnat/screens/slidestats_hygiene.png", &natsumi.hygiene},
-    {"Energy", "/idolnat/screens/slidestats_energy.png", &natsumi.energy},
-    {"Spirit", "/idolnat/screens/slidestats_spirit.png", &natsumi.spirit},
-    {"Popularity", "/idolnat/screens/slidestats_popularity.png", &natsumi.popularity},
-    {"Performance", "/idolnat/screens/slidestats_performance.png", &natsumi.performance},
-    {"Fitness", "/idolnat/screens/slidestats_fitness.png", &natsumi.fitness},
-    {"Culture", "/idolnat/screens/slidestats_culture.png", &natsumi.culture},
-    {"Grace", "/idolnat/screens/slidestats_grace.png", &natsumi.grace},
-    {"Flowers", "/idolnat/screens/slidestats_flowers.png", &natsumi.flowers},
-    {"Age", "/idolnat/screens/slidestats_age.png", &natsumi.age},
-    {"Money", "/idolnat/screens/slidestats_money.png", &natsumi.money}
+  StatSlide tutorialSlides[] = {
+    {"TAB",         "/idolnat/screens/slideTuto01.png", nullptr},
+    {"HUNGRY",      "/idolnat/screens/slideTuto02.png", nullptr},
+    {"HEALTH",      "/idolnat/screens/slideTuto03.png", nullptr},
+    {"REST",        "/idolnat/screens/slideTuto04.png", nullptr},
+    {"TRAINING",    "/idolnat/screens/slideTuto05.png", nullptr},
+    {"COMPETITION", "/idolnat/screens/slideTuto06.png", nullptr},
+    {"GARDENING",   "/idolnat/screens/slideTuto07.png", nullptr},
+    {"EVENTS",      "/idolnat/screens/slideTuto08.png", nullptr},
+    {"CARDS",       "/idolnat/screens/slideTuto09.png", nullptr},
+    {"STATS",       "/idolnat/screens/slideTuto10.png", nullptr},
+    {"INVENTORY",   "/idolnat/screens/slideTuto11.png", nullptr},
+    {"SPACE",       "/idolnat/screens/slideTuto12.png", nullptr},
+    {"ESC",         "/idolnat/screens/slideTuto13.png", nullptr}
   };
+
+  StatSlide statSlides[] = {
+    {"Hunger",      "/idolnat/screens/slidestats_hunger.png",      &natsumi.hunger},
+    {"Hygiene",     "/idolnat/screens/slidestats_hygiene.png",     &natsumi.hygiene},
+    {"Energy",      "/idolnat/screens/slidestats_energy.png",      &natsumi.energy},
+    {"Spirit",      "/idolnat/screens/slidestats_spirit.png",      &natsumi.spirit},
+    {"Popularity",  "/idolnat/screens/slidestats_popularity.png",  &natsumi.popularity},
+    {"Performance", "/idolnat/screens/slidestats_performance.png", &natsumi.performance},
+    {"Fitness",     "/idolnat/screens/slidestats_fitness.png",     &natsumi.fitness},
+    {"Culture",     "/idolnat/screens/slidestats_culture.png",     &natsumi.culture},
+    {"Grace",       "/idolnat/screens/slidestats_grace.png",       &natsumi.grace},
+    {"Flowers",     "/idolnat/screens/slidestats_flowers.png",     &natsumi.flowers},
+    {"Age",         "/idolnat/screens/slidestats_age.png",         &natsumi.age},
+    {"Money",       "/idolnat/screens/slidestats_money.png",       &natsumi.money}
+  };
+
+  StatSlide* slides;
+  int slideCount;
+
+  if (natsumi.age == 11) {
+    slides = tutorialSlides;
+    slideCount = sizeof(tutorialSlides) / sizeof(tutorialSlides[0]);
+  } else {
+    slides = statSlides;
+    slideCount = sizeof(statSlides) / sizeof(statSlides[0]);
+  }
 
   static ImageBuffer slideImage;
   static int currentSlideIndex = 0;
   static int lastSlideIndex = -1;
   static unsigned long lastSlideChange = 0;
   static bool hasInitialized = false;
-  const int slideCount = sizeof(slides) / sizeof(slides[0]);
+  // const int slideCount = sizeof(slides) / sizeof(slides[0]);
   const unsigned long slideDurationMs = 5000;
 
   unsigned long now = millis();
@@ -11379,36 +11411,38 @@ void slideStats() {
       drawText("Slide image missing", 120, 67, true, RED, 1);
     }
 
-    const int screenWidth = M5Cardputer.Display.width();
-    const int screenHeight = M5Cardputer.Display.height();
-    const int panelPadding = 8;
-    const int panelHeight = 48;
-    const int panelX = panelPadding;
-    const int panelY = screenHeight - panelHeight - 6;
-    const int panelWidth = screenWidth - (panelPadding * 2);
-    uint16_t panelColor = M5Cardputer.Display.color565(10, 12, 22);
-    uint16_t panelFrame = M5Cardputer.Display.color565(160, 190, 255);
-
-    M5Cardputer.Display.fillRoundRect(panelX, panelY, panelWidth, panelHeight, 6, panelColor);
-    M5Cardputer.Display.drawRoundRect(panelX, panelY, panelWidth, panelHeight, 6, panelFrame);
-
-    M5Cardputer.Display.setTextDatum(middle_center);
-    M5Cardputer.Display.setTextColor(TFT_WHITE, panelColor);
-    M5Cardputer.Display.setTextSize(2);
-    M5Cardputer.Display.drawString(slides[currentSlideIndex].label, screenWidth / 2, panelY + 13);
-
-    if (*slides[currentSlideIndex].valuePtr == 0) {
-      M5Cardputer.Display.setTextColor(RED, panelColor);
-    } else if (*slides[currentSlideIndex].valuePtr >= 1 && *slides[currentSlideIndex].valuePtr <= 2) {
-      M5Cardputer.Display.setTextColor(YELLOW, panelColor);
-    } else if (*slides[currentSlideIndex].valuePtr >= 3 && *slides[currentSlideIndex].valuePtr <= 4) {
-      M5Cardputer.Display.setTextColor(GREEN, panelColor);
-    } else {
-      M5Cardputer.Display.setTextColor(panelFrame, panelColor);
+    if (natsumi.age > 11) {
+      const int screenWidth = M5Cardputer.Display.width();
+      const int screenHeight = M5Cardputer.Display.height();
+      const int panelPadding = 8;
+      const int panelHeight = 48;
+      const int panelX = panelPadding;
+      const int panelY = screenHeight - panelHeight - 6;
+      const int panelWidth = screenWidth - (panelPadding * 2);
+      uint16_t panelColor = M5Cardputer.Display.color565(10, 12, 22);
+      uint16_t panelFrame = M5Cardputer.Display.color565(160, 190, 255);
+  
+      M5Cardputer.Display.fillRoundRect(panelX, panelY, panelWidth, panelHeight, 6, panelColor);
+      M5Cardputer.Display.drawRoundRect(panelX, panelY, panelWidth, panelHeight, 6, panelFrame);
+  
+      M5Cardputer.Display.setTextDatum(middle_center);
+      M5Cardputer.Display.setTextColor(TFT_WHITE, panelColor);
+      M5Cardputer.Display.setTextSize(2);
+      M5Cardputer.Display.drawString(slides[currentSlideIndex].label, screenWidth / 2, panelY + 13);
+  
+      if (*slides[currentSlideIndex].valuePtr == 0) {
+        M5Cardputer.Display.setTextColor(RED, panelColor);
+      } else if (*slides[currentSlideIndex].valuePtr >= 1 && *slides[currentSlideIndex].valuePtr <= 2) {
+        M5Cardputer.Display.setTextColor(YELLOW, panelColor);
+      } else if (*slides[currentSlideIndex].valuePtr >= 3 && *slides[currentSlideIndex].valuePtr <= 4) {
+        M5Cardputer.Display.setTextColor(GREEN, panelColor);
+      } else {
+        M5Cardputer.Display.setTextColor(panelFrame, panelColor);
+      }
+      M5Cardputer.Display.setTextSize(3);
+      String valueText = String(*slides[currentSlideIndex].valuePtr);
+      M5Cardputer.Display.drawString(valueText, screenWidth / 2, panelY + 34);
     }
-    M5Cardputer.Display.setTextSize(3);
-    String valueText = String(*slides[currentSlideIndex].valuePtr);
-    M5Cardputer.Display.drawString(valueText, screenWidth / 2, panelY + 34);
   }
 
   uint8_t key = 0;
