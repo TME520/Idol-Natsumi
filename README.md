@@ -6,6 +6,11 @@ Care for Natsumi from age 11, help her build a balanced life, train her talents 
 ## Table of contents
 
 - [Presentation](#presentation)
+- [Quick start guide for new players](#quick-start-guide-for-new-players)
+  - [Start playing](#start-playing)
+  - [Controls at a glance](#controls-at-a-glance)
+  - [Your first five minutes](#your-first-five-minutes)
+  - [Your first major goal](#your-first-major-goal)
 - [Core mechanics](#core-mechanics)
   - [General navigation](#general-navigation)
     - [Home screen](#home-screen)
@@ -72,6 +77,50 @@ Care for Natsumi from age 11, help her build a balanced life, train her talents 
 In *Idol Natsumi*, the player takes care of and raises a Japanese girl named Natsumi Hasegawa from age 11 to age 21. Her goal in life is to become a popular singer in Japan.
 
 ![Title screen](./itch.io/upd9-title_screen.png "Title screen")
+
+## Quick start guide for new players
+
+### Start playing
+
+1. Insert the game SD card and start *Idol Natsumi*. Choose **0 NEW GAME** the first time. Choose **1 CONTINUE** in later sessions; your save file is stored on the SD card.
+2. Read the short introduction. You are Natsumi Hasegawa's manager. Your job is to care for her daily needs, develop her abilities and prepare her for competitions.
+3. From the Home screen, press **TAB** to open or close the main menu. Use **UP/DOWN** and **ENTER**, or press a number from **0 to 9** to go directly to a feature. **ESCAPE** returns to the Home screen.
+4. Press **0** to check Natsumi's stats. If Hunger is low, choose **Food**. If Hygiene is low, choose **Health**, then **Wash**. If Energy is low, choose **Rest**, then **Sleep**.
+5. Complete one training activity. **Sing** or **Dance** raises Performance; **Swim**, **Gym** or **Run** raises Fitness; **Library** raises Culture.
+6. Visit the **Garden** early. Select a plot with the direction keys, press **ENTER**, then plant and water it. Return later to pick the flowers and sell them through **Training > Market** to earn money.
+7. Press **SPACE** from the Home screen to view Challenges. These objectives introduce gardening and perfect training, while giving you a clear next goal.
+8. Open the Stats screen and press **S** before switching off the device.
+
+### Controls at a glance
+
+| INPUT | NORMAL USE | SPECIAL USES |
+|-------|------------|--------------|
+| **TAB** | Open or close a menu | Home and submenu navigation |
+| **0–9** | Select a numbered menu item directly | Fastest way to navigate |
+| **Arrows / WASD** | Move through menus or playfields | Garden, dance, swimming and lane games |
+| **ENTER** | Confirm or interact | Garden actions, timing games and dialogs |
+| **ESCAPE** | Go back or return home | Leave many screens and activities |
+| **SPACE** | Open Challenges from Home | Also used in some mini-games |
+| **S** | Save from the Stats screen | Use before switching off |
+
+### Your first five minutes
+
+For a simple first session:
+
+1. Start a New Game and read the introduction.
+2. Press **0** to inspect Natsumi's Stats.
+3. Press **7**, then plant and water two garden plots.
+4. Return Home and choose **Training > Sing**.
+5. Press **SPACE** from Home to inspect your Challenge progress.
+6. Return to Stats and press **S** to save.
+
+This short route introduces care, interaction, character growth and longer-term objectives without requiring you to understand every menu immediately.
+
+### Your first major goal
+
+Your long-term objective is to guide Natsumi through the **Local**, **Departmental**, **Regional** and **National** competitions.
+
+To unlock a competition, bring **Hunger, Hygiene, Energy, Performance, Fitness, Culture and Grace** to their maximum value of 4, then complete three perfect training sessions. Use Challenges as your short-term guide while you prepare.
 
 ## Core mechanics
 
