@@ -1,5 +1,5 @@
 # Idol-Natsumi
-Manage the daily life and artistic career of Natsumi Hasegawa, an aspiring Japanese idol from a small town.
+Care for Natsumi from age 11, help her build a balanced life, train her talents and guide her through the competition ladder to become a national idol.
 
 ![cover](./itch.io/cover2.png "Cover")
 
