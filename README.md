@@ -93,7 +93,7 @@ In *Idol Natsumi*, the player takes care of and raises a Japanese girl named Nat
 
 ### Controls at a glance
 
-![cheat sheet](./cheat sheet.png "Cheat sheet")
+![cheat sheet](./cheat_sheet.png "Cheat sheet")
 
 | INPUT | NORMAL USE | SPECIAL USES |
 |-------|------------|--------------|
