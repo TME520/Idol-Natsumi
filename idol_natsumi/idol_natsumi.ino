@@ -7,7 +7,7 @@
 #include <vector>
 
 #define SAVE_MAGIC 0x4E49 // "NI" for Natsumi Idol
-#define SAVE_VERSION 18
+#define SAVE_VERSION 19
 
 // === Game state definitions ===
 enum GameState {
@@ -207,7 +207,9 @@ enum GameState {
   NEKO_CAFE19,
   PAY_SCREEN,
   PAY_SCREEN2,
-  PAY_SCREEN3
+  PAY_SCREEN3,
+  BUSINESS_FRONT,
+  TRAVEL_MAP
 };
 
 GameState currentState = VERSION_SCREEN;
@@ -1286,6 +1288,8 @@ const char* gameStateToString(GameState state) {
     case PAY_SCREEN:       return "PAY_SCREEN";
     case PAY_SCREEN2:      return "PAY_SCREEN2";
     case PAY_SCREEN3:      return "PAY_SCREEN3";
+    case BUSINESS_FRONT:   return "BUSINESS_FRONT";
+    case TRAVEL_MAP:       return "TRAVEL_MAP";
     default:               return "UNKNOWN";
   }
 }
@@ -2572,6 +2576,12 @@ void preloadImages() {
       break;
     case PAY_SCREEN: case PAY_SCREEN2: case PAY_SCREEN3:
       preloadImage("/idolnat/screens/pay_screen.png", currentBackground);
+      break;
+    case BUSINESS_FRONT:
+      preloadImage("/idolnat/screens/outcome_bg.png", currentBackground);
+      break;
+    case TRAVEL_MAP:
+      preloadImage("/idolnat/screens/outcome_bg.png", currentBackground);
       break;
   }
   // Load portraits
@@ -4294,6 +4304,18 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         l5NeedsRedraw = true;
         characterEnabled = false;
         break;
+      case BUSINESS_FRONT:
+        setScreenConfig(IDLE);
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        characterEnabled = false;
+        break;
+      case TRAVEL_MAP:
+        setScreenConfig(GAME);
+        overlayActive = false;
+        menuOpened = false;
+        // resetGaraponGame();
+        break;
       default:
         break;
     }
@@ -4887,6 +4909,9 @@ void manageGame() {
     case CHALLENGES_SCREEN:
       manageChallenges();
       break;
+    case TRAVEL_MAP:
+      travelMap();
+      break;
     default:
       playGame();
       break;
@@ -5043,6 +5068,10 @@ void manageIdle() {
       managePayment();
       saveRequired = true;
       changeState(0, returnTo, microWait);
+      break;
+    case BUSINESS_FRONT:
+      characterEnabled = false;
+      changeState(0, HOME_LOOP, microWait);
       break;
     default:
       break;
@@ -12844,5 +12873,10 @@ void challengeDone() {
       }
     }
   }
+  return;
+}
+
+void travelMap() {
+  // Update this empty function
   return;
 }
