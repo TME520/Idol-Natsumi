@@ -209,7 +209,7 @@ enum GameState {
   PAY_SCREEN2,
   PAY_SCREEN3,
   BUSINESS_FRONT,
-  TRAVEL_MAP
+  TRAVEL_SCREEN
 };
 
 GameState currentState = VERSION_SCREEN;
@@ -218,6 +218,8 @@ GameState doctorState = HOME_LOOP;
 GameState priestState = HOME_LOOP;
 GameState loadedContinueState = HOME_LOOP;
 GameState returnTo = HOME_LOOP;
+GameState originLocation = HOME_LOOP;
+GameState targetLocation = HOME_LOOP;
 bool continueStateLoaded = false;
 
 // === Screen configs definitions ===
@@ -1289,7 +1291,7 @@ const char* gameStateToString(GameState state) {
     case PAY_SCREEN2:      return "PAY_SCREEN2";
     case PAY_SCREEN3:      return "PAY_SCREEN3";
     case BUSINESS_FRONT:   return "BUSINESS_FRONT";
-    case TRAVEL_MAP:       return "TRAVEL_MAP";
+    case TRAVEL_SCREEN:       return "TRAVEL_SCREEN";
     default:               return "UNKNOWN";
   }
 }
@@ -2580,7 +2582,7 @@ void preloadImages() {
     case BUSINESS_FRONT:
       preloadImage("/idolnat/screens/outcome_bg.png", currentBackground);
       break;
-    case TRAVEL_MAP:
+    case TRAVEL_SCREEN:
       preloadImage("/idolnat/screens/outcome_bg.png", currentBackground);
       break;
   }
@@ -4310,7 +4312,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         l5NeedsRedraw = true;
         characterEnabled = false;
         break;
-      case TRAVEL_MAP:
+      case TRAVEL_SCREEN:
         setScreenConfig(GAME);
         overlayActive = false;
         menuOpened = false;
@@ -4909,8 +4911,8 @@ void manageGame() {
     case CHALLENGES_SCREEN:
       manageChallenges();
       break;
-    case TRAVEL_MAP:
-      travelMap();
+    case TRAVEL_SCREEN:
+      manageTravelScreen();
       break;
     default:
       playGame();
@@ -12876,7 +12878,7 @@ void challengeDone() {
   return;
 }
 
-void travelMap() {
+void manageTravelScreen() {
   // Update this empty function
   return;
 }
