@@ -1079,6 +1079,11 @@ String nekoCafeThought = "Natsumi is enjoying her drink";
 int nekoCafeReadingFrame = 0;
 unsigned long nekoCafeReadingLastFrame = 0;
 
+// Travel
+// Existing tiles: HOME, COUNTRYSIDE, OUTSKIRTS, CITY, HANAMORI, OSAKA, TOKYO
+String currentTile = "HOME";
+String targetTile = "HOME";
+
 int amountToPay = 0;
 
 String copyright = "(c) 2026 - Pantzumatic";
@@ -3592,6 +3597,15 @@ void changeState(int baseLayer, GameState targetState, int delay) {
     changeStateCounter = 0;
     previousState = currentState;
     currentState = targetState;
+    switch (currentState) {
+      case FOOD_COOK: case FOOD_ORDER: case HEALTH_WASH:
+      case REST_MEDITATE: case REST_SLEEP: case GARDEN_LOOP:
+        targetTile = "HOME";
+        break;
+      default:
+        break;
+    }
+    // prepareTravel();
     preloadImages();
     switch (baseLayer) {
       case 0:
@@ -12875,6 +12889,11 @@ void challengeDone() {
       }
     }
   }
+  return;
+}
+
+void prepareTravel() {
+  // Determines: originTile, targetTile, originLocation and targetLocation
   return;
 }
 
