@@ -3594,18 +3594,10 @@ void changeState(int baseLayer, GameState targetState, int delay) {
     Serial.println("Proceed with transition");
     Serial.println("> currentState = " + String(gameStateToString(currentState)));
     Serial.println("> targetState = " + String(gameStateToString(targetState)));
+    prepareTravel();
     changeStateCounter = 0;
     previousState = currentState;
     currentState = targetState;
-    switch (currentState) {
-      case FOOD_COOK: case FOOD_ORDER: case HEALTH_WASH:
-      case REST_MEDITATE: case REST_SLEEP: case GARDEN_LOOP:
-        targetTile = "HOME";
-        break;
-      default:
-        break;
-    }
-    // prepareTravel();
     preloadImages();
     switch (baseLayer) {
       case 0:
@@ -4926,7 +4918,7 @@ void manageGame() {
       manageChallenges();
       break;
     case TRAVEL_SCREEN:
-      manageTravelScreen();
+      manageTravel();
       break;
     default:
       playGame();
@@ -12894,10 +12886,60 @@ void challengeDone() {
 
 void prepareTravel() {
   // Determines: originTile, targetTile, originLocation and targetLocation
+  bool triggerTravel = false;
+  unloadAllImages();
+  switch (currentState) {
+    case FOOD_COOK: case FOOD_ORDER: case HEALTH_WASH:
+    case REST_MEDITATE: case REST_SLEEP: case GARDEN_LOOP:
+      targetTile = "HOME";
+      preloadImage("/idolnat/screens/tile_home.png", currentBackground);
+      triggerTravel = true;
+      break;
+    case FOOD_REST: case FOOD_CONBINI: case NEKO_CAFE:
+    case TRAIN_SING: case TRAIN_SWIM: case TRAIN_LIBRARY:
+    case FLOWERS_MARKET: case HEALTH_DOCTOR: case COMP_LOCAL:
+      targetTile = "CITY";
+      preloadImage("/idolnat/screens/tile_city.png", currentBackground);
+      triggerTravel = true;
+    case TRAIN_DANCE: case TRAIN_GYM: case MATSURI_TITLE:
+      targetTile = "OUTSKIRTS";
+      preloadImage("/idolnat/screens/tile_outskirts.png", currentBackground);
+      triggerTravel = true;
+      break;
+    case TRAIN_RUN: case HEALTH_TEMPLE: case HEALTH_ONSEN:
+      targetTile = "COUNTRYSIDE";
+      preloadImage("/idolnat/screens/tile_countryside.png", currentBackground);
+      triggerTravel = true;
+      break;
+    case COMP_DEPT:
+      targetTile = "HANAMORI";
+      preloadImage("/idolnat/screens/tile_hanamori.png", currentBackground);
+      triggerTravel = true;
+      break;
+    case COMP_REG:
+      targetTile = "OSAKA";
+      preloadImage("/idolnat/screens/tile_osaka.png", currentBackground);
+      triggerTravel = true;
+      break;
+    case COMP_NAT:
+      targetTile = "TOKYO";
+      preloadImage("/idolnat/screens/tile_tokyo.png", currentBackground);
+      triggerTravel = true;
+      break;
+    default:
+      triggerTravel = false;
+      break;
+  }
+  if (triggerTravel) {
+    // Load Natsumi sprites
+    preloadImage("/idolnat/sprites/natsumi_bicycle1-40x23.png", natsumiSprite);
+    preloadImage("/idolnat/sprites/natsumi_bicycle2-40x23.png", enemySprite);
+    manageTravel();
+  }
   return;
 }
 
-void manageTravelScreen() {
+void manageTravel() {
   // Update this empty function
   return;
 }
