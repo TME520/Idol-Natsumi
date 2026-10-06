@@ -12940,6 +12940,15 @@ void prepareTravel() {
 }
 
 void manageTravel() {
-  // Update this empty function
-  return;
+  for (int x = 0; x <= 240; x += 10) {
+    // Restore the background before drawing the next bicycle frame.
+    drawImage(currentBackground);
+    const ImageBuffer& sprite = ((x / 10) % 2 == 0) ? natsumiSprite : enemySprite;
+    if (sprite.data && sprite.length > 0) {
+      M5Cardputer.Display.drawPng(sprite.data, sprite.length, x, 70);
+    }
+    if (x < 240) {
+      delay(150);
+    }
+  }
 }
