@@ -3594,10 +3594,10 @@ void changeState(int baseLayer, GameState targetState, int delay) {
     Serial.println("Proceed with transition");
     Serial.println("> currentState = " + String(gameStateToString(currentState)));
     Serial.println("> targetState = " + String(gameStateToString(targetState)));
-    prepareTravel();
     changeStateCounter = 0;
     previousState = currentState;
     currentState = targetState;
+    prepareTravel();
     preloadImages();
     switch (baseLayer) {
       case 0:
