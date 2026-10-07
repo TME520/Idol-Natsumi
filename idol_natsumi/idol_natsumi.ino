@@ -12892,39 +12892,61 @@ void prepareTravel() {
     case FOOD_COOK: case FOOD_ORDER: case HEALTH_WASH:
     case REST_MEDITATE: case REST_SLEEP: case GARDEN_LOOP:
       targetTile = "HOME";
-      preloadImage("/idolnat/screens/tile_home.png", currentBackground);
-      triggerTravel = true;
+      if (currentTile != targetTile) {
+        currentTile = targetTile;
+        preloadImage("/idolnat/screens/tile_home.png", currentBackground);
+        triggerTravel = true;
+      }
       break;
     case FOOD_REST: case FOOD_CONBINI: case NEKO_CAFE:
     case TRAIN_SING: case TRAIN_SWIM: case TRAIN_LIBRARY:
     case FLOWERS_MARKET: case HEALTH_DOCTOR: case COMP_LOCAL:
       targetTile = "CITY";
-      preloadImage("/idolnat/screens/tile_city.png", currentBackground);
-      triggerTravel = true;
+      if (currentTile != targetTile) {
+        currentTile = targetTile;
+        preloadImage("/idolnat/screens/tile_city.png", currentBackground);
+        triggerTravel = true;
+      }
+      break;
     case TRAIN_DANCE: case TRAIN_GYM: case MATSURI_TITLE:
       targetTile = "OUTSKIRTS";
-      preloadImage("/idolnat/screens/tile_outskirts.png", currentBackground);
-      triggerTravel = true;
+      if (currentTile != targetTile) {
+        currentTile = targetTile;
+        preloadImage("/idolnat/screens/tile_outskirts.png", currentBackground);
+        triggerTravel = true;
+      }
       break;
     case TRAIN_RUN: case HEALTH_TEMPLE: case HEALTH_ONSEN:
       targetTile = "COUNTRYSIDE";
-      preloadImage("/idolnat/screens/tile_countryside.png", currentBackground);
-      triggerTravel = true;
+      if (currentTile != targetTile) {
+        currentTile = targetTile;
+        preloadImage("/idolnat/screens/tile_countryside.png", currentBackground);
+        triggerTravel = true;
+      }
       break;
     case COMP_DEPT:
       targetTile = "HANAMORI";
-      preloadImage("/idolnat/screens/tile_hanamori.png", currentBackground);
-      triggerTravel = true;
+      if (currentTile != targetTile) {
+        currentTile = targetTile;
+        preloadImage("/idolnat/screens/tile_hanamori.png", currentBackground);
+        triggerTravel = true;
+      }
       break;
     case COMP_REG:
       targetTile = "OSAKA";
-      preloadImage("/idolnat/screens/tile_osaka.png", currentBackground);
-      triggerTravel = true;
+      if (currentTile != targetTile) {
+        currentTile = targetTile;
+        preloadImage("/idolnat/screens/tile_osaka.png", currentBackground);
+        triggerTravel = true;
+      }
       break;
     case COMP_NAT:
       targetTile = "TOKYO";
-      preloadImage("/idolnat/screens/tile_tokyo.png", currentBackground);
-      triggerTravel = true;
+      if (currentTile != targetTile) {
+        currentTile = targetTile;
+        preloadImage("/idolnat/screens/tile_tokyo.png", currentBackground);
+        triggerTravel = true;
+      }
       break;
     default:
       triggerTravel = false;
@@ -12935,6 +12957,7 @@ void prepareTravel() {
     preloadImage("/idolnat/sprites/natsumi_bicycle1-80x45.png", natsumiSprite);
     preloadImage("/idolnat/sprites/natsumi_bicycle2-80x45.png", enemySprite);
     manageTravel();
+    displayBusinessFront();
   }
   return;
 }
@@ -12951,4 +12974,78 @@ void manageTravel() {
       delay(150);
     }
   }
+}
+
+void displayBusinessFront() {
+  // Displays the business front image
+  unloadAllImages();
+  switch (currentState) {
+    case FOOD_COOK:
+    case FOOD_ORDER:
+    case HEALTH_WASH:
+    case REST_MEDITATE:
+    case REST_SLEEP:
+    case GARDEN_LOOP:
+      preloadImage("/idolnat/screens/natsumi_home_front.png", currentBackground);
+      break;
+    case FOOD_REST:
+      preloadImage("/idolnat/screens/restaurant_front.png", currentBackground);
+      break;
+    case FOOD_CONBINI:
+      preloadImage("/idolnat/screens/conbimart_front.png", currentBackground);
+      break;
+    case NEKO_CAFE:
+      preloadImage("/idolnat/screens/neko_cafe_front.png", currentBackground);
+      break;
+    case TRAIN_SING:
+      preloadImage("/idolnat/screens/singing_school_front.png", currentBackground);
+      break;
+    case TRAIN_SWIM:
+      preloadImage("/idolnat/screens/swimming_pool_front.png", currentBackground);
+      break;
+    case TRAIN_LIBRARY:
+      preloadImage("/idolnat/screens/high_school_bg.png", currentBackground);
+      break;
+    case FLOWERS_MARKET:
+      preloadImage("/idolnat/screens/flowers_market_front.png", currentBackground);
+      break;
+    case HEALTH_DOCTOR:
+      preloadImage("/idolnat/screens/doctor_office_front.png", currentBackground);
+      break;
+    case COMP_LOCAL:
+      preloadImage("/idolnat/screens/XXX_front.png", currentBackground);
+      break;
+    case TRAIN_DANCE:
+      preloadImage("/idolnat/screens/ballet_school_front.png", currentBackground);
+      break;
+    case TRAIN_GYM:
+      preloadImage("/idolnat/screens/gym_front.png", currentBackground);
+      break;
+    case MATSURI_TITLE:
+      preloadImage("/idolnat/screens/XXX_front.png", currentBackground);
+      break;
+    case TRAIN_RUN:
+      preloadImage("/idolnat/screens/run_forest_front.png", currentBackground);
+      break;
+    case HEALTH_TEMPLE:
+      preloadImage("/idolnat/screens/temple_front.png", currentBackground);
+      break;
+    case HEALTH_ONSEN:
+      preloadImage("/idolnat/screens/onsen_front.png", currentBackground);
+      break;
+    case COMP_DEPT:
+      preloadImage("/idolnat/screens/XXX_front.png", currentBackground);
+      break;
+    case COMP_REG:
+      preloadImage("/idolnat/screens/XXX_front.png", currentBackground);
+      break;
+    case COMP_NAT:
+      preloadImage("/idolnat/screens/XXX_front.png", currentBackground);
+      break;
+    default:
+      preloadImage("/idolnat/screens/outcome_bg.png", currentBackground);
+      break;
+  }
+  drawImage(currentBackground);
+  delay(mediumWait);
 }
