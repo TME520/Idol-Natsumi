@@ -12932,8 +12932,8 @@ void prepareTravel() {
   }
   if (triggerTravel) {
     // Load Natsumi sprites
-    preloadImage("/idolnat/sprites/natsumi_bicycle1-40x23.png", natsumiSprite);
-    preloadImage("/idolnat/sprites/natsumi_bicycle2-40x23.png", enemySprite);
+    preloadImage("/idolnat/sprites/natsumi_bicycle1-80x45.png", natsumiSprite);
+    preloadImage("/idolnat/sprites/natsumi_bicycle2-80x45.png", enemySprite);
     manageTravel();
   }
   return;
