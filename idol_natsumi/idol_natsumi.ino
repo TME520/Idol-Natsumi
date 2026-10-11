@@ -12968,7 +12968,8 @@ void manageTravel() {
     drawImage(currentBackground);
     const ImageBuffer& sprite = ((x / 10) % 2 == 0) ? natsumiSprite : enemySprite;
     if (sprite.data && sprite.length > 0) {
-      M5Cardputer.Display.drawPng(sprite.data, sprite.length, x, 70);
+      // M5Cardputer.Display.drawPng(sprite.data, sprite.length, x, 70);
+      M5Cardputer.Display.drawPng(sprite.data, sprite.length, x, 50);
     }
     if (x < 240) {
       delay(150);
@@ -13013,7 +13014,7 @@ void displayBusinessFront() {
       preloadImage("/idolnat/screens/doctor_office_front.png", currentBackground);
       break;
     case COMP_LOCAL:
-      preloadImage("/idolnat/screens/XXX_front.png", currentBackground);
+      preloadImage("/idolnat/screens/competition_local.png", currentBackground);
       break;
     case TRAIN_DANCE:
       preloadImage("/idolnat/screens/ballet_school_front.png", currentBackground);
@@ -13022,7 +13023,7 @@ void displayBusinessFront() {
       preloadImage("/idolnat/screens/gym_front.png", currentBackground);
       break;
     case MATSURI_TITLE:
-      preloadImage("/idolnat/screens/XXX_front.png", currentBackground);
+      preloadImage("/idolnat/screens/matsuri_bg.png", currentBackground);
       break;
     case TRAIN_RUN:
       preloadImage("/idolnat/screens/run_forest_front.png", currentBackground);
@@ -13034,13 +13035,13 @@ void displayBusinessFront() {
       preloadImage("/idolnat/screens/onsen_front.png", currentBackground);
       break;
     case COMP_DEPT:
-      preloadImage("/idolnat/screens/XXX_front.png", currentBackground);
+      preloadImage("/idolnat/screens/competition_departmental.png", currentBackground);
       break;
     case COMP_REG:
-      preloadImage("/idolnat/screens/XXX_front.png", currentBackground);
+      preloadImage("/idolnat/screens/competition_regional.png", currentBackground);
       break;
     case COMP_NAT:
-      preloadImage("/idolnat/screens/XXX_front.png", currentBackground);
+      preloadImage("/idolnat/screens/competition_national.png", currentBackground);
       break;
     default:
       preloadImage("/idolnat/screens/outcome_bg.png", currentBackground);
