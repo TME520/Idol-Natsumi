@@ -7864,10 +7864,14 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
   // Serial.println(">> drawMenu() - menuType set to " + String(menuType));
   if (menuEnabled) {
     uint8_t key = 0;
+    bool natsumiTired = false;
     if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
       auto keyList = M5Cardputer.Keyboard.keyList();
       if (keyList.size() > 0) {
         key = M5Cardputer.Keyboard.getKey(keyList[0]);
+      }
+      if (natsumi.energy < 1) {
+        natsumiTired = true;
       }
       // Serial.println(">> drawMenu() - KEY: " + String(key));
     }
@@ -7891,34 +7895,50 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           break;
         case 50:
           // 2: FOOD
-          menuOpened = true;
-          changeState(0, FOOD_MENU, 0);
+          if (!natsumiTired) {
+            menuOpened = true;
+            changeState(0, FOOD_MENU, 0);
+          } else {
+            showToast("Natsumi is too tired");
+          }
           break;
         case 51:
           // 3: TRAINING
-          if (!waitingForFoodDelivery) {
-            menuOpened = true;
-            changeState(0, TRAIN_MENU, 0);
+          if (!natsumiTired) {
+            if (!waitingForFoodDelivery) {
+              menuOpened = true;
+              changeState(0, TRAIN_MENU, 0);
+            } else {
+              showToast("Wait for food delivery");
+            }
           } else {
-            showToast("Wait for food delivery");
+            showToast("Natsumi is too tired");
           }
           break;
         case 52:
           // 4: COMPETITION
-          if (!waitingForFoodDelivery) {
-            menuOpened = true;
-            changeState(0, COMP_MENU, 0);
+          if (!natsumiTired) {
+            if (!waitingForFoodDelivery) {
+              menuOpened = true;
+              changeState(0, COMP_MENU, 0);
+            } else {
+              showToast("Wait for food delivery");
+            }
           } else {
-            showToast("Wait for food delivery");
+            showToast("Natsumi is too tired");
           }
           break;
         case 53:
           // 5: HEALTH
-          if (!waitingForFoodDelivery) {
-            menuOpened = true;
-            changeState(0, HEALTH_MENU, 0);
+          if (!natsumiTired) {
+            if (!waitingForFoodDelivery) {
+              menuOpened = true;
+              changeState(0, HEALTH_MENU, 0);
+            } else {
+              showToast("Wait for food delivery");
+            }
           } else {
-            showToast("Wait for food delivery");
+            showToast("Natsumi is too tired");
           }
           break;
         case 54:
@@ -7928,16 +7948,24 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           break;
         case 55:
           // 7: GARDEN
-          menuOpened = false;
-          changeState(0, GARDEN_LOOP, 0);
+          if (!natsumiTired) {
+            menuOpened = false;
+            changeState(0, GARDEN_LOOP, 0);
+          } else {
+            showToast("Natsumi is too tired");
+          }
           break;
         case 56:
           // 8: EVENTS
-          if (!waitingForFoodDelivery) {
-            menuOpened = true;
-            changeState(0, EVENTS_MENU, 0);
+          if (!natsumiTired) {
+            if (!waitingForFoodDelivery) {
+              menuOpened = true;
+              changeState(0, EVENTS_MENU, 0);
+            } else {
+              showToast("Wait for food delivery");
+            }
           } else {
-            showToast("Wait for food delivery");
+            showToast("Natsumi is too tired");
           }
           break;
         case 57:
@@ -7981,34 +8009,58 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           } else if (selection == 1) {
             changeState(0, INVENTORY_SCREEN, 0);
           } else if (selection == 2) {
-            changeState(0, FOOD_MENU, 0);
-          } else if (selection == 3) {
-            if (!waitingForFoodDelivery) {
-              changeState(0, TRAIN_MENU, 0);
+            if (!natsumiTired) {
+              changeState(0, FOOD_MENU, 0);
             } else {
-              showToast("Wait for food delivery");
+              showToast("Natsumi is too tired");
+            }
+          } else if (selection == 3) {
+            if (!natsumiTired) {
+              if (!waitingForFoodDelivery) {
+                changeState(0, TRAIN_MENU, 0);
+              } else {
+                showToast("Wait for food delivery");
+              }
+            } else {
+              showToast("Natsumi is too tired");
             }
           } else if (selection == 4) {
-            if (!waitingForFoodDelivery) {
-              changeState(0, COMP_MENU, 0);
+            if (!natsumiTired) {
+              if (!waitingForFoodDelivery) {
+                changeState(0, COMP_MENU, 0);
+              } else {
+                showToast("Wait for food delivery");
+              }
             } else {
-              showToast("Wait for food delivery");
+              showToast("Natsumi is too tired");
             }
           } else if (selection == 5) {
-            if (!waitingForFoodDelivery) {
-              changeState(0, HEALTH_MENU, 0);
+            if (!natsumiTired) {
+              if (!waitingForFoodDelivery) {
+                changeState(0, HEALTH_MENU, 0);
+              } else {
+                showToast("Wait for food delivery");
+              }
             } else {
-              showToast("Wait for food delivery");
+              showToast("Natsumi is too tired");
             }
           } else if (selection == 6) {
             changeState(0, REST_MENU, 0);
           } else if (selection == 7) {
-            changeState(0, GARDEN_LOOP, 0);
-          } else if (selection == 8) {
-            if (!waitingForFoodDelivery) {
-              changeState(0, EVENTS_MENU, 0);
+            if (!natsumiTired) {
+              changeState(0, GARDEN_LOOP, 0);
             } else {
-              showToast("Wait for food delivery");
+              showToast("Natsumi is too tired");
+            }
+          } else if (selection == 8) {
+            if (!natsumiTired) {
+              if (!waitingForFoodDelivery) {
+                changeState(0, EVENTS_MENU, 0);
+              } else {
+                showToast("Wait for food delivery");
+              }
+            } else {
+              showToast("Natsumi is too tired");
             }
           } else if (selection == 9) {
             changeState(0, CARDS_SCREEN, 0);
@@ -12910,6 +12962,10 @@ void prepareTravel() {
     case REST_MEDITATE: case REST_SLEEP: case GARDEN_LOOP:
       targetTile = "HOME";
       if (currentTile != targetTile) {
+        // Coming back home
+        if (natsumi.energy > 0) {
+          natsumi.energy--;
+        }
         currentTile = targetTile;
         preloadImage("/idolnat/screens/tile_home.png", currentBackground);
         triggerTravel = true;
@@ -12985,7 +13041,6 @@ void manageTravel() {
     drawImage(currentBackground);
     const ImageBuffer& sprite = ((x / 10) % 2 == 0) ? natsumiSprite : enemySprite;
     if (sprite.data && sprite.length > 0) {
-      // M5Cardputer.Display.drawPng(sprite.data, sprite.length, x, 70);
       M5Cardputer.Display.drawPng(sprite.data, sprite.length, x, 50);
     }
     if (x < 240) {
