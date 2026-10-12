@@ -4575,13 +4575,14 @@ void updateFiveSecondPulse() {
     switch (currentState) {
       case REST_SLEEP: case HEALTH_ONSEN:
         if (natsumi.energy < 4) {
-          if ( random(300) > (((natsumi.hunger + natsumi.hygiene + natsumi.spirit + natsumi.fitness)*10)+10)) {
+          if ( random(220) > (((natsumi.hunger + natsumi.hygiene + natsumi.spirit + natsumi.fitness)*10)+10)) {
             natsumi.energy++;
             saveRequired = true;
             // isNatsumiHappy = true;
           }
-        } elseif (natsumi.spirit < 4) {
+        } else if (natsumi.spirit < 4) {
           natsumi.spirit = 4;
+          saveRequired = true;
         }
         break;
       case HOME_LOOP:
