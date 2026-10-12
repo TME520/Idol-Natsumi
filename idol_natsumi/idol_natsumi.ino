@@ -763,8 +763,8 @@ const unsigned long hungerInterval = 1200000;   // 20 minutes
 const unsigned long hygieneInterval = 2400000;  // 40 minutes
 // const unsigned long energyInterval = 240000;   // 4 minutes
 const unsigned long energyInterval = 2400000;   // 40 minutes
-// const unsigned long meditateInterval = 300000;   // 5 minutes
-const unsigned long meditateInterval = 3000000;   // 50 minutes
+const unsigned long meditateInterval = 300000;   // 5 minutes
+// const unsigned long meditateInterval = 3000000;   // 50 minutes
 const unsigned long librarySegmentInterval = 5000; // 5 seconds
 const unsigned long fiveSecondInterval = 5000;  // 5 seconds
 const int STAT_MAX = 4;
@@ -9620,39 +9620,47 @@ void drawOverlay() {
           doctorHint += "You eat enough. ";
         } else {
           doctorHint += "You need to eat more. ";
-          doctorState = FOOD_MENU;
+          // doctorState = FOOD_MENU;
         }
         if (natsumi.hygiene == 4) {
           doctorHint += "You have good hygiene. ";
         } else {
           doctorHint += "You need better hygiene. ";
+          /*
           if (doctorState == HOME_LOOP) {
             doctorState = HEALTH_MENU;
           }
+          */
         }
         if (natsumi.energy == 4) {
           doctorHint += "You sleep properly. ";
         } else {
           doctorHint += "You need to sleep more. ";
+          /*
           if (doctorState == HOME_LOOP) {
             doctorState = REST_MENU;
           }
+          */
         }
         if (natsumi.fitness == 4) {
           doctorHint += "You do enough sport. ";
         } else {
           doctorHint +=  "You need to exercise more. ";
+          /*
           if (doctorState == HOME_LOOP) {
             doctorState = TRAIN_MENU;
           }
+          */
         }
         if (natsumi.performance == 4) {
           doctorHint += "You train enough. ";
         } else {
           doctorHint += "You need to train more. ";
+          /*
           if (doctorState == HOME_LOOP) {
             doctorState = TRAIN_MENU;
           }
+          */
         }
         drawDialogBubble(doctorHint);
         break;
@@ -9666,32 +9674,38 @@ void drawOverlay() {
           priestHint += "You read enough. ";
         } else {
           priestHint += "You need to read more. ";
-          priestState = TRAIN_MENU;
+          // priestState = TRAIN_MENU;
         }
         if (natsumi.grace == 4) {
           priestHint += "You have good manners. ";
         } else {
           priestHint += "You need to go out more. ";
+          /*
           if (priestState == HOME_LOOP) {
             priestState = FOOD_MENU;
           }
+          */
         }
         if (isCompetitionEnabled()) {
           if (natsumi.popularity == 4) {
             priestHint += "The public likes you. ";
           } else {
             priestHint += "You need to compete more. ";
+            /*
             if (priestState == HOME_LOOP) {
               priestState = COMP_MENU;
             }
+            */
           }
           if (natsumi.spirit == 4) {
             priestHint += "You are spiritually strong. ";
           } else {
             priestHint += "You need to keep working on yourself. ";
+            /*
             if (priestState == HOME_LOOP) {
               priestState = TRAIN_MENU;
             }
+            */
           }
         } else {
           priestHint += "Train in order to get ready for competition later. ";
