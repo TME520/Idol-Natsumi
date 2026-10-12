@@ -4580,6 +4580,8 @@ void updateFiveSecondPulse() {
             saveRequired = true;
             // isNatsumiHappy = true;
           }
+        } elseif (natsumi.spirit < 4) {
+          natsumi.spirit = 4;
         }
         break;
       case HOME_LOOP:
