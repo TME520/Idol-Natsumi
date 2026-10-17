@@ -5584,6 +5584,10 @@ void manageGarden() {
               if (announceChallengeCompletion) {
                 changeState(0, CHALLENGE_DONE, 0);
               } else {
+                if (isPlayerGardening && natsumi.energy > 0) {
+                  // Energy update
+                  natsumi.energy--;
+                } 
                 changeState(0, HOME_LOOP, 0);
               }
               return;
@@ -7185,6 +7189,10 @@ void manageLibrary() {
 
   if (librarySegmentsFilled >= librarySegmentCount) {
     if (!libraryRewardApplied) {
+      // Energy update
+      if (natsumi.energy > 0) {
+          natsumi.energy--;
+      }
       if (natsumi.culture < STAT_MAX) {
         natsumi.culture += 1;
       }
@@ -9580,6 +9588,10 @@ void drawOverlay() {
         drawConbimartOverlay();
         break;
       case FOOD_CONBINI3:
+        // Energy update
+        if (natsumi.energy > 0) {
+          natsumi.energy--;
+        }
         drawDialogBubble("Thanks for shopping with us, come again!!");
         break;
       case FOOD_ORDER2:
@@ -9790,6 +9802,10 @@ void drawOverlay() {
             zoom,
             zoom
           );
+          // Energy update
+          if (natsumi.energy > 0) {
+            natsumi.energy--;
+          }
         }
         break;
       case GARDEN_LOOP: case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
@@ -11621,6 +11637,10 @@ void foodDelivery() {
 
 void miniGameDebrief() {
   Serial.println("> Entering miniGameDebrief()");
+  // Energy update
+  if (natsumi.energy > 0) {
+      natsumi.energy--;
+  }
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
