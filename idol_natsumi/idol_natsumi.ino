@@ -220,6 +220,7 @@ GameState loadedContinueState = HOME_LOOP;
 GameState returnTo = HOME_LOOP;
 GameState originLocation = HOME_LOOP;
 GameState targetLocation = HOME_LOOP;
+GameState latestMenu = FOOD_MENU;
 bool continueStateLoaded = false;
 
 // === Screen configs definitions ===
@@ -3587,7 +3588,7 @@ void setScreenConfig(ScreenState targetConfig) {
 void changeState(int baseLayer, GameState targetState, int delay) {
   // Manage state transitions
   // Serial.println("> Entering changeState() with baseLayer set to " + String(baseLayer) + " and targetState set to " + String(targetState) + " with delay set to " + String(delay));
-  if (currentState != HOME_LOOP && currentState != IDLE_HOME && currentState != IDLE_STATS) {
+  if (currentState != HOME_LOOP && currentState != IDLE_HOME && currentState != IDLE_STATS && currentState != TITLE_SCREEN2) {
     counterToScreensaver = 0;
   }
   if (changeStateCounter == delay) {
@@ -3888,6 +3889,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuType = "food";
         currentMenuItems = foodMenuItems;
         currentMenuItemsCount = foodMenuItemCount;
+        latestMenu = FOOD_MENU;
         break;
       case FOOD_CONBINI:
         setScreenConfig(IDLE);
@@ -3949,6 +3951,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuType = "training";
         currentMenuItems = trainingMenuItems;
         currentMenuItemsCount = trainingMenuItemCount;
+        latestMenu = TRAIN_MENU;
         break;
       case TRAIN_DANCE:
         setScreenConfig(ROOM);
@@ -4038,6 +4041,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuType = "competition";
         currentMenuItems = competitionMenuItems;
         currentMenuItemsCount = competitionMenuItemCount;
+        latestMenu = COMP_MENU;
         break;
       case COMP_LOCAL: case COMP_LOCAL2:
       case COMP_DEPT: case COMP_DEPT2:
@@ -4081,6 +4085,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuType = "health";
         currentMenuItems = healthMenuItems;
         currentMenuItemsCount = healthMenuItemCount;
+        latestMenu = HEALTH_MENU;
         break;
       case HEALTH_WASH:
         setScreenConfig(GAME);
@@ -4123,6 +4128,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuType = "rest";
         currentMenuItems = restMenuItems;
         currentMenuItemsCount = restMenuItemCount;
+        latestMenu = REST_MENU;
         break;
       case REST_MEDITATE:
         setScreenConfig(IDLE);
@@ -4162,6 +4168,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItems = gardenMenuItems;
         currentMenuItemsCount = gardenMenuItemCount;
         menuOpened = true;
+        latestMenu = GARDEN_MENU;
         break;
       case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
         setScreenConfig(ROOM);
@@ -4219,10 +4226,12 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuType = "events";
         currentMenuItems = eventsMenuItems;
         currentMenuItemsCount = eventsMenuItemCount;
+        latestMenu = EVENTS_MENU;
         break;
       case MATSURI_MENU: case MATSURI_MENU2: case MATSURI_MENU3:
         setScreenConfig(IDLE);
         characterEnabled = false;
+        latestMenu = MATSURI_MENU;
         break;
       case CARDS_SCREEN:
         setScreenConfig(GAME);
@@ -4743,7 +4752,8 @@ void manageCard() {
       if (announceChallengeCompletion) {
         changeState(0, CHALLENGE_DONE, 0);
       } else {
-        changeState(0, HOME_LOOP, 0);
+        // changeState(0, HOME_LOOP, 0);
+        changeState(0, latestMenu, 0);
       }
       break;
     case CHALLENGE_DONE:
@@ -4833,7 +4843,8 @@ void manageDialog() {
       introduction();
       break;
     case MATSURI_TICKETS2:
-      changeState(0, HOME_LOOP, microWait);
+      // changeState(0, HOME_LOOP, microWait);
+      changeState(0, latestMenu, microWait);
       break;
     case MATSURI_SAVORY3: case MATSURI_SAVORY4:
     case MATSURI_SUGARY2: case MATSURI_SUGARY3:
@@ -5082,7 +5093,8 @@ void manageIdle() {
       break;
     case BUSINESS_FRONT:
       characterEnabled = false;
-      changeState(0, HOME_LOOP, microWait);
+      // changeState(0, HOME_LOOP, microWait);
+      changeState(0, latestMenu, microWait);
       break;
     default:
       break;
@@ -7201,7 +7213,6 @@ void manageLibrary() {
       libraryRewardApplied = true;
       overlayActive = false;
       characterEnabled = true;
-      // changeState(0, HOME_LOOP, 0);
       changeState(0, ACTION_OUTCOME, 0);
     }
   }
@@ -7597,12 +7608,12 @@ void wash() {
     if (bathOutcomeCode == 0) {
       showToast("Washed feels better");
       saveRequired = true;
+      changeState(0, ACTION_OUTCOME, microWait);
     } else {
       showToast("Ah!! Skipping shower!");
+      changeState(0, HOME_LOOP, microWait);
     }
   }
-  // changeState(0, HOME_LOOP, microWait);
-  changeState(0, ACTION_OUTCOME, microWait);
 }
 
 void drawSleepEnergyOverlay() {
@@ -7740,7 +7751,6 @@ void sleep() {
     saveRequired = true;
     // isNatsumiHappy = true;
     showToast("Natsumi is well rested");
-    // changeState(0, HOME_LOOP, 0);
     changeState(0, ACTION_OUTCOME, 0);
     return;
   }
@@ -10958,11 +10968,11 @@ void actionOutcome() {
             addOneMatsuriTicket = false;
             changeState(0, MATSURI_TICKETS, 0);
           } else {
-            // changeState(0, HOME_LOOP, 0);
             if (announceChallengeCompletion) {
               changeState(0, CHALLENGE_DONE, 0);
             } else {
-              changeState(0, HOME_LOOP, 0);
+              // changeState(0, HOME_LOOP, 0);
+              changeState(0, latestMenu, 0);
             }
           }
           break;
@@ -10979,7 +10989,8 @@ void actionOutcome() {
           changeState(0, FOOD_REST6, 0);
           break;
         case FOOD_REST8:
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          changeState(0, latestMenu, 0);
           break;
         case FOOD_ORDER8:
           changeState(0, FOOD_ORDER9, 0);
@@ -10997,11 +11008,11 @@ void actionOutcome() {
           changeState(0, HOME_LOOP, 0);
           break;
         default:
-          // changeState(0, HOME_LOOP, 0);
           if (announceChallengeCompletion) {
             changeState(0, CHALLENGE_DONE, 0);
           } else {
-            changeState(0, HOME_LOOP, 0);
+            // changeState(0, HOME_LOOP, 0);
+            changeState(0, latestMenu, 0);
           }
           break;
       }
@@ -11098,11 +11109,11 @@ void manageTrainingStatus() {
         addOneMatsuriTicket = false;
         changeState(0, MATSURI_TICKETS, 0);
       } else {
-        // changeState(0, HOME_LOOP, 0);
         if (announceChallengeCompletion) {
           changeState(0, CHALLENGE_DONE, 0);
         } else {
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          changeState(0, latestMenu, 0);
         }
       }
       return;
@@ -11228,7 +11239,6 @@ void manageFriendsVisits() {
           changeState(0, DOOR_KNOCK10, 0);
           break;
         case DOOR_KNOCK10:
-          // changeState(0, HOME_LOOP, 0);
           if (announceChallengeCompletion) {
             changeState(0, CHALLENGE_DONE, 0);
           } else {
@@ -11295,7 +11305,8 @@ void cashier() {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       overlayActive = false;
       notifyVisitedPlace(PLACE_CONBIMART);
-      changeState(0, HOME_LOOP, 0);
+      // changeState(0, HOME_LOOP, 0);
+      changeState(0, latestMenu, 0);
     }
   }
   return;
@@ -11622,11 +11633,9 @@ void foodDelivery() {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       switch (currentState) {
         case FOOD_ORDER8:
-          // changeState(0, HOME_LOOP, 0);
           changeState(0, ACTION_OUTCOME, 0);
           break;
         case FOOD_ORDER9:
-          // changeState(0, HOME_LOOP, 0);
           changeState(0, ACTION_OUTCOME, 0);
           break;
       }
@@ -11650,48 +11659,35 @@ void miniGameDebrief() {
         case FLOWERS_MARKET7:
           saveRequired = true;
           // isNatsumiHappy = true;
-          // changeState(0, HOME_LOOP, 0);
           changeState(0, ACTION_OUTCOME, 0);
-          /*
-          if (announceChallengeCompletion) {
-            changeState(0, CHALLENGE_DONE, 0);
-          } else {
-            changeState(0, HOME_LOOP, 0);
-          }
-          */
           break;
         case TRAIN_SING3:
           Serial.println(">> miniGameDebrief() - Changing state to ACTION_OUTCOME");
           if (isLatestTrainingPerfect) notifyPerfectLesson(LESSON_SINGING);
           saveRequired = true;
           // isNatsumiHappy = true;
-          // changeState(0, HOME_LOOP, 0);
           changeState(0, ACTION_OUTCOME, 0);
           break;
         case TRAIN_DANCE3:
           if (isLatestTrainingPerfect) notifyPerfectLesson(LESSON_DANCING);
           saveRequired = true;
           // isNatsumiHappy = true;
-          // changeState(0, HOME_LOOP, 0);
           changeState(0, ACTION_OUTCOME, 0);
           break;
         case TRAIN_SWIM3:
           if (isLatestTrainingPerfect) notifyPerfectLesson(LESSON_SWIMMING);
           saveRequired = true;
           // isNatsumiHappy = true;
-          // changeState(0, HOME_LOOP, 0);
           changeState(0, ACTION_OUTCOME, 0);
           break;
         case TRAIN_GYM3:
           saveRequired = true;
           // isNatsumiHappy = true;
-          // changeState(0, HOME_LOOP, 0);
           changeState(0, ACTION_OUTCOME, 0);
           break;
         case TRAIN_RUN3:
           saveRequired = true;
           // isNatsumiHappy = true;
-          // changeState(0, HOME_LOOP, 0);
           changeState(0, ACTION_OUTCOME, 0);
           break;
         case COMP_LOCAL6: case COMP_DEPT6: case COMP_REG6:
@@ -11791,7 +11787,8 @@ void gotoConbimart() {
           conbimartItems.clear();
           conbimartInitialized = false;
           overlayActive = false;
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          changeState(0, latestMenu, 0);
           return;
       }
     }
@@ -11866,12 +11863,14 @@ void restaurantFoodSelection() {
                 changeState(0, PAY_SCREEN, 0);
               } else {
                 showToast("Not enough money :(");
-                changeState(0, HOME_LOOP, 0);
+                // changeState(0, HOME_LOOP, 0);
+                changeState(0, latestMenu, 0);
               }
               break;
             // ESC
             case 96:
-              changeState(0, HOME_LOOP, 0);
+              // changeState(0, HOME_LOOP, 0);
+              changeState(0, latestMenu, 0);
               return;
           }
           break;
@@ -11900,12 +11899,14 @@ void restaurantFoodSelection() {
                 changeState(0, PAY_SCREEN, 0);
               } else {
                 showToast("Not enough money :(");
-                changeState(0, HOME_LOOP, 0);
+                // changeState(0, HOME_LOOP, 0);
+                changeState(0, latestMenu, 0);
               }
               break;
             // ESC
             case 96:
-              changeState(0, HOME_LOOP, 0);
+              // changeState(0, HOME_LOOP, 0);
+              changeState(0, latestMenu, 0);
               return;
           }
           break;
@@ -11934,17 +11935,20 @@ void restaurantFoodSelection() {
                 changeState(0, PAY_SCREEN, 0);
               } else {
                 showToast("Not enough money :(");
-                changeState(0, HOME_LOOP, 0);
+                // changeState(0, HOME_LOOP, 0);
+                changeState(0, latestMenu, 0);
               }
               break;
             // ESC
             case 96:
-              changeState(0, HOME_LOOP, 0);
+              // changeState(0, HOME_LOOP, 0);
+              changeState(0, latestMenu, 0);
               return;
           }
           break;
         default:
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          changeState(0, latestMenu, 0);
           break;
       }
     }
@@ -11986,7 +11990,8 @@ void nekoCafeDrinkSelection() {
               break;
             // ESC
             case 96:
-              changeState(0, HOME_LOOP, 0);
+              // changeState(0, HOME_LOOP, 0);
+              changeState(0, latestMenu, 0);
               return;
           }
           break;
@@ -12009,7 +12014,8 @@ void nekoCafeDrinkSelection() {
               break;
             // ESC
             case 96:
-              changeState(0, HOME_LOOP, 0);
+              // changeState(0, HOME_LOOP, 0);
+              changeState(0, latestMenu, 0);
               return;
           }
           break;
@@ -12032,12 +12038,14 @@ void nekoCafeDrinkSelection() {
               break;
             // ESC
             case 96:
-              changeState(0, HOME_LOOP, 0);
+              // changeState(0, HOME_LOOP, 0);
+              changeState(0, latestMenu, 0);
               return;
           }
           break;
         default:
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          changeState(0, latestMenu, 0);
           break;
       }
     }
@@ -12116,7 +12124,8 @@ void nekoCafeSizeSelection() {
           }
           break;
         default:
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          changeState(0, latestMenu, 0);
           break;
       }
     }
@@ -12184,7 +12193,8 @@ void nekoCafeSeatSelection() {
           }
           break;
         default:
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          changeState(0, latestMenu, 0);
           break;
       }
     }
@@ -12286,7 +12296,8 @@ void matsuriFoodSelection() {
           }
           break;
         default:
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          changeState(0, latestMenu, 0);
           break;
       }
     }
@@ -12319,7 +12330,8 @@ void matsuriMainMenu() {
               break;
             // ESC
             case 96:
-              changeState(0, HOME_LOOP, 0);
+              // changeState(0, HOME_LOOP, 0);
+              changeState(0, latestMenu, 0);
               return;
           }
           break;
@@ -12339,7 +12351,8 @@ void matsuriMainMenu() {
               break;
             // ESC
             case 96:
-              changeState(0, HOME_LOOP, 0);
+              // changeState(0, HOME_LOOP, 0);
+              changeState(0, latestMenu, 0);
               return;
           }
           break;
@@ -12364,12 +12377,14 @@ void matsuriMainMenu() {
               break;
             // ESC
             case 96:
-              changeState(0, HOME_LOOP, 0);
+              // changeState(0, HOME_LOOP, 0);
+              changeState(0, latestMenu, 0);
               return;
           }
           break;
         default:
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          changeState(0, latestMenu, 0);
           break;
       }
     }
@@ -12637,7 +12652,8 @@ void orderibiFoodSelection() {
               break;
             // ESC
             case 96:
-              changeState(0, HOME_LOOP, 0);
+              // changeState(0, HOME_LOOP, 0);
+              changeState(0, latestMenu, 0);
               return;
           }
           break;
@@ -12666,7 +12682,8 @@ void orderibiFoodSelection() {
               break;
             // ESC
             case 96:
-              changeState(0, HOME_LOOP, 0);
+              // changeState(0, HOME_LOOP, 0);
+              changeState(0, latestMenu, 0);
               return;
           }
           break;
@@ -12695,12 +12712,14 @@ void orderibiFoodSelection() {
               break;
             // ESC
             case 96:
-              changeState(0, HOME_LOOP, 0);
+              // changeState(0, HOME_LOOP, 0);
+              changeState(0, latestMenu, 0);
               return;
           }
           break;
         default:
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          changeState(0, latestMenu, 0);
           break;
       }
     }
@@ -12822,7 +12841,8 @@ void browseCards() {
           loadedCardIndex = -1;
           selectedOwnedIndex = 0;
           needsRedraw = true;
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          changeState(0, latestMenu, 0);
           return;
         // LEFT
         case 180: case 44: case 'a': case 'A':
@@ -12937,7 +12957,8 @@ void manageChallenges() {
         // ESC
         case 96: case 43:
           overlayActive = false;
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          changeState(0, latestMenu, 0);
           return;
         default:
           break;
@@ -12962,10 +12983,12 @@ void challengeDone() {
           break;
         case CHALLENGE_DONE3:
           // changeState(0, ACTION_OUTCOME, 0);
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          changeState(0, latestMenu, 0);
           break;
         default:
-          changeState(0, HOME_LOOP, 0);
+          // changeState(0, HOME_LOOP, 0);
+          changeState(0, latestMenu, 0);
           break;
       }
     }
