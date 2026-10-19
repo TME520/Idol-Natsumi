@@ -12503,6 +12503,14 @@ void managePFCGame() {
 
   Serial.println(">> managePFCGame() - pfcCurrentStage: " + String(pfcCurrentStage));
 
+  if (currentState == PFC_GAME && pfcCurrentStage == 0) {
+    // New game (title screen): forget scores from an earlier, quit game
+    roundIndex = 0;
+    natsumiWins = 0;
+    emilyWins = 0;
+    drawCount = 0;
+  }
+
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
@@ -12581,7 +12589,6 @@ void managePFCGame() {
           break;
         case PFC_GAME3: case PFC_GAME5: case PFC_GAME7:
           // RPS 1, RPS 2, RPS 3
-          pfcCurrentStage += 1;
           natsumiHand = -1;
           // Rock: R / Paper: P / Scissors: S
           switch (key) {
@@ -12602,8 +12609,10 @@ void managePFCGame() {
               break;
           }
           if (natsumiHand == -1) {
+            // Not R, P or S: ignore the key
             return;
           } else {
+            pfcCurrentStage += 1;
             l5NeedsRedraw = true;
           }
     
