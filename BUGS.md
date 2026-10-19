@@ -28,7 +28,7 @@
 | NB-L01 | Low | Sleep/Onsen energy recovery looks inverted | Open |
 | NB-L02 | Low | Restaurant age gate doesn't match the README | Open |
 | NB-L03 | Low | Low-battery toast is re-issued every frame | Fixed (5a7f3e6) |
-| NB-L04 | Low | Cards and Challenges screens: ESC goes to `latestMenu`, not Home | Open |
+| NB-L04 | Low | Cards and Challenges screens: ESC goes to `latestMenu`, not Home | Fixed (c988444) |
 | NB-L05 | Low | Travel-home energy is charged at the wrong time | Open |
 | NB-L06 | Low | Onsen sets Hygiene on exit, not on entry | Open |
 | NB-L07 | Low | The outcome screen shows "MAX" instead of "+1" | Open |
@@ -224,7 +224,7 @@ Two engine facts drive several of the bugs below:
   - What happens: below 10% the warning hides every other toast (e.g. "saved"). A negative level is not handled.
   - Fix: rate-limit the warning and ignore values below 0.
 - **NB-L04: Cards and Challenges screens: ESC goes to `latestMenu`, not Home.**
-  - Status: Open
+  - Status: Fixed (c988444): Cards ESC goes to HOME_LOOP; Challenges ESC goes back to where it was opened from (Home or Events menu), stored in `challengesReturnState`.
   - Where: `browseCards()` 12854, `manageChallenges()` 12970.
   - What happens: opened from Home, ESC lands in whatever menu was used last (for example Food, or the Matsuri trap from H3).
   - Fix: return to HOME_LOOP.
