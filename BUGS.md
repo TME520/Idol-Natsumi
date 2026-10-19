@@ -11,7 +11,7 @@
 | NB-H01 | High | Energy drops to 0 almost instantly on every debrief screen | Fixed (14ccc39) |
 | NB-H02 | High | Opening INTRO from the title screen overwrites the real save with a blank character | Fixed (64dfb39) |
 | NB-H03 | High | ESC can never leave the Matsuri; the player is trapped while holding tickets | Fixed (147cdd8) |
-| NB-H04 | High | Orderibi delivers food the player can't afford (money goes negative) | Open |
+| NB-H04 | High | Orderibi delivers food the player can't afford (money goes negative) | Fixed (3100690) |
 | NB-H05 | High | Missing or misnamed SD assets freeze the device for minutes | Open |
 | NB-M01 | Medium | Shared `changeStateCounter` drops transitions and can soft-lock the game | Open |
 | NB-M02 | Medium | Food delivery can be lost, or can pull the player out of whatever they are doing | Open |
@@ -91,7 +91,7 @@ Two engine facts drive several of the bugs below:
 - **Fix:** Make ESC in `matsuriMainMenu` go to `EVENTS_MENU` (or HOME_LOOP), and don't overwrite `latestMenu` with MATSURI_MENU.
 
 ### NB-H04: Orderibi delivers food the player can't afford (money goes negative)
-- **Status:** Open
+- **Status:** Fixed (3100690): in `orderibiFoodSelection()` the PAY_SCREEN setup only runs when money is sufficient; otherwise the toast is shown and the player stays on the Orderibi menu.
 - **Where:** `orderibiFoodSelection()` 12650–12659, 12680–12689, 12710–12719. Payment is taken in `managePayment()` (5310).
 - **What happens:** The "Not enough money" toast is shown, but the code still goes to PAY_SCREEN. The price is deducted anyway, money goes negative, and the food is delivered.
 - **Fix:** In the else branch, stay on or return to the menu instead of calling `changeState(PAY_SCREEN)`.
