@@ -232,7 +232,7 @@ Stat caps: 0 is the lowest while 4 is the highest.
 | **Age**        | Passive    | 0–∞   | Increases automatically every `agingInterval` ms | — |
 | **Hunger**     | Passive    | 0–4   | **COOKING:** +1 per selected ingredient, capped at 4. **RESTAURANT / ORDER / MATSURI food:** set Hunger directly to 4. Some visitor events can also set it to 4. | Decreases by 1 every `hungerInterval` ms |
 | **Hygiene**    | Passive    | 0–4   | **WASH:** a successful shower sets Hygiene to 4. **ONSEN:** sets Hygiene to 4. | Decreases by 1 every `hygieneInterval` ms |
-| **Energy**     | Passive    | 0–4   | **SLEEP / ONSEN:** can add +1 on five-second pulses until Energy reaches 4. The increase is probabilistic and depends on Natsumi's other condition stats. | Decreases by 1 every `energyInterval` ms |
+| **Energy**     | Passive    | 0–4   | **SLEEP / ONSEN:** can add +1 on five-second pulses until Energy reaches 4. The increase is probabilistic and depends on Natsumi's other condition stats: the better she is cared for (Hunger, Hygiene, Spirit, Fitness), the faster she recovers. | Decreases by 1 every `energyInterval` ms |
 | **Spirit**     | Derived / Active | 0–4 | **MEDITATE:** +1, capped at 4. Completing a **CHALLENGE** sets Spirit to 4, and a visitor event can also set it to 4. `updateSpirit()` recalculates Spirit from Hygiene + Energy + Hunger + Performance + Popularity when Natsumi ages. | Can be reduced when `updateSpirit()` recalculates it from lower contributing stats |
 | **Popularity** | Active     | 0–4   | Completing a **COMPETITION perfectly** (no missed notes) sets Popularity directly to 4. | — |
 | **Performance**| Active     | 0–4   | Completing **SING** or **DANCE** training adds +1, capped at 4. | — |
@@ -410,7 +410,7 @@ Shortcut: 2, 0
 
 #### RESTAURANT
 
-Go to the restaurant; Natsumi must be at least 16.
+Go to the restaurant; Natsumi must be at least 15.
 
 Eating at the restaurant sets **Hunger to 4** and increases **Grace by 1**, up to the maximum of 4.
 
@@ -491,10 +491,19 @@ Shortcut: 3, 6
 Access to competition is only possible when the following conditions are met:
 
 * Hunger, Hygiene, Energy, Performance, Fitness, Culture and Grace must be at 4 (their maximum),
-* The competition level you are trying to enter has been unlocked,
-* Natsumi has to become the best version of herself by maxxing out her stats,
-* She must also train a lot and be good at it, as 3 perfect (no miss) training sessions are required to unlock a competition level
-* Completing a competition with **no missed notes** sets **Popularity directly to 4**
+* The competition level you are trying to enter has been unlocked, as 3 perfect (no miss) training sessions are required to unlock each competition level (see the progression table above),
+* Each level can only be entered once: a completed level shows "Already completed", a locked one shows "Not unlocked yet",
+* Natsumi has to become the best version of herself by maxxing out her stats: if one of them drops below 4 during the performance, the competition stops.
+
+How it plays:
+
+* Notes fall down the stage, move Natsumi LEFT/RIGHT to catch them (she wraps around from one side to the other),
+* The stage gets wider at each level: 3 columns for local, 4 for departmental, 5 for regional and 6 for national,
+* A new note appears every 0.65 seconds (14 notes on screen at most), the performance ends once Natsumi has caught **50 notes**,
+* A note only counts as missed when it falls off the bottom of the screen, so you can still catch it right after it passes Natsumi,
+* **A single missed note is enough to lose**: you keep playing until 50 notes are caught, but the jury will not let you win,
+* Winning (50 notes, no miss) sets **Popularity directly to 4**, completes the level (local champion, departmental champion...), unlocks the training towards the next level and costs 1 Energy,
+* Losing changes nothing: no Popularity, no level change, no Energy cost. Natsumi goes back home and can try again.
 
 Shortcuts:
 

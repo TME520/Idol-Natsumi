@@ -134,7 +134,7 @@ enum GameState {
   COMP_NAT5,
   COMP_NAT6,
   COMP_NAT7,
-  COMP_STATUS,
+  COMP_STATUS,     // Unused for now (no screen yet)
   COMP_COMPLETE,
   COMP_FAILED,
   MATSURI_TITLE,
@@ -200,7 +200,7 @@ enum GameState {
   NEKO_CAFE12,
   NEKO_CAFE13,
   NEKO_CAFE14,
-  NEKO_CAFE15,
+  NEKO_CAFE15,     // NEKO_CAFE15-19: unused for now (reserved)
   NEKO_CAFE16,
   NEKO_CAFE17,
   NEKO_CAFE18,
@@ -221,6 +221,7 @@ GameState returnTo = HOME_LOOP;
 GameState originLocation = HOME_LOOP;
 GameState targetLocation = HOME_LOOP;
 GameState latestMenu = FOOD_MENU;
+GameState challengesReturnState = HOME_LOOP;  // Where ESC goes from the Challenges screen
 bool continueStateLoaded = false;
 
 // === Screen configs definitions ===
@@ -406,7 +407,7 @@ const CookRecipe cookRecipes[] = {
   {"Sushi", 1, {FOOD_ID_SUSHI, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
   {"Watermelon", 1, {FOOD_ID_WATERMELON, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
   {"Avocado Toast", 2, {FOOD_ID_BREAD, FOOD_ID_AVOCADO, FOOD_ID_NONE, FOOD_ID_NONE}},
-  {"Carbunkle Cocktail", 2, {FOOD_ID_COCONUT_JUICE, FOOD_ID_ORANGE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Carbuncle Cocktail", 2, {FOOD_ID_COCONUT_JUICE, FOOD_ID_ORANGE, FOOD_ID_NONE, FOOD_ID_NONE}},
   {"Egg Toast", 2, {FOOD_ID_BREAD, FOOD_ID_FRIED_EGG, FOOD_ID_NONE, FOOD_ID_NONE}},
   {"Banana Milk", 2, {FOOD_ID_BANANA, FOOD_ID_MILK, FOOD_ID_NONE, FOOD_ID_NONE}},
   {"Strawberry Milk", 2, {FOOD_ID_STRAWBERRIES, FOOD_ID_MILK, FOOD_ID_NONE, FOOD_ID_NONE}},
@@ -520,6 +521,9 @@ bool isChallengeUnlocked(uint8_t challengeId) {
 bool isChallengeStepDone(uint8_t challengeId, uint8_t stepIndex) {
   Serial.println("> isChallengeStepDone() - challengeId: " + String(challengeId) + " - stepIndex: " + String(stepIndex) + " - MAX_CHALLENGES: " + String(MAX_CHALLENGES) + " - CHALLENGE_STEP_COUNT: " + String(CHALLENGE_STEP_COUNT));
   // Serial.println(">> isChallengeStepDone() - Returns " + String(challengeId < MAX_CHALLENGES && stepIndex < CHALLENGE_STEP_COUNT && (challengeFlags[challengeId] & challengeStepMask(stepIndex))));
+  if (challengeId >= MAX_CHALLENGES || stepIndex >= CHALLENGE_STEP_COUNT) {
+    return false;
+  }
   uint8_t flags = challengeFlags[challengeId];
   uint8_t mask  = challengeStepMask(stepIndex);
   
@@ -706,6 +710,7 @@ unsigned long agingInterval = 28800000; // 1 day in-game = 8 hours IRL
 // unsigned long agingInterval = 86400000;  // 1 day
 unsigned long sessionStart = 0;           // millis() when NEW_GAME starts
 unsigned long playtimeTotalMs = 0;        // total playtime in ms (could persist later)
+bool gameStarted = false;                 // true once NEW_GAME or CONTINUE_GAME has run
 int lastAgeTick = 0;
 int spiritScore = 0;
 const unsigned long screensaverWait = 10;
@@ -717,7 +722,7 @@ const char* saveGamePath = "/idolnat/savegame.dat";
 const char* saveGameTempPath = "/idolnat/savegame.tmp";
 const char* saveGameBackupPath = "/idolnat/savegame.bak";
 String saveStatusMsg = "";
-unsigned long saveStatusUntil = 0;
+unsigned long saveStatusStart = 0;  // millis() when saveStatusMsg was set (shown for 2 s)
 unsigned long counterToScreensaver = 0;
 String trainingStatusMessage = "";
 bool trainingStatusProcessed = false;
@@ -740,7 +745,7 @@ void startTrainSingGame();
 // Training SWIM mini-game helpers
 void resetTrainSwimGame();
 void manageTrainSwimGame();
-void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect);
+void drawTrainSwimPlayfield(bool showCompletion);
 void startTrainSwimGame();
 
 // Training GYM mini-game helpers
@@ -757,6 +762,7 @@ void startTrainRunGame();
 void manageTrainingStatus();
 
 unsigned long changeStateCounter = 0;
+GameState pendingState = VERSION_SCREEN;  // Target of the delayed transition being counted
 
 // const unsigned long hungerInterval = 120000;   // 2 minutes
 const unsigned long hungerInterval = 1200000;   // 20 minutes
@@ -850,6 +856,10 @@ bool meditationRewardApplied = false;
 bool fiveSecondPulse = false;  // Set true by updateFiveSecondPulse() every five seconds
 bool libraryInitialized = false;
 bool libraryRewardApplied = false;
+bool outcomeStatGained = false;  // Set when a reward is applied: did the stat actually go up?
+bool debriefEnergyApplied = false;
+bool overlayEffectApplied = false;  // One-shot effects drawn by drawOverlay(), reset by changeState()
+bool competitionRunStarting = false;  // Set on entering COMP_*5: manageCompetition() starts a fresh run
 bool isNatsumiHappy = false;
 bool gardenActive = false;
 bool isPlayerGardening = false;
@@ -879,11 +889,9 @@ const unsigned long keyCooldown = 200;  // milliseconds between accepted presses
 // Onsen mini-game state
 bool bathGameRunning = false;
 bool bathBackgroundDrawn = false;
-bool bathResultShown = false;
 unsigned long bathGameStart = 0;
 unsigned long bathOutcomeTime = 0;
 const unsigned long bathGameDuration = 8000;  // milliseconds
-const unsigned long bathExitDelay = 3000;      // milliseconds to display the result
 const int thermometerX = 200;
 const int thermometerY = 18;
 const int thermometerWidth = 20;
@@ -921,7 +929,8 @@ int singNotesMissed = 0;
 int singNotesSpawned = 0;
 unsigned long singLastSpawnTime = 0;
 unsigned long singCompletionTime = 0;
-unsigned long singFlashUntil = 0;
+unsigned long singFlashStart = 0;
+bool singFlashActive = false;
 uint16_t singFlashColor = BLACK;
 bool singGameRunning = false;
 bool singGameCompleted = false;
@@ -936,7 +945,7 @@ int danceCuesShown = 0;
 int danceCurrentDirection = -1;                  // 0=UP,1=DOWN,2=LEFT,3=RIGHT
 bool danceCueActive = false;
 unsigned long danceCueStart = 0;
-unsigned long danceNextCueTime = 0;
+unsigned long danceCueGapStart = 0;  // millis() when the gap before the next cue started
 unsigned long danceCompletionTime = 0;
 bool danceGameRunning = false;
 bool danceGameCompleted = false;
@@ -965,9 +974,6 @@ const int swimSharkHeight = 12;
 const int swimHitPenalty = 4;
 const unsigned long swimSpawnIntervalMin = 650;
 const unsigned long swimSpawnIntervalMax = 1150;
-const float swimMinSpeed = 1.4f;
-const float swimMaxSpeed = 2.6f;
-const unsigned long swimHitFlashDuration = 200;
 const unsigned long swimCompletionDelay = 1200;
 int swimPlayerLane = 1;
 int swimAvoidedSharks = 0;
@@ -975,8 +981,6 @@ int swimCollisions = 0;
 bool swimGameRunning = false;
 bool swimGameCompleted = false;
 bool swimNeedsRedraw = false;
-bool swimHitFlash = false;
-unsigned long swimHitFlashTime = 0;
 unsigned long swimCompletionTime = 0;
 unsigned long swimLastSpawnTime = 0;
 unsigned long swimNextSpawnDelay = swimSpawnIntervalMin;
@@ -1005,7 +1009,8 @@ int gymCurrentStreak = 0;
 int gymMisses = 0;
 char gymTargetLetter = 'A';
 unsigned long gymLastUpdate = 0;
-unsigned long gymResultFlashUntil = 0;
+unsigned long gymResultFlashStart = 0;
+bool gymResultFlashActive = false;
 String gymResultText = "";
 unsigned long gymCompletionTime = 0;
 bool gymGameRunning = false;
@@ -1303,7 +1308,7 @@ const char* gameStateToString(GameState state) {
 }
 
 GameState gameStateFromString(const String& stateString) {
-  for (int i = VERSION_SCREEN; i <= COMP_NAT6; ++i) {
+  for (int i = VERSION_SCREEN; i <= TRAVEL_SCREEN; ++i) {
     GameState state = static_cast<GameState>(i);
     if (stateString == gameStateToString(state)) {
       return state;
@@ -1314,11 +1319,13 @@ GameState gameStateFromString(const String& stateString) {
 
 // Toast messages
 String toastMsg = "";
-unsigned long toastUntil = 0;  // timestamp when toast should disappear
+unsigned long toastStart = 0;     // millis() when the toast was shown
+unsigned long toastDuration = 0;  // how long it stays (ms)
 void showToast(const String& msg, unsigned long ms = longWait) {
   toastActive = true;
   toastMsg = msg;
-  toastUntil = millis() + ms;
+  toastStart = millis();
+  toastDuration = ms;
   l3NeedsRedraw = true;
 }
 
@@ -1462,6 +1469,7 @@ bool saveGameToSd() {
   saveFile.println();
   saveFile.println("flowers_grown_total=" + String(flowersGrownTotal));
   saveFile.println("flowers_sold_total=" + String(flowersSoldTotal));
+  saveFile.println("conbimart_visits_total=" + String(conbimartVisitsTotal));
   saveFile.println("recipes_cooked_total=" + String(recipesCookedTotal));
   saveFile.println("perfect_singing_lessons=" + String(perfectSingingLessons));
   saveFile.println("perfect_dancing_lessons=" + String(perfectDancingLessons));
@@ -1497,6 +1505,38 @@ bool saveGameToSd() {
 
   Serial.println(">> saveGameToSd: Save complete");
   return true;
+}
+
+void validateLoadedData() {
+  // Keep loaded values in range, so a corrupted or hand-edited save can't break the game
+  natsumi.age = constrain(natsumi.age, 11, 22);
+  natsumi.hunger = constrain(natsumi.hunger, 0, STAT_MAX);
+  natsumi.hygiene = constrain(natsumi.hygiene, 0, STAT_MAX);
+  natsumi.energy = constrain(natsumi.energy, 0, STAT_MAX);
+  natsumi.spirit = constrain(natsumi.spirit, 0, STAT_MAX);
+  natsumi.popularity = constrain(natsumi.popularity, 0, STAT_MAX);
+  natsumi.performance = constrain(natsumi.performance, 0, STAT_MAX);
+  natsumi.fitness = constrain(natsumi.fitness, 0, STAT_MAX);
+  natsumi.culture = constrain(natsumi.culture, 0, STAT_MAX);
+  natsumi.grace = constrain(natsumi.grace, 0, STAT_MAX);
+  natsumi.competition = constrain(natsumi.competition, 0, 16);
+  if (natsumi.money < 0) natsumi.money = 0;
+  if (natsumi.flowers < 0) natsumi.flowers = 0;
+  if (natsumi.tickets < 0) natsumi.tickets = 0;
+  // FridgeStock and CollectibleCards only hold int counters
+  int* fridgeCounts = reinterpret_cast<int*>(&fridge);
+  for (size_t i = 0; i < sizeof(fridge) / sizeof(int); ++i) {
+    if (fridgeCounts[i] < 0) fridgeCounts[i] = 0;
+  }
+  int* cardCounts = reinterpret_cast<int*>(&cards);
+  for (size_t i = 0; i < sizeof(cards) / sizeof(int); ++i) {
+    if (cardCounts[i] < 0) cardCounts[i] = 0;
+  }
+  for (int row = 0; row < gardenRows; ++row) {
+    for (int col = 0; col < gardenCols; ++col) {
+      if (gardenTiles[row][col] < 0) gardenTiles[row][col] = 0;
+    }
+  }
 }
 
 bool loadGameFromSd() {
@@ -1679,6 +1719,7 @@ bool loadGameFromSd() {
         }
       } else if (key == "flowers_grown_total") flowersGrownTotal = static_cast<uint16_t>(value.toInt());
       else if (key == "flowers_sold_total") flowersSoldTotal = static_cast<uint16_t>(value.toInt());
+      else if (key == "conbimart_visits_total") conbimartVisitsTotal = static_cast<uint16_t>(value.toInt());
       else if (key == "recipes_cooked_total") recipesCookedTotal = static_cast<uint16_t>(value.toInt());
       else if (key == "perfect_singing_lessons") perfectSingingLessons = static_cast<uint16_t>(value.toInt());
       else if (key == "perfect_dancing_lessons") perfectDancingLessons = static_cast<uint16_t>(value.toInt());
@@ -1694,6 +1735,7 @@ bool loadGameFromSd() {
   }
 
   saveFile.close();
+  validateLoadedData();
   updateChallengeProgress();
   sessionStart = millis();
   /*
@@ -1749,6 +1791,14 @@ bool preloadImage(const char* path, ImageBuffer &imgBuf) {
   // Extract filename from the full path.
   const char* filename = strrchr(path, '/');
   filename = filename ? filename + 1 : path;
+
+  // Missing file: fail fast, retrying will not make it appear.
+  if (!SD.exists(path)) {
+    Serial.print("Missing file: ");
+    Serial.println(path);
+    showToast("Missing file: " + String(path));
+    return false;
+  }
 
   for (int attempt = 0; attempt <= MAX_RETRIES; ++attempt) {
     File f = SD.open(path, FILE_READ);
@@ -1861,6 +1911,21 @@ const char* onsenBackgroundForAge(int age) {
     return "/idolnat/screens/onsen_18yo.png";
   }
   return "/idolnat/screens/onsen_21yo.png";
+}
+
+String getReadingSpritePath(const char* frame) {
+  // Neko Cafe reading sprite for Natsumi's age bracket (same brackets as the other sprites).
+  // Falls back to the 11yo sprite when that age has no reading sprite on the SD card.
+  int bracketAge = 11;
+  if (natsumi.age >= 21) bracketAge = 21;
+  else if (natsumi.age >= 18) bracketAge = 18;
+  else if (natsumi.age >= 15) bracketAge = 15;
+  else if (natsumi.age >= 13) bracketAge = 13;
+  String path = "/idolnat/sprites/natsumi_reading_" + String(bracketAge) + "yo_" + String(frame) + ".png";
+  if (bracketAge != 11 && !SD.exists(path)) {
+    path = "/idolnat/sprites/natsumi_reading_11yo_" + String(frame) + ".png";
+  }
+  return path;
 }
 
 void preloadImages() {
@@ -2583,7 +2648,7 @@ void preloadImages() {
           break;
       }
       if (selectedSeat == 1) {
-        preloadImage("/idolnat/sprites/natsumi_reading_11yo_left.png", natsumiSprite);
+        preloadImage(getReadingSpritePath("left").c_str(), natsumiSprite);
       }
       break;
     case PAY_SCREEN: case PAY_SCREEN2: case PAY_SCREEN3:
@@ -3440,6 +3505,9 @@ void drawImage(const ImageBuffer& img) {
   }
 }
 
+bool batteryLowWarned = false;
+unsigned long lastBatteryWarning = 0;
+const unsigned long batteryWarningInterval = 300000;  // 5 minutes
 void printBatteryLevel() {
   int batteryLevel = M5Cardputer.Power.getBatteryLevel();
   /*
@@ -3447,9 +3515,19 @@ void printBatteryLevel() {
   Serial.print(batteryLevel);
   Serial.println("%");
   */
-  if (batteryLevel < 10) {
-    Serial.print("Battery is LOW");
-    showToast("[WARN] Battery is low");
+  if (batteryLevel < 0) return;  // Level unknown
+  if (batteryLevel >= 15) {
+    batteryLowWarned = false;  // Charged again: warn next time it gets low
+    return;
+  }
+  if (batteryLevel < 10 && !toastActive) {
+    // Warn once when it gets low, then every 5 minutes, without hiding other toasts
+    if (!batteryLowWarned || millis() - lastBatteryWarning >= batteryWarningInterval) {
+      Serial.println("Battery is LOW");
+      showToast("[WARN] Battery is low");
+      batteryLowWarned = true;
+      lastBatteryWarning = millis();
+    }
   }
 }
 
@@ -3476,6 +3554,10 @@ void loop() {
 
   if (millis() - lastUpdate < FRAME_DELAY) return;
   lastUpdate = millis();
+  // Any key press is activity: restart the screensaver/visitor countdown
+  if (M5Cardputer.Keyboard.isPressed()) {
+    counterToScreensaver = 0;
+  }
   updateFiveSecondPulse();
   printBatteryLevel();
 /*
@@ -3589,19 +3671,177 @@ void setScreenConfig(ScreenState targetConfig) {
 }
 
 // === Menu and state logic ===
+void resetGameState() {
+  // Fresh-game values for every piece of player/progress state (NEW_GAME, or CONTINUE without a save)
+  natsumi.age = 11;
+  natsumi.ageMilliseconds = 0;
+  natsumi.hunger = 3;
+  natsumi.hygiene = 3;
+  natsumi.energy = 3;
+  natsumi.spirit = 3;
+  natsumi.popularity = 0;
+  natsumi.performance = 0;
+  natsumi.fitness = 0;
+  natsumi.culture = 0;
+  natsumi.grace = 0;
+  natsumi.money = 1800;
+  natsumi.flowers = 0;
+  natsumi.tickets = 0;
+  natsumi.competition = 0;
+  natsumi.lastHungerUpdate = 0;
+  natsumi.lastHygieneUpdate = 0;
+  natsumi.lastEnergyUpdate = 0;
+  fridge.redApple = 3;
+  fridge.greenApple = 0;
+  fridge.avocado = 0;
+  fridge.bread = 10;
+  fridge.banana = 6;
+  fridge.broccoli = 0;
+  fridge.sweets = 1;
+  fridge.carrot = 0;
+  fridge.meat = 1;
+  fridge.coconut = 1;
+  fridge.coconutJuice = 0;
+  fridge.coffee = 0;
+  fridge.biscuits = 0;
+  fridge.corn = 0;
+  fridge.croissant = 0;
+  fridge.friedEgg = 0;
+  fridge.grapes = 0;
+  fridge.kiwi = 0;
+  fridge.milk = 0;
+  fridge.orange = 2;
+  fridge.peach = 0;
+  fridge.pear = 0;
+  fridge.strawberries = 0;
+  fridge.maki = 0;
+  fridge.sushi = 0;
+  fridge.watermelon = 0;
+  cards.blueOne = 0;
+  cards.blueTwo = 0;
+  cards.blueThree = 0;
+  cards.blueFour = 0;
+  cards.blueFive = 0;
+  cards.blueSix = 0;
+  cards.greenOne = 0;
+  cards.greenTwo = 0;
+  cards.greenThree = 0;
+  cards.greenFour = 0;
+  cards.greenFive = 0;
+  cards.greenSix = 0;
+  cards.greenSeven = 0;
+  cards.redOne = 0;
+  cards.redTwo = 0;
+  cards.redThree = 0;
+  cards.redFour = 0;
+  cards.redFive = 0;
+  cards.redSix = 0;
+  cards.redSeven = 0;
+  cards.redEight = 0;
+  cards.redNine = 0;
+  cards.redTen = 0;
+  cards.redEleven = 0;
+  cards.redTwelve = 0;
+  cards.redThirteen = 0;
+  cards.redFourteen = 0;
+  cards.redFifteen = 0;
+  cards.redSixteen = 0;
+  cards.silverOne = 0;
+  cards.goldOne = 0;
+  cards.platinumOne = 0;
+  playtimeTotalMs = 0;
+  sessionStart = millis();
+  lastAgeTick = 0;
+  initializeChallengeProgress();
+  // Garden
+  for (int row = 0; row < gardenRows; ++row) {
+    for (int col = 0; col < gardenCols; ++col) {
+      gardenTiles[row][col] = 0;
+    }
+  }
+  gardenActive = false;
+  isPlayerGardening = false;
+  gardenCursorRow = 0;
+  gardenCursorCol = 0;
+  gardeningHelperText = "";
+  // Food, delivery, visits and rewards in progress
+  waitingForFoodDelivery = false;
+  foodDeliveryCounter = 0;
+  birthdayVisitEnabled = false;
+  recentCompWin = false;
+  visitor = 0;
+  isLatestTrainingPerfect = false;
+  addOneMatsuriTicket = false;
+  unlockedNextCompetitionLevel = false;
+  outcomeStatGained = false;
+  competitionRunStarting = false;
+  meditationActive = false;
+  meditationRewardApplied = false;
+  libraryInitialized = false;
+  libraryRewardApplied = false;
+  flowersSaleInProgress = false;
+  flowersSaleHandicap = 0;
+  flowersPrice = 0;
+  flowersRevenue = 0;
+  amountToPay = 0;
+  announceChallengeCompletion = false;
+  isNatsumiHappy = false;
+  happinessCounter = 0;
+  counterToScreensaver = 0;
+  currentTile = "HOME";
+  targetTile = "HOME";
+  // Menus and cursors (the title menu cursor is kept)
+  latestMenu = FOOD_MENU;
+  challengesReturnState = HOME_LOOP;
+  homeMenuSelection = 0;
+  foodMenuSelection = 0;
+  trainingMenuSelection = 0;
+  competitionMenuSelection = 0;
+  healthMenuSelection = 0;
+  restMenuSelection = 0;
+  gardenMenuSelection = 0;
+  eventsMenuSelection = 0;
+  matsuriSelection = 0;
+  restaurantSelection = 0;
+  orderibiSelection = 0;
+  foodSelectionIndex = 0;
+  inventoryPageIndex = 0;
+  conbimartSelectionIndex = 0;
+  for (uint8_t i = 0; i < 4; ++i) {
+    recipeSelection[i] = FOOD_ID_NONE;
+  }
+  recipeSelectionCount = 0;
+  lastCookHungerBonus = 0;
+  selectedFood = "None";
+}
+
 void changeState(int baseLayer, GameState targetState, int delay) {
   // Manage state transitions
   Serial.println("> Entering changeState() with baseLayer set to " + String(baseLayer) + " and targetState set to " + String(gameStateToString(targetState)) + " with delay set to " + String(delay));
   if (currentState != HOME_LOOP && currentState != IDLE_HOME && currentState != IDLE_STATS && currentState != TITLE_SCREEN2) {
     counterToScreensaver = 0;
   }
-  if (changeStateCounter == delay) {
+  // A delayed transition is already counting: ignore requests for another
+  // target so they can't push the counter past the pending delay (which
+  // used to lock the game on that screen)
+  if (changeStateCounter > 0 && targetState != pendingState) {
+    return;
+  }
+  if (changeStateCounter >= (unsigned long)delay) {
     Serial.println("Proceed with transition");
     Serial.println("> currentState = " + String(gameStateToString(currentState)));
     Serial.println("> targetState = " + String(gameStateToString(targetState)));
     changeStateCounter = 0;
     previousState = currentState;
     currentState = targetState;
+    debriefEnergyApplied = false;
+    overlayEffectApplied = false;
+    // Any countdown left before the end (ESC/any key) starts fresh next time
+    resetMiniGameCountdown();
+    // Leaving meditation (finished or aborted): let Spirit update again
+    if (previousState == REST_MEDITATE && currentState != REST_MEDITATE) {
+      meditationActive = false;
+    }
     prepareTravel();
     preloadImages();
     switch (baseLayer) {
@@ -3651,86 +3891,8 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case NEW_GAME:
         setScreenConfig(CARD);
-        natsumi.age = 11;
-        natsumi.ageMilliseconds = 0;
-        natsumi.hunger = 3;
-        natsumi.hygiene = 3;
-        natsumi.energy = 3;
-        natsumi.spirit = 3;
-        natsumi.popularity = 0;
-        natsumi.performance = 0;
-        natsumi.fitness = 0;
-        natsumi.culture = 0;
-        natsumi.grace = 0;
-        natsumi.money = 1800;
-        natsumi.flowers = 0;
-        natsumi.tickets = 0;
-        natsumi.competition = 0;
-        natsumi.lastHungerUpdate = 0;
-        natsumi.lastHygieneUpdate = 0;
-        natsumi.lastEnergyUpdate = 0;
-        fridge.redApple = 3;
-        fridge.greenApple = 0;
-        fridge.avocado = 0;
-        fridge.bread = 10;
-        fridge.banana = 6;
-        fridge.broccoli = 0;
-        fridge.sweets = 1;
-        fridge.carrot = 0;
-        fridge.meat = 1;
-        fridge.coconut = 1;
-        fridge.coconutJuice = 0;
-        fridge.coffee = 0;
-        fridge.biscuits = 0;
-        fridge.corn = 0;
-        fridge.croissant = 0;
-        fridge.friedEgg = 0;
-        fridge.grapes = 0;
-        fridge.kiwi = 0;
-        fridge.milk = 0;
-        fridge.orange = 2;
-        fridge.peach = 0;
-        fridge.pear = 0;
-        fridge.strawberries = 0;
-        fridge.maki = 0;
-        fridge.sushi = 0;
-        fridge.watermelon = 0;
-        cards.blueOne = 0;
-        cards.blueTwo = 0;
-        cards.blueThree = 0;
-        cards.blueFour = 0;
-        cards.blueFive = 0;
-        cards.blueSix = 0;
-        cards.greenOne = 0;
-        cards.greenTwo = 0;
-        cards.greenThree = 0;
-        cards.greenFour = 0;
-        cards.greenFive = 0;
-        cards.greenSix = 0;
-        cards.greenSeven = 0;
-        cards.redOne = 0;
-        cards.redTwo = 0;
-        cards.redThree = 0;
-        cards.redFour = 0;
-        cards.redFive = 0;
-        cards.redSix = 0;
-        cards.redSeven = 0;
-        cards.redEight = 0;
-        cards.redNine = 0;
-        cards.redTen = 0;
-        cards.redEleven = 0;
-        cards.redTwelve = 0;
-        cards.redThirteen = 0;
-        cards.redFourteen = 0;
-        cards.redFifteen = 0;
-        cards.redSixteen = 0;
-        cards.silverOne = 0;
-        cards.goldOne = 0;
-        cards.platinumOne = 0;
-        playtimeTotalMs = 0;
-        sessionStart = millis();
-        lastAgeTick = 0;
-        initializeChallengeProgress();
+        resetGameState();
+        gameStarted = true;
         break;
       case CONTINUE_GAME:
         setScreenConfig(CARD);
@@ -3739,87 +3901,9 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           natsumi.lastHygieneUpdate = 0;
           natsumi.lastEnergyUpdate = 0;
         } else {
-          natsumi.age = 11;
-          natsumi.ageMilliseconds = 0;
-          natsumi.hunger = 3;
-          natsumi.hygiene = 3;
-          natsumi.energy = 3;
-          natsumi.spirit = 3;
-          natsumi.popularity = 0;
-          natsumi.performance = 0;
-          natsumi.fitness = 0;
-          natsumi.culture = 0;
-          natsumi.grace = 0;
-          natsumi.money = 1800;
-          natsumi.flowers = 0;
-          natsumi.competition = 0;
-          natsumi.tickets = 0;
-          natsumi.lastHungerUpdate = 0;
-          natsumi.lastHygieneUpdate = 0;
-          natsumi.lastEnergyUpdate = 0;
-          fridge.redApple = 3;
-          fridge.greenApple = 0;
-          fridge.avocado = 0;
-          fridge.bread = 10;
-          fridge.banana = 6;
-          fridge.broccoli = 0;
-          fridge.sweets = 1;
-          fridge.carrot = 0;
-          fridge.meat = 1;
-          fridge.coconut = 1;
-          fridge.coconutJuice = 0;
-          fridge.coffee = 0;
-          fridge.biscuits = 0;
-          fridge.corn = 0;
-          fridge.croissant = 0;
-          fridge.friedEgg = 0;
-          fridge.grapes = 0;
-          fridge.kiwi = 0;
-          fridge.milk = 0;
-          fridge.orange = 2;
-          fridge.peach = 0;
-          fridge.pear = 0;
-          fridge.strawberries = 0;
-          fridge.maki = 0;
-          fridge.sushi = 0;
-          fridge.watermelon = 0;
-          cards.blueOne = 0;
-          cards.blueTwo = 0;
-          cards.blueThree = 0;
-          cards.blueFour = 0;
-          cards.blueFive = 0;
-          cards.blueSix = 0;
-          cards.greenOne = 0;
-          cards.greenTwo = 0;
-          cards.greenThree = 0;
-          cards.greenFour = 0;
-          cards.greenFive = 0;
-          cards.greenSix = 0;
-          cards.greenSeven = 0;
-          cards.redOne = 0;
-          cards.redTwo = 0;
-          cards.redThree = 0;
-          cards.redFour = 0;
-          cards.redFive = 0;
-          cards.redSix = 0;
-          cards.redSeven = 0;
-          cards.redEight = 0;
-          cards.redNine = 0;
-          cards.redTen = 0;
-          cards.redEleven = 0;
-          cards.redTwelve = 0;
-          cards.redThirteen = 0;
-          cards.redFourteen = 0;
-          cards.redFifteen = 0;
-          cards.redSixteen = 0;
-          cards.silverOne = 0;
-          cards.goldOne = 0;
-          cards.platinumOne = 0;
-          playtimeTotalMs = 0;
-          sessionStart = millis();
-          lastAgeTick = 0;
-          initializeChallengeProgress();
+          resetGameState();
         }
+        gameStarted = true;
         break;
       case INTRO: case INTRO2: case INTRO3: case INTRO4: case INTRO5: case INTRO6:
         setScreenConfig(DIALOG);
@@ -3850,7 +3934,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         l5NeedsRedraw = true;
         toastEnabled = false;
         saveStatusMsg = "";
-        saveStatusUntil = 0;
+        saveStatusStart = 0;
         break;
       case INVENTORY_SCREEN:
         setScreenConfig(GAME);
@@ -3894,6 +3978,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItems = foodMenuItems;
         currentMenuItemsCount = foodMenuItemCount;
         latestMenu = FOOD_MENU;
+        overlayActive = false; // NB-M13: clear an overlay left over from ACTION_OUTCOME and similar screens
         break;
       case FOOD_CONBINI:
         setScreenConfig(IDLE);
@@ -3941,9 +4026,16 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         l5NeedsRedraw = false;
         characterEnabled = true;
         break;
-      case FOOD_ORDER6: case FOOD_ORDER7:
+      case FOOD_ORDER6:
         setScreenConfig(ROOM);
         menuOpened = false;
+        break;
+      case FOOD_ORDER7:
+        setScreenConfig(ROOM);
+        menuOpened = false;
+        // The delivery is on screen now
+        waitingForFoodDelivery = false;
+        foodDeliveryCounter = 0;
         break;
       case FOOD_ORDER8: case FOOD_ORDER9:
         setScreenConfig(DIALOG);
@@ -3956,6 +4048,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItems = trainingMenuItems;
         currentMenuItemsCount = trainingMenuItemCount;
         latestMenu = TRAIN_MENU;
+        overlayActive = false; // NB-M13: clear an overlay left over from ACTION_OUTCOME and similar screens
         break;
       case TRAIN_DANCE:
         setScreenConfig(ROOM);
@@ -4046,6 +4139,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItems = competitionMenuItems;
         currentMenuItemsCount = competitionMenuItemCount;
         latestMenu = COMP_MENU;
+        overlayActive = false; // NB-M13: clear an overlay left over from ACTION_OUTCOME and similar screens
         break;
       case COMP_LOCAL: case COMP_LOCAL2:
       case COMP_DEPT: case COMP_DEPT2:
@@ -4077,6 +4171,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case COMP_REG5:
       case COMP_NAT5:
         setScreenConfig(GAME);
+        competitionRunStarting = true;
         break;
       case COMP_COMPLETE: case COMP_FAILED:
         setScreenConfig(IDLE);
@@ -4090,6 +4185,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItems = healthMenuItems;
         currentMenuItemsCount = healthMenuItemCount;
         latestMenu = HEALTH_MENU;
+        overlayActive = false; // NB-M13: clear an overlay left over from ACTION_OUTCOME and similar screens
         break;
       case HEALTH_WASH:
         setScreenConfig(GAME);
@@ -4126,6 +4222,9 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case HEALTH_ONSEN:
         setScreenConfig(CARD);
         characterEnabled = false;
+        // Entering the Onsen restores Hygiene (once, on this transition)
+        natsumi.hygiene = 4;
+        saveRequired = true;
         break;
       case REST_MENU:
         setScreenConfig(ROOM);
@@ -4133,6 +4232,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItems = restMenuItems;
         currentMenuItemsCount = restMenuItemCount;
         latestMenu = REST_MENU;
+        overlayActive = false; // NB-M13: clear an overlay left over from ACTION_OUTCOME and similar screens
         break;
       case REST_MEDITATE:
         setScreenConfig(IDLE);
@@ -4173,6 +4273,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItemsCount = gardenMenuItemCount;
         menuOpened = true;
         latestMenu = GARDEN_MENU;
+        overlayActive = false; // NB-M13: clear an overlay left over from ACTION_OUTCOME and similar screens
         break;
       case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
         setScreenConfig(ROOM);
@@ -4231,6 +4332,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItems = eventsMenuItems;
         currentMenuItemsCount = eventsMenuItemCount;
         latestMenu = EVENTS_MENU;
+        overlayActive = false; // NB-M13: clear an overlay left over from ACTION_OUTCOME and similar screens
         break;
       case MATSURI_MENU: case MATSURI_MENU2: case MATSURI_MENU3:
         setScreenConfig(IDLE);
@@ -4341,6 +4443,9 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
     }
   } else {
+    if (changeStateCounter == 0) {
+      pendingState = targetState;
+    }
     changeStateCounter += 1;
     // Serial.println("Delay transition (" + String(changeStateCounter) + "/" + String(delay) + ")");
   }
@@ -4349,6 +4454,14 @@ void changeState(int baseLayer, GameState targetState, int delay) {
 
 void updateAging() {
   // Serial.println("> Entering updateAging()");
+  if (!gameStarted) {
+    // No game loaded yet (INTRO): show 11yo Natsumi, no aging/birthday/save
+    if (natsumi.age < 11) {
+      natsumi.age = 11;
+      preloadImages();
+    }
+    return;
+  }
   unsigned long currentMilli = millis();
   unsigned long currentPlaytime = currentMilli - sessionStart;
   // unsigned long currentPlaytime = millis();
@@ -4398,6 +4511,7 @@ void updateAging() {
 
 void updateStats() {
   // Serial.println("> Entering updateStats()");
+  if (!gameStarted) return;
   unsigned long currentMillis = millis();
   int previousEnergy = natsumi.energy;
 
@@ -4540,10 +4654,6 @@ void saveScreenshotToSd() {
 
 void updateFiveSecondPulse() {
   unsigned long now = millis();
-  if (now < lastFiveSecondTick) {
-    lastFiveSecondTick = now;
-    // Serial.println(">> 5 sec tick");
-  }
   if (now - lastFiveSecondTick >= fiveSecondInterval) {
     lastFiveSecondTick = now;
     // Serial.println(">>> 5 sec tick");
@@ -4551,13 +4661,24 @@ void updateFiveSecondPulse() {
     // saveScreenshotToSd();
     if (waitingForFoodDelivery) {
       Serial.println(">>> Pending food delivery (" + String(foodDeliveryCounter) + ")");
-      foodDeliveryCounter += 1;
-      if (foodDeliveryCounter == 10) {
-        Serial.println(">>> Food delivered");
-        foodDeliveryCounter = 0;
-        waitingForFoodDelivery = false;
-        Serial.println(">>> Switching to FOOD_ORDER7");
-        changeState(0, FOOD_ORDER7, 0);
+      if (foodDeliveryCounter < 10) {
+        foodDeliveryCounter += 1;
+      }
+      // Food is ready: only ring when Natsumi is at home or in a menu and no
+      // delayed transition is pending, otherwise keep it for a later pulse.
+      // waitingForFoodDelivery is cleared when FOOD_ORDER7 is entered.
+      if (foodDeliveryCounter >= 10 && changeStateCounter == 0) {
+        switch (currentState) {
+          case HOME_LOOP: case IDLE_HOME: case IDLE_STATS:
+          case FOOD_MENU: case TRAIN_MENU: case COMP_MENU:
+          case HEALTH_MENU: case REST_MENU: case EVENTS_MENU:
+            Serial.println(">>> Food delivered");
+            Serial.println(">>> Switching to FOOD_ORDER7");
+            changeState(0, FOOD_ORDER7, 0);
+            break;
+          default:
+            break;
+        }
       }
       friendsVisitEnabled = false;
     } else {
@@ -4588,7 +4709,9 @@ void updateFiveSecondPulse() {
     switch (currentState) {
       case REST_SLEEP: case HEALTH_ONSEN:
         if (natsumi.energy < 4) {
-          if ( random(220) > (((natsumi.hunger + natsumi.hygiene + natsumi.spirit + natsumi.fitness)*10)+10)) {
+          // Better care means faster recovery: the chance grows with Hunger + Hygiene + Spirit + Fitness
+          // (about 32% per pulse when they are all 0, certain from a total of 15)
+          if ( random(220) < (((natsumi.hunger + natsumi.hygiene + natsumi.spirit + natsumi.fitness)*10)+10) + 60) {
             natsumi.energy++;
             saveRequired = true;
             // isNatsumiHappy = true;
@@ -4599,7 +4722,12 @@ void updateFiveSecondPulse() {
         }
         break;
       case HOME_LOOP:
-        counterToScreensaver += 1;
+        if (menuOpened) {
+          // Home menu is open: no screensaver/visitor while the player uses it
+          counterToScreensaver = 0;
+        } else {
+          counterToScreensaver += 1;
+        }
         Serial.println(">> HOME_LOOP -> counterToScreensaver: " + String(counterToScreensaver));
         if (counterToScreensaver > screensaverWait) {
           if (friendsVisitEnabled) {
@@ -4640,7 +4768,7 @@ void updateFiveSecondPulse() {
       case IDLE_STATS:
         break;
     }
-    if (saveRequired) {
+    if (saveRequired && gameStarted) {
       saveGameToSd();
       saveRequired = false;
     }
@@ -5245,8 +5373,24 @@ void manageRoom() {
     selectionPtr = &homeMenuSelection;
   } else if (currentMenuType == "garden") {
     selectionPtr = &gardenMenuSelection;
+  } else if (currentMenuType == "food") {
+    selectionPtr = &foodMenuSelection;
+  } else if (currentMenuType == "training") {
+    selectionPtr = &trainingMenuSelection;
+  } else if (currentMenuType == "competition") {
+    selectionPtr = &competitionMenuSelection;
+  } else if (currentMenuType == "health") {
+    selectionPtr = &healthMenuSelection;
+  } else if (currentMenuType == "rest") {
+    selectionPtr = &restMenuSelection;
+  } else if (currentMenuType == "events") {
+    selectionPtr = &eventsMenuSelection;
   } else {
     selectionPtr = &mainMenuSelection;
+  }
+  // Keep the highlight on a valid item of this menu
+  if (*selectionPtr < 0 || *selectionPtr >= currentMenuItemsCount) {
+    *selectionPtr = 0;
   }
   drawMenu(currentMenuType, currentMenuItems, currentMenuItemsCount, *selectionPtr);
   return;
@@ -5403,7 +5547,7 @@ void unloadGardenFlowerSprites() {
 }
 
 int gardenFlowerStageIndex(int tileValue) {
-  if (tileValue > 2 && tileValue < 30) return 0;
+  if (tileValue > 2 && tileValue <= 30) return 0;
   if (tileValue > 30 && tileValue <= 60) return 1;
   if (tileValue > 60 && tileValue <= 90) return 2;
   if (tileValue > 90 && tileValue <= 120) return 3;
@@ -5635,11 +5779,27 @@ void resetMiniGameCountdown() {
   miniGameCountdownValue = 3;
 }
 
+bool escapePressed() {
+  // ESC is held: also consume the key change so the next screen
+  // does not see the same press again
+  if (M5Cardputer.Keyboard.isKeyPressed('`')) {
+    M5Cardputer.Keyboard.isChange();
+    return true;
+  }
+  return false;
+}
+
 void drawMiniGameCountdown() {
   drawText(String(miniGameCountdownValue), 120, 67, true, RED, 7, BLACK);
 }
 
 void manageMiniGameCountdown() {
+  if (escapePressed()) {
+    // ESC: abort, no reward, no debrief
+    resetMiniGameCountdown();
+    changeState(0, latestMenu, 0);
+    return;
+  }
   if (!miniGameCountdownActive) {
     miniGameCountdownActive = true;
     miniGameCountdownStart = millis();
@@ -5716,7 +5876,7 @@ void resetTrainDanceGame() {
   danceCurrentDirection = -1;
   danceCueActive = false;
   danceCueStart = 0;
-  danceNextCueTime = 0;
+  danceCueGapStart = millis() - danceCueGap;  // First cue can appear right away
   danceCompletionTime = 0;
   danceGameRunning = false;
   danceGameCompleted = false;
@@ -5761,7 +5921,7 @@ void applyGaraponStatReward(int &statValue, const char* statLabel, int fallbackM
     garaponResultText = String(statLabel) + " +1";
   } else {
     natsumi.money += fallbackMoney;
-    garaponResultText = String(statLabel) + " max! +" + String(fallbackMoney) + "¥";
+    garaponResultText = String(statLabel) + " max! +$" + String(fallbackMoney);
   }
   saveRequired = true;
   // isNatsumiHappy = true;
@@ -5785,13 +5945,13 @@ void applyGaraponReward(int index) {
       natsumi.money += 300;
       garaponResultQty = "+300";
       garaponResultLabel = "Money";
-      garaponResultText = "Money +300¥";
+      garaponResultText = "Money +$300";
       break;
     case 3:
       natsumi.money += 600;
       garaponResultQty = "+600";
       garaponResultLabel = "Money";
-      garaponResultText = "Money +600¥";
+      garaponResultText = "Money +$600";
       break;
     case 4:
       // applyGaraponStatReward(natsumi.grace, "Grace", 200);
@@ -5799,21 +5959,21 @@ void applyGaraponReward(int index) {
       garaponResultQty = "+10";
       garaponResultLabel = "Sweets";
       garaponResultText = "Sweets +10";
-      return;
+      break;
     case 5:
       // applyGaraponStatReward(natsumi.spirit, "Spirit", 200);
       fridge.coconutJuice += 1;
       garaponResultQty = "+1";
       garaponResultLabel = "Coco Juice";
       garaponResultText = "Coco Juice +1";
-      return;
+      break;
     case 6:
       // applyGaraponStatReward(natsumi.popularity, "Popularity", 200);
       // No win
       garaponResultQty = "0";
       garaponResultLabel = "Nothing";
       garaponResultText = "Nothing :(";
-      return;
+      break;
     case 7:
       // applyGaraponStatReward(natsumi.performance, "Performance", 200);
       {
@@ -5863,7 +6023,7 @@ void applyGaraponReward(int index) {
       natsumi.money += 100;
       garaponResultQty = "+100";
       garaponResultLabel = "Money";
-      garaponResultText = "Money +100¥";
+      garaponResultText = "Money +$100";
       break;
   }
   saveRequired = true;
@@ -6018,7 +6178,8 @@ void resetTrainSingGame() {
   singPlayerColumn = singColumnCount / 2;
   singLastSpawnTime = 0;
   singCompletionTime = 0;
-  singFlashUntil = 0;
+  singFlashStart = 0;
+  singFlashActive = false;
   singFlashColor = BLACK;
   singGameRunning = false;
   singGameCompleted = false;
@@ -6080,6 +6241,7 @@ void manageTrainSingGame() {
 
   if (singGameCompleted) {
     if (now - singCompletionTime >= 1200) {
+      outcomeStatGained = natsumi.performance < 4;  // For the outcome screen (+1 or MAX)
       if (natsumi.performance < 4) {
         natsumi.performance += 1;
       }
@@ -6090,6 +6252,13 @@ void manageTrainSingGame() {
       }
       changeState(0, TRAIN_SING3, 0);
     }
+    return;
+  }
+
+  if (escapePressed()) {
+    // ESC: abort, no reward, no debrief
+    resetTrainSingGame();
+    changeState(0, latestMenu, 0);
     return;
   }
 
@@ -6135,12 +6304,14 @@ void manageTrainSingGame() {
         singNotesCollected++;
         note.active = false;
         singFlashColor = M5Cardputer.Display.color565(40, 220, 80);
-        singFlashUntil = now + singFlashDuration;
+        singFlashStart = now;
+        singFlashActive = true;
       } else {
         singNotesMissed++;
         note.active = false;
         singFlashColor = M5Cardputer.Display.color565(220, 40, 40);
-        singFlashUntil = now + singFlashDuration;
+        singFlashStart = now;
+        singFlashActive = true;
       }
     }
   }
@@ -6156,9 +6327,12 @@ void manageTrainSingGame() {
     return;
   }
 
-  if (now < singFlashUntil) {
-    M5Cardputer.Display.fillScreen(singFlashColor);
-    return;
+  if (singFlashActive) {
+    if (now - singFlashStart < singFlashDuration) {
+      M5Cardputer.Display.fillScreen(singFlashColor);
+      return;
+    }
+    singFlashActive = false;
   }
 
   drawTrainSingPlayfield(false);
@@ -6182,13 +6356,20 @@ void manageTrainDanceGame() {
     return;
   }
 
+  if (escapePressed()) {
+    // ESC: abort, no reward, no debrief
+    resetTrainDanceGame();
+    changeState(0, latestMenu, 0);
+    return;
+  }
+
   if (danceCueActive && now - danceCueStart >= danceCueDuration) {
     danceCueActive = false;
-    danceNextCueTime = now + danceCueGap;
+    danceCueGapStart = now;
     danceNeedsRedraw = true;
   }
 
-  if (!danceCueActive && now >= danceNextCueTime && danceGameRunning) {
+  if (!danceCueActive && now - danceCueGapStart >= danceCueGap && danceGameRunning) {
     spawnDanceCue();
   }
 
@@ -6216,7 +6397,7 @@ void manageTrainDanceGame() {
       if (inputDirection == danceCurrentDirection) {
         danceScore++;
         danceCueActive = false;
-        danceNextCueTime = now + danceCueGap;
+        danceCueGapStart = now;
         danceNeedsRedraw = true;
       }
     }
@@ -6225,6 +6406,7 @@ void manageTrainDanceGame() {
   if (danceScore >= danceTargetScore && !danceGameCompleted) {
     danceGameCompleted = true;
     danceCompletionTime = now;
+    outcomeStatGained = natsumi.performance < 4;  // For the outcome screen (+1 or MAX)
     if (natsumi.performance < 4) {
       natsumi.performance += 1;
     }
@@ -6246,10 +6428,6 @@ int getSwimLaneCenter(int lane) {
   return swimPoolTop + (lane * swimLaneHeight) + (swimLaneHeight / 2);
 }
 
-float getRandomSwimSpeed() {
-  return random(static_cast<long>(swimMinSpeed * 100), static_cast<long>(swimMaxSpeed * 100)) / 100.0f;
-}
-
 void resetTrainSwimGame() {
   swimSharks.clear();
   swimPlayerLane = 1;
@@ -6258,8 +6436,6 @@ void resetTrainSwimGame() {
   swimGameRunning = false;
   swimGameCompleted = false;
   swimNeedsRedraw = true;
-  swimHitFlash = false;
-  swimHitFlashTime = 0;
   swimCompletionTime = 0;
   swimLastSpawnTime = 0;
   swimNextSpawnDelay = swimSpawnIntervalMin;
@@ -6269,7 +6445,7 @@ void spawnSwimShark() {
   SwimShark shark;
   shark.lane = static_cast<int>(random(0, swimLaneCount));
   shark.x = -swimSharkLength;
-  shark.speed = 10;
+  shark.speed = 10;  // Fixed speed (pixels per frame)
   shark.active = true;
   swimSharks.push_back(shark);
 }
@@ -6286,7 +6462,7 @@ void startTrainSwimGame() {
   M5Cardputer.Display.fillScreen(M5Cardputer.Display.color565(150, 220, 255));
 }
 
-void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect) {
+void drawTrainSwimPlayfield(bool showCompletion) {
   const int screenWidth = M5Cardputer.Display.width();
   const int screenHeight = M5Cardputer.Display.height();
   const uint16_t poolColor = M5Cardputer.Display.color565(150, 220, 255);
@@ -6362,6 +6538,7 @@ void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect) {
 
 void handleSwimCollision() {
   swimCollisions++;
+  // TODO: collisions only affect the debrief text; decide whether a hit should cost dodged sharks
   // swimAvoidedSharks = max(0, swimAvoidedSharks - swimHitPenalty);
 }
 
@@ -6374,10 +6551,11 @@ void manageTrainSwimGame() {
 
   if (swimGameCompleted) {
     if (swimNeedsRedraw) {
-      drawTrainSwimPlayfield(true, false);
+      drawTrainSwimPlayfield(true);
       swimNeedsRedraw = false;
     }
     if (now - swimCompletionTime >= swimCompletionDelay) {
+      outcomeStatGained = natsumi.fitness < 4;  // For the outcome screen (+1 or MAX)
       if (natsumi.fitness < 4) {
         natsumi.fitness += 1;
       }
@@ -6391,10 +6569,11 @@ void manageTrainSwimGame() {
     return;
   }
 
-  bool showHitEffect = swimHitFlash && (now - swimHitFlashTime < swimHitFlashDuration);
-  if (swimHitFlash && !showHitEffect) {
-    swimHitFlash = false;
-    swimNeedsRedraw = true;
+  if (escapePressed()) {
+    // ESC: abort, no reward, no debrief
+    resetTrainSwimGame();
+    changeState(0, latestMenu, 0);
+    return;
   }
 
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -6461,7 +6640,7 @@ void manageTrainSwimGame() {
   }
 
   if (swimNeedsRedraw) {
-    drawTrainSwimPlayfield(false, showHitEffect);
+    drawTrainSwimPlayfield(false);
     swimNeedsRedraw = false;
   }
 }
@@ -6550,7 +6729,8 @@ void resetTrainGymGame() {
   gymGameRunning = false;
   gymGameCompleted = false;
   gymLastUpdate = 0;
-  gymResultFlashUntil = 0;
+  gymResultFlashStart = 0;
+  gymResultFlashActive = false;
   gymResultText = "";
   gymCompletionTime = 0;
   refreshGymChallenge();
@@ -6597,7 +6777,7 @@ void drawTrainGymPlayfield(bool showCompletion) {
   M5Cardputer.Display.drawString(String("Streak: ") + gymCurrentStreak + String("/") + gymTargetStreak, 6, 4);
 
   unsigned long now = millis();
-  if (!showCompletion && gymResultFlashUntil > now && gymResultText.length() > 0) {
+  if (!showCompletion && gymResultFlashActive && now - gymResultFlashStart < gymResultFlashDuration && gymResultText.length() > 0) {
     M5Cardputer.Display.setTextDatum(middle_center);
     M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.drawString(gymResultText, screenWidth / 2, gymBarY - 14);
@@ -6624,6 +6804,7 @@ void manageTrainGymGame() {
       gymNeedsRedraw = false;
     }
     if (now - gymCompletionTime >= gymCompletionDelay) {
+      outcomeStatGained = natsumi.fitness < 4;  // For the outcome screen (+1 or MAX)
       if (natsumi.fitness < 4) {
         natsumi.fitness += 1;
       }
@@ -6634,6 +6815,13 @@ void manageTrainGymGame() {
       }
       changeState(0, TRAIN_GYM3, 0);
     }
+    return;
+  }
+
+  if (escapePressed()) {
+    // ESC: abort, no reward, no debrief
+    resetTrainGymGame();
+    changeState(0, latestMenu, 0);
     return;
   }
 
@@ -6669,7 +6857,8 @@ void manageTrainGymGame() {
           gymCurrentStreak++;
           gymCursorSpeed += gymCursorSpeedStep;
           gymResultText = " Great timing! ";
-          gymResultFlashUntil = now + gymResultFlashDuration;
+          gymResultFlashStart = now;
+          gymResultFlashActive = true;
           if (gymCurrentStreak >= gymTargetStreak) {
             gymGameCompleted = true;
             gymGameRunning = false;
@@ -6685,7 +6874,8 @@ void manageTrainGymGame() {
           gymCurrentStreak = 0;
           gymCursorSpeed = gymCursorBaseSpeed;
           gymResultText = " Miss! Try again ";
-          gymResultFlashUntil = now + gymResultFlashDuration;
+          gymResultFlashStart = now;
+          gymResultFlashActive = true;
           refreshGymChallenge();
           gymCursorDirection = 1;
           gymCursorPos = gymBarX;
@@ -6791,6 +6981,7 @@ void manageTrainRunGame() {
       runNeedsRedraw = false;
     }
     if (now - runCompletionTime >= runCompletionDelay) {
+      outcomeStatGained = natsumi.fitness < 4;  // For the outcome screen (+1 or MAX)
       if (natsumi.fitness < 4) {
         natsumi.fitness += 1;
       }
@@ -6801,6 +6992,13 @@ void manageTrainRunGame() {
       }
       changeState(0, TRAIN_RUN3, 0);
     }
+    return;
+  }
+
+  if (escapePressed()) {
+    // ESC: abort, no reward, no debrief
+    resetTrainRunGame();
+    changeState(0, latestMenu, 0);
     return;
   }
 
@@ -6878,7 +7076,6 @@ void manageTrainRunGame() {
 void resetBathGame() {
   bathGameRunning = false;
   bathBackgroundDrawn = false;
-  bathResultShown = false;
   sliderYPosition = thermometerY + thermometerHeight - sliderHeight;
   sliderDirection = -1;
   lastSliderUpdate = 0;
@@ -6969,17 +7166,12 @@ void manageBathGame() {
     return;
   }
 
-  unsigned long now = millis();
-
   if (bathOutcomeTime > 0) {
-    if (!bathResultShown) {
-      bathResultShown = true;
-    }
-    if (now - bathOutcomeTime >= bathExitDelay) {
-      changeState(0, HOME_LOOP, 0);
-    }
+    // Outcome already given: finalizeBathOutcome() has left the bath game
     return;
   }
+
+  unsigned long now = millis();
 
   if (now - bathGameStart >= bathGameDuration) {
     int zoneTop = idealZoneY;
@@ -7191,8 +7383,17 @@ void manageLibrary() {
     l5NeedsRedraw = true;
   }
 
+  if (escapePressed()) {
+    // ESC: abort, no reward, no debrief
+    libraryInitialized = false;
+    overlayActive = false;
+    characterEnabled = true;
+    changeState(0, latestMenu, 0);
+    return;
+  }
+
   unsigned long now = millis();
-  unsigned long elapsed = (now >= libraryStartTime) ? (now - libraryStartTime) : 0;
+  unsigned long elapsed = now - libraryStartTime;
   int segments = elapsed / librarySegmentInterval;
   if (segments > librarySegmentCount) {
     segments = librarySegmentCount;
@@ -7209,6 +7410,7 @@ void manageLibrary() {
       if (natsumi.energy > 0) {
           natsumi.energy--;
       }
+      outcomeStatGained = natsumi.culture < STAT_MAX;  // For the outcome screen (+1 or MAX)
       if (natsumi.culture < STAT_MAX) {
         natsumi.culture += 1;
       }
@@ -7368,6 +7570,16 @@ void manageFlowersSale() {
     }
   }
 
+  if (escapePressed()) {
+    // ESC: stop selling, keep the money of flowers already sold,
+    // no Grace, no debrief
+    flowersSaleInProgress = false;
+    flowersSaleInitialized = false;
+    saveRequired = true;
+    changeState(0, latestMenu, 0);
+    return;
+  }
+
   if (fiveSecondPulse && !flowerSlots.empty()) {
     // bool sold = (random(0, 2) == 0);
     bool sold = (random(0, flowersSaleHandicap) == 0);
@@ -7445,7 +7657,8 @@ void manageCompetition() {
     const int screenHeight = M5Cardputer.Display.height();
     const int playerY = screenHeight - 12;
   
-    if (!competitionInitialized || competitionState != currentState) {
+    if (!competitionInitialized || competitionState != currentState || competitionRunStarting) {
+      competitionRunStarting = false;
       competitionState = currentState;
       competitionNotes.clear();
       competitionNotesSpawned = 0;
@@ -7610,7 +7823,7 @@ void manageCompetition() {
 void wash() {
   if (changeStateCounter==0) {
     if (bathOutcomeCode == 0) {
-      showToast("Washed feels better");
+      showToast("Washed, feels better");
       saveRequired = true;
     } else {
       showToast("Ah!! Skipping shower!");
@@ -7677,7 +7890,7 @@ void drawMeditationOverlay() {
   const uint16_t textColor = WHITE;
 
   unsigned long now = millis();
-  unsigned long elapsed = (now >= meditateStart) ? (now - meditateStart) : 0;
+  unsigned long elapsed = now - meditateStart;
   if (elapsed > meditateInterval) {
     elapsed = meditateInterval;
   }
@@ -7857,7 +8070,7 @@ void drawToast() {
   // Draw toast messages (layer 3)
   // Serial.println("> Entering drawToast() L3 with toastEnabled set to " + String(toastEnabled));
   if (toastActive) {
-    if (millis() > toastUntil) {
+    if (millis() - toastStart > toastDuration) {
       // Toast expired
       toastActive = false;
       l0NeedsRedraw = true;
@@ -7906,6 +8119,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         case 32:
           // SPACE (Challenges screen)
           menuOpened = false;
+          challengesReturnState = HOME_LOOP;
           changeState(0, CHALLENGES_SCREEN, 0);
           break;
         case 48:
@@ -8793,6 +9007,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // 2: CHALLENGES
           // Serial.println(">>> drawMenu - 2: CHALLENGES");
           menuOpened = false;
+          challengesReturnState = EVENTS_MENU;
           changeState(0, CHALLENGES_SCREEN, 0);
           break;
         case 51:
@@ -8852,6 +9067,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             showToast("Jobs: coming soon!");
             changeState(0, HOME_LOOP, 0);
           } else if (selection == 2) {
+            challengesReturnState = EVENTS_MENU;
             changeState(0, CHALLENGES_SCREEN, 0);
           } else if (selection == 3) {
             showToast("Festivals: coming soon!");
@@ -9129,16 +9345,10 @@ bool cookSelectedRecipe() {
   }
 
   const CookRecipe* recipe = findMatchingRecipe();
-  bool pantryFallback = false;
   if (!recipe) {
-    if (hasCookableRecipe()) {
-      // Safer prototype behavior: reject unknown mixes while a known recipe is available.
-      showToast("No recipe yet");
-      return false;
-    }
-    // If the fridge cannot make any known recipe, allow a generic snack so the
-    // player is not blocked from feeding Natsumi by the prototype recipe list.
-    pantryFallback = true;
+    // Every single food is also a recipe, so only unknown mixes end up here
+    showToast("No recipe yet");
+    return false;
   }
 
   for (uint8_t i = 0; i < recipeSelectionCount; i++) {
@@ -9160,11 +9370,11 @@ bool cookSelectedRecipe() {
   if (natsumi.hunger > 4) {
     natsumi.hunger = 4;
   }
-  notifyRecipeCooked(recipe ? static_cast<uint8_t>(recipe - cookRecipes) : 255);
+  notifyRecipeCooked(static_cast<uint8_t>(recipe - cookRecipes));
   saveRequired = true;
   FoodDisplayItem* previewItem = findFoodGridItem(recipeSelection[0]);
   selectedFood = previewItem ? String(previewItem->label) : "None";
-  showToast(pantryFallback ? String("Pantry Snack") : String(recipe->name));
+  showToast(String(recipe->name));
   clearFoodGrid();
   overlayActive = false;
   changeState(0, FOOD_COOK2, 0);
@@ -9605,9 +9815,12 @@ void drawOverlay() {
         drawConbimartOverlay();
         break;
       case FOOD_CONBINI3:
-        // Energy update
-        if (natsumi.energy > 0) {
-          natsumi.energy--;
+        // Energy update (once per screen, not on every redraw)
+        if (!overlayEffectApplied) {
+          if (natsumi.energy > 0) {
+            natsumi.energy--;
+          }
+          overlayEffectApplied = true;
         }
         drawDialogBubble("Thanks for shopping with us, come again!!");
         break;
@@ -9640,8 +9853,12 @@ void drawOverlay() {
         drawDialogBubble("Hello, here is the food you ordered.");
         break;
       case FOOD_ORDER9:
-        if (natsumi.grace < 4) {
-          natsumi.grace += 1;
+        if (!overlayEffectApplied) {
+          outcomeStatGained = natsumi.grace < 4;  // For the outcome screen (+1 or MAX)
+          if (natsumi.grace < 4) {
+            natsumi.grace += 1;
+          }
+          overlayEffectApplied = true;
         }
         saveRequired = true;
         // isNatsumiHappy = true;
@@ -9819,9 +10036,12 @@ void drawOverlay() {
             zoom,
             zoom
           );
-          // Energy update
-          if (natsumi.energy > 0) {
-            natsumi.energy--;
+          // Energy update (once per screen, not on every redraw)
+          if (!overlayEffectApplied) {
+            if (natsumi.energy > 0) {
+              natsumi.energy--;
+            }
+            overlayEffectApplied = true;
           }
         }
         break;
@@ -9832,7 +10052,7 @@ void drawOverlay() {
         drawDialogBubble("I sold all my flowers and made " + String(flowersRevenue) + "$. I have " + String(natsumi.money) + "$ in the bank.");
         break;
       case COMP_EXPLAIN:
-        drawDialogBubble("In order to enter Competition, you must achieve 3 perfect training ssessions, plus have Hunger, Hygiene, Energy, Performance, Fitness, Culture and Grace to 4.");
+        drawDialogBubble("In order to enter Competition, you must achieve 3 perfect training sessions, plus have Hunger, Hygiene, Energy, Performance, Fitness, Culture and Grace to 4.");
         break;
       case COMP_LOCAL3:
         drawDialogBubble("Welcome to the Shiodome Ward Community Center! Get ready for a nice singing competition! Sore dewa, hajimemasho !");
@@ -9945,7 +10165,7 @@ void drawOverlay() {
         if (natsumi.money >= 400) {
           drawText("Price: $400(S) / $550(L)", 5, 2, false, GREEN, 1);
         } else {
-          drawText("Price: $450(S) / $550(L)", 5, 2, false, RED, 1);
+          drawText("Price: $400(S) / $550(L)", 5, 2, false, RED, 1);
         }
         */
         drawHelper("sml: $400   lge: $550    [$" + String(natsumi.money) + "]");
@@ -10041,16 +10261,14 @@ void drawOverlay() {
             drawOutcome("MAX", "Hunger");
             break;
           case FOOD_ORDER9:
-            if (natsumi.grace < 4) {
-              // Serial.println(">> actionOutcome() - natsumi.grace < 4");
+            if (outcomeStatGained) {
               drawOutcome("+1", "Grace");
             } else {
               drawOutcome("MAX", "Grace");
             }
             break;
           case FOOD_REST5:
-            if (natsumi.grace < 4) {
-              // Serial.println(">> actionOutcome() - natsumi.grace < 4");
+            if (outcomeStatGained) {
               drawOutcome("+1", "Grace");
             } else {
               drawOutcome("MAX", "Grace");
@@ -10060,8 +10278,7 @@ void drawOverlay() {
             drawOutcome("MAX", "Hunger");
             break;
           case FLOWERS_MARKET7:
-            if (natsumi.grace < 4) {
-              // Serial.println(">> actionOutcome() - natsumi.grace < 4");
+            if (outcomeStatGained) {
               drawOutcome("+1", "Grace");
             } else {
               drawOutcome("MAX", "Grace");
@@ -10076,16 +10293,14 @@ void drawOverlay() {
             }
             break;
           case TRAIN_SING3: case TRAIN_DANCE3:
-            if (natsumi.performance < 4) {
-              // Serial.println(">> actionOutcome() - natsumi.performance < 4");
+            if (outcomeStatGained) {
               drawOutcome("+1", "Performance");
             } else {
               drawOutcome("MAX", "Performance");
             }
             break;
           case TRAIN_SWIM3: case TRAIN_GYM3: case TRAIN_RUN3:
-            if (natsumi.fitness < 4) {
-              Serial.println(">> actionOutcome() - natsumi.fitness < 4");
+            if (outcomeStatGained) {
               drawOutcome("+1", "Fitness");
             } else {
               drawOutcome("MAX", "Fitness");
@@ -10093,11 +10308,12 @@ void drawOverlay() {
             break;
           case TRAIN_LIBRARY:
             isLatestTrainingPerfect = false;
-            if (natsumi.culture < 4) {
-              Serial.println(">> actionOutcome() - natsumi.culture < 4");
+            if (natsumi.culture >= 4) {
+              addOneMatsuriTicket = true;
+            }
+            if (outcomeStatGained) {
               drawOutcome("+1", "Culture");
             } else {
-              addOneMatsuriTicket = true;
               drawOutcome("MAX", "Culture");
             }
             break;
@@ -10110,11 +10326,17 @@ void drawOverlay() {
           case DOOR_KNOCK7:
             switch(visitor) {
               case 0:
-                natsumi.money += 10000;
+                if (!overlayEffectApplied) {
+                  natsumi.money += 10000;
+                  overlayEffectApplied = true;
+                }
                 drawOutcome("+10k", "Money");
                 break;
               case 1:
-                fridge.pear += 1;
+                if (!overlayEffectApplied) {
+                  fridge.pear += 1;
+                  overlayEffectApplied = true;
+                }
                 drawOutcome("+1", "Pear");
                 break;
               case 2: case 3: case 4:
@@ -10167,7 +10389,7 @@ void drawOverlay() {
             drawDialogBubble("I brought you a juicy pear! Fruits are good for health!");
             break;
           case 2: case 3: case 4:
-            drawDialogBubble("Congratulations for the competition! I brought you shortcake to celebrate!");
+            drawDialogBubble("Congratulations on the competition! I brought you shortcake to celebrate!");
             break;
           case 5:
             drawDialogBubble("Let\'s play Jan-ken-pon together!");
@@ -10303,7 +10525,11 @@ void allocateTickets() {
       extraTickets += 2;
       break;
   }
-  natsumi.tickets += extraTickets;
+  // Called from drawOverlay(): only add the tickets once per screen
+  if (!overlayEffectApplied) {
+    natsumi.tickets += extraTickets;
+    overlayEffectApplied = true;
+  }
   Serial.println(">> allocateTickets() - extraTickets: " + String(extraTickets));
 
   drawText(String(extraTickets), centerX, startY + (amountHeight / 2), true, bigTextColor, amountTextSize, panelColor);
@@ -10640,12 +10866,9 @@ void drawOnsenOverlay() {
 
 void manageStats() {
   // Serial.println("> Entering manageStats()");
-  if (saveStatusUntil > 0 && millis() > saveStatusUntil) {
-    saveStatusUntil = 0;
-    if (saveStatusMsg.length() > 0) {
-      saveStatusMsg = "";
-      l5NeedsRedraw = true;
-    }
+  if (saveStatusMsg.length() > 0 && millis() - saveStatusStart > 2000) {
+    saveStatusMsg = "";
+    l5NeedsRedraw = true;
   }
 
   uint8_t key = 0;
@@ -10656,7 +10879,7 @@ void manageStats() {
       if (key == 's' || key == 'S') {
         bool saved = saveGameToSd();
         saveStatusMsg = saved ? "Saved to savegame.dat" : "Save failed";
-        saveStatusUntil = millis() + 2000;
+        saveStatusStart = millis();
         l5NeedsRedraw = true;
       } else {
         overlayActive = false;
@@ -10882,6 +11105,10 @@ void matsuriSale() {
           switch(previousState) {
             case MATSURI_SAVORY: case MATSURI_SAVORY2:
               if (matsuriSelection == 0) {
+                // Buy: spend the ticket and feed Natsumi
+                if (natsumi.tickets > 0) natsumi.tickets -= 1;
+                natsumi.hunger = 4;
+                saveRequired = true;
                 changeState(0, MATSURI_SAVORY3, 0);
               } else {
                 changeState(0, MATSURI_MENU, 0);
@@ -10889,6 +11116,10 @@ void matsuriSale() {
               break;
             case MATSURI_SUGARY:
               if (matsuriSelection == 0) {
+                // Buy: spend the ticket and feed Natsumi
+                if (natsumi.tickets > 0) natsumi.tickets -= 1;
+                natsumi.hunger = 4;
+                saveRequired = true;
                 changeState(0, MATSURI_SUGARY2, 0);
               } else {
                 changeState(0, MATSURI_MENU, 0);
@@ -10896,6 +11127,9 @@ void matsuriSale() {
               break;
             case MATSURI_GARAPON:
               if (matsuriSelection == 0) {
+                // Buy: spend the ticket
+                if (natsumi.tickets > 0) natsumi.tickets -= 1;
+                saveRequired = true;
                 changeState(0, MATSURI_GARAPON3, 0);
               } else {
                 changeState(0, MATSURI_MENU, 0);
@@ -11405,16 +11639,12 @@ void nekoCafeActivity() {
   if (currentState == NEKO_CAFE14 && selectedSeat == 1) {
     unsigned long now = millis();
     if (now - nekoCafeReadingLastFrame >= 1000) {
-      static const char* readingFrames[] = {
-        "/idolnat/sprites/natsumi_reading_11yo_left.png",
-        "/idolnat/sprites/natsumi_reading_11yo_center.png",
-        "/idolnat/sprites/natsumi_reading_11yo_right.png"
-      };
+      static const char* readingFrames[] = {"left", "center", "right"};
 
       nekoCafeReadingFrame = (nekoCafeReadingFrame + 1) % 3;
       nekoCafeReadingLastFrame = now;
       unloadImage(natsumiSprite);
-      preloadImage(readingFrames[nekoCafeReadingFrame], natsumiSprite);
+      preloadImage(getReadingSpritePath(readingFrames[nekoCafeReadingFrame]).c_str(), natsumiSprite);
       l0NeedsRedraw = true;
     }
   }
@@ -11655,9 +11885,12 @@ void foodDelivery() {
 
 void miniGameDebrief() {
   Serial.println("> Entering miniGameDebrief()");
-  // Energy update
-  if (natsumi.energy > 0) {
+  // Energy update (once per debrief screen)
+  if (!debriefEnergyApplied) {
+    if (natsumi.energy > 0) {
       natsumi.energy--;
+    }
+    debriefEnergyApplied = true;
   }
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -11666,6 +11899,11 @@ void miniGameDebrief() {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       switch (currentState) {
         case FLOWERS_MARKET7:
+          // Flower sale completed: +1 Grace (shown on the outcome screen)
+          outcomeStatGained = natsumi.grace < 4;  // For the outcome screen (+1 or MAX)
+          if (natsumi.grace < 4) {
+            natsumi.grace += 1;
+          }
           saveRequired = true;
           // isNatsumiHappy = true;
           changeState(0, ACTION_OUTCOME, 0);
@@ -11817,7 +12055,6 @@ void manageOnsen() {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       overlayActive = false;
       // changeState(0, HOME_LOOP, 0);
-      natsumi.hygiene = 4;
       changeState(0, ACTION_OUTCOME, 0);
       return;
     }
@@ -11862,6 +12099,7 @@ void restaurantFoodSelection() {
               restaurantSelection = 0;
               if (natsumi.money >= 700) {
                 natsumi.hunger = 4;
+                outcomeStatGained = natsumi.grace < 4;  // For the outcome screen (+1 or MAX)
                 if (natsumi.grace < 4) {
                   natsumi.grace += 1;
                 }
@@ -11898,6 +12136,7 @@ void restaurantFoodSelection() {
               restaurantSelection = 1;
               if (natsumi.money >= 800) {
                 natsumi.hunger = 4;
+                outcomeStatGained = natsumi.grace < 4;  // For the outcome screen (+1 or MAX)
                 if (natsumi.grace < 4) {
                   natsumi.grace += 1;
                 }
@@ -11934,6 +12173,7 @@ void restaurantFoodSelection() {
               restaurantSelection = 2;
               if (natsumi.money >= 900) {
                 natsumi.hunger = 4;
+                outcomeStatGained = natsumi.grace < 4;  // For the outcome screen (+1 or MAX)
                 if (natsumi.grace < 4) {
                   natsumi.grace += 1;
                 }
@@ -12239,10 +12479,7 @@ void matsuriFoodSelection() {
             // ENTER
             case 13: case 40:
               if (natsumi.tickets >= 1) {
-                natsumi.tickets -= 1;
-                natsumi.hunger = 4;
-                saveRequired = true;
-                // isNatsumiHappy = true;
+                // Ticket and food are applied on Buy, in matsuriSale()
                 changeState(0, MATSURI_COST, 0);
               } else {
                 // showToast("Not enough tickets :(");
@@ -12268,9 +12505,7 @@ void matsuriFoodSelection() {
             // ENTER
             case 13: case 40:
               if (natsumi.tickets >= 1) {
-                natsumi.tickets -= 1;
-                natsumi.hunger = 4;
-                saveRequired = true;
+                // Ticket and food are applied on Buy, in matsuriSale()
                 changeState(0, MATSURI_COST, 0);
               } else {
                 // showToast("Not enough tickets :(");
@@ -12288,10 +12523,7 @@ void matsuriFoodSelection() {
             // ENTER
             case 13: case 40:
               if (natsumi.tickets >= 1) {
-                natsumi.tickets -= 1;
-                natsumi.hunger = 4;
-                saveRequired = true;
-                // isNatsumiHappy = true;
+                // Ticket and food are applied on Buy, in matsuriSale()
                 changeState(0, MATSURI_COST, 0);
               } else {
                 // showToast("Not enough tickets :(");
@@ -12340,7 +12572,8 @@ void matsuriMainMenu() {
             // ESC
             case 96:
               // changeState(0, HOME_LOOP, 0);
-              changeState(0, latestMenu, 0);
+              // latestMenu is MATSURI_MENU here, go back to the Events menu
+              changeState(0, EVENTS_MENU, 0);
               return;
           }
           break;
@@ -12361,7 +12594,8 @@ void matsuriMainMenu() {
             // ESC
             case 96:
               // changeState(0, HOME_LOOP, 0);
-              changeState(0, latestMenu, 0);
+              // latestMenu is MATSURI_MENU here, go back to the Events menu
+              changeState(0, EVENTS_MENU, 0);
               return;
           }
           break;
@@ -12378,7 +12612,7 @@ void matsuriMainMenu() {
             // ENTER
             case 13: case 40:
               if (natsumi.tickets >= 1) {
-                natsumi.tickets -= 1;
+                // Ticket is spent on Buy, in matsuriSale()
                 changeState(0, MATSURI_GARAPON, 0);
               } else {
                 changeState(0, MATSURI_GARAPON2, 0);
@@ -12387,7 +12621,8 @@ void matsuriMainMenu() {
             // ESC
             case 96:
               // changeState(0, HOME_LOOP, 0);
-              changeState(0, latestMenu, 0);
+              // latestMenu is MATSURI_MENU here, go back to the Events menu
+              changeState(0, EVENTS_MENU, 0);
               return;
           }
           break;
@@ -12423,6 +12658,14 @@ void managePFCGame() {
   }
 
   Serial.println(">> managePFCGame() - pfcCurrentStage: " + String(pfcCurrentStage));
+
+  if (currentState == PFC_GAME && pfcCurrentStage == 0) {
+    // New game (title screen): forget scores from an earlier, quit game
+    roundIndex = 0;
+    natsumiWins = 0;
+    emilyWins = 0;
+    drawCount = 0;
+  }
 
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -12502,7 +12745,6 @@ void managePFCGame() {
           break;
         case PFC_GAME3: case PFC_GAME5: case PFC_GAME7:
           // RPS 1, RPS 2, RPS 3
-          pfcCurrentStage += 1;
           natsumiHand = -1;
           // Rock: R / Paper: P / Scissors: S
           switch (key) {
@@ -12523,8 +12765,10 @@ void managePFCGame() {
               break;
           }
           if (natsumiHand == -1) {
+            // Not R, P or S: ignore the key
             return;
           } else {
+            pfcCurrentStage += 1;
             l5NeedsRedraw = true;
           }
     
@@ -12651,13 +12895,14 @@ void orderibiFoodSelection() {
               orderibiSelection = 0;
               if (natsumi.money >= 600) {
                 // natsumi.money -= 600;
+                amountToPay = 600;
+                returnTo = FOOD_ORDER5;
+                changeState(0, PAY_SCREEN, 0);
+                // changeState(0, FOOD_ORDER5, 0);
               } else {
+                // Stay on the Orderibi menu, no payment, no delivery
                 showToast("Not enough money :(");
               }
-              amountToPay = 600;
-              returnTo = FOOD_ORDER5;
-              changeState(0, PAY_SCREEN, 0);
-              // changeState(0, FOOD_ORDER5, 0);
               break;
             // ESC
             case 96:
@@ -12681,13 +12926,14 @@ void orderibiFoodSelection() {
               orderibiSelection = 1;
               if (natsumi.money >= 750) {
                 // natsumi.money -= 750;
+                amountToPay = 750;
+                returnTo = FOOD_ORDER5;
+                changeState(0, PAY_SCREEN, 0);
+                // changeState(0, FOOD_ORDER5, 0);
               } else {
+                // Stay on the Orderibi menu, no payment, no delivery
                 showToast("Not enough money :(");
               }
-              amountToPay = 750;
-              returnTo = FOOD_ORDER5;
-              changeState(0, PAY_SCREEN, 0);
-              // changeState(0, FOOD_ORDER5, 0);
               break;
             // ESC
             case 96:
@@ -12711,13 +12957,14 @@ void orderibiFoodSelection() {
               orderibiSelection = 2;
               if (natsumi.money >= 1200) {
                 // natsumi.money -= 1200;
+                amountToPay = 1200;
+                returnTo = FOOD_ORDER5;
+                changeState(0, PAY_SCREEN, 0);
+                // changeState(0, FOOD_ORDER5, 0);
               } else {
+                // Stay on the Orderibi menu, no payment, no delivery
                 showToast("Not enough money :(");
               }
-              amountToPay = 1200;
-              returnTo = FOOD_ORDER5;
-              changeState(0, PAY_SCREEN, 0);
-              // changeState(0, FOOD_ORDER5, 0);
               break;
             // ESC
             case 96:
@@ -12850,8 +13097,7 @@ void browseCards() {
           loadedCardIndex = -1;
           selectedOwnedIndex = 0;
           needsRedraw = true;
-          // changeState(0, HOME_LOOP, 0);
-          changeState(0, latestMenu, 0);
+          changeState(0, HOME_LOOP, 0);  // Cards is only opened from Home
           return;
         // LEFT
         case 180: case 44: case 'a': case 'A':
@@ -12966,8 +13212,7 @@ void manageChallenges() {
         // ESC
         case 96: case 43:
           overlayActive = false;
-          // changeState(0, HOME_LOOP, 0);
-          changeState(0, latestMenu, 0);
+          changeState(0, challengesReturnState, 0);
           return;
         default:
           break;
@@ -13010,11 +13255,12 @@ void prepareTravel() {
   bool triggerTravel = false;
   unloadAllImages();
   switch (currentState) {
+    case HOME_LOOP:
     case FOOD_COOK: case FOOD_ORDER: case HEALTH_WASH:
     case REST_MEDITATE: case REST_SLEEP: case GARDEN_LOOP:
       targetTile = "HOME";
       if (currentTile != targetTile) {
-        // Coming back home
+        // Coming back home (charged once: currentTile is HOME afterwards)
         if (natsumi.energy > 0) {
           natsumi.energy--;
         }
@@ -13105,6 +13351,7 @@ void displayBusinessFront() {
   // Displays the business front image
   unloadAllImages();
   switch (currentState) {
+    case HOME_LOOP:
     case FOOD_COOK:
     case FOOD_ORDER:
     case HEALTH_WASH:
