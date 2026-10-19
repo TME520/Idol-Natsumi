@@ -9,7 +9,7 @@
 | Code | Severity | Title | Status |
 |---|---|---|---|
 | NB-H01 | High | Energy drops to 0 almost instantly on every debrief screen | Fixed (14ccc39) |
-| NB-H02 | High | Opening INTRO from the title screen overwrites the real save with a blank character | Open |
+| NB-H02 | High | Opening INTRO from the title screen overwrites the real save with a blank character | Fixed (64dfb39) |
 | NB-H03 | High | ESC can never leave the Matsuri; the player is trapped while holding tickets | Open |
 | NB-H04 | High | Orderibi delivers food the player can't afford (money goes negative) | Open |
 | NB-H05 | High | Missing or misnamed SD assets freeze the device for minutes | Open |
@@ -75,7 +75,7 @@ Two engine facts drive several of the bugs below:
 - **Fix:** Decrement energy once on entry, using a one-shot flag or `changeStateCounter == 0`.
 
 ### NB-H02: Opening INTRO from the title screen overwrites the real save with a blank character
-- **Status:** Open
+- **Status:** Fixed (64dfb39): new `gameStarted` flag (set by NEW_GAME / CONTINUE_GAME) gates `updateAging()`, `updateStats()` and the pulse autosave.
 - **Where:** `drawMenu()` title menu 8664–8668/8689 → INTRO states use the DIALOG config → `manageDialog()` calls `updateAging()` (4876). The birthday branch then runs (4387–4395). The autosave fires at `updateFiveSecondPulse()` 4643.
 - **What happens:**
   - The zero-initialised `natsumi` goes from age 0 to 11, which counts as a "birthday": +10000 money, `saveRequired = true`, `birthdayVisitEnabled = true`.
