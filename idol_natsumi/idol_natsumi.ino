@@ -853,6 +853,7 @@ bool meditationRewardApplied = false;
 bool fiveSecondPulse = false;  // Set true by updateFiveSecondPulse() every five seconds
 bool libraryInitialized = false;
 bool libraryRewardApplied = false;
+bool outcomeStatGained = false;  // Set when a reward is applied: did the stat actually go up?
 bool debriefEnergyApplied = false;
 bool overlayEffectApplied = false;  // One-shot effects drawn by drawOverlay(), reset by changeState()
 bool competitionRunStarting = false;  // Set on entering COMP_*5: manageCompetition() starts a fresh run
@@ -6200,6 +6201,7 @@ void manageTrainSingGame() {
 
   if (singGameCompleted) {
     if (now - singCompletionTime >= 1200) {
+      outcomeStatGained = natsumi.performance < 4;  // For the outcome screen (+1 or MAX)
       if (natsumi.performance < 4) {
         natsumi.performance += 1;
       }
@@ -6359,6 +6361,7 @@ void manageTrainDanceGame() {
   if (danceScore >= danceTargetScore && !danceGameCompleted) {
     danceGameCompleted = true;
     danceCompletionTime = now;
+    outcomeStatGained = natsumi.performance < 4;  // For the outcome screen (+1 or MAX)
     if (natsumi.performance < 4) {
       natsumi.performance += 1;
     }
@@ -6512,6 +6515,7 @@ void manageTrainSwimGame() {
       swimNeedsRedraw = false;
     }
     if (now - swimCompletionTime >= swimCompletionDelay) {
+      outcomeStatGained = natsumi.fitness < 4;  // For the outcome screen (+1 or MAX)
       if (natsumi.fitness < 4) {
         natsumi.fitness += 1;
       }
@@ -6765,6 +6769,7 @@ void manageTrainGymGame() {
       gymNeedsRedraw = false;
     }
     if (now - gymCompletionTime >= gymCompletionDelay) {
+      outcomeStatGained = natsumi.fitness < 4;  // For the outcome screen (+1 or MAX)
       if (natsumi.fitness < 4) {
         natsumi.fitness += 1;
       }
@@ -6939,6 +6944,7 @@ void manageTrainRunGame() {
       runNeedsRedraw = false;
     }
     if (now - runCompletionTime >= runCompletionDelay) {
+      outcomeStatGained = natsumi.fitness < 4;  // For the outcome screen (+1 or MAX)
       if (natsumi.fitness < 4) {
         natsumi.fitness += 1;
       }
@@ -7373,6 +7379,7 @@ void manageLibrary() {
       if (natsumi.energy > 0) {
           natsumi.energy--;
       }
+      outcomeStatGained = natsumi.culture < STAT_MAX;  // For the outcome screen (+1 or MAX)
       if (natsumi.culture < STAT_MAX) {
         natsumi.culture += 1;
       }
@@ -9822,6 +9829,7 @@ void drawOverlay() {
         break;
       case FOOD_ORDER9:
         if (!overlayEffectApplied) {
+          outcomeStatGained = natsumi.grace < 4;  // For the outcome screen (+1 or MAX)
           if (natsumi.grace < 4) {
             natsumi.grace += 1;
           }
@@ -10228,16 +10236,14 @@ void drawOverlay() {
             drawOutcome("MAX", "Hunger");
             break;
           case FOOD_ORDER9:
-            if (natsumi.grace < 4) {
-              // Serial.println(">> actionOutcome() - natsumi.grace < 4");
+            if (outcomeStatGained) {
               drawOutcome("+1", "Grace");
             } else {
               drawOutcome("MAX", "Grace");
             }
             break;
           case FOOD_REST5:
-            if (natsumi.grace < 4) {
-              // Serial.println(">> actionOutcome() - natsumi.grace < 4");
+            if (outcomeStatGained) {
               drawOutcome("+1", "Grace");
             } else {
               drawOutcome("MAX", "Grace");
@@ -10247,8 +10253,7 @@ void drawOverlay() {
             drawOutcome("MAX", "Hunger");
             break;
           case FLOWERS_MARKET7:
-            if (natsumi.grace < 4) {
-              // Serial.println(">> actionOutcome() - natsumi.grace < 4");
+            if (outcomeStatGained) {
               drawOutcome("+1", "Grace");
             } else {
               drawOutcome("MAX", "Grace");
@@ -10263,16 +10268,14 @@ void drawOverlay() {
             }
             break;
           case TRAIN_SING3: case TRAIN_DANCE3:
-            if (natsumi.performance < 4) {
-              // Serial.println(">> actionOutcome() - natsumi.performance < 4");
+            if (outcomeStatGained) {
               drawOutcome("+1", "Performance");
             } else {
               drawOutcome("MAX", "Performance");
             }
             break;
           case TRAIN_SWIM3: case TRAIN_GYM3: case TRAIN_RUN3:
-            if (natsumi.fitness < 4) {
-              Serial.println(">> actionOutcome() - natsumi.fitness < 4");
+            if (outcomeStatGained) {
               drawOutcome("+1", "Fitness");
             } else {
               drawOutcome("MAX", "Fitness");
@@ -10280,11 +10283,12 @@ void drawOverlay() {
             break;
           case TRAIN_LIBRARY:
             isLatestTrainingPerfect = false;
-            if (natsumi.culture < 4) {
-              Serial.println(">> actionOutcome() - natsumi.culture < 4");
+            if (natsumi.culture >= 4) {
+              addOneMatsuriTicket = true;
+            }
+            if (outcomeStatGained) {
               drawOutcome("+1", "Culture");
             } else {
-              addOneMatsuriTicket = true;
               drawOutcome("MAX", "Culture");
             }
             break;
@@ -11878,6 +11882,7 @@ void miniGameDebrief() {
       switch (currentState) {
         case FLOWERS_MARKET7:
           // Flower sale completed: +1 Grace (shown on the outcome screen)
+          outcomeStatGained = natsumi.grace < 4;  // For the outcome screen (+1 or MAX)
           if (natsumi.grace < 4) {
             natsumi.grace += 1;
           }
@@ -12076,6 +12081,7 @@ void restaurantFoodSelection() {
               restaurantSelection = 0;
               if (natsumi.money >= 700) {
                 natsumi.hunger = 4;
+                outcomeStatGained = natsumi.grace < 4;  // For the outcome screen (+1 or MAX)
                 if (natsumi.grace < 4) {
                   natsumi.grace += 1;
                 }
@@ -12112,6 +12118,7 @@ void restaurantFoodSelection() {
               restaurantSelection = 1;
               if (natsumi.money >= 800) {
                 natsumi.hunger = 4;
+                outcomeStatGained = natsumi.grace < 4;  // For the outcome screen (+1 or MAX)
                 if (natsumi.grace < 4) {
                   natsumi.grace += 1;
                 }
@@ -12148,6 +12155,7 @@ void restaurantFoodSelection() {
               restaurantSelection = 2;
               if (natsumi.money >= 900) {
                 natsumi.hunger = 4;
+                outcomeStatGained = natsumi.grace < 4;  // For the outcome screen (+1 or MAX)
                 if (natsumi.grace < 4) {
                   natsumi.grace += 1;
                 }
