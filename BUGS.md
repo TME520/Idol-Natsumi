@@ -42,7 +42,7 @@
 | NB-L15 | Low | NEW_GAME doesn't reset all globals | Fixed (7194265) |
 | NB-L16 | Low | Neko Cafe reading frames always use the 11-year-old sprites | Fixed (df89460) |
 | NB-L17 | Low | Timers are not rollover-safe | Fixed (8fb65a0) |
-| NB-L18 | Low | Minor logic oddities | Open |
+| NB-L18 | Low | Minor logic oddities | Fixed (ecf99bf) |
 | NB-L19 | Low | Text typos | Open |
 
 Codes are stable: do not renumber. Status is `Open` or `Fixed (<commit>)`.
@@ -291,7 +291,7 @@ Two engine facts drive several of the bugs below:
   - What happens: they misbehave after about 49.7 days of uptime.
   - Fix: use `millis() - start >= duration`.
 - **NB-L18: Minor logic oddities.**
-  - Status: Open
+  - Status: Fixed (ecf99bf): stage 0 is now 3–30; bounds checked before indexing; unused states kept and commented as unused.
   - `gardenFlowerStageIndex` returns -1 for value 30 (5406–5407).
   - `isChallengeStepDone` indexes `challengeFlags` before its bounds check (523).
   - NEKO_CAFE15–19 and COMP_STATUS are unused states.
