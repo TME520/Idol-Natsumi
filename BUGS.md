@@ -29,7 +29,7 @@
 | NB-L02 | Low | Restaurant age gate doesn't match the README | Open |
 | NB-L03 | Low | Low-battery toast is re-issued every frame | Fixed (5a7f3e6) |
 | NB-L04 | Low | Cards and Challenges screens: ESC goes to `latestMenu`, not Home | Fixed (c988444) |
-| NB-L05 | Low | Travel-home energy is charged at the wrong time | Open |
+| NB-L05 | Low | Travel-home energy is charged at the wrong time | Fixed (8b350b6) |
 | NB-L06 | Low | Onsen sets Hygiene on exit, not on entry | Open |
 | NB-L07 | Low | The outcome screen shows "MAX" instead of "+1" | Open |
 | NB-L08 | Low | Garapon rewards may not be saved, and the currency shows wrongly | Open |
@@ -229,7 +229,7 @@ Two engine facts drive several of the bugs below:
   - What happens: opened from Home, ESC lands in whatever menu was used last (for example Food, or the Matsuri trap from H3).
   - Fix: return to HOME_LOOP.
 - **NB-L05: Travel-home energy is charged at the wrong time.**
-  - Status: Open
+  - Status: Fixed (8b350b6): HOME_LOOP is a home location in `prepareTravel()`/`displayBusinessFront()`, so returning home plays the ride and charges -1 Energy once; the later home action no longer charges it.
   - Where: `prepareTravel()` 13013–13024.
   - What happens: returning to HOME_LOOP from the city doesn't update `currentTile`. The ride home and its -1 Energy happen later, on the next home action (e.g. Sleep or Cook).
   - Fix: update the tile and charge energy when the player actually returns home.
