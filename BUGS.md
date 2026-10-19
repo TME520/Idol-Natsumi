@@ -35,7 +35,7 @@
 | NB-L08 | Low | Garapon rewards may not be saved, and the currency shows wrongly | Fixed (d0e66e7) |
 | NB-L09 | Low | Age caps at 22 and the game never ends | Open |
 | NB-L10 | Low | Saved fields are never read back, and loads are not validated | Fixed (a8d2fbe) |
-| NB-L11 | Low | Swim minigame leftovers | Open |
+| NB-L11 | Low | Swim minigame leftovers | Fixed (6f7794a) |
 | NB-L12 | Low | Bath game exit-delay code is dead | Open |
 | NB-L13 | Low | The Pantry Snack fallback can never trigger | Open |
 | NB-L14 | Low | Competition rules don't match the README | Open |
@@ -263,7 +263,7 @@ Two engine facts drive several of the bugs below:
     - Loaded stats are not clamped to 0–4, and the file has no magic/version check.
   - Fix: load or remove those fields, and clamp and validate on load.
 - **NB-L11: Swim minigame leftovers.**
-  - Status: Open
+  - Status: Fixed (6f7794a): unused hit-flash state/parameter and `getRandomSwimSpeed()` (+ min/max speed) removed; fixed shark speed kept; collision penalty left as a TODO (design decision). No gameplay change.
   - Where: `spawnSwimShark` 6272.
   - What happens: sharks always get a fixed speed of 10, so `getRandomSwimSpeed` is unused. `swimHitFlash` is never set, so the hit effect never shows, and collisions have no penalty.
 - **NB-L12: Bath game exit-delay code is dead.**
