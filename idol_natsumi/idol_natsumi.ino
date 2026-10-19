@@ -10948,6 +10948,10 @@ void matsuriSale() {
           switch(previousState) {
             case MATSURI_SAVORY: case MATSURI_SAVORY2:
               if (matsuriSelection == 0) {
+                // Buy: spend the ticket and feed Natsumi
+                if (natsumi.tickets > 0) natsumi.tickets -= 1;
+                natsumi.hunger = 4;
+                saveRequired = true;
                 changeState(0, MATSURI_SAVORY3, 0);
               } else {
                 changeState(0, MATSURI_MENU, 0);
@@ -10955,6 +10959,10 @@ void matsuriSale() {
               break;
             case MATSURI_SUGARY:
               if (matsuriSelection == 0) {
+                // Buy: spend the ticket and feed Natsumi
+                if (natsumi.tickets > 0) natsumi.tickets -= 1;
+                natsumi.hunger = 4;
+                saveRequired = true;
                 changeState(0, MATSURI_SUGARY2, 0);
               } else {
                 changeState(0, MATSURI_MENU, 0);
@@ -10962,6 +10970,9 @@ void matsuriSale() {
               break;
             case MATSURI_GARAPON:
               if (matsuriSelection == 0) {
+                // Buy: spend the ticket
+                if (natsumi.tickets > 0) natsumi.tickets -= 1;
+                saveRequired = true;
                 changeState(0, MATSURI_GARAPON3, 0);
               } else {
                 changeState(0, MATSURI_MENU, 0);
@@ -12308,10 +12319,7 @@ void matsuriFoodSelection() {
             // ENTER
             case 13: case 40:
               if (natsumi.tickets >= 1) {
-                natsumi.tickets -= 1;
-                natsumi.hunger = 4;
-                saveRequired = true;
-                // isNatsumiHappy = true;
+                // Ticket and food are applied on Buy, in matsuriSale()
                 changeState(0, MATSURI_COST, 0);
               } else {
                 // showToast("Not enough tickets :(");
@@ -12337,9 +12345,7 @@ void matsuriFoodSelection() {
             // ENTER
             case 13: case 40:
               if (natsumi.tickets >= 1) {
-                natsumi.tickets -= 1;
-                natsumi.hunger = 4;
-                saveRequired = true;
+                // Ticket and food are applied on Buy, in matsuriSale()
                 changeState(0, MATSURI_COST, 0);
               } else {
                 // showToast("Not enough tickets :(");
@@ -12357,10 +12363,7 @@ void matsuriFoodSelection() {
             // ENTER
             case 13: case 40:
               if (natsumi.tickets >= 1) {
-                natsumi.tickets -= 1;
-                natsumi.hunger = 4;
-                saveRequired = true;
-                // isNatsumiHappy = true;
+                // Ticket and food are applied on Buy, in matsuriSale()
                 changeState(0, MATSURI_COST, 0);
               } else {
                 // showToast("Not enough tickets :(");
@@ -12449,7 +12452,7 @@ void matsuriMainMenu() {
             // ENTER
             case 13: case 40:
               if (natsumi.tickets >= 1) {
-                natsumi.tickets -= 1;
+                // Ticket is spent on Buy, in matsuriSale()
                 changeState(0, MATSURI_GARAPON, 0);
               } else {
                 changeState(0, MATSURI_GARAPON2, 0);
