@@ -18,7 +18,7 @@
 | NB-M03 | Medium | All submenus share one selection index | Fixed (ccf3598) |
 | NB-M04 | Medium | Matsuri food and Garapon take the ticket (and feed Natsumi) before Buy/Cancel | Fixed (a9218fc) |
 | NB-M05 | Medium | Leaving meditation early stops Spirit from ever updating again | Fixed (799dd2c) |
-| NB-M06 | Medium | Rock-paper-scissors: an invalid key breaks the round sequence | Open |
+| NB-M06 | Medium | Rock-paper-scissors: an invalid key breaks the round sequence | Fixed (dcd7933) |
 | NB-M07 | Medium | Competition state survives an aborted run | Open |
 | NB-M08 | Medium | The screensaver or a visitor interrupts the player while they are using the home menu | Open |
 | NB-M09 | Medium | Rewards and penalties are applied inside draw code and repeat on every redraw | Open |
@@ -153,7 +153,7 @@ Two engine facts drive several of the bugs below:
 - **Fix:** Clear `meditationActive` whenever the player leaves REST_MEDITATE (for example in `changeState`).
 
 ### NB-M06: Rock-paper-scissors: an invalid key breaks the round sequence
-- **Status:** Open
+- **Status:** Fixed (dcd7933): the stage only advances after a valid R/P/S hand (other keys are ignored), and round/score statics are reset on the title screen when a new game starts.
 - **Where:** `managePFCGame()` 12503–12529. `pfcCurrentStage += 1` runs before the key is checked.
 - **What happens:** Any key other than R, P, S or ESC still advances the stage. The game then jumps to the wrong screen (for example PFC_GAME9 instead of PFC_GAME8). With several stray presses the stage passes 12, no case matches, and the player is stuck until they press ESC.
   - Also, when the player exits with ESC, the static `roundIndex`/wins/draws are not reset, so the next visit's game ends early with stale scores.
