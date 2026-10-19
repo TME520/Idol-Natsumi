@@ -3455,6 +3455,9 @@ void drawImage(const ImageBuffer& img) {
   }
 }
 
+bool batteryLowWarned = false;
+unsigned long lastBatteryWarning = 0;
+const unsigned long batteryWarningInterval = 300000;  // 5 minutes
 void printBatteryLevel() {
   int batteryLevel = M5Cardputer.Power.getBatteryLevel();
   /*
@@ -3462,9 +3465,19 @@ void printBatteryLevel() {
   Serial.print(batteryLevel);
   Serial.println("%");
   */
-  if (batteryLevel < 10) {
-    Serial.print("Battery is LOW");
-    showToast("[WARN] Battery is low");
+  if (batteryLevel < 0) return;  // Level unknown
+  if (batteryLevel >= 15) {
+    batteryLowWarned = false;  // Charged again: warn next time it gets low
+    return;
+  }
+  if (batteryLevel < 10 && !toastActive) {
+    // Warn once when it gets low, then every 5 minutes, without hiding other toasts
+    if (!batteryLowWarned || millis() - lastBatteryWarning >= batteryWarningInterval) {
+      Serial.println("Battery is LOW");
+      showToast("[WARN] Battery is low");
+      batteryLowWarned = true;
+      lastBatteryWarning = millis();
+    }
   }
 }
 
