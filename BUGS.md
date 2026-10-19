@@ -30,7 +30,7 @@
 | NB-L03 | Low | Low-battery toast is re-issued every frame | Fixed (5a7f3e6) |
 | NB-L04 | Low | Cards and Challenges screens: ESC goes to `latestMenu`, not Home | Fixed (c988444) |
 | NB-L05 | Low | Travel-home energy is charged at the wrong time | Fixed (8b350b6) |
-| NB-L06 | Low | Onsen sets Hygiene on exit, not on entry | Open |
+| NB-L06 | Low | Onsen sets Hygiene on exit, not on entry | Fixed (55a073a) |
 | NB-L07 | Low | The outcome screen shows "MAX" instead of "+1" | Open |
 | NB-L08 | Low | Garapon rewards may not be saved, and the currency shows wrongly | Open |
 | NB-L09 | Low | Age caps at 22 and the game never ends | Open |
@@ -234,7 +234,7 @@ Two engine facts drive several of the bugs below:
   - What happens: returning to HOME_LOOP from the city doesn't update `currentTile`. The ride home and its -1 Energy happen later, on the next home action (e.g. Sleep or Cook).
   - Fix: update the tile and charge energy when the player actually returns home.
 - **NB-L06: Onsen sets Hygiene on exit, not on entry.**
-  - Status: Open
+  - Status: Fixed (55a073a): Hygiene is set to 4 once in `changeState()` on entering HEALTH_ONSEN; the exit-time assignment in `manageOnsen()` is removed.
   - Where: `manageOnsen()` 11820.
   - What happens: the README says entering the Onsen restores Hygiene.
   - Fix: set it on entry.
