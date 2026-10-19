@@ -850,6 +850,7 @@ bool meditationRewardApplied = false;
 bool fiveSecondPulse = false;  // Set true by updateFiveSecondPulse() every five seconds
 bool libraryInitialized = false;
 bool libraryRewardApplied = false;
+bool debriefEnergyApplied = false;
 bool isNatsumiHappy = false;
 bool gardenActive = false;
 bool isPlayerGardening = false;
@@ -3602,6 +3603,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
     changeStateCounter = 0;
     previousState = currentState;
     currentState = targetState;
+    debriefEnergyApplied = false;
     prepareTravel();
     preloadImages();
     switch (baseLayer) {
@@ -11655,9 +11657,12 @@ void foodDelivery() {
 
 void miniGameDebrief() {
   Serial.println("> Entering miniGameDebrief()");
-  // Energy update
-  if (natsumi.energy > 0) {
+  // Energy update (once per debrief screen)
+  if (!debriefEnergyApplied) {
+    if (natsumi.energy > 0) {
       natsumi.energy--;
+    }
+    debriefEnergyApplied = true;
   }
   uint8_t key = 0;
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
