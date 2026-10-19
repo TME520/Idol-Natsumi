@@ -12,7 +12,7 @@
 | NB-H02 | High | Opening INTRO from the title screen overwrites the real save with a blank character | Fixed (64dfb39) |
 | NB-H03 | High | ESC can never leave the Matsuri; the player is trapped while holding tickets | Fixed (147cdd8) |
 | NB-H04 | High | Orderibi delivers food the player can't afford (money goes negative) | Fixed (3100690) |
-| NB-H05 | High | Missing or misnamed SD assets freeze the device for minutes | Open |
+| NB-H05 | High | Missing or misnamed SD assets freeze the device for minutes | Fixed (b8d05f5, e06e2e4) |
 | NB-M01 | Medium | Shared `changeStateCounter` drops transitions and can soft-lock the game | Open |
 | NB-M02 | Medium | Food delivery can be lost, or can pull the player out of whatever they are doing | Open |
 | NB-M03 | Medium | All submenus share one selection index | Open |
@@ -97,7 +97,7 @@ Two engine facts drive several of the bugs below:
 - **Fix:** In the else branch, stay on or return to the menu instead of calling `changeState(PAY_SCREEN)`.
 
 ### NB-H05: Missing or misnamed SD assets freeze the device for minutes
-- **Status:** Open
+- **Status:** Fixed (b8d05f5 assets, e06e2e4 code): the 33 missing files were copied into `idolnat/` at the exact paths the code requests (26 food icons, 5 onsen backgrounds, flowers_market_front, and the age-21 meditate sprite, which really is 90x135 so only its file name was wrong). `preloadImage()` now returns immediately when `SD.exists()` is false. A re-scan of all 366 image paths in the sketch finds none missing.
 - **Where:** `preloadImage()` 1745–1810 retries 30 times with an 8 s delay, about 4 minutes of blocking per missing file.
 - **Files the code requests that are not in the repo's `idolnat/` tree** (case-sensitive check):
   - `/idolnat/sprites/food_NNN.png` (26 files). They exist only in `idolnat/sprites/food/`.
