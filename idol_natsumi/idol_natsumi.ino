@@ -407,7 +407,7 @@ const CookRecipe cookRecipes[] = {
   {"Sushi", 1, {FOOD_ID_SUSHI, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
   {"Watermelon", 1, {FOOD_ID_WATERMELON, FOOD_ID_NONE, FOOD_ID_NONE, FOOD_ID_NONE}},
   {"Avocado Toast", 2, {FOOD_ID_BREAD, FOOD_ID_AVOCADO, FOOD_ID_NONE, FOOD_ID_NONE}},
-  {"Carbunkle Cocktail", 2, {FOOD_ID_COCONUT_JUICE, FOOD_ID_ORANGE, FOOD_ID_NONE, FOOD_ID_NONE}},
+  {"Carbuncle Cocktail", 2, {FOOD_ID_COCONUT_JUICE, FOOD_ID_ORANGE, FOOD_ID_NONE, FOOD_ID_NONE}},
   {"Egg Toast", 2, {FOOD_ID_BREAD, FOOD_ID_FRIED_EGG, FOOD_ID_NONE, FOOD_ID_NONE}},
   {"Banana Milk", 2, {FOOD_ID_BANANA, FOOD_ID_MILK, FOOD_ID_NONE, FOOD_ID_NONE}},
   {"Strawberry Milk", 2, {FOOD_ID_STRAWBERRIES, FOOD_ID_MILK, FOOD_ID_NONE, FOOD_ID_NONE}},
@@ -7814,7 +7814,7 @@ void manageCompetition() {
 void wash() {
   if (changeStateCounter==0) {
     if (bathOutcomeCode == 0) {
-      showToast("Washed feels better");
+      showToast("Washed, feels better");
       saveRequired = true;
     } else {
       showToast("Ah!! Skipping shower!");
@@ -10043,7 +10043,7 @@ void drawOverlay() {
         drawDialogBubble("I sold all my flowers and made " + String(flowersRevenue) + "$. I have " + String(natsumi.money) + "$ in the bank.");
         break;
       case COMP_EXPLAIN:
-        drawDialogBubble("In order to enter Competition, you must achieve 3 perfect training ssessions, plus have Hunger, Hygiene, Energy, Performance, Fitness, Culture and Grace to 4.");
+        drawDialogBubble("In order to enter Competition, you must achieve 3 perfect training sessions, plus have Hunger, Hygiene, Energy, Performance, Fitness, Culture and Grace to 4.");
         break;
       case COMP_LOCAL3:
         drawDialogBubble("Welcome to the Shiodome Ward Community Center! Get ready for a nice singing competition! Sore dewa, hajimemasho !");
@@ -10156,7 +10156,7 @@ void drawOverlay() {
         if (natsumi.money >= 400) {
           drawText("Price: $400(S) / $550(L)", 5, 2, false, GREEN, 1);
         } else {
-          drawText("Price: $450(S) / $550(L)", 5, 2, false, RED, 1);
+          drawText("Price: $400(S) / $550(L)", 5, 2, false, RED, 1);
         }
         */
         drawHelper("sml: $400   lge: $550    [$" + String(natsumi.money) + "]");
@@ -10380,7 +10380,7 @@ void drawOverlay() {
             drawDialogBubble("I brought you a juicy pear! Fruits are good for health!");
             break;
           case 2: case 3: case 4:
-            drawDialogBubble("Congratulations for the competition! I brought you shortcake to celebrate!");
+            drawDialogBubble("Congratulations on the competition! I brought you shortcake to celebrate!");
             break;
           case 5:
             drawDialogBubble("Let\'s play Jan-ken-pon together!");
