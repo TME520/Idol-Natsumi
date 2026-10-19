@@ -25,7 +25,7 @@
 | NB-M10 | Medium | Flower sales never award Grace | Fixed (ba88da1) |
 | NB-M11 | Medium | Minigames and activities have no ESC exit | Fixed (c892af9) |
 | NB-M12 | Medium | `conbimartVisitsTotal` is not saved | Fixed (47e341d) |
-| NB-L01 | Low | Sleep/Onsen energy recovery looks inverted | Needs data |
+| NB-L01 | Low | Sleep/Onsen energy recovery looks inverted | Fixed (f724f11) |
 | NB-L02 | Low | Restaurant age gate doesn't match the README | Fixed (README, 39d40fb) |
 | NB-L03 | Low | Low-battery toast is re-issued every frame | Fixed (5a7f3e6) |
 | NB-L04 | Low | Cards and Challenges screens: ESC goes to `latestMenu`, not Home | Fixed (c988444) |
@@ -210,7 +210,7 @@ Two engine facts drive several of the bugs below:
 ## LOW
 
 - **NB-L01: Sleep/Onsen energy recovery looks inverted.**
-  - Status: Needs data: see `/workspace/nb_l01_energy_recovery.md` (recovery table per stat sum, why it looks inverted, alternatives). No code change.
+  - Status: Fixed (f724f11): roll flipped with a floor, +1 Energy when `random(220) < 10*S+10 + 60` (≈32% per pulse at S=0 up to 100% from S=15); data in `/workspace/nb_l01_energy_recovery.md`.
   - Where: 4591, `random(220) > ((hunger+hygiene+spirit+fitness)*10)+10`.
   - What happens: a healthier Natsumi recovers *less* often (about 22% chance with max stats vs about 95% with zero stats).
   - Fix: flip the comparison (needs the author to confirm the intent).
