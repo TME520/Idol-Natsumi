@@ -39,7 +39,7 @@
 | NB-L12 | Low | Bath game exit-delay code is dead | Fixed (7921ab1) |
 | NB-L13 | Low | The Pantry Snack fallback can never trigger | Fixed (0798c9e) |
 | NB-L14 | Low | Competition rules don't match the README | Open |
-| NB-L15 | Low | NEW_GAME doesn't reset all globals | Open |
+| NB-L15 | Low | NEW_GAME doesn't reset all globals | Fixed (7194265) |
 | NB-L16 | Low | Neko Cafe reading frames always use the 11-year-old sprites | Open |
 | NB-L17 | Low | Timers are not rollover-safe | Open |
 | NB-L18 | Low | Minor logic oddities | Open |
@@ -279,7 +279,7 @@ Two engine facts drive several of the bugs below:
   - Where: 7489–7522 and 7562–7571.
   - What happens: a single missed note fails the competition, while the README implies misses are allowed and only a perfect run grants Popularity. Also, notes can still be caught after they pass the player row.
 - **NB-L15: NEW_GAME doesn't reset all globals.**
-  - Status: Open
+  - Status: Fixed (7194265): shared `resetGameState()` (NEW_GAME and CONTINUE without a save) now also resets garden, delivery, visits, pending rewards, travel tile, menus/cursors and cooking selection.
   - Where: 3652–3734 and 3741–3822.
   - What happens: `gardenTiles`/`gardenActive`, `waitingForFoodDelivery`, `foodDeliveryCounter`, `birthdayVisitEnabled`, `recentCompWin` and `isLatestTrainingPerfect` are not reset. This matters only after H2 or similar.
   - Fix: add a shared `resetGameState()`.
