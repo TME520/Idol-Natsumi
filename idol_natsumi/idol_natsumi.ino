@@ -706,6 +706,7 @@ unsigned long agingInterval = 28800000; // 1 day in-game = 8 hours IRL
 // unsigned long agingInterval = 86400000;  // 1 day
 unsigned long sessionStart = 0;           // millis() when NEW_GAME starts
 unsigned long playtimeTotalMs = 0;        // total playtime in ms (could persist later)
+bool gameStarted = false;                 // true once NEW_GAME or CONTINUE_GAME has run
 int lastAgeTick = 0;
 int spiritScore = 0;
 const unsigned long screensaverWait = 10;
@@ -3733,6 +3734,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         sessionStart = millis();
         lastAgeTick = 0;
         initializeChallengeProgress();
+        gameStarted = true;
         break;
       case CONTINUE_GAME:
         setScreenConfig(CARD);
@@ -3822,6 +3824,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
           lastAgeTick = 0;
           initializeChallengeProgress();
         }
+        gameStarted = true;
         break;
       case INTRO: case INTRO2: case INTRO3: case INTRO4: case INTRO5: case INTRO6:
         setScreenConfig(DIALOG);
@@ -4351,6 +4354,14 @@ void changeState(int baseLayer, GameState targetState, int delay) {
 
 void updateAging() {
   // Serial.println("> Entering updateAging()");
+  if (!gameStarted) {
+    // No game loaded yet (INTRO): show 11yo Natsumi, no aging/birthday/save
+    if (natsumi.age < 11) {
+      natsumi.age = 11;
+      preloadImages();
+    }
+    return;
+  }
   unsigned long currentMilli = millis();
   unsigned long currentPlaytime = currentMilli - sessionStart;
   // unsigned long currentPlaytime = millis();
@@ -4400,6 +4411,7 @@ void updateAging() {
 
 void updateStats() {
   // Serial.println("> Entering updateStats()");
+  if (!gameStarted) return;
   unsigned long currentMillis = millis();
   int previousEnergy = natsumi.energy;
 
@@ -4642,7 +4654,7 @@ void updateFiveSecondPulse() {
       case IDLE_STATS:
         break;
     }
-    if (saveRequired) {
+    if (saveRequired && gameStarted) {
       saveGameToSd();
       saveRequired = false;
     }
