@@ -36,7 +36,7 @@
 | NB-L09 | Low | Age caps at 22 and the game never ends | Open |
 | NB-L10 | Low | Saved fields are never read back, and loads are not validated | Fixed (a8d2fbe) |
 | NB-L11 | Low | Swim minigame leftovers | Fixed (6f7794a) |
-| NB-L12 | Low | Bath game exit-delay code is dead | Open |
+| NB-L12 | Low | Bath game exit-delay code is dead | Fixed (7921ab1) |
 | NB-L13 | Low | The Pantry Snack fallback can never trigger | Open |
 | NB-L14 | Low | Competition rules don't match the README | Open |
 | NB-L15 | Low | NEW_GAME doesn't reset all globals | Open |
@@ -267,7 +267,7 @@ Two engine facts drive several of the bugs below:
   - Where: `spawnSwimShark` 6272.
   - What happens: sharks always get a fixed speed of 10, so `getRandomSwimSpeed` is unused. `swimHitFlash` is never set, so the hit effect never shows, and collisions have no penalty.
 - **NB-L12: Bath game exit-delay code is dead.**
-  - Status: Open
+  - Status: Fixed (7921ab1): dead exit-delay branch, `bathExitDelay` and `bathResultShown` removed (the result is shown by the toast and HEALTH_WASH2-5); early return kept.
   - Where: `manageBathGame()` 6974–6981.
   - What happens: `finalizeBathOutcome` changes state immediately, so the delay never runs.
 - **NB-L13: The Pantry Snack fallback can never trigger.**
