@@ -853,6 +853,7 @@ bool fiveSecondPulse = false;  // Set true by updateFiveSecondPulse() every five
 bool libraryInitialized = false;
 bool libraryRewardApplied = false;
 bool debriefEnergyApplied = false;
+bool competitionRunStarting = false;  // Set on entering COMP_*5: manageCompetition() starts a fresh run
 bool isNatsumiHappy = false;
 bool gardenActive = false;
 bool isPlayerGardening = false;
@@ -4108,6 +4109,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case COMP_REG5:
       case COMP_NAT5:
         setScreenConfig(GAME);
+        competitionRunStarting = true;
         break;
       case COMP_COMPLETE: case COMP_FAILED:
         setScreenConfig(IDLE);
@@ -7515,7 +7517,8 @@ void manageCompetition() {
     const int screenHeight = M5Cardputer.Display.height();
     const int playerY = screenHeight - 12;
   
-    if (!competitionInitialized || competitionState != currentState) {
+    if (!competitionInitialized || competitionState != currentState || competitionRunStarting) {
+      competitionRunStarting = false;
       competitionState = currentState;
       competitionNotes.clear();
       competitionNotesSpawned = 0;
