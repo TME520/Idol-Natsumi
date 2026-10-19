@@ -30,7 +30,7 @@
 | ND-T1 | Travel ride (`manageTravel()`): tile decoded once, bike drawn through a 90x45 strip canvas | `tile_*.png` | Done (a7956da, delay set to 80 in 03927ac) |
 | ND-00 | Shared infrastructure: background cache, path key, `invalidateBackgroundCache()`, opt-in switch, swim/travel invalidation | – | Done |
 | ND-01 | HOME_LOOP (home room) | `lounge.png` | Done |
-| ND-02 | FOOD_MENU | `kitchen.png` | Open |
+| ND-02 | FOOD_MENU | `kitchen.png` | Done |
 | ND-03 | HEALTH_MENU | `bathroom.png` | Open |
 | ND-04 | REST_MENU | `bedroom.png` | Open |
 | ND-05 | TRAIN_MENU | `map_training.png` | Open |

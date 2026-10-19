@@ -3554,6 +3554,8 @@ bool backgroundCacheEnabledFor(GameState state) {
   switch (state) {
     case HOME_LOOP:  // ND-01
       return true;
+    case FOOD_MENU:  // ND-02
+      return true;
     default:
       return false;
   }
