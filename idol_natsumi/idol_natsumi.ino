@@ -1110,7 +1110,7 @@ const int TRAVEL_SPRITE_W = 80;
 const int TRAVEL_SPRITE_H = 45;
 const int TRAVEL_STEP = 10;
 const int TRAVEL_Y = 50;
-const unsigned long TRAVEL_FRAME_DELAY = 55;  // ms between bike frames (was 150)
+const unsigned long TRAVEL_FRAME_DELAY = 80;  // ms between bike frames (was 150)
 M5Canvas travelStripCanvas(&M5Cardputer.Display);
 bool travelStripCanvasReady = false;
 ImageBuffer currentCharacter;
