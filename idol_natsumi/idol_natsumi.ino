@@ -12671,13 +12671,14 @@ void orderibiFoodSelection() {
               orderibiSelection = 0;
               if (natsumi.money >= 600) {
                 // natsumi.money -= 600;
+                amountToPay = 600;
+                returnTo = FOOD_ORDER5;
+                changeState(0, PAY_SCREEN, 0);
+                // changeState(0, FOOD_ORDER5, 0);
               } else {
+                // Stay on the Orderibi menu, no payment, no delivery
                 showToast("Not enough money :(");
               }
-              amountToPay = 600;
-              returnTo = FOOD_ORDER5;
-              changeState(0, PAY_SCREEN, 0);
-              // changeState(0, FOOD_ORDER5, 0);
               break;
             // ESC
             case 96:
@@ -12701,13 +12702,14 @@ void orderibiFoodSelection() {
               orderibiSelection = 1;
               if (natsumi.money >= 750) {
                 // natsumi.money -= 750;
+                amountToPay = 750;
+                returnTo = FOOD_ORDER5;
+                changeState(0, PAY_SCREEN, 0);
+                // changeState(0, FOOD_ORDER5, 0);
               } else {
+                // Stay on the Orderibi menu, no payment, no delivery
                 showToast("Not enough money :(");
               }
-              amountToPay = 750;
-              returnTo = FOOD_ORDER5;
-              changeState(0, PAY_SCREEN, 0);
-              // changeState(0, FOOD_ORDER5, 0);
               break;
             // ESC
             case 96:
@@ -12731,13 +12733,14 @@ void orderibiFoodSelection() {
               orderibiSelection = 2;
               if (natsumi.money >= 1200) {
                 // natsumi.money -= 1200;
+                amountToPay = 1200;
+                returnTo = FOOD_ORDER5;
+                changeState(0, PAY_SCREEN, 0);
+                // changeState(0, FOOD_ORDER5, 0);
               } else {
+                // Stay on the Orderibi menu, no payment, no delivery
                 showToast("Not enough money :(");
               }
-              amountToPay = 1200;
-              returnTo = FOOD_ORDER5;
-              changeState(0, PAY_SCREEN, 0);
-              // changeState(0, FOOD_ORDER5, 0);
               break;
             // ESC
             case 96:
