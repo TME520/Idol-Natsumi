@@ -23,7 +23,7 @@
 | NB-M08 | Medium | The screensaver or a visitor interrupts the player while they are using the home menu | Fixed (092d8ff) |
 | NB-M09 | Medium | Rewards and penalties are applied inside draw code and repeat on every redraw | Fixed (8ed80f7) |
 | NB-M10 | Medium | Flower sales never award Grace | Fixed (ba88da1) |
-| NB-M11 | Medium | Minigames and activities have no ESC exit | Open |
+| NB-M11 | Medium | Minigames and activities have no ESC exit | Fixed (c892af9) |
 | NB-M12 | Medium | `conbimartVisitsTotal` is not saved | Open |
 | NB-L01 | Low | Sleep/Onsen energy recovery looks inverted | Open |
 | NB-L02 | Low | Restaurant age gate doesn't match the README | Open |
@@ -188,7 +188,7 @@ Two engine facts drive several of the bugs below:
 - **Fix:** Add `natsumi.grace` +1 (capped at 4) when the sale completes.
 
 ### NB-M11: Minigames and activities have no ESC exit
-- **Status:** Open
+- **Status:** Fixed (c892af9): ESC (via new `escapePressed()`) aborts sing/dance/swim/gym/run, the countdowns, the library and the flower sale, resets their state and returns to `latestMenu`. No reward, no debrief, no Energy cost. Flowers already sold stay sold.
 - **Where:**
   - sing 6096–6119
   - dance 6195–6223
