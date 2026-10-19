@@ -8,7 +8,7 @@
 
 | Code | Severity | Title | Status |
 |---|---|---|---|
-| NB-H01 | High | Energy drops to 0 almost instantly on every debrief screen | Open |
+| NB-H01 | High | Energy drops to 0 almost instantly on every debrief screen | Fixed (14ccc39) |
 | NB-H02 | High | Opening INTRO from the title screen overwrites the real save with a blank character | Open |
 | NB-H03 | High | ESC can never leave the Matsuri; the player is trapped while holding tickets | Open |
 | NB-H04 | High | Orderibi delivers food the player can't afford (money goes negative) | Open |
@@ -69,7 +69,7 @@ Two engine facts drive several of the bugs below:
 ## HIGH
 
 ### NB-H01: Energy drops to 0 almost instantly on every debrief screen
-- **Status:** Open
+- **Status:** Fixed (14ccc39): energy is deducted once per debrief screen via `debriefEnergyApplied`, which `changeState()` resets on each transition.
 - **Where:** `miniGameDebrief()` 11656–11661, called every frame (50 ms) from `manageDialog()` for TRAIN_*3, COMP_*6 and FLOWERS_MARKET7.
 - **What happens:** `if (natsumi.energy > 0) natsumi.energy--;` runs on every frame. Energy hits 0 within about 200 ms after any training, flower sale or competition. After that, most menus refuse with "Natsumi is too tired", and competitions (which need Energy 4) are blocked.
 - **Fix:** Decrement energy once on entry, using a one-shot flag or `changeStateCounter == 0`.
