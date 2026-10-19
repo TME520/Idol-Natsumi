@@ -24,7 +24,7 @@
 | NB-M09 | Medium | Rewards and penalties are applied inside draw code and repeat on every redraw | Fixed (8ed80f7) |
 | NB-M10 | Medium | Flower sales never award Grace | Fixed (ba88da1) |
 | NB-M11 | Medium | Minigames and activities have no ESC exit | Fixed (c892af9) |
-| NB-M12 | Medium | `conbimartVisitsTotal` is not saved | Open |
+| NB-M12 | Medium | `conbimartVisitsTotal` is not saved | Fixed (47e341d) |
 | NB-L01 | Low | Sleep/Onsen energy recovery looks inverted | Open |
 | NB-L02 | Low | Restaurant age gate doesn't match the README | Open |
 | NB-L03 | Low | Low-battery toast is re-issued every frame | Open |
@@ -200,7 +200,7 @@ Two engine facts drive several of the bugs below:
 - **Fix:** Handle key 96: clean up and `changeState(0, latestMenu, 0)`.
 
 ### NB-M12: `conbimartVisitsTotal` is not saved
-- **Status:** Open
+- **Status:** Fixed (47e341d): `conbimart_visits_total` is written to and read from the `[challenges]` section; old saves without the key load with 0, as before.
 - **Where:** save 1463–1468 / load 1680–1685. `initializeChallengeProgress()` (637) zeroes it.
 - **What happens:** Conbimart visits are lost on reload, so the "Go to Conbimart" challenge step may need another visit.
 - **Fix:** Add the counter to the save file.
