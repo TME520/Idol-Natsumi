@@ -32,7 +32,7 @@
 | NB-L05 | Low | Travel-home energy is charged at the wrong time | Fixed (8b350b6) |
 | NB-L06 | Low | Onsen sets Hygiene on exit, not on entry | Fixed (55a073a) |
 | NB-L07 | Low | The outcome screen shows "MAX" instead of "+1" | Fixed (24d7629) |
-| NB-L08 | Low | Garapon rewards may not be saved, and the currency shows wrongly | Open |
+| NB-L08 | Low | Garapon rewards may not be saved, and the currency shows wrongly | Fixed (d0e66e7) |
 | NB-L09 | Low | Age caps at 22 and the game never ends | Open |
 | NB-L10 | Low | Saved fields are never read back, and loads are not validated | Open |
 | NB-L11 | Low | Swim minigame leftovers | Open |
@@ -244,7 +244,7 @@ Two engine facts drive several of the bugs below:
   - What happens: the stat is incremented before the check, so going from 3 to 4 displays "MAX".
   - Fix: compare against the value before the increment.
 - **NB-L08: Garapon rewards may not be saved, and the currency shows wrongly.**
-  - Status: Open
+  - Status: Fixed (d0e66e7): every prize case now reaches `saveRequired = true` (once per spin); result texts use "$".
   - Where: 5802/5809/5816.
   - What happens: those cases return before `saveRequired = true`. The result text uses "¥", which the default ASCII font doesn't render; the rest of the UI uses "$".
   - Fix: set `saveRequired` first and use "$".
