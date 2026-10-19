@@ -758,6 +758,7 @@ void startTrainRunGame();
 void manageTrainingStatus();
 
 unsigned long changeStateCounter = 0;
+GameState pendingState = VERSION_SCREEN;  // Target of the delayed transition being counted
 
 // const unsigned long hungerInterval = 120000;   // 2 minutes
 const unsigned long hungerInterval = 1200000;   // 20 minutes
@@ -3605,7 +3606,13 @@ void changeState(int baseLayer, GameState targetState, int delay) {
   if (currentState != HOME_LOOP && currentState != IDLE_HOME && currentState != IDLE_STATS && currentState != TITLE_SCREEN2) {
     counterToScreensaver = 0;
   }
-  if (changeStateCounter == delay) {
+  // A delayed transition is already counting: ignore requests for another
+  // target so they can't push the counter past the pending delay (which
+  // used to lock the game on that screen)
+  if (changeStateCounter > 0 && targetState != pendingState) {
+    return;
+  }
+  if (changeStateCounter >= (unsigned long)delay) {
     Serial.println("Proceed with transition");
     Serial.println("> currentState = " + String(gameStateToString(currentState)));
     Serial.println("> targetState = " + String(gameStateToString(targetState)));
@@ -4354,6 +4361,9 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
     }
   } else {
+    if (changeStateCounter == 0) {
+      pendingState = targetState;
+    }
     changeStateCounter += 1;
     // Serial.println("Delay transition (" + String(changeStateCounter) + "/" + String(delay) + ")");
   }
