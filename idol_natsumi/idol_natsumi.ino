@@ -5295,8 +5295,24 @@ void manageRoom() {
     selectionPtr = &homeMenuSelection;
   } else if (currentMenuType == "garden") {
     selectionPtr = &gardenMenuSelection;
+  } else if (currentMenuType == "food") {
+    selectionPtr = &foodMenuSelection;
+  } else if (currentMenuType == "training") {
+    selectionPtr = &trainingMenuSelection;
+  } else if (currentMenuType == "competition") {
+    selectionPtr = &competitionMenuSelection;
+  } else if (currentMenuType == "health") {
+    selectionPtr = &healthMenuSelection;
+  } else if (currentMenuType == "rest") {
+    selectionPtr = &restMenuSelection;
+  } else if (currentMenuType == "events") {
+    selectionPtr = &eventsMenuSelection;
   } else {
     selectionPtr = &mainMenuSelection;
+  }
+  // Keep the highlight on a valid item of this menu
+  if (*selectionPtr < 0 || *selectionPtr >= currentMenuItemsCount) {
+    *selectionPtr = 0;
   }
   drawMenu(currentMenuType, currentMenuItems, currentMenuItemsCount, *selectionPtr);
   return;
