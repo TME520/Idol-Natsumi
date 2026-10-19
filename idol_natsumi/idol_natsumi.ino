@@ -985,8 +985,7 @@ unsigned long swimCompletionTime = 0;
 unsigned long swimLastSpawnTime = 0;
 unsigned long swimNextSpawnDelay = swimSpawnIntervalMin;
 std::vector<SwimShark> swimSharks;
-M5Canvas swimCanvas(&M5Cardputer.Display);
-bool swimCanvasReady = false;
+// The swim mini-game draws into the shared frameCanvas (see "Off-screen canvases")
 
 // Training GYM mini-game state
 const int gymTargetStreak = 10;
@@ -1097,6 +1096,23 @@ String versionNumber = "Update " + String(SAVE_VERSION);
 
 ImageBuffer currentBackground;
 ImageBuffer calib1, calib2, calib3;
+
+// === Off-screen canvases ===
+// One persistent full-screen canvas (240x135, 16-bit = 64,800 bytes), created once
+// at the very start of setup() so the big block is found before the heap fragments.
+// Shared by every user (travel background, swim playfield). Never deleteSprite() it.
+M5Canvas frameCanvas(&M5Cardputer.Display);
+bool frameCanvasReady = false;
+// Small persistent canvas for the travel bike: bike sprite (80x45) plus one step
+// (10 px) so each frame also restores the background where the bike just was.
+// 90x45, 16-bit = 8,100 bytes.
+const int TRAVEL_SPRITE_W = 80;
+const int TRAVEL_SPRITE_H = 45;
+const int TRAVEL_STEP = 10;
+const int TRAVEL_Y = 50;
+const unsigned long TRAVEL_FRAME_DELAY = 55;  // ms between bike frames (was 150)
+M5Canvas travelStripCanvas(&M5Cardputer.Display);
+bool travelStripCanvasReady = false;
 ImageBuffer currentCharacter;
 ImageBuffer currentIcon;
 ImageBuffer natsumiSprite;
@@ -3532,9 +3548,20 @@ void printBatteryLevel() {
 }
 
 // === Setup and loop ===
+void createCanvases() {
+  // Allocate the off-screen canvases once, before SD and String work fragment the heap.
+  // If an allocation fails, the code using that canvas falls back to drawing on the display.
+  frameCanvas.setColorDepth(16);
+  frameCanvasReady = frameCanvas.createSprite(M5Cardputer.Display.width(), M5Cardputer.Display.height());
+  travelStripCanvas.setColorDepth(16);
+  travelStripCanvasReady = travelStripCanvas.createSprite(TRAVEL_SPRITE_W + TRAVEL_STEP, TRAVEL_SPRITE_H);
+  // Serial.println("createCanvases - frame: " + String(frameCanvasReady) + " - strip: " + String(travelStripCanvasReady) + " - free heap: " + String(ESP.getFreeHeap()));
+}
+
 void setup() {
   auto cfg = M5.config();
   M5Cardputer.begin(cfg);
+  createCanvases();
   randomSeed(esp_random());
   delay(1000);
   Serial.begin(115200);
@@ -6455,10 +6482,6 @@ void startTrainSwimGame() {
   overlayActive = false;
   swimGameRunning = true;
   swimNeedsRedraw = true;
-  if (!swimCanvasReady) {
-    swimCanvas.setColorDepth(16);
-    swimCanvasReady = swimCanvas.createSprite(M5Cardputer.Display.width(), M5Cardputer.Display.height());
-  }
   M5Cardputer.Display.fillScreen(M5Cardputer.Display.color565(150, 220, 255));
 }
 
@@ -6472,7 +6495,7 @@ void drawTrainSwimPlayfield(bool showCompletion) {
   const int poolHeight = swimLaneCount * swimLaneHeight;
   const int playerX = screenWidth - 32;
   const int playerY = getSwimLaneCenter(swimPlayerLane) - (swimPlayerHeight / 2);
-  M5Canvas* target = swimCanvasReady ? &swimCanvas : nullptr;
+  M5Canvas* target = frameCanvasReady ? &frameCanvas : nullptr;
 
   if (target) {
     target->fillScreen(poolColor);
@@ -13334,15 +13357,52 @@ void prepareTravel() {
 }
 
 void manageTravel() {
-  for (int x = 0; x <= 240; x += 10) {
-    // Restore the background before drawing the next bicycle frame.
+  // Natsumi rides her bike across the area tile (blocking, called from prepareTravel()).
+  // Flicker-free path: the tile is decoded once into frameCanvas, then each frame only
+  // the bike's rectangle (plus the step it just left) is rebuilt in travelStripCanvas
+  // and sent to the display in one transfer, so the bike is never erased on screen.
+  const bool useFrame = frameCanvasReady && travelStripCanvasReady;
+  if (useFrame) {
+    if (currentBackground.data && currentBackground.length > 0) {
+      frameCanvas.drawPng(currentBackground.data, currentBackground.length, 0, 0);
+    } else {
+      frameCanvas.fillScreen(BLACK);
+    }
+    // The decoded tile lives in frameCanvas now: give the PNG bytes back to the heap
+    unloadImage(currentBackground);
+    frameCanvas.pushSprite(0, 0);
+  } else {
     drawImage(currentBackground);
-    const ImageBuffer& sprite = ((x / 10) % 2 == 0) ? natsumiSprite : enemySprite;
-    if (sprite.data && sprite.length > 0) {
-      M5Cardputer.Display.drawPng(sprite.data, sprite.length, x, 50);
+  }
+  // Serial.println("manageTravel - frame canvas: " + String(useFrame) + " - free heap: " + String(ESP.getFreeHeap()));
+
+  for (int x = 0; x <= 240; x += TRAVEL_STEP) {
+    const ImageBuffer& sprite = ((x / TRAVEL_STEP) % 2 == 0) ? natsumiSprite : enemySprite;
+    const bool hasSprite = sprite.data && sprite.length > 0;
+    // Strip covers the previous bike position (x - step) and the new one
+    const int stripX = x - TRAVEL_STEP;
+    if (useFrame) {
+      frameCanvas.pushSprite(&travelStripCanvas, -stripX, -TRAVEL_Y);
+      if (hasSprite) {
+        travelStripCanvas.drawPng(sprite.data, sprite.length, TRAVEL_STEP, 0);
+      }
+      travelStripCanvas.pushSprite(stripX, TRAVEL_Y);
+    } else if (travelStripCanvasReady && currentBackground.data && currentBackground.length > 0) {
+      // No full-screen canvas: decode the tile clipped into the strip (slower, still no flicker)
+      travelStripCanvas.drawPng(currentBackground.data, currentBackground.length, -stripX, -TRAVEL_Y);
+      if (hasSprite) {
+        travelStripCanvas.drawPng(sprite.data, sprite.length, TRAVEL_STEP, 0);
+      }
+      travelStripCanvas.pushSprite(stripX, TRAVEL_Y);
+    } else {
+      // Last resort: previous behaviour (redraw the whole tile, then the bike)
+      drawImage(currentBackground);
+      if (hasSprite) {
+        M5Cardputer.Display.drawPng(sprite.data, sprite.length, x, TRAVEL_Y);
+      }
     }
     if (x < 240) {
-      delay(150);
+      delay(TRAVEL_FRAME_DELAY);
     }
   }
 }
