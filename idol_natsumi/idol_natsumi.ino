@@ -4183,6 +4183,9 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case HEALTH_ONSEN:
         setScreenConfig(CARD);
         characterEnabled = false;
+        // Entering the Onsen restores Hygiene (once, on this transition)
+        natsumi.hygiene = 4;
+        saveRequired = true;
         break;
       case REST_MENU:
         setScreenConfig(ROOM);
@@ -12029,7 +12032,6 @@ void manageOnsen() {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       overlayActive = false;
       // changeState(0, HOME_LOOP, 0);
-      natsumi.hygiene = 4;
       changeState(0, ACTION_OUTCOME, 0);
       return;
     }
