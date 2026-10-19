@@ -13,7 +13,7 @@
 | NB-H03 | High | ESC can never leave the Matsuri; the player is trapped while holding tickets | Fixed (147cdd8) |
 | NB-H04 | High | Orderibi delivers food the player can't afford (money goes negative) | Fixed (3100690) |
 | NB-H05 | High | Missing or misnamed SD assets freeze the device for minutes | Fixed (b8d05f5, e06e2e4) |
-| NB-M01 | Medium | Shared `changeStateCounter` drops transitions and can soft-lock the game | Open |
+| NB-M01 | Medium | Shared `changeStateCounter` drops transitions and can soft-lock the game | Fixed (4ad6473) |
 | NB-M02 | Medium | Food delivery can be lost, or can pull the player out of whatever they are doing | Open |
 | NB-M03 | Medium | All submenus share one selection index | Open |
 | NB-M04 | Medium | Matsuri food and Garapon take the ticket (and feed Natsumi) before Buy/Cancel | Open |
@@ -114,7 +114,7 @@ Two engine facts drive several of the bugs below:
 ## MEDIUM
 
 ### NB-M01: Shared `changeStateCounter` drops transitions and can soft-lock the game
-- **Status:** Open
+- **Status:** Fixed (4ad6473): `changeState()` remembers the pending delayed target (`pendingState`), ignores requests for other targets while it counts (so they can't overshoot it), and fires on `>=`. The lock-up is gone. Requests for another target made during a pending delay are still dropped, as before; callers that must not lose a transition (e.g. food delivery, NB-M02) need their own handling.
 - **Where:** `changeState()` 3597–3604 and 4343–4345.
 - **What happens:**
   - Any `changeState(X, 0)` made while a delayed transition is counting is silently dropped.
