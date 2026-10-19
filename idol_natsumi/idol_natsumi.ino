@@ -1467,6 +1467,7 @@ bool saveGameToSd() {
   saveFile.println();
   saveFile.println("flowers_grown_total=" + String(flowersGrownTotal));
   saveFile.println("flowers_sold_total=" + String(flowersSoldTotal));
+  saveFile.println("conbimart_visits_total=" + String(conbimartVisitsTotal));
   saveFile.println("recipes_cooked_total=" + String(recipesCookedTotal));
   saveFile.println("perfect_singing_lessons=" + String(perfectSingingLessons));
   saveFile.println("perfect_dancing_lessons=" + String(perfectDancingLessons));
@@ -1684,6 +1685,7 @@ bool loadGameFromSd() {
         }
       } else if (key == "flowers_grown_total") flowersGrownTotal = static_cast<uint16_t>(value.toInt());
       else if (key == "flowers_sold_total") flowersSoldTotal = static_cast<uint16_t>(value.toInt());
+      else if (key == "conbimart_visits_total") conbimartVisitsTotal = static_cast<uint16_t>(value.toInt());
       else if (key == "recipes_cooked_total") recipesCookedTotal = static_cast<uint16_t>(value.toInt());
       else if (key == "perfect_singing_lessons") perfectSingingLessons = static_cast<uint16_t>(value.toInt());
       else if (key == "perfect_dancing_lessons") perfectDancingLessons = static_cast<uint16_t>(value.toInt());
