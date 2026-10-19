@@ -16,7 +16,7 @@
 | NB-M01 | Medium | Shared `changeStateCounter` drops transitions and can soft-lock the game | Fixed (4ad6473) |
 | NB-M02 | Medium | Food delivery can be lost, or can pull the player out of whatever they are doing | Fixed (5d38a91) |
 | NB-M03 | Medium | All submenus share one selection index | Fixed (ccf3598) |
-| NB-M04 | Medium | Matsuri food and Garapon take the ticket (and feed Natsumi) before Buy/Cancel | Open |
+| NB-M04 | Medium | Matsuri food and Garapon take the ticket (and feed Natsumi) before Buy/Cancel | Fixed (a9218fc) |
 | NB-M05 | Medium | Leaving meditation early stops Spirit from ever updating again | Open |
 | NB-M06 | Medium | Rock-paper-scissors: an invalid key breaks the round sequence | Open |
 | NB-M07 | Medium | Competition state survives an aborted run | Open |
@@ -138,7 +138,7 @@ Two engine facts drive several of the bugs below:
 - **Fix:** Use a separate selection variable per `currentMenuType`, or clamp or reset the index when a menu opens.
 
 ### NB-M04: Matsuri food and Garapon take the ticket (and feed Natsumi) before Buy/Cancel
-- **Status:** Open
+- **Status:** Fixed (a9218fc): ticket deduction (and hunger = 4 for food) moved from `matsuriFoodSelection()`/`matsuriMainMenu()` into the Buy branch of `matsuriSale()`; Cancel/ESC cost nothing.
 - **Where:**
   - Food: `matsuriFoodSelection()` 12241–12246, 12270–12274 and 12290–12295 deduct the ticket and set hunger = 4.
   - Garapon: `matsuriMainMenu()` 12380–12382 deducts the ticket.
