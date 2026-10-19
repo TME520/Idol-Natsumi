@@ -853,6 +853,7 @@ bool fiveSecondPulse = false;  // Set true by updateFiveSecondPulse() every five
 bool libraryInitialized = false;
 bool libraryRewardApplied = false;
 bool debriefEnergyApplied = false;
+bool overlayEffectApplied = false;  // One-shot effects drawn by drawOverlay(), reset by changeState()
 bool competitionRunStarting = false;  // Set on entering COMP_*5: manageCompetition() starts a fresh run
 bool isNatsumiHappy = false;
 bool gardenActive = false;
@@ -3625,6 +3626,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
     previousState = currentState;
     currentState = targetState;
     debriefEnergyApplied = false;
+    overlayEffectApplied = false;
     // Leaving meditation (finished or aborted): let Spirit update again
     if (previousState == REST_MEDITATE && currentState != REST_MEDITATE) {
       meditationActive = false;
@@ -9687,9 +9689,12 @@ void drawOverlay() {
         drawConbimartOverlay();
         break;
       case FOOD_CONBINI3:
-        // Energy update
-        if (natsumi.energy > 0) {
-          natsumi.energy--;
+        // Energy update (once per screen, not on every redraw)
+        if (!overlayEffectApplied) {
+          if (natsumi.energy > 0) {
+            natsumi.energy--;
+          }
+          overlayEffectApplied = true;
         }
         drawDialogBubble("Thanks for shopping with us, come again!!");
         break;
@@ -9722,8 +9727,11 @@ void drawOverlay() {
         drawDialogBubble("Hello, here is the food you ordered.");
         break;
       case FOOD_ORDER9:
-        if (natsumi.grace < 4) {
-          natsumi.grace += 1;
+        if (!overlayEffectApplied) {
+          if (natsumi.grace < 4) {
+            natsumi.grace += 1;
+          }
+          overlayEffectApplied = true;
         }
         saveRequired = true;
         // isNatsumiHappy = true;
@@ -9901,9 +9909,12 @@ void drawOverlay() {
             zoom,
             zoom
           );
-          // Energy update
-          if (natsumi.energy > 0) {
-            natsumi.energy--;
+          // Energy update (once per screen, not on every redraw)
+          if (!overlayEffectApplied) {
+            if (natsumi.energy > 0) {
+              natsumi.energy--;
+            }
+            overlayEffectApplied = true;
           }
         }
         break;
@@ -10192,11 +10203,17 @@ void drawOverlay() {
           case DOOR_KNOCK7:
             switch(visitor) {
               case 0:
-                natsumi.money += 10000;
+                if (!overlayEffectApplied) {
+                  natsumi.money += 10000;
+                  overlayEffectApplied = true;
+                }
                 drawOutcome("+10k", "Money");
                 break;
               case 1:
-                fridge.pear += 1;
+                if (!overlayEffectApplied) {
+                  fridge.pear += 1;
+                  overlayEffectApplied = true;
+                }
                 drawOutcome("+1", "Pear");
                 break;
               case 2: case 3: case 4:
@@ -10385,7 +10402,11 @@ void allocateTickets() {
       extraTickets += 2;
       break;
   }
-  natsumi.tickets += extraTickets;
+  // Called from drawOverlay(): only add the tickets once per screen
+  if (!overlayEffectApplied) {
+    natsumi.tickets += extraTickets;
+    overlayEffectApplied = true;
+  }
   Serial.println(">> allocateTickets() - extraTickets: " + String(extraTickets));
 
   drawText(String(extraTickets), centerX, startY + (amountHeight / 2), true, bigTextColor, amountTextSize, panelColor);
