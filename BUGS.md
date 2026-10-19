@@ -27,7 +27,7 @@
 | NB-M12 | Medium | `conbimartVisitsTotal` is not saved | Fixed (47e341d) |
 | NB-L01 | Low | Sleep/Onsen energy recovery looks inverted | Open |
 | NB-L02 | Low | Restaurant age gate doesn't match the README | Open |
-| NB-L03 | Low | Low-battery toast is re-issued every frame | Open |
+| NB-L03 | Low | Low-battery toast is re-issued every frame | Fixed (5a7f3e6) |
 | NB-L04 | Low | Cards and Challenges screens: ESC goes to `latestMenu`, not Home | Open |
 | NB-L05 | Low | Travel-home energy is charged at the wrong time | Open |
 | NB-L06 | Low | Onsen sets Hygiene on exit, not on entry | Open |
@@ -219,7 +219,7 @@ Two engine facts drive several of the bugs below:
   - Where: `drawMenu()` 8108/8196 uses `age > 14` (15+); the README says 16.
   - Fix: `age >= 16`, or update the README.
 - **NB-L03: Low-battery toast is re-issued every frame.**
-  - Status: Open
+  - Status: Fixed (5a7f3e6): the warning is shown once below 10%, then every 5 minutes, only when no other toast is active; it re-arms at 15% or more, and negative levels are ignored.
   - Where: `printBatteryLevel()` 3443 runs every 50 ms.
   - What happens: below 10% the warning hides every other toast (e.g. "saved"). A negative level is not handled.
   - Fix: rate-limit the warning and ignore values below 0.
