@@ -10,7 +10,7 @@
 |---|---|---|---|
 | NB-H01 | High | Energy drops to 0 almost instantly on every debrief screen | Fixed (14ccc39) |
 | NB-H02 | High | Opening INTRO from the title screen overwrites the real save with a blank character | Fixed (64dfb39) |
-| NB-H03 | High | ESC can never leave the Matsuri; the player is trapped while holding tickets | Open |
+| NB-H03 | High | ESC can never leave the Matsuri; the player is trapped while holding tickets | Fixed (147cdd8) |
 | NB-H04 | High | Orderibi delivers food the player can't afford (money goes negative) | Open |
 | NB-H05 | High | Missing or misnamed SD assets freeze the device for minutes | Open |
 | NB-M01 | Medium | Shared `changeStateCounter` drops transitions and can soft-lock the game | Open |
@@ -85,7 +85,7 @@ Two engine facts drive several of the bugs below:
 - **Fix:** Add a `gameStarted` flag. Skip `updateAging`/`updateStats`/autosave until NEW_GAME or a successful CONTINUE.
 
 ### NB-H03: ESC can never leave the Matsuri; the player is trapped while holding tickets
-- **Status:** Open
+- **Status:** Fixed (147cdd8): ESC on MATSURI_MENU/2/3 in `matsuriMainMenu()` now goes to `EVENTS_MENU`; sub-screens still return to MATSURI_MENU.
 - **Where:** `changeState()` 4235–4238 sets `latestMenu = MATSURI_MENU`. The ESC handler in `matsuriMainMenu()` 12341–12343, 12362–12364 and 12388–12390 does `changeState(0, latestMenu, 0)`, which goes back to MATSURI_MENU. Food and Garapon results also return to MATSURI_MENU (10988–10992).
 - **What happens:** ESC just reloads the Matsuri screen. The only exits are the "not enough tickets" dialogs (`matsuriDialogs()` 11144–11160 → HOME_LOOP), so the player has to spend every ticket to get out.
 - **Fix:** Make ESC in `matsuriMainMenu` go to `EVENTS_MENU` (or HOME_LOOP), and don't overwrite `latestMenu` with MATSURI_MENU.
