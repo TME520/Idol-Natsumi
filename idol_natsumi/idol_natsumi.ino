@@ -3620,6 +3620,10 @@ void changeState(int baseLayer, GameState targetState, int delay) {
     previousState = currentState;
     currentState = targetState;
     debriefEnergyApplied = false;
+    // Leaving meditation (finished or aborted): let Spirit update again
+    if (previousState == REST_MEDITATE && currentState != REST_MEDITATE) {
+      meditationActive = false;
+    }
     prepareTravel();
     preloadImages();
     switch (baseLayer) {
