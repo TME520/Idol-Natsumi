@@ -886,11 +886,9 @@ const unsigned long keyCooldown = 200;  // milliseconds between accepted presses
 // Onsen mini-game state
 bool bathGameRunning = false;
 bool bathBackgroundDrawn = false;
-bool bathResultShown = false;
 unsigned long bathGameStart = 0;
 unsigned long bathOutcomeTime = 0;
 const unsigned long bathGameDuration = 8000;  // milliseconds
-const unsigned long bathExitDelay = 3000;      // milliseconds to display the result
 const int thermometerX = 200;
 const int thermometerY = 18;
 const int thermometerWidth = 20;
@@ -7056,7 +7054,6 @@ void manageTrainRunGame() {
 void resetBathGame() {
   bathGameRunning = false;
   bathBackgroundDrawn = false;
-  bathResultShown = false;
   sliderYPosition = thermometerY + thermometerHeight - sliderHeight;
   sliderDirection = -1;
   lastSliderUpdate = 0;
@@ -7147,17 +7144,12 @@ void manageBathGame() {
     return;
   }
 
-  unsigned long now = millis();
-
   if (bathOutcomeTime > 0) {
-    if (!bathResultShown) {
-      bathResultShown = true;
-    }
-    if (now - bathOutcomeTime >= bathExitDelay) {
-      changeState(0, HOME_LOOP, 0);
-    }
+    // Outcome already given: finalizeBathOutcome() has left the bath game
     return;
   }
+
+  unsigned long now = millis();
 
   if (now - bathGameStart >= bathGameDuration) {
     int zoneTop = idealZoneY;
