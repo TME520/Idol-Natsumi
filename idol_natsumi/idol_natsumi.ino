@@ -1113,6 +1113,13 @@ const int TRAVEL_Y = 50;
 const unsigned long TRAVEL_FRAME_DELAY = 80;  // ms between bike frames (was 150)
 M5Canvas travelStripCanvas(&M5Cardputer.Display);
 bool travelStripCanvasReady = false;
+// Background cache (see DISPLAY.md, ND-00): opted-in screens decode their background
+// PNG into frameCanvas once, then every later L0 redraw is a single pushSprite.
+// The cache is keyed on the background file path, so moving between two screens with
+// the same background does not decode it again. An empty key means frameCanvas holds
+// no background (swim and travel use frameCanvas as scratch and clear the key).
+char currentBackgroundPath[96] = "";
+char frameCanvasBackgroundPath[96] = "";
 ImageBuffer currentCharacter;
 ImageBuffer currentIcon;
 ImageBuffer natsumiSprite;
@@ -1800,7 +1807,23 @@ void drawText(String text, int x, int y, bool centerAlign, uint16_t color = WHIT
     M5Cardputer.Display.drawString(text, x, y);
 }
 
+bool loadImageFile(const char* path, ImageBuffer &imgBuf);
+
 bool preloadImage(const char* path, ImageBuffer &imgBuf) {
+  if (&imgBuf == &currentBackground) {
+    // Remember which file the background holds (key of the background cache)
+    currentBackgroundPath[0] = '\0';
+    bool loaded = loadImageFile(path, imgBuf);
+    if (loaded) {
+      strncpy(currentBackgroundPath, path, sizeof(currentBackgroundPath) - 1);
+      currentBackgroundPath[sizeof(currentBackgroundPath) - 1] = '\0';
+    }
+    return loaded;
+  }
+  return loadImageFile(path, imgBuf);
+}
+
+bool loadImageFile(const char* path, ImageBuffer &imgBuf) {
   constexpr int MAX_RETRIES = 30;
   constexpr unsigned long RETRY_DELAY_MS = 8000;
 
@@ -1878,6 +1901,9 @@ bool preloadImage(const char* path, ImageBuffer &imgBuf) {
 
 void unloadImage(ImageBuffer &imgBuf) {
   // Serial.println("> Entering unloadImage()");
+  if (&imgBuf == &currentBackground) {
+    currentBackgroundPath[0] = '\0';
+  }
   if (imgBuf.data) {
     free(imgBuf.data);
     imgBuf.data = nullptr;
@@ -3519,6 +3545,50 @@ void drawImage(const ImageBuffer& img) {
   if (img.data && img.length > 0) {
     M5Cardputer.Display.drawPng(img.data, img.length, 0, 0);
   }
+}
+
+// === Background cache (DISPLAY.md ND-00) ===
+bool backgroundCacheEnabledFor(GameState state) {
+  // Screens opted in to the cached background. Only list screens whose background is
+  // a fully opaque 240x135 PNG drawn at (0, 0) by drawBackground().
+  switch (state) {
+    default:
+      return false;
+  }
+}
+
+void invalidateBackgroundCache() {
+  // Call whenever something other than the background cache draws into frameCanvas
+  frameCanvasBackgroundPath[0] = '\0';
+}
+
+bool isFullScreenPng(const ImageBuffer& img) {
+  // PNG signature + IHDR: width at bytes 16-19, height at bytes 20-23 (big endian)
+  static const uint8_t pngSignature[8] = {0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A};
+  if (!img.data || img.length < 24) return false;
+  if (memcmp(img.data, pngSignature, sizeof(pngSignature)) != 0) return false;
+  uint32_t width = ((uint32_t)img.data[16] << 24) | ((uint32_t)img.data[17] << 16) | ((uint32_t)img.data[18] << 8) | img.data[19];
+  uint32_t height = ((uint32_t)img.data[20] << 24) | ((uint32_t)img.data[21] << 16) | ((uint32_t)img.data[22] << 8) | img.data[23];
+  return width == (uint32_t)frameCanvas.width() && height == (uint32_t)frameCanvas.height();
+}
+
+bool drawBackgroundFromCache() {
+  // Draws currentBackground through frameCanvas. Returns false when the caller must
+  // draw it the old way (canvas missing, screen not opted in, no or odd-sized image).
+  if (!frameCanvasReady || !backgroundCacheEnabledFor(currentState)) return false;
+  if (currentBackgroundPath[0] == '\0') return false;
+  if (strcmp(frameCanvasBackgroundPath, currentBackgroundPath) != 0) {
+    if (!isFullScreenPng(currentBackground)) return false;
+    if (!frameCanvas.drawPng(currentBackground.data, currentBackground.length, 0, 0)) {
+      invalidateBackgroundCache();
+      return false;
+    }
+    strncpy(frameCanvasBackgroundPath, currentBackgroundPath, sizeof(frameCanvasBackgroundPath) - 1);
+    frameCanvasBackgroundPath[sizeof(frameCanvasBackgroundPath) - 1] = '\0';
+    // Serial.println("drawBackgroundFromCache - decoded " + String(frameCanvasBackgroundPath) + " - free heap: " + String(ESP.getFreeHeap()));
+  }
+  frameCanvas.pushSprite(0, 0);
+  return true;
 }
 
 bool batteryLowWarned = false;
@@ -6498,6 +6568,7 @@ void drawTrainSwimPlayfield(bool showCompletion) {
   M5Canvas* target = frameCanvasReady ? &frameCanvas : nullptr;
 
   if (target) {
+    invalidateBackgroundCache();  // frameCanvas is used as the swim playfield
     target->fillScreen(poolColor);
     target->fillRect(0, swimPoolTop, screenWidth, poolHeight, poolColor);
     for (int lane = 0; lane < swimLaneCount; lane++) {
@@ -8027,7 +8098,9 @@ void drawBackground(const ImageBuffer& bg) {
   // Serial.println("> Entering drawBackground() L0 with backgroundEnabled set to " + String(backgroundEnabled));
   if (l0NeedsRedraw) {
     if (backgroundEnabled) {
-      drawImage(bg);
+      if (&bg != &currentBackground || !drawBackgroundFromCache()) {
+        drawImage(bg);
+      }
     }
     l0NeedsRedraw = false;
     l1NeedsRedraw = true;
@@ -13363,6 +13436,7 @@ void manageTravel() {
   // and sent to the display in one transfer, so the bike is never erased on screen.
   const bool useFrame = frameCanvasReady && travelStripCanvasReady;
   if (useFrame) {
+    invalidateBackgroundCache();  // frameCanvas now holds the area tile
     if (currentBackground.data && currentBackground.length > 0) {
       frameCanvas.drawPng(currentBackground.data, currentBackground.length, 0, 0);
     } else {
