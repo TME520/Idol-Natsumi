@@ -221,6 +221,7 @@ GameState returnTo = HOME_LOOP;
 GameState originLocation = HOME_LOOP;
 GameState targetLocation = HOME_LOOP;
 GameState latestMenu = FOOD_MENU;
+GameState challengesReturnState = HOME_LOOP;  // Where ESC goes from the Challenges screen
 bool continueStateLoaded = false;
 
 // === Screen configs definitions ===
@@ -8077,6 +8078,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         case 32:
           // SPACE (Challenges screen)
           menuOpened = false;
+          challengesReturnState = HOME_LOOP;
           changeState(0, CHALLENGES_SCREEN, 0);
           break;
         case 48:
@@ -8964,6 +8966,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // 2: CHALLENGES
           // Serial.println(">>> drawMenu - 2: CHALLENGES");
           menuOpened = false;
+          challengesReturnState = EVENTS_MENU;
           changeState(0, CHALLENGES_SCREEN, 0);
           break;
         case 51:
@@ -9023,6 +9026,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             showToast("Jobs: coming soon!");
             changeState(0, HOME_LOOP, 0);
           } else if (selection == 2) {
+            challengesReturnState = EVENTS_MENU;
             changeState(0, CHALLENGES_SCREEN, 0);
           } else if (selection == 3) {
             showToast("Festivals: coming soon!");
@@ -13065,8 +13069,7 @@ void browseCards() {
           loadedCardIndex = -1;
           selectedOwnedIndex = 0;
           needsRedraw = true;
-          // changeState(0, HOME_LOOP, 0);
-          changeState(0, latestMenu, 0);
+          changeState(0, HOME_LOOP, 0);  // Cards is only opened from Home
           return;
         // LEFT
         case 180: case 44: case 'a': case 'A':
@@ -13181,8 +13184,7 @@ void manageChallenges() {
         // ESC
         case 96: case 43:
           overlayActive = false;
-          // changeState(0, HOME_LOOP, 0);
-          changeState(0, latestMenu, 0);
+          changeState(0, challengesReturnState, 0);
           return;
         default:
           break;
