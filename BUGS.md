@@ -43,7 +43,7 @@
 | NB-L16 | Low | Neko Cafe reading frames always use the 11-year-old sprites | Fixed (df89460) |
 | NB-L17 | Low | Timers are not rollover-safe | Fixed (8fb65a0) |
 | NB-L18 | Low | Minor logic oddities | Fixed (ecf99bf) |
-| NB-L19 | Low | Text typos | Open |
+| NB-L19 | Low | Text typos | Fixed (a782f12) |
 
 Codes are stable: do not renumber. Status is `Open` or `Fixed (<commit>)`.
 
@@ -296,7 +296,7 @@ Two engine facts drive several of the bugs below:
   - `isChallengeStepDone` indexes `challengeFlags` before its bounds check (523).
   - NEKO_CAFE15–19 and COMP_STATUS are unused states.
 - **NB-L19: Text typos.**
-  - Status: Open
+  - Status: Fixed (a782f12): typos fixed (plus "Congratulations on the competition"); the wrong price was only in commented-out code (displayed and charged prices already matched); CHALLENGES kept in the menu (README says QUESTS).
   - "ssessions" (9835)
   - "Washed feels better" (7613)
   - "Carbunkle Cocktail" (409)
