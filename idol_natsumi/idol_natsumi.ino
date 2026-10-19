@@ -1752,6 +1752,14 @@ bool preloadImage(const char* path, ImageBuffer &imgBuf) {
   const char* filename = strrchr(path, '/');
   filename = filename ? filename + 1 : path;
 
+  // Missing file: fail fast, retrying will not make it appear.
+  if (!SD.exists(path)) {
+    Serial.print("Missing file: ");
+    Serial.println(path);
+    showToast("Missing file: " + String(path));
+    return false;
+  }
+
   for (int attempt = 0; attempt <= MAX_RETRIES; ++attempt) {
     File f = SD.open(path, FILE_READ);
 
