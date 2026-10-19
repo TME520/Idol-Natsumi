@@ -31,7 +31,7 @@
 | NB-L04 | Low | Cards and Challenges screens: ESC goes to `latestMenu`, not Home | Fixed (c988444) |
 | NB-L05 | Low | Travel-home energy is charged at the wrong time | Fixed (8b350b6) |
 | NB-L06 | Low | Onsen sets Hygiene on exit, not on entry | Fixed (55a073a) |
-| NB-L07 | Low | The outcome screen shows "MAX" instead of "+1" | Open |
+| NB-L07 | Low | The outcome screen shows "MAX" instead of "+1" | Fixed (24d7629) |
 | NB-L08 | Low | Garapon rewards may not be saved, and the currency shows wrongly | Open |
 | NB-L09 | Low | Age caps at 22 and the game never ends | Open |
 | NB-L10 | Low | Saved fields are never read back, and loads are not validated | Open |
@@ -239,7 +239,7 @@ Two engine facts drive several of the bugs below:
   - What happens: the README says entering the Onsen restores Hygiene.
   - Fix: set it on entry.
 - **NB-L07: The outcome screen shows "MAX" instead of "+1".**
-  - Status: Open
+  - Status: Fixed (24d7629): each reward site records `outcomeStatGained` before the +1; the outcome screen shows +1/MAX from it.
   - Where: 10044–10093.
   - What happens: the stat is incremented before the check, so going from 3 to 4 displays "MAX".
   - Fix: compare against the value before the increment.
