@@ -3961,9 +3961,16 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         l5NeedsRedraw = false;
         characterEnabled = true;
         break;
-      case FOOD_ORDER6: case FOOD_ORDER7:
+      case FOOD_ORDER6:
         setScreenConfig(ROOM);
         menuOpened = false;
+        break;
+      case FOOD_ORDER7:
+        setScreenConfig(ROOM);
+        menuOpened = false;
+        // The delivery is on screen now
+        waitingForFoodDelivery = false;
+        foodDeliveryCounter = 0;
         break;
       case FOOD_ORDER8: case FOOD_ORDER9:
         setScreenConfig(DIALOG);
@@ -4583,13 +4590,24 @@ void updateFiveSecondPulse() {
     // saveScreenshotToSd();
     if (waitingForFoodDelivery) {
       Serial.println(">>> Pending food delivery (" + String(foodDeliveryCounter) + ")");
-      foodDeliveryCounter += 1;
-      if (foodDeliveryCounter == 10) {
-        Serial.println(">>> Food delivered");
-        foodDeliveryCounter = 0;
-        waitingForFoodDelivery = false;
-        Serial.println(">>> Switching to FOOD_ORDER7");
-        changeState(0, FOOD_ORDER7, 0);
+      if (foodDeliveryCounter < 10) {
+        foodDeliveryCounter += 1;
+      }
+      // Food is ready: only ring when Natsumi is at home or in a menu and no
+      // delayed transition is pending, otherwise keep it for a later pulse.
+      // waitingForFoodDelivery is cleared when FOOD_ORDER7 is entered.
+      if (foodDeliveryCounter >= 10 && changeStateCounter == 0) {
+        switch (currentState) {
+          case HOME_LOOP: case IDLE_HOME: case IDLE_STATS:
+          case FOOD_MENU: case TRAIN_MENU: case COMP_MENU:
+          case HEALTH_MENU: case REST_MENU: case EVENTS_MENU:
+            Serial.println(">>> Food delivered");
+            Serial.println(">>> Switching to FOOD_ORDER7");
+            changeState(0, FOOD_ORDER7, 0);
+            break;
+          default:
+            break;
+        }
       }
       friendsVisitEnabled = false;
     } else {
