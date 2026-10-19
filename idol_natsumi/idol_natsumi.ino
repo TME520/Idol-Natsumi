@@ -742,7 +742,7 @@ void startTrainSingGame();
 // Training SWIM mini-game helpers
 void resetTrainSwimGame();
 void manageTrainSwimGame();
-void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect);
+void drawTrainSwimPlayfield(bool showCompletion);
 void startTrainSwimGame();
 
 // Training GYM mini-game helpers
@@ -972,9 +972,6 @@ const int swimSharkHeight = 12;
 const int swimHitPenalty = 4;
 const unsigned long swimSpawnIntervalMin = 650;
 const unsigned long swimSpawnIntervalMax = 1150;
-const float swimMinSpeed = 1.4f;
-const float swimMaxSpeed = 2.6f;
-const unsigned long swimHitFlashDuration = 200;
 const unsigned long swimCompletionDelay = 1200;
 int swimPlayerLane = 1;
 int swimAvoidedSharks = 0;
@@ -982,8 +979,6 @@ int swimCollisions = 0;
 bool swimGameRunning = false;
 bool swimGameCompleted = false;
 bool swimNeedsRedraw = false;
-bool swimHitFlash = false;
-unsigned long swimHitFlashTime = 0;
 unsigned long swimCompletionTime = 0;
 unsigned long swimLastSpawnTime = 0;
 unsigned long swimNextSpawnDelay = swimSpawnIntervalMin;
@@ -6416,10 +6411,6 @@ int getSwimLaneCenter(int lane) {
   return swimPoolTop + (lane * swimLaneHeight) + (swimLaneHeight / 2);
 }
 
-float getRandomSwimSpeed() {
-  return random(static_cast<long>(swimMinSpeed * 100), static_cast<long>(swimMaxSpeed * 100)) / 100.0f;
-}
-
 void resetTrainSwimGame() {
   swimSharks.clear();
   swimPlayerLane = 1;
@@ -6428,8 +6419,6 @@ void resetTrainSwimGame() {
   swimGameRunning = false;
   swimGameCompleted = false;
   swimNeedsRedraw = true;
-  swimHitFlash = false;
-  swimHitFlashTime = 0;
   swimCompletionTime = 0;
   swimLastSpawnTime = 0;
   swimNextSpawnDelay = swimSpawnIntervalMin;
@@ -6439,7 +6428,7 @@ void spawnSwimShark() {
   SwimShark shark;
   shark.lane = static_cast<int>(random(0, swimLaneCount));
   shark.x = -swimSharkLength;
-  shark.speed = 10;
+  shark.speed = 10;  // Fixed speed (pixels per frame)
   shark.active = true;
   swimSharks.push_back(shark);
 }
@@ -6456,7 +6445,7 @@ void startTrainSwimGame() {
   M5Cardputer.Display.fillScreen(M5Cardputer.Display.color565(150, 220, 255));
 }
 
-void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect) {
+void drawTrainSwimPlayfield(bool showCompletion) {
   const int screenWidth = M5Cardputer.Display.width();
   const int screenHeight = M5Cardputer.Display.height();
   const uint16_t poolColor = M5Cardputer.Display.color565(150, 220, 255);
@@ -6532,6 +6521,7 @@ void drawTrainSwimPlayfield(bool showCompletion, bool showHitEffect) {
 
 void handleSwimCollision() {
   swimCollisions++;
+  // TODO: collisions only affect the debrief text; decide whether a hit should cost dodged sharks
   // swimAvoidedSharks = max(0, swimAvoidedSharks - swimHitPenalty);
 }
 
@@ -6544,7 +6534,7 @@ void manageTrainSwimGame() {
 
   if (swimGameCompleted) {
     if (swimNeedsRedraw) {
-      drawTrainSwimPlayfield(true, false);
+      drawTrainSwimPlayfield(true);
       swimNeedsRedraw = false;
     }
     if (now - swimCompletionTime >= swimCompletionDelay) {
@@ -6567,12 +6557,6 @@ void manageTrainSwimGame() {
     resetTrainSwimGame();
     changeState(0, latestMenu, 0);
     return;
-  }
-
-  bool showHitEffect = swimHitFlash && (now - swimHitFlashTime < swimHitFlashDuration);
-  if (swimHitFlash && !showHitEffect) {
-    swimHitFlash = false;
-    swimNeedsRedraw = true;
   }
 
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -6639,7 +6623,7 @@ void manageTrainSwimGame() {
   }
 
   if (swimNeedsRedraw) {
-    drawTrainSwimPlayfield(false, showHitEffect);
+    drawTrainSwimPlayfield(false);
     swimNeedsRedraw = false;
   }
 }
