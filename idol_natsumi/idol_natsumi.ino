@@ -13227,11 +13227,12 @@ void prepareTravel() {
   bool triggerTravel = false;
   unloadAllImages();
   switch (currentState) {
+    case HOME_LOOP:
     case FOOD_COOK: case FOOD_ORDER: case HEALTH_WASH:
     case REST_MEDITATE: case REST_SLEEP: case GARDEN_LOOP:
       targetTile = "HOME";
       if (currentTile != targetTile) {
-        // Coming back home
+        // Coming back home (charged once: currentTile is HOME afterwards)
         if (natsumi.energy > 0) {
           natsumi.energy--;
         }
@@ -13322,6 +13323,7 @@ void displayBusinessFront() {
   // Displays the business front image
   unloadAllImages();
   switch (currentState) {
+    case HOME_LOOP:
     case FOOD_COOK:
     case FOOD_ORDER:
     case HEALTH_WASH:
