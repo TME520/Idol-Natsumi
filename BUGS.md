@@ -40,7 +40,7 @@
 | NB-L13 | Low | The Pantry Snack fallback can never trigger | Fixed (0798c9e) |
 | NB-L14 | Low | Competition rules don't match the README | Open |
 | NB-L15 | Low | NEW_GAME doesn't reset all globals | Fixed (7194265) |
-| NB-L16 | Low | Neko Cafe reading frames always use the 11-year-old sprites | Open |
+| NB-L16 | Low | Neko Cafe reading frames always use the 11-year-old sprites | Fixed (df89460) |
 | NB-L17 | Low | Timers are not rollover-safe | Open |
 | NB-L18 | Low | Minor logic oddities | Open |
 | NB-L19 | Low | Text typos | Open |
@@ -284,7 +284,7 @@ Two engine facts drive several of the bugs below:
   - What happens: `gardenTiles`/`gardenActive`, `waitingForFoodDelivery`, `foodDeliveryCounter`, `birthdayVisitEnabled`, `recentCompWin` and `isLatestTrainingPerfect` are not reset. This matters only after H2 or similar.
   - Fix: add a shared `resetGameState()`.
 - **NB-L16: Neko Cafe reading frames always use the 11-year-old sprites** (11409–11411).
-  - Status: Open
+  - Status: Fixed (df89460): `getReadingSpritePath()` picks `natsumi_reading_<13|15|18|21>yo_<frame>.png` by age bracket, falling back to 11yo when missing. Missing assets (not in the repo): 13yo, 15yo, 18yo, 21yo × left/center/right.
 - **NB-L17: Timers are not rollover-safe.**
   - Status: Open
   - Where: `drawToast` `millis() > toastUntil` (7860), `manageStats` (10643), and the dance cue timer.
