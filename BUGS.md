@@ -34,7 +34,7 @@
 | NB-L07 | Low | The outcome screen shows "MAX" instead of "+1" | Fixed (24d7629) |
 | NB-L08 | Low | Garapon rewards may not be saved, and the currency shows wrongly | Fixed (d0e66e7) |
 | NB-L09 | Low | Age caps at 22 and the game never ends | Open |
-| NB-L10 | Low | Saved fields are never read back, and loads are not validated | Open |
+| NB-L10 | Low | Saved fields are never read back, and loads are not validated | Fixed (a8d2fbe) |
 | NB-L11 | Low | Swim minigame leftovers | Open |
 | NB-L12 | Low | Bath game exit-delay code is dead | Open |
 | NB-L13 | Low | The Pantry Snack fallback can never trigger | Open |
@@ -254,7 +254,7 @@ Two engine facts drive several of the bugs below:
   - What happens: the README describes ages 11–21, but there is no ending.
   - Fix: cap at 21 and add an end state.
 - **NB-L10: Saved fields are never read back, and loads are not validated.**
-  - Status: Open
+  - Status: Fixed (a8d2fbe): `validateLoadedData()` clamps stats/age/competition and makes counts non-negative after load; `gameStateFromString` scans all states. `last_*_update`, `current_state` and `[version]` are kept write-only on purpose (session timestamps / unsafe to resume / informational).
   - Where: save 1375–1377; `gameStateFromString` 1306.
   - What happens:
     - `last_*_update` is saved but never loaded.
