@@ -1310,7 +1310,7 @@ const char* gameStateToString(GameState state) {
 }
 
 GameState gameStateFromString(const String& stateString) {
-  for (int i = VERSION_SCREEN; i <= COMP_NAT6; ++i) {
+  for (int i = VERSION_SCREEN; i <= TRAVEL_SCREEN; ++i) {
     GameState state = static_cast<GameState>(i);
     if (stateString == gameStateToString(state)) {
       return state;
@@ -1505,6 +1505,38 @@ bool saveGameToSd() {
 
   Serial.println(">> saveGameToSd: Save complete");
   return true;
+}
+
+void validateLoadedData() {
+  // Keep loaded values in range, so a corrupted or hand-edited save can't break the game
+  natsumi.age = constrain(natsumi.age, 11, 22);
+  natsumi.hunger = constrain(natsumi.hunger, 0, STAT_MAX);
+  natsumi.hygiene = constrain(natsumi.hygiene, 0, STAT_MAX);
+  natsumi.energy = constrain(natsumi.energy, 0, STAT_MAX);
+  natsumi.spirit = constrain(natsumi.spirit, 0, STAT_MAX);
+  natsumi.popularity = constrain(natsumi.popularity, 0, STAT_MAX);
+  natsumi.performance = constrain(natsumi.performance, 0, STAT_MAX);
+  natsumi.fitness = constrain(natsumi.fitness, 0, STAT_MAX);
+  natsumi.culture = constrain(natsumi.culture, 0, STAT_MAX);
+  natsumi.grace = constrain(natsumi.grace, 0, STAT_MAX);
+  natsumi.competition = constrain(natsumi.competition, 0, 16);
+  if (natsumi.money < 0) natsumi.money = 0;
+  if (natsumi.flowers < 0) natsumi.flowers = 0;
+  if (natsumi.tickets < 0) natsumi.tickets = 0;
+  // FridgeStock and CollectibleCards only hold int counters
+  int* fridgeCounts = reinterpret_cast<int*>(&fridge);
+  for (size_t i = 0; i < sizeof(fridge) / sizeof(int); ++i) {
+    if (fridgeCounts[i] < 0) fridgeCounts[i] = 0;
+  }
+  int* cardCounts = reinterpret_cast<int*>(&cards);
+  for (size_t i = 0; i < sizeof(cards) / sizeof(int); ++i) {
+    if (cardCounts[i] < 0) cardCounts[i] = 0;
+  }
+  for (int row = 0; row < gardenRows; ++row) {
+    for (int col = 0; col < gardenCols; ++col) {
+      if (gardenTiles[row][col] < 0) gardenTiles[row][col] = 0;
+    }
+  }
 }
 
 bool loadGameFromSd() {
@@ -1703,6 +1735,7 @@ bool loadGameFromSd() {
   }
 
   saveFile.close();
+  validateLoadedData();
   updateChallengeProgress();
   sessionStart = millis();
   /*
