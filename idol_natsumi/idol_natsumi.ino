@@ -11783,6 +11783,10 @@ void miniGameDebrief() {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       switch (currentState) {
         case FLOWERS_MARKET7:
+          // Flower sale completed: +1 Grace (shown on the outcome screen)
+          if (natsumi.grace < 4) {
+            natsumi.grace += 1;
+          }
           saveRequired = true;
           // isNatsumiHappy = true;
           changeState(0, ACTION_OUTCOME, 0);
