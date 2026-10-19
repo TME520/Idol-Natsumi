@@ -25,6 +25,7 @@
 | NB-M10 | Medium | Flower sales never award Grace | Fixed (ba88da1) |
 | NB-M11 | Medium | Minigames and activities have no ESC exit | Fixed (c892af9) |
 | NB-M12 | Medium | `conbimartVisitsTotal` is not saved | Fixed (47e341d) |
+| NB-M13 | Medium | Stale `overlayActive` after returning to `latestMenu` makes a key open the main menu | Fixed (43444d6) |
 | NB-L01 | Low | Sleep/Onsen energy recovery looks inverted | Fixed (f724f11) |
 | NB-L02 | Low | Restaurant age gate doesn't match the README | Fixed (README, 39d40fb) |
 | NB-L03 | Low | Low-battery toast is re-issued every frame | Fixed (5a7f3e6) |
@@ -204,6 +205,12 @@ Two engine facts drive several of the bugs below:
 - **Where:** save 1463–1468 / load 1680–1685. `initializeChallengeProgress()` (637) zeroes it.
 - **What happens:** Conbimart visits are lost on reload, so the "Go to Conbimart" challenge step may need another visit.
 - **Fix:** Add the counter to the save file.
+
+### NB-M13: Stale `overlayActive` after returning to `latestMenu`
+- **Status:** Fixed (43444d6): `overlayActive = false;` added to the `changeState()` entry of FOOD_MENU, TRAIN_MENU, COMP_MENU, HEALTH_MENU, REST_MENU, GARDEN_MENU and EVENTS_MENU. MATSURI_MENU is unchanged because it uses the overlay.
+- **Where:** `ACTION_OUTCOME` entry sets `overlayActive = true`; only HOME_LOOP cleared it. `drawOverlay()` any-key handler goes to HOME_LOOP. Reported by the author.
+- **What happens:** After a perfect shower (or Onsen, Library, Restaurant, Matsuri tickets, shop/Garapon exits), the next key press in the submenu is eaten by the overlay and opens the Home menu instead of the selected entry.
+- **Fix:** Clear the flag on submenu entry, as HOME_LOOP does.
 
 ---
 
