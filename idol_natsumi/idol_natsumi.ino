@@ -3558,6 +3558,8 @@ bool backgroundCacheEnabledFor(GameState state) {
       return true;
     case HEALTH_MENU:  // ND-03
       return true;
+    case REST_MENU:  // ND-04
+      return true;
     default:
       return false;
   }
