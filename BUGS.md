@@ -14,7 +14,7 @@
 | NB-H04 | High | Orderibi delivers food the player can't afford (money goes negative) | Fixed (3100690) |
 | NB-H05 | High | Missing or misnamed SD assets freeze the device for minutes | Fixed (b8d05f5, e06e2e4) |
 | NB-M01 | Medium | Shared `changeStateCounter` drops transitions and can soft-lock the game | Fixed (4ad6473) |
-| NB-M02 | Medium | Food delivery can be lost, or can pull the player out of whatever they are doing | Open |
+| NB-M02 | Medium | Food delivery can be lost, or can pull the player out of whatever they are doing | Fixed (5d38a91) |
 | NB-M03 | Medium | All submenus share one selection index | Open |
 | NB-M04 | Medium | Matsuri food and Garapon take the ticket (and feed Natsumi) before Buy/Cancel | Open |
 | NB-M05 | Medium | Leaving meditation early stops Spirit from ever updating again | Open |
@@ -124,7 +124,7 @@ Two engine facts drive several of the bugs below:
 - **Fix:** Keep a pending-target state, compare with `>=`, and reset the counter when the target changes.
 
 ### NB-M02: Food delivery can be lost, or can pull the player out of whatever they are doing
-- **Status:** Open
+- **Status:** Fixed (5d38a91): after 10 pulses the delivery only fires from HOME_LOOP, IDLE_HOME, IDLE_STATS, FOOD/TRAIN/COMP/HEALTH/REST/EVENTS_MENU with no delayed transition pending; otherwise it retries every pulse. The flag is cleared on entering FOOD_ORDER7.
 - **Where:** `updateFiveSecondPulse()` 4552–4561.
 - **What happens:**
   - The code clears `waitingForFoodDelivery` and the counter, then calls `changeState(FOOD_ORDER7, 0)` from any state. That interrupts cooking, the garden, sleep or meditation (and see M5).
