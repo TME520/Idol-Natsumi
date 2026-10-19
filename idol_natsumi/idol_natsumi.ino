@@ -134,7 +134,7 @@ enum GameState {
   COMP_NAT5,
   COMP_NAT6,
   COMP_NAT7,
-  COMP_STATUS,
+  COMP_STATUS,     // Unused for now (no screen yet)
   COMP_COMPLETE,
   COMP_FAILED,
   MATSURI_TITLE,
@@ -200,7 +200,7 @@ enum GameState {
   NEKO_CAFE12,
   NEKO_CAFE13,
   NEKO_CAFE14,
-  NEKO_CAFE15,
+  NEKO_CAFE15,     // NEKO_CAFE15-19: unused for now (reserved)
   NEKO_CAFE16,
   NEKO_CAFE17,
   NEKO_CAFE18,
@@ -521,6 +521,9 @@ bool isChallengeUnlocked(uint8_t challengeId) {
 bool isChallengeStepDone(uint8_t challengeId, uint8_t stepIndex) {
   Serial.println("> isChallengeStepDone() - challengeId: " + String(challengeId) + " - stepIndex: " + String(stepIndex) + " - MAX_CHALLENGES: " + String(MAX_CHALLENGES) + " - CHALLENGE_STEP_COUNT: " + String(CHALLENGE_STEP_COUNT));
   // Serial.println(">> isChallengeStepDone() - Returns " + String(challengeId < MAX_CHALLENGES && stepIndex < CHALLENGE_STEP_COUNT && (challengeFlags[challengeId] & challengeStepMask(stepIndex))));
+  if (challengeId >= MAX_CHALLENGES || stepIndex >= CHALLENGE_STEP_COUNT) {
+    return false;
+  }
   uint8_t flags = challengeFlags[challengeId];
   uint8_t mask  = challengeStepMask(stepIndex);
   
@@ -5535,7 +5538,7 @@ void unloadGardenFlowerSprites() {
 }
 
 int gardenFlowerStageIndex(int tileValue) {
-  if (tileValue > 2 && tileValue < 30) return 0;
+  if (tileValue > 2 && tileValue <= 30) return 0;
   if (tileValue > 30 && tileValue <= 60) return 1;
   if (tileValue > 60 && tileValue <= 90) return 2;
   if (tileValue > 90 && tileValue <= 120) return 3;
