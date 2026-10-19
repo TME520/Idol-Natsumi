@@ -5882,7 +5882,7 @@ void applyGaraponStatReward(int &statValue, const char* statLabel, int fallbackM
     garaponResultText = String(statLabel) + " +1";
   } else {
     natsumi.money += fallbackMoney;
-    garaponResultText = String(statLabel) + " max! +" + String(fallbackMoney) + "¥";
+    garaponResultText = String(statLabel) + " max! +$" + String(fallbackMoney);
   }
   saveRequired = true;
   // isNatsumiHappy = true;
@@ -5906,13 +5906,13 @@ void applyGaraponReward(int index) {
       natsumi.money += 300;
       garaponResultQty = "+300";
       garaponResultLabel = "Money";
-      garaponResultText = "Money +300¥";
+      garaponResultText = "Money +$300";
       break;
     case 3:
       natsumi.money += 600;
       garaponResultQty = "+600";
       garaponResultLabel = "Money";
-      garaponResultText = "Money +600¥";
+      garaponResultText = "Money +$600";
       break;
     case 4:
       // applyGaraponStatReward(natsumi.grace, "Grace", 200);
@@ -5920,21 +5920,21 @@ void applyGaraponReward(int index) {
       garaponResultQty = "+10";
       garaponResultLabel = "Sweets";
       garaponResultText = "Sweets +10";
-      return;
+      break;
     case 5:
       // applyGaraponStatReward(natsumi.spirit, "Spirit", 200);
       fridge.coconutJuice += 1;
       garaponResultQty = "+1";
       garaponResultLabel = "Coco Juice";
       garaponResultText = "Coco Juice +1";
-      return;
+      break;
     case 6:
       // applyGaraponStatReward(natsumi.popularity, "Popularity", 200);
       // No win
       garaponResultQty = "0";
       garaponResultLabel = "Nothing";
       garaponResultText = "Nothing :(";
-      return;
+      break;
     case 7:
       // applyGaraponStatReward(natsumi.performance, "Performance", 200);
       {
@@ -5984,7 +5984,7 @@ void applyGaraponReward(int index) {
       natsumi.money += 100;
       garaponResultQty = "+100";
       garaponResultLabel = "Money";
-      garaponResultText = "Money +100¥";
+      garaponResultText = "Money +$100";
       break;
   }
   saveRequired = true;
