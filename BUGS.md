@@ -19,7 +19,7 @@
 | NB-M04 | Medium | Matsuri food and Garapon take the ticket (and feed Natsumi) before Buy/Cancel | Fixed (a9218fc) |
 | NB-M05 | Medium | Leaving meditation early stops Spirit from ever updating again | Fixed (799dd2c) |
 | NB-M06 | Medium | Rock-paper-scissors: an invalid key breaks the round sequence | Fixed (dcd7933) |
-| NB-M07 | Medium | Competition state survives an aborted run | Open |
+| NB-M07 | Medium | Competition state survives an aborted run | Fixed (d0b1b68) |
 | NB-M08 | Medium | The screensaver or a visitor interrupts the player while they are using the home menu | Open |
 | NB-M09 | Medium | Rewards and penalties are applied inside draw code and repeat on every redraw | Open |
 | NB-M10 | Medium | Flower sales never award Grace | Open |
@@ -160,7 +160,7 @@ Two engine facts drive several of the bugs below:
 - **Fix:** Increment the stage only after a valid hand, and reset the statics on ESC.
 
 ### NB-M07: Competition state survives an aborted run
-- **Status:** Open
+- **Status:** Fixed (d0b1b68): entering COMP_*5 sets `competitionRunStarting`, which makes `manageCompetition()` reset all per-run statics, however the previous run ended. (The mid-run eligibility check itself is unchanged.)
 - **Where:** `manageCompetition()` 7421, 7448, 7605–7606.
 - **What happens:** Eligibility is re-checked every frame. If a stat drops below 4 mid-run (`updateStats` runs in `manageGame`), the player is sent to COMP_EXPLAIN. The static `competitionInitialized` stays true, so the next attempt resumes the old notes and counters.
 - **Fix:** Check eligibility only on entry, and reset the statics whenever the player leaves.
