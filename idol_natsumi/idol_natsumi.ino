@@ -3627,6 +3627,8 @@ void changeState(int baseLayer, GameState targetState, int delay) {
     currentState = targetState;
     debriefEnergyApplied = false;
     overlayEffectApplied = false;
+    // Any countdown left before the end (ESC/any key) starts fresh next time
+    resetMiniGameCountdown();
     // Leaving meditation (finished or aborted): let Spirit update again
     if (previousState == REST_MEDITATE && currentState != REST_MEDITATE) {
       meditationActive = false;
@@ -5718,11 +5720,27 @@ void resetMiniGameCountdown() {
   miniGameCountdownValue = 3;
 }
 
+bool escapePressed() {
+  // ESC is held: also consume the key change so the next screen
+  // does not see the same press again
+  if (M5Cardputer.Keyboard.isKeyPressed('`')) {
+    M5Cardputer.Keyboard.isChange();
+    return true;
+  }
+  return false;
+}
+
 void drawMiniGameCountdown() {
   drawText(String(miniGameCountdownValue), 120, 67, true, RED, 7, BLACK);
 }
 
 void manageMiniGameCountdown() {
+  if (escapePressed()) {
+    // ESC: abort, no reward, no debrief
+    resetMiniGameCountdown();
+    changeState(0, latestMenu, 0);
+    return;
+  }
   if (!miniGameCountdownActive) {
     miniGameCountdownActive = true;
     miniGameCountdownStart = millis();
@@ -6176,6 +6194,13 @@ void manageTrainSingGame() {
     return;
   }
 
+  if (escapePressed()) {
+    // ESC: abort, no reward, no debrief
+    resetTrainSingGame();
+    changeState(0, latestMenu, 0);
+    return;
+  }
+
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (!keyList.empty()) {
@@ -6262,6 +6287,13 @@ void manageTrainDanceGame() {
     if (now - danceCompletionTime >= 1200) {
       changeState(0, TRAIN_DANCE3, 0);
     }
+    return;
+  }
+
+  if (escapePressed()) {
+    // ESC: abort, no reward, no debrief
+    resetTrainDanceGame();
+    changeState(0, latestMenu, 0);
     return;
   }
 
@@ -6471,6 +6503,13 @@ void manageTrainSwimGame() {
       }
       changeState(0, TRAIN_SWIM3, 0);
     }
+    return;
+  }
+
+  if (escapePressed()) {
+    // ESC: abort, no reward, no debrief
+    resetTrainSwimGame();
+    changeState(0, latestMenu, 0);
     return;
   }
 
@@ -6720,6 +6759,13 @@ void manageTrainGymGame() {
     return;
   }
 
+  if (escapePressed()) {
+    // ESC: abort, no reward, no debrief
+    resetTrainGymGame();
+    changeState(0, latestMenu, 0);
+    return;
+  }
+
   if (gymGameRunning) {
     unsigned long delta = (gymLastUpdate == 0) ? 0 : (now - gymLastUpdate);
     if (delta > 0) {
@@ -6884,6 +6930,13 @@ void manageTrainRunGame() {
       }
       changeState(0, TRAIN_RUN3, 0);
     }
+    return;
+  }
+
+  if (escapePressed()) {
+    // ESC: abort, no reward, no debrief
+    resetTrainRunGame();
+    changeState(0, latestMenu, 0);
     return;
   }
 
@@ -7274,6 +7327,15 @@ void manageLibrary() {
     l5NeedsRedraw = true;
   }
 
+  if (escapePressed()) {
+    // ESC: abort, no reward, no debrief
+    libraryInitialized = false;
+    overlayActive = false;
+    characterEnabled = true;
+    changeState(0, latestMenu, 0);
+    return;
+  }
+
   unsigned long now = millis();
   unsigned long elapsed = (now >= libraryStartTime) ? (now - libraryStartTime) : 0;
   int segments = elapsed / librarySegmentInterval;
@@ -7449,6 +7511,16 @@ void manageFlowersSale() {
       flowerPositions.push_back({x, y});
       flowerSlots.push_back(i);
     }
+  }
+
+  if (escapePressed()) {
+    // ESC: stop selling, keep the money of flowers already sold,
+    // no Grace, no debrief
+    flowersSaleInProgress = false;
+    flowersSaleInitialized = false;
+    saveRequired = true;
+    changeState(0, latestMenu, 0);
+    return;
   }
 
   if (fiveSecondPulse && !flowerSlots.empty()) {
