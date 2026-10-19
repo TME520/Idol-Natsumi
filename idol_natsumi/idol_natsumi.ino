@@ -3560,6 +3560,8 @@ bool backgroundCacheEnabledFor(GameState state) {
       return true;
     case REST_MENU:  // ND-04
       return true;
+    case TRAIN_MENU:  // ND-05
+      return true;
     default:
       return false;
   }

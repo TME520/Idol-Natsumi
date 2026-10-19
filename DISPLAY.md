@@ -33,7 +33,7 @@
 | ND-02 | FOOD_MENU | `kitchen.png` | Done |
 | ND-03 | HEALTH_MENU | `bathroom.png` | Done |
 | ND-04 | REST_MENU | `bedroom.png` | Done |
-| ND-05 | TRAIN_MENU | `map_training.png` | Open |
+| ND-05 | TRAIN_MENU | `map_training.png` | Done |
 | ND-06 | COMP_MENU | `competition.png` | Open |
 | ND-07 | EVENTS_MENU | `cityscape_bg.png` | Open |
 | ND-08 | GARDEN_LOOP / GARDEN_PLANT / GARDEN_WATER / GARDEN_PICK / GARDEN_CLEANUP / GARDEN_MENU | `garden_bg.png` | Open |
