@@ -37,7 +37,7 @@
 | NB-L10 | Low | Saved fields are never read back, and loads are not validated | Fixed (a8d2fbe) |
 | NB-L11 | Low | Swim minigame leftovers | Fixed (6f7794a) |
 | NB-L12 | Low | Bath game exit-delay code is dead | Fixed (7921ab1) |
-| NB-L13 | Low | The Pantry Snack fallback can never trigger | Open |
+| NB-L13 | Low | The Pantry Snack fallback can never trigger | Fixed (0798c9e) |
 | NB-L14 | Low | Competition rules don't match the README | Open |
 | NB-L15 | Low | NEW_GAME doesn't reset all globals | Open |
 | NB-L16 | Low | Neko Cafe reading frames always use the 11-year-old sprites | Open |
@@ -271,7 +271,7 @@ Two engine facts drive several of the bugs below:
   - Where: `manageBathGame()` 6974–6981.
   - What happens: `finalizeBathOutcome` changes state immediately, so the delay never runs.
 - **NB-L13: The Pantry Snack fallback can never trigger.**
-  - Status: Open
+  - Status: Fixed (0798c9e): unreachable fallback removed (no gameplay change). Raw single items still count as "Cook a recipe" for the challenge, which is left as is (design decision).
   - Where: `cookSelectedRecipe()` 9133–9142.
   - What happens: every single food is also a one-item "recipe", so the fallback is unreachable, and eating one raw item counts as "Cook a recipe" for the challenge.
 - **NB-L14: Competition rules don't match the README.**
