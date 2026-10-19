@@ -25,20 +25,20 @@
 | NB-M10 | Medium | Flower sales never award Grace | Fixed (ba88da1) |
 | NB-M11 | Medium | Minigames and activities have no ESC exit | Fixed (c892af9) |
 | NB-M12 | Medium | `conbimartVisitsTotal` is not saved | Fixed (47e341d) |
-| NB-L01 | Low | Sleep/Onsen energy recovery looks inverted | Open |
-| NB-L02 | Low | Restaurant age gate doesn't match the README | Open |
+| NB-L01 | Low | Sleep/Onsen energy recovery looks inverted | Needs data |
+| NB-L02 | Low | Restaurant age gate doesn't match the README | Fixed (README, 39d40fb) |
 | NB-L03 | Low | Low-battery toast is re-issued every frame | Fixed (5a7f3e6) |
 | NB-L04 | Low | Cards and Challenges screens: ESC goes to `latestMenu`, not Home | Fixed (c988444) |
 | NB-L05 | Low | Travel-home energy is charged at the wrong time | Fixed (8b350b6) |
 | NB-L06 | Low | Onsen sets Hygiene on exit, not on entry | Fixed (55a073a) |
 | NB-L07 | Low | The outcome screen shows "MAX" instead of "+1" | Fixed (24d7629) |
 | NB-L08 | Low | Garapon rewards may not be saved, and the currency shows wrongly | Fixed (d0e66e7) |
-| NB-L09 | Low | Age caps at 22 and the game never ends | Open |
+| NB-L09 | Low | Age caps at 22 and the game never ends | Deferred (author: not there yet) |
 | NB-L10 | Low | Saved fields are never read back, and loads are not validated | Fixed (a8d2fbe) |
 | NB-L11 | Low | Swim minigame leftovers | Fixed (6f7794a) |
 | NB-L12 | Low | Bath game exit-delay code is dead | Fixed (7921ab1) |
 | NB-L13 | Low | The Pantry Snack fallback can never trigger | Fixed (0798c9e) |
-| NB-L14 | Low | Competition rules don't match the README | Open |
+| NB-L14 | Low | Competition rules don't match the README | Fixed (README, 39d40fb) |
 | NB-L15 | Low | NEW_GAME doesn't reset all globals | Fixed (7194265) |
 | NB-L16 | Low | Neko Cafe reading frames always use the 11-year-old sprites | Fixed (df89460) |
 | NB-L17 | Low | Timers are not rollover-safe | Fixed (8fb65a0) |
@@ -210,12 +210,12 @@ Two engine facts drive several of the bugs below:
 ## LOW
 
 - **NB-L01: Sleep/Onsen energy recovery looks inverted.**
-  - Status: Open
+  - Status: Needs data: see `/workspace/nb_l01_energy_recovery.md` (recovery table per stat sum, why it looks inverted, alternatives). No code change.
   - Where: 4591, `random(220) > ((hunger+hygiene+spirit+fitness)*10)+10`.
   - What happens: a healthier Natsumi recovers *less* often (about 22% chance with max stats vs about 95% with zero stats).
   - Fix: flip the comparison (needs the author to confirm the intent).
 - **NB-L02: Restaurant age gate doesn't match the README.**
-  - Status: Open
+  - Status: Fixed (README, 39d40fb): the code is right (15+); README now says "at least 15".
   - Where: `drawMenu()` 8108/8196 uses `age > 14` (15+); the README says 16.
   - Fix: `age >= 16`, or update the README.
 - **NB-L03: Low-battery toast is re-issued every frame.**
@@ -249,7 +249,7 @@ Two engine facts drive several of the bugs below:
   - What happens: those cases return before `saveRequired = true`. The result text uses "¥", which the default ASCII font doesn't render; the rest of the UI uses "$".
   - Fix: set `saveRequired` first and use "$".
 - **NB-L09: Age caps at 22 and the game never ends.**
-  - Status: Open
+  - Status: Deferred (author: not there yet).
   - Where: `updateAging()` 4383–4385; the stats bar uses max 22 (10380).
   - What happens: the README describes ages 11–21, but there is no ending.
   - Fix: cap at 21 and add an end state.
@@ -275,7 +275,7 @@ Two engine facts drive several of the bugs below:
   - Where: `cookSelectedRecipe()` 9133–9142.
   - What happens: every single food is also a one-item "recipe", so the fallback is unreachable, and eating one raw item counts as "Cook a recipe" for the challenge.
 - **NB-L14: Competition rules don't match the README.**
-  - Status: Open
+  - Status: Fixed (README, 39d40fb): the code is right; the README COMPETITION section now describes the actual rules.
   - Where: 7489–7522 and 7562–7571.
   - What happens: a single missed note fails the competition, while the README implies misses are allowed and only a perfect run grants Popularity. Also, notes can still be caught after they pass the player row.
 - **NB-L15: NEW_GAME doesn't reset all globals.**
