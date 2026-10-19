@@ -719,7 +719,7 @@ const char* saveGamePath = "/idolnat/savegame.dat";
 const char* saveGameTempPath = "/idolnat/savegame.tmp";
 const char* saveGameBackupPath = "/idolnat/savegame.bak";
 String saveStatusMsg = "";
-unsigned long saveStatusUntil = 0;
+unsigned long saveStatusStart = 0;  // millis() when saveStatusMsg was set (shown for 2 s)
 unsigned long counterToScreensaver = 0;
 String trainingStatusMessage = "";
 bool trainingStatusProcessed = false;
@@ -926,7 +926,8 @@ int singNotesMissed = 0;
 int singNotesSpawned = 0;
 unsigned long singLastSpawnTime = 0;
 unsigned long singCompletionTime = 0;
-unsigned long singFlashUntil = 0;
+unsigned long singFlashStart = 0;
+bool singFlashActive = false;
 uint16_t singFlashColor = BLACK;
 bool singGameRunning = false;
 bool singGameCompleted = false;
@@ -941,7 +942,7 @@ int danceCuesShown = 0;
 int danceCurrentDirection = -1;                  // 0=UP,1=DOWN,2=LEFT,3=RIGHT
 bool danceCueActive = false;
 unsigned long danceCueStart = 0;
-unsigned long danceNextCueTime = 0;
+unsigned long danceCueGapStart = 0;  // millis() when the gap before the next cue started
 unsigned long danceCompletionTime = 0;
 bool danceGameRunning = false;
 bool danceGameCompleted = false;
@@ -1005,7 +1006,8 @@ int gymCurrentStreak = 0;
 int gymMisses = 0;
 char gymTargetLetter = 'A';
 unsigned long gymLastUpdate = 0;
-unsigned long gymResultFlashUntil = 0;
+unsigned long gymResultFlashStart = 0;
+bool gymResultFlashActive = false;
 String gymResultText = "";
 unsigned long gymCompletionTime = 0;
 bool gymGameRunning = false;
@@ -1314,11 +1316,13 @@ GameState gameStateFromString(const String& stateString) {
 
 // Toast messages
 String toastMsg = "";
-unsigned long toastUntil = 0;  // timestamp when toast should disappear
+unsigned long toastStart = 0;     // millis() when the toast was shown
+unsigned long toastDuration = 0;  // how long it stays (ms)
 void showToast(const String& msg, unsigned long ms = longWait) {
   toastActive = true;
   toastMsg = msg;
-  toastUntil = millis() + ms;
+  toastStart = millis();
+  toastDuration = ms;
   l3NeedsRedraw = true;
 }
 
@@ -3927,7 +3931,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         l5NeedsRedraw = true;
         toastEnabled = false;
         saveStatusMsg = "";
-        saveStatusUntil = 0;
+        saveStatusStart = 0;
         break;
       case INVENTORY_SCREEN:
         setScreenConfig(GAME);
@@ -4640,10 +4644,6 @@ void saveScreenshotToSd() {
 
 void updateFiveSecondPulse() {
   unsigned long now = millis();
-  if (now < lastFiveSecondTick) {
-    lastFiveSecondTick = now;
-    // Serial.println(">> 5 sec tick");
-  }
   if (now - lastFiveSecondTick >= fiveSecondInterval) {
     lastFiveSecondTick = now;
     // Serial.println(">>> 5 sec tick");
@@ -5864,7 +5864,7 @@ void resetTrainDanceGame() {
   danceCurrentDirection = -1;
   danceCueActive = false;
   danceCueStart = 0;
-  danceNextCueTime = 0;
+  danceCueGapStart = millis() - danceCueGap;  // First cue can appear right away
   danceCompletionTime = 0;
   danceGameRunning = false;
   danceGameCompleted = false;
@@ -6166,7 +6166,8 @@ void resetTrainSingGame() {
   singPlayerColumn = singColumnCount / 2;
   singLastSpawnTime = 0;
   singCompletionTime = 0;
-  singFlashUntil = 0;
+  singFlashStart = 0;
+  singFlashActive = false;
   singFlashColor = BLACK;
   singGameRunning = false;
   singGameCompleted = false;
@@ -6291,12 +6292,14 @@ void manageTrainSingGame() {
         singNotesCollected++;
         note.active = false;
         singFlashColor = M5Cardputer.Display.color565(40, 220, 80);
-        singFlashUntil = now + singFlashDuration;
+        singFlashStart = now;
+        singFlashActive = true;
       } else {
         singNotesMissed++;
         note.active = false;
         singFlashColor = M5Cardputer.Display.color565(220, 40, 40);
-        singFlashUntil = now + singFlashDuration;
+        singFlashStart = now;
+        singFlashActive = true;
       }
     }
   }
@@ -6312,9 +6315,12 @@ void manageTrainSingGame() {
     return;
   }
 
-  if (now < singFlashUntil) {
-    M5Cardputer.Display.fillScreen(singFlashColor);
-    return;
+  if (singFlashActive) {
+    if (now - singFlashStart < singFlashDuration) {
+      M5Cardputer.Display.fillScreen(singFlashColor);
+      return;
+    }
+    singFlashActive = false;
   }
 
   drawTrainSingPlayfield(false);
@@ -6347,11 +6353,11 @@ void manageTrainDanceGame() {
 
   if (danceCueActive && now - danceCueStart >= danceCueDuration) {
     danceCueActive = false;
-    danceNextCueTime = now + danceCueGap;
+    danceCueGapStart = now;
     danceNeedsRedraw = true;
   }
 
-  if (!danceCueActive && now >= danceNextCueTime && danceGameRunning) {
+  if (!danceCueActive && now - danceCueGapStart >= danceCueGap && danceGameRunning) {
     spawnDanceCue();
   }
 
@@ -6379,7 +6385,7 @@ void manageTrainDanceGame() {
       if (inputDirection == danceCurrentDirection) {
         danceScore++;
         danceCueActive = false;
-        danceNextCueTime = now + danceCueGap;
+        danceCueGapStart = now;
         danceNeedsRedraw = true;
       }
     }
@@ -6711,7 +6717,8 @@ void resetTrainGymGame() {
   gymGameRunning = false;
   gymGameCompleted = false;
   gymLastUpdate = 0;
-  gymResultFlashUntil = 0;
+  gymResultFlashStart = 0;
+  gymResultFlashActive = false;
   gymResultText = "";
   gymCompletionTime = 0;
   refreshGymChallenge();
@@ -6758,7 +6765,7 @@ void drawTrainGymPlayfield(bool showCompletion) {
   M5Cardputer.Display.drawString(String("Streak: ") + gymCurrentStreak + String("/") + gymTargetStreak, 6, 4);
 
   unsigned long now = millis();
-  if (!showCompletion && gymResultFlashUntil > now && gymResultText.length() > 0) {
+  if (!showCompletion && gymResultFlashActive && now - gymResultFlashStart < gymResultFlashDuration && gymResultText.length() > 0) {
     M5Cardputer.Display.setTextDatum(middle_center);
     M5Cardputer.Display.setTextSize(2);
     M5Cardputer.Display.drawString(gymResultText, screenWidth / 2, gymBarY - 14);
@@ -6838,7 +6845,8 @@ void manageTrainGymGame() {
           gymCurrentStreak++;
           gymCursorSpeed += gymCursorSpeedStep;
           gymResultText = " Great timing! ";
-          gymResultFlashUntil = now + gymResultFlashDuration;
+          gymResultFlashStart = now;
+          gymResultFlashActive = true;
           if (gymCurrentStreak >= gymTargetStreak) {
             gymGameCompleted = true;
             gymGameRunning = false;
@@ -6854,7 +6862,8 @@ void manageTrainGymGame() {
           gymCurrentStreak = 0;
           gymCursorSpeed = gymCursorBaseSpeed;
           gymResultText = " Miss! Try again ";
-          gymResultFlashUntil = now + gymResultFlashDuration;
+          gymResultFlashStart = now;
+          gymResultFlashActive = true;
           refreshGymChallenge();
           gymCursorDirection = 1;
           gymCursorPos = gymBarX;
@@ -7372,7 +7381,7 @@ void manageLibrary() {
   }
 
   unsigned long now = millis();
-  unsigned long elapsed = (now >= libraryStartTime) ? (now - libraryStartTime) : 0;
+  unsigned long elapsed = now - libraryStartTime;
   int segments = elapsed / librarySegmentInterval;
   if (segments > librarySegmentCount) {
     segments = librarySegmentCount;
@@ -7869,7 +7878,7 @@ void drawMeditationOverlay() {
   const uint16_t textColor = WHITE;
 
   unsigned long now = millis();
-  unsigned long elapsed = (now >= meditateStart) ? (now - meditateStart) : 0;
+  unsigned long elapsed = now - meditateStart;
   if (elapsed > meditateInterval) {
     elapsed = meditateInterval;
   }
@@ -8049,7 +8058,7 @@ void drawToast() {
   // Draw toast messages (layer 3)
   // Serial.println("> Entering drawToast() L3 with toastEnabled set to " + String(toastEnabled));
   if (toastActive) {
-    if (millis() > toastUntil) {
+    if (millis() - toastStart > toastDuration) {
       // Toast expired
       toastActive = false;
       l0NeedsRedraw = true;
@@ -10845,12 +10854,9 @@ void drawOnsenOverlay() {
 
 void manageStats() {
   // Serial.println("> Entering manageStats()");
-  if (saveStatusUntil > 0 && millis() > saveStatusUntil) {
-    saveStatusUntil = 0;
-    if (saveStatusMsg.length() > 0) {
-      saveStatusMsg = "";
-      l5NeedsRedraw = true;
-    }
+  if (saveStatusMsg.length() > 0 && millis() - saveStatusStart > 2000) {
+    saveStatusMsg = "";
+    l5NeedsRedraw = true;
   }
 
   uint8_t key = 0;
@@ -10861,7 +10867,7 @@ void manageStats() {
       if (key == 's' || key == 'S') {
         bool saved = saveGameToSd();
         saveStatusMsg = saved ? "Saved to savegame.dat" : "Save failed";
-        saveStatusUntil = millis() + 2000;
+        saveStatusStart = millis();
         l5NeedsRedraw = true;
       } else {
         overlayActive = false;
