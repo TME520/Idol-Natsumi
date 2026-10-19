@@ -17,7 +17,7 @@
 | NB-M02 | Medium | Food delivery can be lost, or can pull the player out of whatever they are doing | Fixed (5d38a91) |
 | NB-M03 | Medium | All submenus share one selection index | Fixed (ccf3598) |
 | NB-M04 | Medium | Matsuri food and Garapon take the ticket (and feed Natsumi) before Buy/Cancel | Fixed (a9218fc) |
-| NB-M05 | Medium | Leaving meditation early stops Spirit from ever updating again | Open |
+| NB-M05 | Medium | Leaving meditation early stops Spirit from ever updating again | Fixed (799dd2c) |
 | NB-M06 | Medium | Rock-paper-scissors: an invalid key breaks the round sequence | Open |
 | NB-M07 | Medium | Competition state survives an aborted run | Open |
 | NB-M08 | Medium | The screensaver or a visitor interrupts the player while they are using the home menu | Open |
@@ -147,7 +147,7 @@ Two engine facts drive several of the bugs below:
 - **Fix:** Apply the cost and the effect only when Buy is confirmed in `matsuriSale()`.
 
 ### NB-M05: Leaving meditation early stops Spirit from ever updating again
-- **Status:** Open
+- **Status:** Fixed (799dd2c): `changeState()` clears `meditationActive` on every transition out of REST_MEDITATE; the reward is still only granted when the timer completes.
 - **Where:** `changeState()` REST_MEDITATE 4141 sets `meditationActive = true`. It is cleared only when the timer finishes (7725). The `drawOverlay` any-key handler (9476–9483) exits to HOME_LOOP without clearing it.
 - **What happens:** After any key press (or a food-delivery interruption) during meditation, `updateSpirit()` (4437) skips its recalculation forever, until a full meditation is completed or the device reboots.
 - **Fix:** Clear `meditationActive` whenever the player leaves REST_MEDITATE (for example in `changeState`).
