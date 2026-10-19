@@ -12357,7 +12357,8 @@ void matsuriMainMenu() {
             // ESC
             case 96:
               // changeState(0, HOME_LOOP, 0);
-              changeState(0, latestMenu, 0);
+              // latestMenu is MATSURI_MENU here, go back to the Events menu
+              changeState(0, EVENTS_MENU, 0);
               return;
           }
           break;
@@ -12378,7 +12379,8 @@ void matsuriMainMenu() {
             // ESC
             case 96:
               // changeState(0, HOME_LOOP, 0);
-              changeState(0, latestMenu, 0);
+              // latestMenu is MATSURI_MENU here, go back to the Events menu
+              changeState(0, EVENTS_MENU, 0);
               return;
           }
           break;
@@ -12404,7 +12406,8 @@ void matsuriMainMenu() {
             // ESC
             case 96:
               // changeState(0, HOME_LOOP, 0);
-              changeState(0, latestMenu, 0);
+              // latestMenu is MATSURI_MENU here, go back to the Events menu
+              changeState(0, EVENTS_MENU, 0);
               return;
           }
           break;
