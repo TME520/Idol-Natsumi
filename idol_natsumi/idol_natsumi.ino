@@ -4702,7 +4702,9 @@ void updateFiveSecondPulse() {
     switch (currentState) {
       case REST_SLEEP: case HEALTH_ONSEN:
         if (natsumi.energy < 4) {
-          if ( random(220) > (((natsumi.hunger + natsumi.hygiene + natsumi.spirit + natsumi.fitness)*10)+10)) {
+          // Better care means faster recovery: the chance grows with Hunger + Hygiene + Spirit + Fitness
+          // (about 32% per pulse when they are all 0, certain from a total of 15)
+          if ( random(220) < (((natsumi.hunger + natsumi.hygiene + natsumi.spirit + natsumi.fitness)*10)+10) + 60) {
             natsumi.energy++;
             saveRequired = true;
             // isNatsumiHappy = true;

@@ -232,7 +232,7 @@ Stat caps: 0 is the lowest while 4 is the highest.
 | **Age**        | Passive    | 0–∞   | Increases automatically every `agingInterval` ms | — |
 | **Hunger**     | Passive    | 0–4   | **COOKING:** +1 per selected ingredient, capped at 4. **RESTAURANT / ORDER / MATSURI food:** set Hunger directly to 4. Some visitor events can also set it to 4. | Decreases by 1 every `hungerInterval` ms |
 | **Hygiene**    | Passive    | 0–4   | **WASH:** a successful shower sets Hygiene to 4. **ONSEN:** sets Hygiene to 4. | Decreases by 1 every `hygieneInterval` ms |
-| **Energy**     | Passive    | 0–4   | **SLEEP / ONSEN:** can add +1 on five-second pulses until Energy reaches 4. The increase is probabilistic and depends on Natsumi's other condition stats. | Decreases by 1 every `energyInterval` ms |
+| **Energy**     | Passive    | 0–4   | **SLEEP / ONSEN:** can add +1 on five-second pulses until Energy reaches 4. The increase is probabilistic and depends on Natsumi's other condition stats: the better she is cared for (Hunger, Hygiene, Spirit, Fitness), the faster she recovers. | Decreases by 1 every `energyInterval` ms |
 | **Spirit**     | Derived / Active | 0–4 | **MEDITATE:** +1, capped at 4. Completing a **CHALLENGE** sets Spirit to 4, and a visitor event can also set it to 4. `updateSpirit()` recalculates Spirit from Hygiene + Energy + Hunger + Performance + Popularity when Natsumi ages. | Can be reduced when `updateSpirit()` recalculates it from lower contributing stats |
 | **Popularity** | Active     | 0–4   | Completing a **COMPETITION perfectly** (no missed notes) sets Popularity directly to 4. | — |
 | **Performance**| Active     | 0–4   | Completing **SING** or **DANCE** training adds +1, capped at 4. | — |
