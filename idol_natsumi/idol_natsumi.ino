@@ -9323,16 +9323,10 @@ bool cookSelectedRecipe() {
   }
 
   const CookRecipe* recipe = findMatchingRecipe();
-  bool pantryFallback = false;
   if (!recipe) {
-    if (hasCookableRecipe()) {
-      // Safer prototype behavior: reject unknown mixes while a known recipe is available.
-      showToast("No recipe yet");
-      return false;
-    }
-    // If the fridge cannot make any known recipe, allow a generic snack so the
-    // player is not blocked from feeding Natsumi by the prototype recipe list.
-    pantryFallback = true;
+    // Every single food is also a recipe, so only unknown mixes end up here
+    showToast("No recipe yet");
+    return false;
   }
 
   for (uint8_t i = 0; i < recipeSelectionCount; i++) {
@@ -9354,11 +9348,11 @@ bool cookSelectedRecipe() {
   if (natsumi.hunger > 4) {
     natsumi.hunger = 4;
   }
-  notifyRecipeCooked(recipe ? static_cast<uint8_t>(recipe - cookRecipes) : 255);
+  notifyRecipeCooked(static_cast<uint8_t>(recipe - cookRecipes));
   saveRequired = true;
   FoodDisplayItem* previewItem = findFoodGridItem(recipeSelection[0]);
   selectedFood = previewItem ? String(previewItem->label) : "None";
-  showToast(pantryFallback ? String("Pantry Snack") : String(recipe->name));
+  showToast(String(recipe->name));
   clearFoodGrid();
   overlayActive = false;
   changeState(0, FOOD_COOK2, 0);
