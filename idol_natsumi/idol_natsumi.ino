@@ -3978,6 +3978,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItems = foodMenuItems;
         currentMenuItemsCount = foodMenuItemCount;
         latestMenu = FOOD_MENU;
+        overlayActive = false; // NB-M13: clear an overlay left over from ACTION_OUTCOME and similar screens
         break;
       case FOOD_CONBINI:
         setScreenConfig(IDLE);
@@ -4047,6 +4048,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItems = trainingMenuItems;
         currentMenuItemsCount = trainingMenuItemCount;
         latestMenu = TRAIN_MENU;
+        overlayActive = false; // NB-M13: clear an overlay left over from ACTION_OUTCOME and similar screens
         break;
       case TRAIN_DANCE:
         setScreenConfig(ROOM);
@@ -4137,6 +4139,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItems = competitionMenuItems;
         currentMenuItemsCount = competitionMenuItemCount;
         latestMenu = COMP_MENU;
+        overlayActive = false; // NB-M13: clear an overlay left over from ACTION_OUTCOME and similar screens
         break;
       case COMP_LOCAL: case COMP_LOCAL2:
       case COMP_DEPT: case COMP_DEPT2:
@@ -4182,6 +4185,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItems = healthMenuItems;
         currentMenuItemsCount = healthMenuItemCount;
         latestMenu = HEALTH_MENU;
+        overlayActive = false; // NB-M13: clear an overlay left over from ACTION_OUTCOME and similar screens
         break;
       case HEALTH_WASH:
         setScreenConfig(GAME);
@@ -4228,6 +4232,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItems = restMenuItems;
         currentMenuItemsCount = restMenuItemCount;
         latestMenu = REST_MENU;
+        overlayActive = false; // NB-M13: clear an overlay left over from ACTION_OUTCOME and similar screens
         break;
       case REST_MEDITATE:
         setScreenConfig(IDLE);
@@ -4268,6 +4273,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItemsCount = gardenMenuItemCount;
         menuOpened = true;
         latestMenu = GARDEN_MENU;
+        overlayActive = false; // NB-M13: clear an overlay left over from ACTION_OUTCOME and similar screens
         break;
       case GARDEN_PLANT: case GARDEN_WATER: case GARDEN_PICK: case GARDEN_CLEANUP:
         setScreenConfig(ROOM);
@@ -4326,6 +4332,7 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         currentMenuItems = eventsMenuItems;
         currentMenuItemsCount = eventsMenuItemCount;
         latestMenu = EVENTS_MENU;
+        overlayActive = false; // NB-M13: clear an overlay left over from ACTION_OUTCOME and similar screens
         break;
       case MATSURI_MENU: case MATSURI_MENU2: case MATSURI_MENU3:
         setScreenConfig(IDLE);
