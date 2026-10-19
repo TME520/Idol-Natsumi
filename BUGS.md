@@ -21,7 +21,7 @@
 | NB-M06 | Medium | Rock-paper-scissors: an invalid key breaks the round sequence | Fixed (dcd7933) |
 | NB-M07 | Medium | Competition state survives an aborted run | Fixed (d0b1b68) |
 | NB-M08 | Medium | The screensaver or a visitor interrupts the player while they are using the home menu | Fixed (092d8ff) |
-| NB-M09 | Medium | Rewards and penalties are applied inside draw code and repeat on every redraw | Open |
+| NB-M09 | Medium | Rewards and penalties are applied inside draw code and repeat on every redraw | Fixed (8ed80f7) |
 | NB-M10 | Medium | Flower sales never award Grace | Open |
 | NB-M11 | Medium | Minigames and activities have no ESC exit | Open |
 | NB-M12 | Medium | `conbimartVisitsTotal` is not saved | Open |
@@ -172,7 +172,7 @@ Two engine facts drive several of the bugs below:
 - **Fix:** Reset the counter on any key press in HOME_LOOP.
 
 ### NB-M09: Rewards and penalties are applied inside draw code and repeat on every redraw
-- **Status:** Open
+- **Status:** Fixed (8ed80f7): the Conbini/cooking Energy -1, ordering Grace +1, MATSURI_TICKETS2 ticket grant and visitor +10000 money / +1 pear are guarded by `overlayEffectApplied`, reset by `changeState()` on every transition, so each applies once per screen visit.
 - **Where (all in `drawOverlay()`):**
   - DOOR_KNOCK7 outcome: +10000 money / +1 pear (10113–10118)
   - FOOD_ORDER9: +1 Grace (9643–9646)
