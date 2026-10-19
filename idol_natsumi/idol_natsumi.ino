@@ -1811,15 +1811,17 @@ bool preloadImage(const char* path, ImageBuffer &imgBuf) {
 }
 
 void unloadImage(ImageBuffer &imgBuf) {
-  Serial.println("> Entering unloadImage()");
+  // Serial.println("> Entering unloadImage()");
   if (imgBuf.data) {
     free(imgBuf.data);
     imgBuf.data = nullptr;
     imgBuf.length = 0;
 
     // Debug info
+    /*
     Serial.print("Image unloaded, free heap: ");
     Serial.println(ESP.getFreeHeap());
+    */
   }
 }
 
@@ -1840,10 +1842,12 @@ void unloadAllImages() {
   currentBackground.length = 0;
 
   size_t heapAfter = ESP.getFreeHeap();
+  /*
   Serial.print("Unloaded all images. Freed bytes: ");
   Serial.print(heapAfter - heapBefore);
   Serial.print(", free heap now: ");
   Serial.println(heapAfter);
+  */
 }
 
 const char* onsenBackgroundForAge(int age) {
@@ -3587,7 +3591,7 @@ void setScreenConfig(ScreenState targetConfig) {
 // === Menu and state logic ===
 void changeState(int baseLayer, GameState targetState, int delay) {
   // Manage state transitions
-  // Serial.println("> Entering changeState() with baseLayer set to " + String(baseLayer) + " and targetState set to " + String(targetState) + " with delay set to " + String(delay));
+  Serial.println("> Entering changeState() with baseLayer set to " + String(baseLayer) + " and targetState set to " + String(gameStateToString(targetState)) + " with delay set to " + String(delay));
   if (currentState != HOME_LOOP && currentState != IDLE_HOME && currentState != IDLE_STATS && currentState != TITLE_SCREEN2) {
     counterToScreensaver = 0;
   }
@@ -7608,11 +7612,14 @@ void wash() {
     if (bathOutcomeCode == 0) {
       showToast("Washed feels better");
       saveRequired = true;
-      changeState(0, ACTION_OUTCOME, microWait);
     } else {
       showToast("Ah!! Skipping shower!");
-      changeState(0, HOME_LOOP, microWait);
     }
+  }
+  if (bathOutcomeCode == 0) {
+    changeState(0, ACTION_OUTCOME, microWait);
+  } else {
+    changeState(0, latestMenu, microWait);
   }
 }
 
@@ -10064,7 +10071,9 @@ void drawOverlay() {
             drawOutcome("MAX", "Hygiene");
             break;
           case HEALTH_WASH5:
-            drawOutcome("MAX", "Hygiene");
+            if (bathOutcomeCode == 0) {
+              drawOutcome("MAX", "Hygiene");
+            }
             break;
           case TRAIN_SING3: case TRAIN_DANCE3:
             if (natsumi.performance < 4) {
