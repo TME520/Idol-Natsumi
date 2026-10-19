@@ -15,7 +15,7 @@
 | NB-H05 | High | Missing or misnamed SD assets freeze the device for minutes | Fixed (b8d05f5, e06e2e4) |
 | NB-M01 | Medium | Shared `changeStateCounter` drops transitions and can soft-lock the game | Fixed (4ad6473) |
 | NB-M02 | Medium | Food delivery can be lost, or can pull the player out of whatever they are doing | Fixed (5d38a91) |
-| NB-M03 | Medium | All submenus share one selection index | Open |
+| NB-M03 | Medium | All submenus share one selection index | Fixed (ccf3598) |
 | NB-M04 | Medium | Matsuri food and Garapon take the ticket (and feed Natsumi) before Buy/Cancel | Open |
 | NB-M05 | Medium | Leaving meditation early stops Spirit from ever updating again | Open |
 | NB-M06 | Medium | Rock-paper-scissors: an invalid key breaks the round sequence | Open |
@@ -132,7 +132,7 @@ Two engine facts drive several of the bugs below:
 - **Fix:** Deliver only when the player is at HOME_LOOP or idle with no pending transition; otherwise keep the flag set.
 
 ### NB-M03: All submenus share one selection index
-- **Status:** Open
+- **Status:** Fixed (ccf3598): `manageRoom()` now uses the existing per-menu selection variables (food/training/competition/health/rest/events) and resets an out-of-range index to 0 before `drawMenu()`.
 - **Where:** `manageRoom()` 5243–5251 passes `mainMenuSelection` for every menu except Home and Garden. `foodMenuSelection`, `trainingMenuSelection`, etc. (801–807) are declared but never used.
 - **What happens:** The selection carries over between menus. For example, after picking item 6 in Training, the 2-item Rest menu has no highlight and ENTER does nothing until the player moves the cursor.
 - **Fix:** Use a separate selection variable per `currentMenuType`, or clamp or reset the index when a menu opens.
