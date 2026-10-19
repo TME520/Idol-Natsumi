@@ -31,7 +31,7 @@
 | ND-00 | Shared infrastructure: background cache, path key, `invalidateBackgroundCache()`, opt-in switch, swim/travel invalidation | – | Done |
 | ND-01 | HOME_LOOP (home room) | `lounge.png` | Done |
 | ND-02 | FOOD_MENU | `kitchen.png` | Done |
-| ND-03 | HEALTH_MENU | `bathroom.png` | Open |
+| ND-03 | HEALTH_MENU | `bathroom.png` | Done |
 | ND-04 | REST_MENU | `bedroom.png` | Open |
 | ND-05 | TRAIN_MENU | `map_training.png` | Open |
 | ND-06 | COMP_MENU | `competition.png` | Open |
