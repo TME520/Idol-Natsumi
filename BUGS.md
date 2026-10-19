@@ -20,7 +20,7 @@
 | NB-M05 | Medium | Leaving meditation early stops Spirit from ever updating again | Fixed (799dd2c) |
 | NB-M06 | Medium | Rock-paper-scissors: an invalid key breaks the round sequence | Fixed (dcd7933) |
 | NB-M07 | Medium | Competition state survives an aborted run | Fixed (d0b1b68) |
-| NB-M08 | Medium | The screensaver or a visitor interrupts the player while they are using the home menu | Open |
+| NB-M08 | Medium | The screensaver or a visitor interrupts the player while they are using the home menu | Fixed (092d8ff) |
 | NB-M09 | Medium | Rewards and penalties are applied inside draw code and repeat on every redraw | Open |
 | NB-M10 | Medium | Flower sales never award Grace | Open |
 | NB-M11 | Medium | Minigames and activities have no ESC exit | Open |
@@ -166,7 +166,7 @@ Two engine facts drive several of the bugs below:
 - **Fix:** Check eligibility only on entry, and reset the statics whenever the player leaves.
 
 ### NB-M08: The screensaver or a visitor interrupts the player while they are using the home menu
-- **Status:** Open
+- **Status:** Fixed (092d8ff): any key press resets `counterToScreensaver` (in `loop()`), and the HOME_LOOP pulse keeps it at 0 while the home menu is open; timings unchanged.
 - **Where:** `updateFiveSecondPulse()` 4602 increments `counterToScreensaver` in HOME_LOOP. It is only reset in `changeState()` 3595–3597 (when not already HOME_LOOP) and in `slideStats` (11595).
 - **What happens:** About 55 s after arriving home, the screensaver or a visitor appears even while the player is pressing TAB or the arrows.
 - **Fix:** Reset the counter on any key press in HOME_LOOP.
