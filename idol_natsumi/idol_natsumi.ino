@@ -3488,6 +3488,10 @@ void loop() {
 
   if (millis() - lastUpdate < FRAME_DELAY) return;
   lastUpdate = millis();
+  // Any key press is activity: restart the screensaver/visitor countdown
+  if (M5Cardputer.Keyboard.isPressed()) {
+    counterToScreensaver = 0;
+  }
   updateFiveSecondPulse();
   printBatteryLevel();
 /*
@@ -4655,7 +4659,12 @@ void updateFiveSecondPulse() {
         }
         break;
       case HOME_LOOP:
-        counterToScreensaver += 1;
+        if (menuOpened) {
+          // Home menu is open: no screensaver/visitor while the player uses it
+          counterToScreensaver = 0;
+        } else {
+          counterToScreensaver += 1;
+        }
         Serial.println(">> HOME_LOOP -> counterToScreensaver: " + String(counterToScreensaver));
         if (counterToScreensaver > screensaverWait) {
           if (friendsVisitEnabled) {
