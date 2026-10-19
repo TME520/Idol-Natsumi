@@ -22,7 +22,7 @@
 | NB-M07 | Medium | Competition state survives an aborted run | Fixed (d0b1b68) |
 | NB-M08 | Medium | The screensaver or a visitor interrupts the player while they are using the home menu | Fixed (092d8ff) |
 | NB-M09 | Medium | Rewards and penalties are applied inside draw code and repeat on every redraw | Fixed (8ed80f7) |
-| NB-M10 | Medium | Flower sales never award Grace | Open |
+| NB-M10 | Medium | Flower sales never award Grace | Fixed (ba88da1) |
 | NB-M11 | Medium | Minigames and activities have no ESC exit | Open |
 | NB-M12 | Medium | `conbimartVisitsTotal` is not saved | Open |
 | NB-L01 | Low | Sleep/Onsen energy recovery looks inverted | Open |
@@ -182,7 +182,7 @@ Two engine facts drive several of the bugs below:
 - **Fix:** Apply state changes once, on state entry, and keep draw functions free of game logic.
 
 ### NB-M10: Flower sales never award Grace
-- **Status:** Open
+- **Status:** Fixed (ba88da1): `miniGameDebrief()` adds +1 Grace (capped at 4) when the FLOWERS_MARKET7 debrief is confirmed, once per completed sale.
 - **Where:** The FLOWERS_MARKET7 outcome shows "+1 Grace" (10062–10068), but nothing increments grace for flower sales. The only `grace` increments are at 9644, 11866, 11902 and 11938.
 - **What happens:** The README says selling flowers gives Grace, and the screen claims it does, but the player never gets it.
 - **Fix:** Add `natsumi.grace` +1 (capped at 4) when the sale completes.
