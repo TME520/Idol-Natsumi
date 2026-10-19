@@ -1906,6 +1906,21 @@ const char* onsenBackgroundForAge(int age) {
   return "/idolnat/screens/onsen_21yo.png";
 }
 
+String getReadingSpritePath(const char* frame) {
+  // Neko Cafe reading sprite for Natsumi's age bracket (same brackets as the other sprites).
+  // Falls back to the 11yo sprite when that age has no reading sprite on the SD card.
+  int bracketAge = 11;
+  if (natsumi.age >= 21) bracketAge = 21;
+  else if (natsumi.age >= 18) bracketAge = 18;
+  else if (natsumi.age >= 15) bracketAge = 15;
+  else if (natsumi.age >= 13) bracketAge = 13;
+  String path = "/idolnat/sprites/natsumi_reading_" + String(bracketAge) + "yo_" + String(frame) + ".png";
+  if (bracketAge != 11 && !SD.exists(path)) {
+    path = "/idolnat/sprites/natsumi_reading_11yo_" + String(frame) + ".png";
+  }
+  return path;
+}
+
 void preloadImages() {
   // Serial.println("> Entering preloadImages() with currentState set to " + String(currentState));
   unloadAllImages();
@@ -2626,7 +2641,7 @@ void preloadImages() {
           break;
       }
       if (selectedSeat == 1) {
-        preloadImage("/idolnat/sprites/natsumi_reading_11yo_left.png", natsumiSprite);
+        preloadImage(getReadingSpritePath("left").c_str(), natsumiSprite);
       }
       break;
     case PAY_SCREEN: case PAY_SCREEN2: case PAY_SCREEN3:
@@ -11606,16 +11621,12 @@ void nekoCafeActivity() {
   if (currentState == NEKO_CAFE14 && selectedSeat == 1) {
     unsigned long now = millis();
     if (now - nekoCafeReadingLastFrame >= 1000) {
-      static const char* readingFrames[] = {
-        "/idolnat/sprites/natsumi_reading_11yo_left.png",
-        "/idolnat/sprites/natsumi_reading_11yo_center.png",
-        "/idolnat/sprites/natsumi_reading_11yo_right.png"
-      };
+      static const char* readingFrames[] = {"left", "center", "right"};
 
       nekoCafeReadingFrame = (nekoCafeReadingFrame + 1) % 3;
       nekoCafeReadingLastFrame = now;
       unloadImage(natsumiSprite);
-      preloadImage(readingFrames[nekoCafeReadingFrame], natsumiSprite);
+      preloadImage(getReadingSpritePath(readingFrames[nekoCafeReadingFrame]).c_str(), natsumiSprite);
       l0NeedsRedraw = true;
     }
   }
