@@ -3552,6 +3552,8 @@ bool backgroundCacheEnabledFor(GameState state) {
   // Screens opted in to the cached background. Only list screens whose background is
   // a fully opaque 240x135 PNG drawn at (0, 0) by drawBackground().
   switch (state) {
+    case HOME_LOOP:  // ND-01
+      return true;
     default:
       return false;
   }
