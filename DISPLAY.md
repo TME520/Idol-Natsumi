@@ -45,7 +45,7 @@
 | ND-10e | Conbimart (FOOD_CONBINI..FOOD_CONBINI3) | `conbimart_*.png` | Done (33c1060) |
 | ND-10f | Flowers market (FLOWERS_MARKET..FLOWERS_MARKET7) | `flower_market_*.png` | Done (40ee845) |
 | ND-10g | Doctor (HEALTH_DOCTOR..HEALTH_DOCTOR6) | `doctors_office_bg.png` / steps | Done (d3c6815) |
-| ND-10h | Temple (HEALTH_TEMPLE..HEALTH_TEMPLE6) | `temple_bg.png` / priest steps | Open |
+| ND-10h | Temple (HEALTH_TEMPLE..HEALTH_TEMPLE6) | `temple_bg.png` / priest steps | Done (72f4e62) |
 | ND-11 | Title, intro and card screens (M5_SCREEN, TITLE_SCREEN, INTRO...) | various | Open |
 | ND-12 | Business fronts shown after a ride (`displayBusinessFront()`) | `*_front.png` | Open |
 | ND-13 | Free background PNG bytes after decoding (per screen, needs reload-on-miss) | – | Open |
