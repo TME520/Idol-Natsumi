@@ -3564,6 +3564,8 @@ bool backgroundCacheEnabledFor(GameState state) {
       return true;
     case COMP_MENU:  // ND-06
       return true;
+    case EVENTS_MENU:  // ND-07
+      return true;
     default:
       return false;
   }
