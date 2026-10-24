@@ -1,6 +1,6 @@
 # Idol Natsumi – Display improvements
 
-- Repo: TME520/Idol-Natsumi, branch `improve_display_mgmt` (based on `update-19-2` after PR #107)
+- Repo: TME520/Idol-Natsumi; display work continues on per-item branches off `update-19-2` (this batch: `natsubot-ND-07_12`)
 - Goal: faster screen refresh and less flicker on the M5Stack Cardputer (240x135, no PSRAM).
 - One code per screen (or per group of states sharing the exact same background and draw path).
   Each code is one commit whose message starts with the code.
@@ -47,9 +47,21 @@
 | ND-10g | Doctor (HEALTH_DOCTOR..HEALTH_DOCTOR6) | `doctors_office_bg.png` / steps | Done (d3c6815) |
 | ND-10h | Temple (HEALTH_TEMPLE..HEALTH_TEMPLE6) | `temple_bg.png` / priest steps | Done (72f4e62) |
 | ND-11 | Title and intro (M5_SCREEN, MOTTO_SCREEN, TITLE_SCREEN/2, INTRO..INTRO7); CARDS_SCREEN skipped (no bg) | various | Done (62b9d1c) |
-| ND-12 | Business fronts shown after a ride (`displayBusinessFront()`) | `*_front.png` | Open |
+| ND-12 | Business fronts shown after a ride (`displayBusinessFront()`) | `*_front.png` | Skipped (blocking `drawImage`, not `drawBackground`; opt-in has no effect without rewriting that path) |
 | ND-13 | Free background PNG bytes after decoding (per screen, needs reload-on-miss) | – | Open |
 | ND-14 | Retarget layers 1-5 (character, debug, toast, menu, overlay) to `frameCanvas` | – | Open |
 
 Screens drawn in `manageGame()` (mini-games: swim, competition, dance, gym, run, Garapon...) do not
 use `drawBackground()`; the swim game already draws through `frameCanvas`.
+
+## Skipped / notes
+
+- **ND-12**: `displayBusinessFront()` runs after the travel ride as a blocking flash. It
+  loads a `*_front.png` (or competition/matsuri/high_school stand-in) into
+  `currentBackground` and calls `drawImage()` directly, then delays. It never goes
+  through `drawBackground()` / `backgroundCacheEnabledFor()`, so opting destination
+  states in would not cover the front flash. Rewriting that path to push through
+  `frameCanvas` is a separate change (left open).
+- **CARDS_SCREEN** (under ND-11): no background PNG is loaded (`preloadImages` breaks
+  with an empty case); left out of the opt-in list.
+- **NEKO_CAFE15–19**: reserved/unused; left out of ND-10a.
