@@ -3592,6 +3592,8 @@ bool backgroundCacheEnabledFor(GameState state) {
     case NEKO_CAFE13:
     case NEKO_CAFE14:
       return true;
+    case HEALTH_ONSEN:  // ND-10b
+      return true;
     default:
       return false;
   }
