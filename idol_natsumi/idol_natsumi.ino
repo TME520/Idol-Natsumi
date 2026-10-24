@@ -3605,6 +3605,10 @@ bool backgroundCacheEnabledFor(GameState state) {
     case FOOD_REST7:
     case FOOD_REST8:
       return true;
+    case FOOD_CONBINI:  // ND-10e
+    case FOOD_CONBINI2:
+    case FOOD_CONBINI3:
+      return true;
     default:
       return false;
   }
