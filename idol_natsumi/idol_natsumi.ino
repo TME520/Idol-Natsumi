@@ -3566,6 +3566,13 @@ bool backgroundCacheEnabledFor(GameState state) {
       return true;
     case EVENTS_MENU:  // ND-07
       return true;
+    case GARDEN_LOOP:  // ND-08
+    case GARDEN_PLANT:
+    case GARDEN_WATER:
+    case GARDEN_PICK:
+    case GARDEN_CLEANUP:
+    case GARDEN_MENU:
+      return true;
     default:
       return false;
   }
