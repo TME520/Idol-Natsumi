@@ -3624,6 +3624,13 @@ bool backgroundCacheEnabledFor(GameState state) {
     case HEALTH_DOCTOR5:
     case HEALTH_DOCTOR6:
       return true;
+    case HEALTH_TEMPLE:  // ND-10h
+    case HEALTH_TEMPLE2:
+    case HEALTH_TEMPLE3:
+    case HEALTH_TEMPLE4:
+    case HEALTH_TEMPLE5:
+    case HEALTH_TEMPLE6:
+      return true;
     default:
       return false;
   }
