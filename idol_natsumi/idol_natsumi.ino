@@ -3594,6 +3594,8 @@ bool backgroundCacheEnabledFor(GameState state) {
       return true;
     case HEALTH_ONSEN:  // ND-10b
       return true;
+    case TRAIN_LIBRARY:  // ND-10c
+      return true;
     default:
       return false;
   }
