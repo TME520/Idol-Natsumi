@@ -3573,6 +3573,10 @@ bool backgroundCacheEnabledFor(GameState state) {
     case GARDEN_CLEANUP:
     case GARDEN_MENU:
       return true;
+    case MATSURI_MENU:  // ND-09
+    case MATSURI_MENU2:
+    case MATSURI_MENU3:
+      return true;
     default:
       return false;
   }
