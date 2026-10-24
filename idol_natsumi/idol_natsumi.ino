@@ -4209,6 +4209,11 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case FOOD_COOK:
         setScreenConfig(ROOM);
+        // NC-01: fridge grid is drawn by drawOverlay. FOOD_MENU clears
+        // overlayActive, and prepareFoodGrid() only sets it when the grid is
+        // first built, so a later visit never painted the ingredients.
+        overlayActive = true;
+        l5NeedsRedraw = true;
         break;
       case FOOD_COOK2:
         setScreenConfig(ROOM);
