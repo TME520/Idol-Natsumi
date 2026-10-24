@@ -3577,6 +3577,21 @@ bool backgroundCacheEnabledFor(GameState state) {
     case MATSURI_MENU2:
     case MATSURI_MENU3:
       return true;
+    case NEKO_CAFE:  // ND-10a
+    case NEKO_CAFE2:
+    case NEKO_CAFE3:
+    case NEKO_CAFE4:
+    case NEKO_CAFE5:
+    case NEKO_CAFE6:
+    case NEKO_CAFE7:
+    case NEKO_CAFE8:
+    case NEKO_CAFE9:
+    case NEKO_CAFE10:
+    case NEKO_CAFE11:
+    case NEKO_CAFE12:
+    case NEKO_CAFE13:
+    case NEKO_CAFE14:
+      return true;
     default:
       return false;
   }
