@@ -4209,6 +4209,16 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case FOOD_COOK:
         setScreenConfig(ROOM);
+        // NC-01: fridge grid is drawn by drawOverlay. FOOD_MENU clears
+        // overlayActive, and prepareFoodGrid() only sets it when the grid is
+        // first built, so a later visit never painted the ingredients.
+        overlayActive = true;
+        l5NeedsRedraw = true;
+        // NC-02: the Food menu is a ROOM layer drawn after the overlay, and
+        // drawMenu() handles keys whenever menuEnabled, even if the panel is
+        // hidden. Shut it off so it cannot cover cook toasts or eat SPACE.
+        menuOpened = false;
+        menuEnabled = false;
         break;
       case FOOD_COOK2:
         setScreenConfig(ROOM);
@@ -8616,6 +8626,8 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           break;
         case 13: case 40:
           // VALIDATE
+          // NC-02: close the menu before changeState, same as the 0 key.
+          menuOpened = false;
           if (selection == 0) {
             changeState(0, FOOD_COOK, 0);
           } else if (selection == 1) {
@@ -8653,7 +8665,6 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
               showToast("Wait for food delivery");
             }
           }
-          menuOpened = false;
           break;
       }
     } else if (menuType == "training") {
@@ -9888,7 +9899,9 @@ void prepareConbimartItems() {
 void drawOverlay() {
   // Draw the overlay (L5)
   // Serial.println("> Entering drawOverlay() L5 with l5NeedsRedraw set to " + String(l5NeedsRedraw) + " and overlayActive set to " + String(overlayActive));
-  if (overlayActive && overlayEnabled) {
+  // NC-02: isChange() consumes the key edge. The fridge screen handles SPACE
+  // in cookFood(); the generic "any key goes home" dismiss must not take it.
+  if (overlayActive && overlayEnabled && currentState != FOOD_COOK) {
     // Serial.println(">> drawOverlay: l5NeedsRedraw is TRUE");
     uint8_t key = 0;
     if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -9896,7 +9909,7 @@ void drawOverlay() {
       // Serial.println(">>> drawOverlay: Testing for key pressed");
       if (keyList.size() > 0) {
         key = M5Cardputer.Keyboard.getKey(keyList[0]);
-        if (currentState != FOOD_COOK && currentState != FOOD_CONBINI3 &&
+        if (currentState != FOOD_CONBINI3 &&
             currentState != GARDEN_LOOP && currentState != GARDEN_PLANT &&
             currentState != GARDEN_WATER && currentState != GARDEN_PICK &&
             currentState != GARDEN_CLEANUP && currentState != GARDEN_MENU &&
@@ -10225,6 +10238,11 @@ void drawOverlay() {
         break;
       case FOOD_COOK:
         drawFoodGrid(foodGridItems, foodSelectionIndex);
+        // The grid covers the toast strip. Repaint so "No recipe yet" stays visible.
+        if (toastActive && toastEnabled) {
+          l3NeedsRedraw = true;
+          drawToast();
+        }
         break;
       case FOOD_COOK2:
         {
