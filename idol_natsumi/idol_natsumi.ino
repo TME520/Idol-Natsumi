@@ -3617,6 +3617,13 @@ bool backgroundCacheEnabledFor(GameState state) {
     case FLOWERS_MARKET6:
     case FLOWERS_MARKET7:
       return true;
+    case HEALTH_DOCTOR:  // ND-10g
+    case HEALTH_DOCTOR2:
+    case HEALTH_DOCTOR3:
+    case HEALTH_DOCTOR4:
+    case HEALTH_DOCTOR5:
+    case HEALTH_DOCTOR6:
+      return true;
     default:
       return false;
   }
