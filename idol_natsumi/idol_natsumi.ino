@@ -3564,6 +3564,85 @@ bool backgroundCacheEnabledFor(GameState state) {
       return true;
     case COMP_MENU:  // ND-06
       return true;
+    case EVENTS_MENU:  // ND-07
+      return true;
+    case GARDEN_LOOP:  // ND-08
+    case GARDEN_PLANT:
+    case GARDEN_WATER:
+    case GARDEN_PICK:
+    case GARDEN_CLEANUP:
+    case GARDEN_MENU:
+      return true;
+    case MATSURI_MENU:  // ND-09
+    case MATSURI_MENU2:
+    case MATSURI_MENU3:
+      return true;
+    case NEKO_CAFE:  // ND-10a
+    case NEKO_CAFE2:
+    case NEKO_CAFE3:
+    case NEKO_CAFE4:
+    case NEKO_CAFE5:
+    case NEKO_CAFE6:
+    case NEKO_CAFE7:
+    case NEKO_CAFE8:
+    case NEKO_CAFE9:
+    case NEKO_CAFE10:
+    case NEKO_CAFE11:
+    case NEKO_CAFE12:
+    case NEKO_CAFE13:
+    case NEKO_CAFE14:
+      return true;
+    case HEALTH_ONSEN:  // ND-10b
+      return true;
+    case TRAIN_LIBRARY:  // ND-10c
+      return true;
+    case FOOD_REST:  // ND-10d
+    case FOOD_REST2:
+    case FOOD_REST3:
+    case FOOD_REST4:
+    case FOOD_REST5:
+    case FOOD_REST6:
+    case FOOD_REST7:
+    case FOOD_REST8:
+      return true;
+    case FOOD_CONBINI:  // ND-10e
+    case FOOD_CONBINI2:
+    case FOOD_CONBINI3:
+      return true;
+    case FLOWERS_MARKET:  // ND-10f
+    case FLOWERS_MARKET2:
+    case FLOWERS_MARKET3:
+    case FLOWERS_MARKET4:
+    case FLOWERS_MARKET5:
+    case FLOWERS_MARKET6:
+    case FLOWERS_MARKET7:
+      return true;
+    case HEALTH_DOCTOR:  // ND-10g
+    case HEALTH_DOCTOR2:
+    case HEALTH_DOCTOR3:
+    case HEALTH_DOCTOR4:
+    case HEALTH_DOCTOR5:
+    case HEALTH_DOCTOR6:
+      return true;
+    case HEALTH_TEMPLE:  // ND-10h
+    case HEALTH_TEMPLE2:
+    case HEALTH_TEMPLE3:
+    case HEALTH_TEMPLE4:
+    case HEALTH_TEMPLE5:
+    case HEALTH_TEMPLE6:
+      return true;
+    case M5_SCREEN:  // ND-11
+    case MOTTO_SCREEN:
+    case TITLE_SCREEN:
+    case TITLE_SCREEN2:
+    case INTRO:
+    case INTRO2:
+    case INTRO3:
+    case INTRO4:
+    case INTRO5:
+    case INTRO6:
+    case INTRO7:
+      return true;
     default:
       return false;
   }

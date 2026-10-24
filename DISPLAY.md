@@ -1,6 +1,6 @@
 # Idol Natsumi – Display improvements
 
-- Repo: TME520/Idol-Natsumi, branch `improve_display_mgmt` (based on `update-19-2` after PR #107)
+- Repo: TME520/Idol-Natsumi; display work continues on per-item branches off `update-19-2` (this batch: `natsubot-ND-07_12`)
 - Goal: faster screen refresh and less flicker on the M5Stack Cardputer (240x135, no PSRAM).
 - One code per screen (or per group of states sharing the exact same background and draw path).
   Each code is one commit whose message starts with the code.
@@ -35,14 +35,33 @@
 | ND-04 | REST_MENU | `bedroom.png` | Done (603d8aa) |
 | ND-05 | TRAIN_MENU | `map_training.png` | Done (dce252c) |
 | ND-06 | COMP_MENU | `competition.png` | Done (6452707) |
-| ND-07 | EVENTS_MENU | `cityscape_bg.png` | Open |
-| ND-08 | GARDEN_LOOP / GARDEN_PLANT / GARDEN_WATER / GARDEN_PICK / GARDEN_CLEANUP / GARDEN_MENU | `garden_bg.png` | Open |
-| ND-09 | MATSURI_MENU / MATSURI_MENU2 / MATSURI_MENU3 | `matsuri_menu0x.png` | Open |
-| ND-10 | Location screens (Neko Cafe, restaurant, conbini, onsen, doctor, temple, flowers market...) | various | Open (to split per location) |
-| ND-11 | Title, intro and card screens (M5_SCREEN, TITLE_SCREEN, INTRO...) | various | Open |
-| ND-12 | Business fronts shown after a ride (`displayBusinessFront()`) | `*_front.png` | Open |
+| ND-07 | EVENTS_MENU | `cityscape_bg.png` | Done (63a3c5e) |
+| ND-08 | GARDEN_LOOP / GARDEN_PLANT / GARDEN_WATER / GARDEN_PICK / GARDEN_CLEANUP / GARDEN_MENU | `garden_bg.png` | Done (f02015d) |
+| ND-09 | MATSURI_MENU / MATSURI_MENU2 / MATSURI_MENU3 | `matsuri_menu0x.png` | Done (90eab7e) |
+| ND-10a | Neko Cafe (NEKO_CAFE..NEKO_CAFE14) | `neko_cafe_*.png` | Done (1ff3216) |
+| ND-10b | Onsen (HEALTH_ONSEN) | `onsen_*yo.png` | Done (9625b9d) |
+| ND-10c | Library (TRAIN_LIBRARY) | `natsumi_*_library.png` | Done (ca6edfb) |
+| ND-10d | Restaurant (FOOD_REST..FOOD_REST8) | `restaurant_bg.png` / teishoku / steps | Done (2571b08) |
+| ND-10e | Conbimart (FOOD_CONBINI..FOOD_CONBINI3) | `conbimart_*.png` | Done (33c1060) |
+| ND-10f | Flowers market (FLOWERS_MARKET..FLOWERS_MARKET7) | `flower_market_*.png` | Done (40ee845) |
+| ND-10g | Doctor (HEALTH_DOCTOR..HEALTH_DOCTOR6) | `doctors_office_bg.png` / steps | Done (d3c6815) |
+| ND-10h | Temple (HEALTH_TEMPLE..HEALTH_TEMPLE6) | `temple_bg.png` / priest steps | Done (72f4e62) |
+| ND-11 | Title and intro (M5_SCREEN, MOTTO_SCREEN, TITLE_SCREEN/2, INTRO..INTRO7); CARDS_SCREEN skipped (no bg) | various | Done (62b9d1c) |
+| ND-12 | Business fronts shown after a ride (`displayBusinessFront()`) | `*_front.png` | Skipped (blocking `drawImage`, not `drawBackground`; opt-in has no effect without rewriting that path) |
 | ND-13 | Free background PNG bytes after decoding (per screen, needs reload-on-miss) | – | Open |
 | ND-14 | Retarget layers 1-5 (character, debug, toast, menu, overlay) to `frameCanvas` | – | Open |
 
 Screens drawn in `manageGame()` (mini-games: swim, competition, dance, gym, run, Garapon...) do not
 use `drawBackground()`; the swim game already draws through `frameCanvas`.
+
+## Skipped / notes
+
+- **ND-12**: `displayBusinessFront()` runs after the travel ride as a blocking flash. It
+  loads a `*_front.png` (or competition/matsuri/high_school stand-in) into
+  `currentBackground` and calls `drawImage()` directly, then delays. It never goes
+  through `drawBackground()` / `backgroundCacheEnabledFor()`, so opting destination
+  states in would not cover the front flash. Rewriting that path to push through
+  `frameCanvas` is a separate change (left open).
+- **CARDS_SCREEN** (under ND-11): no background PNG is loaded (`preloadImages` breaks
+  with an empty case); left out of the opt-in list.
+- **NEKO_CAFE15–19**: reserved/unused; left out of ND-10a.
