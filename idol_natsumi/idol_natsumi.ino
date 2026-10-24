@@ -1113,11 +1113,12 @@ const int TRAVEL_Y = 50;
 const unsigned long TRAVEL_FRAME_DELAY = 80;  // ms between bike frames (was 150)
 M5Canvas travelStripCanvas(&M5Cardputer.Display);
 bool travelStripCanvasReady = false;
-// Background cache (see DISPLAY.md, ND-00): opted-in screens decode their background
-// PNG into frameCanvas once, then every later L0 redraw is a single pushSprite.
-// The cache is keyed on the background file path, so moving between two screens with
-// the same background does not decode it again. An empty key means frameCanvas holds
-// no background (swim and travel use frameCanvas as scratch and clear the key).
+// Background cache (see DISPLAY.md, ND-00 / ND-13): opted-in screens decode their
+// background PNG into frameCanvas once, then every later L0 redraw is a single
+// pushSprite. After a successful decode the PNG bytes are freed (ND-13); the path
+// stays in currentBackgroundPath so a later miss can reload from the SD card.
+// An empty frameCanvasBackgroundPath means frameCanvas holds no background (swim
+// and travel use it as scratch and clear the key).
 char currentBackgroundPath[96] = "";
 char frameCanvasBackgroundPath[96] = "";
 ImageBuffer currentCharacter;
@@ -3663,20 +3664,45 @@ bool isFullScreenPng(const ImageBuffer& img) {
   return width == (uint32_t)frameCanvas.width() && height == (uint32_t)frameCanvas.height();
 }
 
+void releaseBackgroundPngBytes() {
+  // ND-13: free the PNG file bytes after they have been decoded into frameCanvas.
+  // Keeps currentBackgroundPath so the cache key (and a later SD reload) still work.
+  if (currentBackground.data) {
+    free(currentBackground.data);
+    currentBackground.data = nullptr;
+    currentBackground.length = 0;
+  }
+}
+
+bool ensureBackgroundPngLoaded() {
+  // ND-13: reload currentBackground from the SD card when the PNG bytes were freed
+  // after a prior decode (or after swim/travel invalidated the canvas).
+  if (currentBackground.data && currentBackground.length > 0) return true;
+  if (currentBackgroundPath[0] == '\0') return false;
+  // loadImageFile, not preloadImage: preloadImage would clear the path on failure.
+  return loadImageFile(currentBackgroundPath, currentBackground);
+}
+
 bool drawBackgroundFromCache() {
   // Draws currentBackground through frameCanvas. Returns false when the caller must
   // draw it the old way (canvas missing, screen not opted in, no or odd-sized image).
   if (!frameCanvasReady || !backgroundCacheEnabledFor(currentState)) return false;
   if (currentBackgroundPath[0] == '\0') return false;
   if (strcmp(frameCanvasBackgroundPath, currentBackgroundPath) != 0) {
+    // Canvas holds something else (or nothing): need PNG bytes to decode.
+    if (!ensureBackgroundPngLoaded()) return false;
     if (!isFullScreenPng(currentBackground)) return false;
     if (!frameCanvas.drawPng(currentBackground.data, currentBackground.length, 0, 0)) {
       invalidateBackgroundCache();
-      return false;
+      return false;  // keep PNG bytes for the direct-draw fallback
     }
     strncpy(frameCanvasBackgroundPath, currentBackgroundPath, sizeof(frameCanvasBackgroundPath) - 1);
     frameCanvasBackgroundPath[sizeof(frameCanvasBackgroundPath) - 1] = '\0';
+    releaseBackgroundPngBytes();  // ND-13: ~80-96 KB back to the heap
     // Serial.println("drawBackgroundFromCache - decoded " + String(frameCanvasBackgroundPath) + " - free heap: " + String(ESP.getFreeHeap()));
+  } else {
+    // Cache hit: canvas already has this background; PNG bytes are redundant.
+    releaseBackgroundPngBytes();
   }
   frameCanvas.pushSprite(0, 0);
   return true;

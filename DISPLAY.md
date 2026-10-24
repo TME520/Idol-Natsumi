@@ -1,6 +1,6 @@
 # Idol Natsumi – Display improvements
 
-- Repo: TME520/Idol-Natsumi; display work continues on per-item branches off `update-19-2` (this batch: `natsubot-ND-07_12`)
+- Repo: TME520/Idol-Natsumi; display work continues on per-item branches off `update-19-2` (this item: `natsubot-ND-13`)
 - Goal: faster screen refresh and less flicker on the M5Stack Cardputer (240x135, no PSRAM).
 - One code per screen (or per group of states sharing the exact same background and draw path).
   Each code is one commit whose message starts with the code.
@@ -20,8 +20,12 @@
   `frameCanvas` (swim playfield, travel ride). A different path, a missing image or a PNG that is
   not 240x135 also bypasses or refreshes the cache.
 - Only fully opaque 240x135 backgrounds drawn at (0, 0) by `drawBackground()` should be opted in.
-- PNG bytes are kept in RAM for now (nothing frees them after decoding); freeing them per screen
-  is a later, separate step.
+- ND-13: after a successful decode (or on a cache hit while PNG bytes are still loaded),
+  `releaseBackgroundPngBytes()` frees `currentBackground.data` but keeps
+  `currentBackgroundPath`. A later miss reloads via `ensureBackgroundPngLoaded()` /
+  `loadImageFile()`. Reload or decode failure falls back to the direct `drawImage()` path.
+  Callers that still need PNG bytes and never go through `drawBackgroundFromCache()`
+  (FLOWERS_MARKET5/6, bath, PFC, travel/business front) keep their own buffers.
 
 ## Code index
 
@@ -48,7 +52,7 @@
 | ND-10h | Temple (HEALTH_TEMPLE..HEALTH_TEMPLE6) | `temple_bg.png` / priest steps | Done (72f4e62) |
 | ND-11 | Title and intro (M5_SCREEN, MOTTO_SCREEN, TITLE_SCREEN/2, INTRO..INTRO7); CARDS_SCREEN skipped (no bg) | various | Done (62b9d1c) |
 | ND-12 | Business fronts shown after a ride (`displayBusinessFront()`) | `*_front.png` | Skipped (blocking `drawImage`, not `drawBackground`; opt-in has no effect without rewriting that path) |
-| ND-13 | Free background PNG bytes after decoding (per screen, needs reload-on-miss) | – | Open |
+| ND-13 | Free background PNG bytes after decoding (per screen, needs reload-on-miss) | – | Done (25f0abf) |
 | ND-14 | Retarget layers 1-5 (character, debug, toast, menu, overlay) to `frameCanvas` | – | Open |
 
 Screens drawn in `manageGame()` (mini-games: swim, competition, dance, gym, run, Garapon...) do not
@@ -65,3 +69,10 @@ use `drawBackground()`; the swim game already draws through `frameCanvas`.
 - **CARDS_SCREEN** (under ND-11): no background PNG is loaded (`preloadImages` breaks
   with an empty case); left out of the opt-in list.
 - **NEKO_CAFE15–19**: reserved/unused; left out of ND-10a.
+
+- **ND-13 audit**: free only happens inside `drawBackgroundFromCache()` after the canvas
+  holds the image. Direct `drawImage(currentBackground)` / `drawPng(currentBackground.data)`
+  callers are not opted in, or are GAME screens that never call `drawBackground()`
+  (FLOWERS_MARKET5/6 keep their freshly preloaded PNG). Travel already frees its tile
+  after decoding into `frameCanvas`; business fronts preload then `drawImage` their own
+  front PNG. Screenshots read the display framebuffer, not the PNG buffer.
