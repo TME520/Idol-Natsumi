@@ -3596,6 +3596,15 @@ bool backgroundCacheEnabledFor(GameState state) {
       return true;
     case TRAIN_LIBRARY:  // ND-10c
       return true;
+    case FOOD_REST:  // ND-10d
+    case FOOD_REST2:
+    case FOOD_REST3:
+    case FOOD_REST4:
+    case FOOD_REST5:
+    case FOOD_REST6:
+    case FOOD_REST7:
+    case FOOD_REST8:
+      return true;
     default:
       return false;
   }
