@@ -3631,6 +3631,18 @@ bool backgroundCacheEnabledFor(GameState state) {
     case HEALTH_TEMPLE5:
     case HEALTH_TEMPLE6:
       return true;
+    case M5_SCREEN:  // ND-11
+    case MOTTO_SCREEN:
+    case TITLE_SCREEN:
+    case TITLE_SCREEN2:
+    case INTRO:
+    case INTRO2:
+    case INTRO3:
+    case INTRO4:
+    case INTRO5:
+    case INTRO6:
+    case INTRO7:
+      return true;
     default:
       return false;
   }
