@@ -3609,6 +3609,14 @@ bool backgroundCacheEnabledFor(GameState state) {
     case FOOD_CONBINI2:
     case FOOD_CONBINI3:
       return true;
+    case FLOWERS_MARKET:  // ND-10f
+    case FLOWERS_MARKET2:
+    case FLOWERS_MARKET3:
+    case FLOWERS_MARKET4:
+    case FLOWERS_MARKET5:
+    case FLOWERS_MARKET6:
+    case FLOWERS_MARKET7:
+      return true;
     default:
       return false;
   }
