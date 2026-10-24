@@ -39,7 +39,7 @@
 | ND-08 | GARDEN_LOOP / GARDEN_PLANT / GARDEN_WATER / GARDEN_PICK / GARDEN_CLEANUP / GARDEN_MENU | `garden_bg.png` | Done (f02015d) |
 | ND-09 | MATSURI_MENU / MATSURI_MENU2 / MATSURI_MENU3 | `matsuri_menu0x.png` | Done (90eab7e) |
 | ND-10a | Neko Cafe (NEKO_CAFE..NEKO_CAFE14) | `neko_cafe_*.png` | Done (1ff3216) |
-| ND-10b | Onsen (HEALTH_ONSEN) | `onsen_*yo.png` | Open |
+| ND-10b | Onsen (HEALTH_ONSEN) | `onsen_*yo.png` | Done (9625b9d) |
 | ND-10c | Library (TRAIN_LIBRARY) | `natsumi_*_library.png` | Open |
 | ND-10d | Restaurant (FOOD_REST..FOOD_REST8) | `restaurant_bg.png` / teishoku / steps | Open |
 | ND-10e | Conbimart (FOOD_CONBINI..FOOD_CONBINI3) | `conbimart_*.png` | Open |
