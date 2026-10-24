@@ -41,7 +41,7 @@
 | ND-10a | Neko Cafe (NEKO_CAFE..NEKO_CAFE14) | `neko_cafe_*.png` | Done (1ff3216) |
 | ND-10b | Onsen (HEALTH_ONSEN) | `onsen_*yo.png` | Done (9625b9d) |
 | ND-10c | Library (TRAIN_LIBRARY) | `natsumi_*_library.png` | Done (ca6edfb) |
-| ND-10d | Restaurant (FOOD_REST..FOOD_REST8) | `restaurant_bg.png` / teishoku / steps | Open |
+| ND-10d | Restaurant (FOOD_REST..FOOD_REST8) | `restaurant_bg.png` / teishoku / steps | Done (2571b08) |
 | ND-10e | Conbimart (FOOD_CONBINI..FOOD_CONBINI3) | `conbimart_*.png` | Open |
 | ND-10f | Flowers market (FLOWERS_MARKET..FLOWERS_MARKET7) | `flower_market_*.png` | Open |
 | ND-10g | Doctor (HEALTH_DOCTOR..HEALTH_DOCTOR6) | `doctors_office_bg.png` / steps | Open |
