@@ -38,7 +38,14 @@
 | ND-07 | EVENTS_MENU | `cityscape_bg.png` | Done (63a3c5e) |
 | ND-08 | GARDEN_LOOP / GARDEN_PLANT / GARDEN_WATER / GARDEN_PICK / GARDEN_CLEANUP / GARDEN_MENU | `garden_bg.png` | Done (f02015d) |
 | ND-09 | MATSURI_MENU / MATSURI_MENU2 / MATSURI_MENU3 | `matsuri_menu0x.png` | Done (90eab7e) |
-| ND-10 | Location screens (Neko Cafe, restaurant, conbini, onsen, doctor, temple, flowers market...) | various | Open (to split per location) |
+| ND-10a | Neko Cafe (NEKO_CAFE..NEKO_CAFE14) | `neko_cafe_*.png` | Done (1ff3216) |
+| ND-10b | Onsen (HEALTH_ONSEN) | `onsen_*yo.png` | Open |
+| ND-10c | Library (TRAIN_LIBRARY) | `natsumi_*_library.png` | Open |
+| ND-10d | Restaurant (FOOD_REST..FOOD_REST8) | `restaurant_bg.png` / teishoku / steps | Open |
+| ND-10e | Conbimart (FOOD_CONBINI..FOOD_CONBINI3) | `conbimart_*.png` | Open |
+| ND-10f | Flowers market (FLOWERS_MARKET..FLOWERS_MARKET7) | `flower_market_*.png` | Open |
+| ND-10g | Doctor (HEALTH_DOCTOR..HEALTH_DOCTOR6) | `doctors_office_bg.png` / steps | Open |
+| ND-10h | Temple (HEALTH_TEMPLE..HEALTH_TEMPLE6) | `temple_bg.png` / priest steps | Open |
 | ND-11 | Title, intro and card screens (M5_SCREEN, TITLE_SCREEN, INTRO...) | various | Open |
 | ND-12 | Business fronts shown after a ride (`displayBusinessFront()`) | `*_front.png` | Open |
 | ND-13 | Free background PNG bytes after decoding (per screen, needs reload-on-miss) | – | Open |
