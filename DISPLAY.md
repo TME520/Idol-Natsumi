@@ -35,7 +35,7 @@
 | ND-04 | REST_MENU | `bedroom.png` | Done (603d8aa) |
 | ND-05 | TRAIN_MENU | `map_training.png` | Done (dce252c) |
 | ND-06 | COMP_MENU | `competition.png` | Done (6452707) |
-| ND-07 | EVENTS_MENU | `cityscape_bg.png` | Open |
+| ND-07 | EVENTS_MENU | `cityscape_bg.png` | Done (63a3c5e) |
 | ND-08 | GARDEN_LOOP / GARDEN_PLANT / GARDEN_WATER / GARDEN_PICK / GARDEN_CLEANUP / GARDEN_MENU | `garden_bg.png` | Open |
 | ND-09 | MATSURI_MENU / MATSURI_MENU2 / MATSURI_MENU3 | `matsuri_menu0x.png` | Open |
 | ND-10 | Location screens (Neko Cafe, restaurant, conbini, onsen, doctor, temple, flowers market...) | various | Open (to split per location) |
