@@ -3769,6 +3769,57 @@ void setup() {
   }
 }
 
+// NFLOW-10: a key position that was not down on the previous sample.
+// isPressed() stays true for the whole hold, and the idle gate used to
+// treat that as fresh activity every frame, so a stuck key blocked the
+// visitor and the slideshow. This does not call isChange().
+bool idleKeyWentDown() {
+  static int prevX[8];
+  static int prevY[8];
+  static uint8_t prevCount = 0;
+
+  const auto& keys = M5Cardputer.Keyboard.keyList();
+  int curX[8];
+  int curY[8];
+  uint8_t curCount = 0;
+  for (size_t i = 0; i < keys.size() && curCount < 8; i++) {
+    int x = keys[i].x;
+    int y = keys[i].y;
+    // Outside the 4x14 map is a ghost, not a press.
+    if (x < 0 || y < 0 || x >= 14 || y >= 4) continue;
+    bool seen = false;
+    for (uint8_t j = 0; j < curCount; j++) {
+      if (curX[j] == x && curY[j] == y) {
+        seen = true;
+        break;
+      }
+    }
+    if (seen) continue;
+    curX[curCount] = x;
+    curY[curCount] = y;
+    curCount++;
+  }
+
+  bool wentDown = false;
+  for (uint8_t i = 0; i < curCount && !wentDown; i++) {
+    bool wasDown = false;
+    for (uint8_t j = 0; j < prevCount; j++) {
+      if (prevX[j] == curX[i] && prevY[j] == curY[i]) {
+        wasDown = true;
+        break;
+      }
+    }
+    if (!wasDown) wentDown = true;
+  }
+
+  prevCount = curCount;
+  for (uint8_t i = 0; i < curCount; i++) {
+    prevX[i] = curX[i];
+    prevY[i] = curY[i];
+  }
+  return wentDown;
+}
+
 void loop() {
   // NT-01: TITLE_SCREEN2 does no work once the menu is drawn, so calling
   // M5Cardputer.update() on every spin scanned the key matrix (or pulled one
@@ -3783,8 +3834,8 @@ void loop() {
   lastUpdate = millis();
   inputFrame++;
   M5Cardputer.update();
-  // Any key press is activity: restart the screensaver/visitor countdown
-  if (M5Cardputer.Keyboard.isPressed()) {
+  // A new press restarts the idle countdown. A key that is still down does not.
+  if (idleKeyWentDown()) {
     counterToScreensaver = 0;
   }
   updateFiveSecondPulse();
