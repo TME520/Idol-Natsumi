@@ -3764,10 +3764,18 @@ void setup() {
 }
 
 void loop() {
-  M5Cardputer.update();
-
-  if (millis() - lastUpdate < FRAME_DELAY) return;
+  // NT-01: TITLE_SCREEN2 does no work once the menu is drawn, so calling
+  // M5Cardputer.update() on every spin scanned the key matrix (or pulled one
+  // TCA8418 event) as fast as the CPU ran. A ghost key then sat in
+  // keyList()[0]. isChange() only notices a change in the count and is
+  // consumed by the first read, so later presses never reached the menu.
+  // Sample the keyboard once per frame and yield while waiting.
+  if (millis() - lastUpdate < FRAME_DELAY) {
+    delay(1);
+    return;
+  }
   lastUpdate = millis();
+  M5Cardputer.update();
   // Any key press is activity: restart the screensaver/visitor countdown
   if (M5Cardputer.Keyboard.isPressed()) {
     counterToScreensaver = 0;
@@ -8319,6 +8327,69 @@ void drawToast() {
   }
 }
 
+bool isTitleMenuKey(uint8_t key) {
+  switch (key) {
+    case '0': case '1': case '2':
+    case 181: case 'w': case 'W': case 59:
+    case 182: case 's': case 'S': case 46:
+    case 13: case 40:
+      return true;
+    default:
+      return false;
+  }
+}
+
+uint8_t cardputerKeyAt(int x, int y) {
+  // getKey() only rejects negative coordinates. A ghost outside the 4x14 map
+  // reads off the end of _key_value_map.
+  if (x < 0 || y < 0 || x >= 14 || y >= 4) return 0;
+  Point2D_t pos;
+  pos.x = x;
+  pos.y = y;
+  return M5Cardputer.Keyboard.getKey(pos);
+}
+
+// NT-01: newly pressed title-menu key, or 0. Looks at every key in the list,
+// not keyList()[0]. isChange() is still called so the count edge is consumed
+// and does not leak into the next screen.
+uint8_t titleMenuKeyEdge() {
+  static uint8_t previous[8];
+  static uint8_t previousCount = 0;
+  uint8_t current[8];
+  uint8_t currentCount = 0;
+
+  M5Cardputer.Keyboard.isChange();
+  const auto& keys = M5Cardputer.Keyboard.keyList();
+  for (size_t i = 0; i < keys.size() && currentCount < 8; i++) {
+    uint8_t key = cardputerKeyAt(keys[i].x, keys[i].y);
+    if (!isTitleMenuKey(key)) continue;
+    bool seen = false;
+    for (uint8_t j = 0; j < currentCount; j++) {
+      if (current[j] == key) {
+        seen = true;
+        break;
+      }
+    }
+    if (!seen) current[currentCount++] = key;
+  }
+
+  uint8_t edge = 0;
+  for (uint8_t i = 0; i < currentCount && edge == 0; i++) {
+    bool wasDown = false;
+    for (uint8_t j = 0; j < previousCount; j++) {
+      if (previous[j] == current[i]) {
+        wasDown = true;
+        break;
+      }
+    }
+    if (!wasDown) edge = current[i];
+  }
+
+  previousCount = currentCount;
+  for (uint8_t i = 0; i < currentCount; i++) previous[i] = current[i];
+  return edge;
+}
+
 void drawMenu(String menuType, const char* items[], int itemCount, int &selection) {
   // Draw menus on the screen (layer 4)
   // Serial.println("> Entering drawMenu() L4 with menuEnabled set to " + String(menuEnabled));
@@ -8326,7 +8397,9 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
   if (menuEnabled) {
     uint8_t key = 0;
     bool natsumiTired = false;
-    if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+    if (menuType == "main") {
+      key = titleMenuKeyEdge();
+    } else if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
       auto keyList = M5Cardputer.Keyboard.keyList();
       if (keyList.size() > 0) {
         key = M5Cardputer.Keyboard.getKey(keyList[0]);
