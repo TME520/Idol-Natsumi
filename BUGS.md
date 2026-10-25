@@ -319,3 +319,19 @@ Separate series from NB-* / NC-* / ND-*. Do not renumber those.
 - **Where:** `loop()` frame gate; `drawMenu()` when `menuType == "main"`.
 - **What happens:** After the title menu is drawn, that screen does no further work, but `loop()` still called `M5Cardputer.update()` on every spin between 50 ms frames. That scans the key matrix (or one TCA8418 event) as fast as the CPU runs. A ghost key sticks in `keyList()[0]`. `Keyboard.isChange()` is only true when the count of held keys changes, and the first read consumes it, so Up/Down/Enter/0/1/2 never reach the menu.
 - **Fix:** Sample the keyboard once per frame and yield while waiting. The title menu edges real menu keys anywhere in the list, and still consumes `isChange()` so the edge does not leak into the next screen.
+
+## Food delivery
+
+Separate series from NB-* / NC-* / ND-* / NT-*. Do not renumber those.
+
+### NF-01: Food-delivered dialog never advances on a key press
+- **Status:** Fixed (ef59d66).
+- **Where:** `foodDelivery()`; `actionOutcome()` when `previousState` is `FOOD_ORDER8` or `FOOD_ORDER9`; `drawOverlay()` key dismiss; `FOOD_ORDER7` entry in `changeState()`.
+- **What happens:** The delivery picture (`orderibi_food_delivered.png`, `FOOD_ORDER7`–`FOOD_ORDER9`) stays up. A key press does not go on to `ACTION_OUTCOME`, `FOOD_ORDER9`, or `HOME_LOOP`.
+- **Cause:** `Keyboard.isChange()` is true only when the number of held keys changes, and the first read consumes it. Two other readers take that edge before the dialog can:
+  1. `FOOD_ORDER7` is a ROOM screen for `microWait` frames while that picture is already showing. ROOM turns the home menu on. `drawMenu()` reads `isChange()`, then `changeState()` drops the press because the delay toward `FOOD_ORDER8` is still counting.
+  2. The delay completes at the top of `manageRoom()`, which sets `FOOD_ORDER8` (`overlayActive`, DIALOG) and then calls `drawOverlay()` in the same function. `foodDelivery()` is not on that path. The generic "any key → `HOME_LOOP`" dismiss is not excluded for `FOOD_ORDER8`/`FOOD_ORDER9`, so it either sends the player home or swallows the edge.
+- **Not an NT-01 starve by itself.** Sampling the keyboard once per frame stops the title-menu ghost. `foodDelivery()` still required `isChange() && isPressed()` and `keyList()[0]`. A key already in the list (ghost, or Enter still held from the beat above) does not change the count, and slot 0 is not the new press. `getKey(keyList()[0])` is also unsafe for a point outside the 4×14 map.
+- **NT-02 is innocent.** It only changes how the title menu recognizes Enter. It does not run `prepareTravel()` and does not touch the delivery dialog.
+- **NC-03 is innocent.** `prepareTravel()` maps `FOOD_ORDER` (the app) to HOME and, on that branch, `FOOD_MENU` to HOME and `FOOD_CONBINI` to OUTSKIRTS. `FOOD_ORDER7`/`FOOD_ORDER8`/`FOOD_ORDER9` are not travel triggers, so entering the delivered screen does not ride and does not depend on `currentTile`. Travel still runs only when the destination tile differs from `currentTile`.
+- **Fix:** The home menu is off on `FOOD_ORDER7`, and `drawOverlay()` does not read the keyboard on `FOOD_ORDER7`–`FOOD_ORDER9`. The dialog remembers keys already down when it opens and advances on any newly pressed in-range key, then consumes `isChange()` so the next screen does not take the same press. The two outcome steps after delivery use that same edge. Flow is unchanged: `FOOD_ORDER8` → `ACTION_OUTCOME` → `FOOD_ORDER9` → `ACTION_OUTCOME` → `HOME_LOOP`.

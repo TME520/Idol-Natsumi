@@ -826,6 +826,11 @@ int lastMeditationDisplayed = 0;
 int restaurantSelection = 0;
 int orderibiSelection = 0;
 int foodDeliveryCounter = 0;
+// NF-01: keys already down when the delivery dialog opens. A new position
+// (not keyList()[0], and not a change in the count) is what advances it.
+int foodDeliveryHeldX[8];
+int foodDeliveryHeldY[8];
+uint8_t foodDeliveryHeldCount = 0;
 int happinessCounter = 0;
 int slideshowImage = 0;
 
@@ -4037,6 +4042,9 @@ void resetGameState() {
   selectedFood = "None";
 }
 
+void rememberFoodDeliveryKeys();
+bool foodDeliveryKeyEdge();
+
 void changeState(int baseLayer, GameState targetState, int delay) {
   // Manage state transitions
   Serial.println("> Entering changeState() with baseLayer set to " + String(baseLayer) + " and targetState set to " + String(gameStateToString(targetState)) + " with delay set to " + String(delay));
@@ -4265,6 +4273,12 @@ void changeState(int baseLayer, GameState targetState, int delay) {
       case FOOD_ORDER7:
         setScreenConfig(ROOM);
         menuOpened = false;
+        // NF-01: ROOM enables the home menu. drawMenu() reads isChange() on
+        // every press, then changeState() drops that press while this beat's
+        // delay is counting. The food-delivered picture is already up, and
+        // the dialog never sees the key.
+        menuEnabled = false;
+        overlayActive = false;
         // The delivery is on screen now
         waitingForFoodDelivery = false;
         foodDeliveryCounter = 0;
@@ -4273,6 +4287,10 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         setScreenConfig(DIALOG);
         overlayActive = true;
         l5NeedsRedraw = true;
+        // Keys held as the dialog opens (mashed during FOOD_ORDER7, or a
+        // ghost already in the list) must not skip the line. A later press
+        // is a new position.
+        rememberFoodDeliveryKeys();
         break;
       case TRAIN_MENU:
         setScreenConfig(ROOM);
@@ -9996,7 +10014,12 @@ void drawOverlay() {
   // Serial.println("> Entering drawOverlay() L5 with l5NeedsRedraw set to " + String(l5NeedsRedraw) + " and overlayActive set to " + String(overlayActive));
   // NC-02: isChange() consumes the key edge. The fridge screen handles SPACE
   // in cookFood(); the generic "any key goes home" dismiss must not take it.
-  if (overlayActive && overlayEnabled && currentState != FOOD_COOK) {
+  // NF-01: FOOD_ORDER7 finishes its delay inside manageRoom, which then calls
+  // drawOverlay() before foodDelivery() exists. FOOD_ORDER8/9 set
+  // overlayActive. Reading isChange() here either sends the player home or
+  // swallows the only edge the dialog was going to use.
+  if (currentState != FOOD_ORDER7 && currentState != FOOD_ORDER8 && currentState != FOOD_ORDER9 &&
+      overlayActive && overlayEnabled && currentState != FOOD_COOK) {
     // Serial.println(">> drawOverlay: l5NeedsRedraw is TRUE");
     uint8_t key = 0;
     if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -11520,12 +11543,19 @@ void gotoRestaurant() {
 void actionOutcome() {
   // Determine if player is entitled to Matsuri tickets
   Serial.println("> Entering actionOutcome()");
-  uint8_t key = 0;
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+  // NF-01: the delivery dialog and these two outcome steps are one chain
+  // (ORDER8 → outcome → ORDER9 → outcome → home). The outcome steps used to
+  // require isChange(), which stays false when a ghost keeps the count steady.
+  bool pressed = false;
+  if (previousState == FOOD_ORDER8 || previousState == FOOD_ORDER9) {
+    pressed = foodDeliveryKeyEdge();
+  } else if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
-    if (keyList.size() > 0) {
-      Serial.println(">> actionOutcome() - key pressed");
-      switch(previousState) {
+    pressed = keyList.size() > 0;
+  }
+  if (pressed) {
+    Serial.println(">> actionOutcome() - key pressed");
+    switch(previousState) {
         case TRAIN_SING3: case TRAIN_DANCE3:
           changeState(0, TRAIN_STATUS, 0);
           break;
@@ -11585,7 +11615,6 @@ void actionOutcome() {
           }
           break;
       }
-    }
   }
   return;
 }
@@ -12189,23 +12218,86 @@ void competitionHost() {
   return;
 }
 
+void rememberFoodDeliveryKeys() {
+  foodDeliveryHeldCount = 0;
+  const auto& keys = M5Cardputer.Keyboard.keyList();
+  for (size_t i = 0; i < keys.size() && foodDeliveryHeldCount < 8; i++) {
+    const int x = keys[i].x;
+    const int y = keys[i].y;
+    // Same bound as cardputerKeyAt: getKey() does not reject x >= 14 or y >= 4.
+    if (x < 0 || y < 0 || x >= 14 || y >= 4) continue;
+    bool seen = false;
+    for (uint8_t j = 0; j < foodDeliveryHeldCount; j++) {
+      if (foodDeliveryHeldX[j] == x && foodDeliveryHeldY[j] == y) {
+        seen = true;
+        break;
+      }
+    }
+    if (seen) continue;
+    foodDeliveryHeldX[foodDeliveryHeldCount] = x;
+    foodDeliveryHeldY[foodDeliveryHeldCount] = y;
+    foodDeliveryHeldCount++;
+  }
+}
+
+// NF-01: true when an in-range key is down that was not down last call.
+// isChange() only notices a change in the count and is consumed by the first
+// read. A ghost or a key still held from FOOD_ORDER7 sits in keyList()[0],
+// so a real press that does not change the count never reached the old check.
+// The latch is still consumed so ACTION_OUTCOME does not see this same press.
+bool foodDeliveryKeyEdge() {
+  M5Cardputer.Keyboard.isChange();
+  int curX[8];
+  int curY[8];
+  uint8_t curCount = 0;
+  const auto& keys = M5Cardputer.Keyboard.keyList();
+  for (size_t i = 0; i < keys.size() && curCount < 8; i++) {
+    const int x = keys[i].x;
+    const int y = keys[i].y;
+    if (x < 0 || y < 0 || x >= 14 || y >= 4) continue;
+    bool seen = false;
+    for (uint8_t j = 0; j < curCount; j++) {
+      if (curX[j] == x && curY[j] == y) {
+        seen = true;
+        break;
+      }
+    }
+    if (seen) continue;
+    curX[curCount] = x;
+    curY[curCount] = y;
+    curCount++;
+  }
+
+  bool edge = false;
+  for (uint8_t i = 0; i < curCount; i++) {
+    bool wasDown = false;
+    for (uint8_t j = 0; j < foodDeliveryHeldCount; j++) {
+      if (foodDeliveryHeldX[j] == curX[i] && foodDeliveryHeldY[j] == curY[i]) {
+        wasDown = true;
+        break;
+      }
+    }
+    if (!wasDown) edge = true;
+  }
+
+  foodDeliveryHeldCount = curCount;
+  for (uint8_t i = 0; i < curCount; i++) {
+    foodDeliveryHeldX[i] = curX[i];
+    foodDeliveryHeldY[i] = curY[i];
+  }
+  return edge;
+}
+
 void foodDelivery() {
   // Serial.println("> Entering foodDelivery()");
-  uint8_t key = 0;
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-    auto keyList = M5Cardputer.Keyboard.keyList();
-    if (keyList.size() > 0) {
-      key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      switch (currentState) {
-        case FOOD_ORDER8:
-          changeState(0, ACTION_OUTCOME, 0);
-          break;
-        case FOOD_ORDER9:
-          changeState(0, ACTION_OUTCOME, 0);
-          break;
-      }
-      return;
-    }
+  if (!foodDeliveryKeyEdge()) return;
+  switch (currentState) {
+    case FOOD_ORDER8:
+      changeState(0, ACTION_OUTCOME, 0);
+      break;
+    case FOOD_ORDER9:
+      changeState(0, ACTION_OUTCOME, 0);
+      break;
   }
 }
 
