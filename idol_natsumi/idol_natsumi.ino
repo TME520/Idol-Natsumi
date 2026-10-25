@@ -4666,6 +4666,13 @@ void changeState(int baseLayer, GameState targetState, int delay) {
         break;
       case NEKO_CAFE10: case NEKO_CAFE14:
         setScreenConfig(CARD);
+        // NFLOW-05: CARD turns the menu on. currentMenuType is still "food"
+        // from the kitchen, and drawMenu() reads keys whenever menuEnabled,
+        // even with the panel hidden. NEKO_CAFE14 holds that seat for minutes
+        // (small drink 30 pulses, large 90). NEKO_CAFE10 is the beat before
+        // the drink and has the same config.
+        menuOpened = false;
+        menuEnabled = false;
         if (targetState == NEKO_CAFE14 && selectedSeat == 1) {
           nekoCafeReadingFrame = 0;
           nekoCafeReadingLastFrame = millis();
@@ -5144,9 +5151,19 @@ void manageCard() {
       changeState(0, CHALLENGE_DONE2, microWait);
       break;
     case NEKO_CAFE10:
+      // NFLOW-05: this beat has no keys of its own. Drop the edge so the
+      // Food menu cannot take it, and so it does not leak into the drink.
+      menuOpened = false;
+      menuEnabled = false;
+      M5Cardputer.Keyboard.isChange();
       changeState(0, NEKO_CAFE11, microWait);
       break;
     case NEKO_CAFE14:
+      // NFLOW-05: nap / read has no keys. Same disarm as the entry above;
+      // a press here used to be a Food-menu command (ESC went HOME).
+      menuOpened = false;
+      menuEnabled = false;
+      M5Cardputer.Keyboard.isChange();
       nekoCafeActivity();
       break;
   }
@@ -5333,6 +5350,13 @@ void manageGame() {
 
 void manageIdle() {
   // Manage IDLE screens
+  // NFLOW-05: paying for a cafe drink is a timed lead-in with the overlay
+  // up. Any key used to take the generic path HOME, and the edge stayed
+  // latched into "Enjoy your drink" if that path was skipped.
+  if ((currentState == PAY_SCREEN || currentState == PAY_SCREEN2 ||
+       currentState == PAY_SCREEN3) && returnTo == NEKO_CAFE12) {
+    M5Cardputer.Keyboard.isChange();
+  }
   switch (currentState) {
     case FLOWERS_MARKET:
       if (natsumi.flowers > 0) {
@@ -5455,6 +5479,9 @@ void manageIdle() {
       challengeDone();
       break;
     case NEKO_CAFE:
+      // NFLOW-05: the front is a timed lead-in. It has no keys. A press
+      // used to hit the overlay and send Natsumi HOME before the welcome.
+      M5Cardputer.Keyboard.isChange();
       changeState(0, NEKO_CAFE2, microWait);
       break;
     case NEKO_CAFE11:
@@ -10038,6 +10065,12 @@ void drawOverlay() {
   // NFLOW-01: the 3-2-1 countdown, library, and meditation keep overlayActive.
   // Countdown and library only take ESC (back to the training or competition
   // menu). Meditation takes no key. Reading isChange() here sends them HOME.
+  // NFLOW-05: the cafe front, drink and size and seat choice, the paid
+  // drink wait, and the cafe dialogs also keep the overlay up. Selection
+  // and dialogs own their keys (ESC on the choices still returns). The
+  // front, the cafe payment, and the drink wait take none. A press here,
+  // including the frame a timed lead-in flips into the next overlay, was
+  // sent HOME. The seat itself is CARD; the Food menu is disarmed there.
   const bool activityOwnsOverlay =
       currentState == TRAIN_DANCE || currentState == TRAIN_SING ||
       currentState == TRAIN_SWIM || currentState == TRAIN_GYM ||
@@ -10045,9 +10078,13 @@ void drawOverlay() {
       currentState == COMP_LOCAL4 || currentState == COMP_DEPT4 ||
       currentState == COMP_REG4 || currentState == COMP_NAT4 ||
       currentState == REST_MEDITATE;
+  const bool cafeOwnsOverlay =
+      (currentState >= NEKO_CAFE && currentState <= NEKO_CAFE14) ||
+      ((currentState == PAY_SCREEN || currentState == PAY_SCREEN2 ||
+        currentState == PAY_SCREEN3) && returnTo == NEKO_CAFE12);
   if (currentState != FOOD_ORDER7 && currentState != FOOD_ORDER8 && currentState != FOOD_ORDER9 &&
       overlayActive && overlayEnabled && currentState != FOOD_COOK &&
-      !activityOwnsOverlay) {
+      !activityOwnsOverlay && !cafeOwnsOverlay) {
     // Serial.println(">> drawOverlay: l5NeedsRedraw is TRUE");
     uint8_t key = 0;
     if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
@@ -11968,6 +12005,10 @@ void neko_cafe() {
 
 void nekoCafeDrink() {
   // Serial.println("> Entering nekoCafeDrink()");
+  // NFLOW-05: the drink wait has no keys. Drop the edge so the overlay
+  // cannot send it HOME, and so it is not still latched when the seat ends
+  // and the welcome dialog opens.
+  M5Cardputer.Keyboard.isChange();
   if (fiveSecondPulse) {
     nekoCafeDrinkTicks++;
     if (nekoCafeDrinkTicks >= (selectedSize == 0 ? 30 : 90)) {
