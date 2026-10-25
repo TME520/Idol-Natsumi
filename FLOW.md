@@ -345,6 +345,8 @@ Emily (`visitor == 5`) leaves `DOOR_KNOCK6` into rock-paper-scissors. Everyone e
 
 `displayBusinessFront()` then flashes the place just entered. It also flashes on a same-tile hop for the entry states in `showsBusinessFrontOnArrival()` (restaurant, each training stop, the flower market, doctor, temple, onsen, the matsuri banner, and each competition tier). Later beats of those activities are not in that list, so the front does not flash twice. Conbimart and Neko Cafe are left out because their first scene is already the front. The home front flashes only when the ride itself plays.
 
+After a successful activity, `postActivityLeave()` sends Natsumi to `HOME_LOOP` when Energy or Hunger is below 1, and otherwise reopens `latestMenu`. The bike still runs only when that destination's tile differs. The check is the leave after the result (training status, library, finished meal, cooking, onsen, a good shower, a flower sale, the Conbimart cashier, a matsuri stall). It is not called from `PAY_SCREEN`, a cancel, or not-enough-money. A challenge banner still plays first; the leave runs after `CHALLENGE_DONE3`. Relaunching that same entry skips the business-front flash once (`skipNextBusinessFront`). Conbimart and Neko Cafe skip their timed front instead: same tile opens the shop or the welcome, and a redo from another tile still rides.
+
 The ride is a direct call to `manageTravel()`, and the front is a direct call to `displayBusinessFront()`. Both run inside `prepareTravel()`.
 
 | Tile | Entry states |

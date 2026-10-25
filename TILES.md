@@ -31,13 +31,13 @@ The ride decodes one PNG into the background, then `manageTravel()` scrolls the 
 | Destination tile differs, and the destination is any other tile | Ride plays, then `currentTile` becomes that tile | No Energy cost | Destination front after the ride, except Conbimart and Neko Cafe |
 | Destination tile is already `currentTile` | No ride | No Energy cost | Front only for the entry states in `showsBusinessFrontOnArrival()` |
 
-`FOOD_MENU`, `FOOD_COOK`, and `FOOD_ORDER` are `HOME` states, together with `HOME_LOOP`, `HEALTH_WASH`, `REST_MEDITATE`, `REST_SLEEP`, and `GARDEN_LOOP`. The restaurant (after the meal) and the Conbimart cashier return to `latestMenu`. The food menu sets that to `FOOD_MENU`, so the return rides home and pays the Energy cost once. ESC from the cafe drink menu takes the same path. The cafe seat loops to `NEKO_CAFE2` and stays on `CITY`.
+`FOOD_MENU`, `FOOD_COOK`, and `FOOD_ORDER` are `HOME` states, together with `HOME_LOOP`, `HEALTH_WASH`, `REST_MEDITATE`, `REST_SLEEP`, and `GARDEN_LOOP`. The restaurant (after the meal) and the Conbimart cashier return through `postActivityLeave()`: `latestMenu` when Energy and Hunger are at least 1, otherwise `HOME_LOOP`. The food menu sets `latestMenu` to `FOOD_MENU`, so an okay return rides home and pays the Energy cost once. A tired or hungry return rides home to the hub and does not open the food menu. ESC from the cafe drink menu takes the home path without that check. The cafe seat loops to `NEKO_CAFE2` and stays on `CITY`.
 
 Later beats of an activity (`FOOD_REST2`, `TRAIN_SING2`, `COMP_LOCAL2`, a matsuri stall, and so on) are not in the switch. They keep the tile their entry state already set, and they are not in `showsBusinessFrontOnArrival()`, so the front does not flash again.
 
 Menus that are not in the switch stay on the current tile until a destination state runs. Opened from home, that tile is `HOME`: `HEALTH_MENU`, `REST_MENU`, `TRAIN_MENU`, `COMP_MENU`, `EVENTS_MENU`. `GARDEN_MENU` is the tool menu on the plot (Enter on `GARDEN_LOOP`), and its tools do not travel. `FOOD_MENU` is the exception among menus: entering it sets `HOME` immediately.
 
-Returning to `TRAIN_MENU`, `HEALTH_MENU`, `COMP_MENU`, or `EVENTS_MENU` after an activity (via `latestMenu`) also leaves `currentTile` on the place just visited. The next destination in the switch, or `HOME_LOOP` from ESC, is what moves the tile.
+Returning to `TRAIN_MENU`, `HEALTH_MENU`, `COMP_MENU`, or `EVENTS_MENU` after an activity (via `latestMenu`) also leaves `currentTile` on the place just visited. The next destination in the switch, or `HOME_LOOP` from ESC, is what moves the tile. A finished activity whose Energy or Hunger is below 1 leaves to `HOME_LOOP` instead, so that ride home runs immediately.
 
 ## Activities by tile
 
@@ -140,6 +140,8 @@ These are outside the `prepareTravel()` switch. They keep `currentTile`. Chains 
 | `COMP_DEPT` | `/idolnat/screens/competition_departmental.png` |
 | `COMP_REG` | `/idolnat/screens/competition_regional.png` |
 | `COMP_NAT` | `/idolnat/screens/competition_national.png` |
+
+A finished activity stores its entry state in `lastCompletedEntryState` (`TRAIN_SING`, not `TRAIN_SING3`; a matsuri stall stores `MATSURI_TITLE`). The next menu launch of that same entry sets `skipNextBusinessFront`. `prepareTravel()` then skips `displayBusinessFront()` once and clears the flag. The ride is unchanged. Conbimart and Neko Cafe are not in that flash: a same-tile redo opens `FOOD_CONBINI2` or `NEKO_CAFE2`, and a redo from another tile still rides, then skips the timed front. New Game clears both.
 
 Left out of that flash, on purpose:
 
