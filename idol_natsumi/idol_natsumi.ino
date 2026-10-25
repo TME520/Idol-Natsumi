@@ -888,6 +888,7 @@ int lastOnsenSpiritDisplayed = -1;
 
 unsigned long lastUpdate = 0;
 const int FRAME_DELAY = 50;
+uint32_t inputFrame = 0;  // Counts frames that sampled the keyboard
 unsigned long lastKeyTime = 0;
 const unsigned long keyCooldown = 200;  // milliseconds between accepted presses
 
@@ -3768,6 +3769,57 @@ void setup() {
   }
 }
 
+// NFLOW-10: a key position that was not down on the previous sample.
+// isPressed() stays true for the whole hold, and the idle gate used to
+// treat that as fresh activity every frame, so a stuck key blocked the
+// visitor and the slideshow. This does not call isChange().
+bool idleKeyWentDown() {
+  static int prevX[8];
+  static int prevY[8];
+  static uint8_t prevCount = 0;
+
+  const auto& keys = M5Cardputer.Keyboard.keyList();
+  int curX[8];
+  int curY[8];
+  uint8_t curCount = 0;
+  for (size_t i = 0; i < keys.size() && curCount < 8; i++) {
+    int x = keys[i].x;
+    int y = keys[i].y;
+    // Outside the 4x14 map is a ghost, not a press.
+    if (x < 0 || y < 0 || x >= 14 || y >= 4) continue;
+    bool seen = false;
+    for (uint8_t j = 0; j < curCount; j++) {
+      if (curX[j] == x && curY[j] == y) {
+        seen = true;
+        break;
+      }
+    }
+    if (seen) continue;
+    curX[curCount] = x;
+    curY[curCount] = y;
+    curCount++;
+  }
+
+  bool wentDown = false;
+  for (uint8_t i = 0; i < curCount && !wentDown; i++) {
+    bool wasDown = false;
+    for (uint8_t j = 0; j < prevCount; j++) {
+      if (prevX[j] == curX[i] && prevY[j] == curY[i]) {
+        wasDown = true;
+        break;
+      }
+    }
+    if (!wasDown) wentDown = true;
+  }
+
+  prevCount = curCount;
+  for (uint8_t i = 0; i < curCount; i++) {
+    prevX[i] = curX[i];
+    prevY[i] = curY[i];
+  }
+  return wentDown;
+}
+
 void loop() {
   // NT-01: TITLE_SCREEN2 does no work once the menu is drawn, so calling
   // M5Cardputer.update() on every spin scanned the key matrix (or pulled one
@@ -3780,9 +3832,10 @@ void loop() {
     return;
   }
   lastUpdate = millis();
+  inputFrame++;
   M5Cardputer.update();
-  // Any key press is activity: restart the screensaver/visitor countdown
-  if (M5Cardputer.Keyboard.isPressed()) {
+  // A new press restarts the idle countdown. A key that is still down does not.
+  if (idleKeyWentDown()) {
     counterToScreensaver = 0;
   }
   updateFiveSecondPulse();
@@ -4062,6 +4115,13 @@ void changeState(int baseLayer, GameState targetState, int delay) {
     Serial.println("> currentState = " + String(gameStateToString(currentState)));
     Serial.println("> targetState = " + String(gameStateToString(targetState)));
     changeStateCounter = 0;
+    // NFLOW-06: this transition and the next screen's key reader run in the
+    // same pass. A mash latched on the last frame of pay, the cooked-food
+    // photo, or a visitor lead-in became "any key → home" and skipped the
+    // charge or the outcome. Drop the edge. The next press is a new one.
+    if (currentState != targetState) {
+      M5Cardputer.Keyboard.isChange();
+    }
     previousState = currentState;
     currentState = targetState;
     debriefEnergyApplied = false;
@@ -5727,8 +5787,25 @@ void displayVersionScreen() {
 void managePayment() {
   // Serial.println("> Entering managePayment()");
   // Apply the transaction once, as soon as the deduction step is entered.
+  // NFLOW-06: the meal and the groceries used to be granted when the player
+  // confirmed, before this charge. Skipping PAY_SCREEN2 then kept both for free.
   if (currentState == PAY_SCREEN2 && changeStateCounter == 0) {
     natsumi.money -= amountToPay;
+    if (returnTo == FOOD_REST5) {
+      natsumi.hunger = 4;
+      outcomeStatGained = natsumi.grace < 4;  // For the outcome screen (+1 or MAX)
+      if (natsumi.grace < 4) {
+        natsumi.grace += 1;
+      }
+    } else if (returnTo == FOOD_CONBINI3) {
+      for (auto &item : conbimartItems) {
+        if (item.stockPtr != nullptr && item.quantity > 0) {
+          *(item.stockPtr) += item.quantity;
+        }
+      }
+      conbimartItems.clear();
+      conbimartInitialized = false;
+    }
     saveRequired = true;
   }
   return;
@@ -7378,7 +7455,7 @@ void drawBathStaticLayout() {
 
   // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
   // drawText("Press ENTER at right temperature", 120, 131, true, WHITE, 1);
-  drawHelper("Press ENTER at right temperature");
+  drawHelper("ENTER: stop   ESC: leave");
 
   M5Cardputer.Display.drawRect(thermometerX, thermometerY, thermometerWidth, thermometerHeight, frameColor);
   M5Cardputer.Display.fillRect(innerX, thermometerY + thermometerInnerPadding, innerWidth, thermometerHeight - thermometerInnerPadding * 2, fillColor);
@@ -7444,6 +7521,13 @@ void startBathGame() {
 
 void manageBathGame() {
   if (!bathGameRunning && bathOutcomeTime == 0) {
+    // NFLOW-09: ESC leaves before the slider starts, same as the other
+    // timed activities. A key held from the health menu is not ESC.
+    if (escapePressed()) {
+      resetBathGame();
+      changeState(0, latestMenu, 0);
+      return;
+    }
     startBathGame();
     return;
   }
@@ -7469,6 +7553,15 @@ void manageBathGame() {
       bathOutcomeCode = 0;
       finalizeBathOutcome("perfect!");
     }
+    return;
+  }
+
+  // NFLOW-09: ESC aborts with no reward, back to the health menu, same as
+  // the library and the training timers. The timeout above still scores
+  // the shower when the 8 seconds run out.
+  if (escapePressed()) {
+    resetBathGame();
+    changeState(0, latestMenu, 0);
     return;
   }
 
@@ -8452,6 +8545,55 @@ uint8_t titleMenuKeyEdge() {
   return edge;
 }
 
+// NFLOW-08: newly pressed gameplay-menu key, or 0. Same matrix walk as
+// titleMenuKeyEdge: slot 0 can be a ghost or a key still held, so the command
+// is whichever in-range key just went down. isChange() stays the gate so a
+// handler that already consumed this frame (the garden, the conbini) keeps
+// the key. The first sample after a gap only records what is already held.
+uint8_t gameplayMenuKeyEdge() {
+  static uint8_t previous[8];
+  static uint8_t previousCount = 0;
+  static uint32_t lastFrame = 0;
+
+  uint8_t current[8];
+  uint8_t currentCount = 0;
+  bool changed = M5Cardputer.Keyboard.isChange();
+  const auto& keys = M5Cardputer.Keyboard.keyList();
+  for (size_t i = 0; i < keys.size() && currentCount < 8; i++) {
+    uint8_t key = cardputerKeyAt(keys[i].x, keys[i].y);
+    if (key == 0) continue;
+    bool seen = false;
+    for (uint8_t j = 0; j < currentCount; j++) {
+      if (current[j] == key) {
+        seen = true;
+        break;
+      }
+    }
+    if (!seen) current[currentCount++] = key;
+  }
+
+  bool adjacent = (inputFrame == lastFrame + 1);
+  lastFrame = inputFrame;
+
+  uint8_t edge = 0;
+  if (adjacent && changed && M5Cardputer.Keyboard.isPressed()) {
+    for (uint8_t i = 0; i < currentCount && edge == 0; i++) {
+      bool wasDown = false;
+      for (uint8_t j = 0; j < previousCount; j++) {
+        if (previous[j] == current[i]) {
+          wasDown = true;
+          break;
+        }
+      }
+      if (!wasDown) edge = current[i];
+    }
+  }
+
+  previousCount = currentCount;
+  for (uint8_t i = 0; i < currentCount; i++) previous[i] = current[i];
+  return edge;
+}
+
 void drawMenu(String menuType, const char* items[], int itemCount, int &selection) {
   // Draw menus on the screen (layer 4)
   // Serial.println("> Entering drawMenu() L4 with menuEnabled set to " + String(menuEnabled));
@@ -8461,12 +8603,9 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
     bool natsumiTired = false;
     if (menuType == "main") {
       key = titleMenuKeyEdge();
-    } else if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-      auto keyList = M5Cardputer.Keyboard.keyList();
-      if (keyList.size() > 0) {
-        key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      }
-      if (natsumi.energy < 1) {
+    } else {
+      key = gameplayMenuKeyEdge();
+      if (key != 0 && natsumi.energy < 1) {
         natsumiTired = true;
       }
       // Serial.println(">> drawMenu() - KEY: " + String(key));
@@ -11355,14 +11494,11 @@ void cookFood() {
       prepareFoodGrid();
     }
 
-    uint8_t key = 0;
+    uint8_t key = gameplayMenuKeyEdge();
     bool selectionChanged = false;
     int previousPage = foodSelectionIndex / 8;
 
-    if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-      auto keyList = M5Cardputer.Keyboard.keyList();
-      if (keyList.size() > 0) {
-        key = M5Cardputer.Keyboard.getKey(keyList[0]);
+    if (key != 0) {
         // Serial.println(">> [KEY] = " + String(key));
         int currentCol = foodSelectionIndex % 4;
         int currentRow = foodSelectionIndex / 4;
@@ -11432,7 +11568,6 @@ void cookFood() {
             return;
             break;
         }
-      }
     }
 
     if (selectionChanged) {
@@ -12497,15 +12632,9 @@ void gotoConbimart() {
               break;
             }
             if (natsumi.money >= total) {
-              // natsumi.money -= total;
-              for (auto &item : conbimartItems) {
-                *(item.stockPtr) += item.quantity;
-              }
-              conbimartItems.clear();
-              conbimartInitialized = false;
+              // NFLOW-06: keep the basket until managePayment() takes the money.
               overlayActive = false;
               menuEnabled = true;
-              saveRequired = true;
               amountToPay = total;
               returnTo = FOOD_CONBINI3;
               // changeState(0, FOOD_CONBINI3, 0);
@@ -12585,13 +12714,7 @@ void restaurantFoodSelection() {
             case 13: case 40:
               restaurantSelection = 0;
               if (natsumi.money >= 700) {
-                natsumi.hunger = 4;
-                outcomeStatGained = natsumi.grace < 4;  // For the outcome screen (+1 or MAX)
-                if (natsumi.grace < 4) {
-                  natsumi.grace += 1;
-                }
-                saveRequired = true;
-                // isNatsumiHappy = true;
+                // Hunger and grace land with the charge in managePayment().
                 amountToPay = 700;
                 returnTo = FOOD_REST5;
                 changeState(0, PAY_SCREEN, 0);
@@ -12622,13 +12745,7 @@ void restaurantFoodSelection() {
             case 13: case 40:
               restaurantSelection = 1;
               if (natsumi.money >= 800) {
-                natsumi.hunger = 4;
-                outcomeStatGained = natsumi.grace < 4;  // For the outcome screen (+1 or MAX)
-                if (natsumi.grace < 4) {
-                  natsumi.grace += 1;
-                }
-                saveRequired = true;
-                // isNatsumiHappy = true;
+                // Hunger and grace land with the charge in managePayment().
                 amountToPay = 800;
                 returnTo = FOOD_REST5;
                 changeState(0, PAY_SCREEN, 0);
@@ -12659,13 +12776,7 @@ void restaurantFoodSelection() {
             case 13: case 40:
               restaurantSelection = 2;
               if (natsumi.money >= 900) {
-                natsumi.hunger = 4;
-                outcomeStatGained = natsumi.grace < 4;  // For the outcome screen (+1 or MAX)
-                if (natsumi.grace < 4) {
-                  natsumi.grace += 1;
-                }
-                saveRequired = true;
-                // isNatsumiHappy = true;
+                // Hunger and grace land with the charge in managePayment().
                 amountToPay = 900;
                 returnTo = FOOD_REST5;
                 changeState(0, PAY_SCREEN, 0);
@@ -13169,6 +13280,12 @@ void managePFCGame() {
               pfcCurrentStage += 1;
               l5NeedsRedraw = true;
               break;
+            case 96:
+              // NFLOW-07: the RPS screens already quit home on ESC. These
+              // "press Enter" prompts consumed the key and then ignored it,
+              // so ESC did nothing. Leave the same way.
+              changeState(0, HOME_LOOP, 0);
+              return;
           }
           switch(pfcCurrentStage) {
             case 0:
