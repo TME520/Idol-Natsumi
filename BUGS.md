@@ -325,7 +325,7 @@ Separate series from NB-* / NC-* / ND-*. Do not renumber those.
 Separate series from NB-* / NC-* / ND-* / NT-*. Do not renumber those.
 
 ### NF-01: Food-delivered dialog never advances on a key press
-- **Status:** Fixed (this change).
+- **Status:** Fixed (ef59d66).
 - **Where:** `foodDelivery()`; `actionOutcome()` when `previousState` is `FOOD_ORDER8` or `FOOD_ORDER9`; `drawOverlay()` key dismiss; `FOOD_ORDER7` entry in `changeState()`.
 - **What happens:** The delivery picture (`orderibi_food_delivered.png`, `FOOD_ORDER7`–`FOOD_ORDER9`) stays up. A key press does not go on to `ACTION_OUTCOME`, `FOOD_ORDER9`, or `HOME_LOOP`.
 - **Cause:** `Keyboard.isChange()` is true only when the number of held keys changes, and the first read consumes it. Two other readers take that edge before the dialog can:
