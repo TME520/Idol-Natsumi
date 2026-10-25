@@ -13854,9 +13854,42 @@ void challengeDone() {
   return;
 }
 
+// Entry states that flash a business front on arrival, including a same-tile
+// hop (CITY restaurant → CITY singing). Later steps (FOOD_REST2, TRAIN_SING2,
+// ...) are not listed, so a transition never flashes a front twice.
+// Conbimart and Neko Cafe are omitted: preloadImages uses the front PNG as
+// the scene, and calling displayBusinessFront for them would flash it twice.
+// Home (HOME_LOOP, FOOD_MENU, Cook, ...) is omitted too: the home front stays
+// travel-only.
+bool showsBusinessFrontOnArrival(GameState state) {
+  switch (state) {
+    case FOOD_REST:
+    case TRAIN_SING:
+    case TRAIN_SWIM:
+    case TRAIN_DANCE:
+    case TRAIN_GYM:
+    case TRAIN_RUN:
+    case TRAIN_LIBRARY:
+    case FLOWERS_MARKET:
+    case HEALTH_DOCTOR:
+    case HEALTH_TEMPLE:
+    case HEALTH_ONSEN:
+    case MATSURI_TITLE:
+    case COMP_LOCAL:
+    case COMP_DEPT:
+    case COMP_REG:
+    case COMP_NAT:
+      return true;
+    default:
+      return false;
+  }
+}
+
 void prepareTravel() {
   // Ride, and the 1 Energy cost of coming home, only when the destination
   // tile differs from currentTile. Same tile: no bike, no Energy.
+  // The business-front flash is a separate gate (showsBusinessFrontOnArrival):
+  // those entry states flash once even when the tile does not change.
   // NFLOW-03: Restaurant = CITY, Conbimart = OUTSKIRTS.
   // NFLOW-04: kitchen (FOOD_MENU and Cook) = HOME. Restaurant and Conbimart
   // return to FOOD_MENU. That state has to take the HOME tile; otherwise
@@ -13940,6 +13973,16 @@ void prepareTravel() {
     preloadImage("/idolnat/sprites/natsumi_bicycle1-80x45.png", natsumiSprite);
     preloadImage("/idolnat/sprites/natsumi_bicycle2-80x45.png", enemySprite);
     manageTravel();
+  }
+  // One front per transition, after the ride when there is one.
+  // Business entry states flash even on a same-tile hop. A cross-tile ride
+  // still flashes the destination front, including home. Conbimart and Neko
+  // Cafe are the exception: their scene image is already the front.
+  const bool showFront =
+      currentState != FOOD_CONBINI &&
+      currentState != NEKO_CAFE &&
+      (showsBusinessFrontOnArrival(currentState) || triggerTravel);
+  if (showFront) {
     displayBusinessFront();
   }
   return;
