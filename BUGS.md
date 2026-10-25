@@ -319,3 +319,10 @@ Separate series from NB-* / NC-* / ND-*. Do not renumber those.
 - **Where:** `loop()` frame gate; `drawMenu()` when `menuType == "main"`.
 - **What happens:** After the title menu is drawn, that screen does no further work, but `loop()` still called `M5Cardputer.update()` on every spin between 50 ms frames. That scans the key matrix (or one TCA8418 event) as fast as the CPU runs. A ghost key sticks in `keyList()[0]`. `Keyboard.isChange()` is only true when the count of held keys changes, and the first read consumes it, so Up/Down/Enter/0/1/2 never reach the menu.
 - **Fix:** Sample the keyboard once per frame and yield while waiting. The title menu edges real menu keys anywhere in the list, and still consumes `isChange()` so the edge does not leak into the next screen.
+
+### NT-02: ENTER on TITLE_SCREEN2 does not select the highlighted item
+- **Status:** Fixed. NC-03 is not involved: `prepareTravel()` does not run for `TITLE_SCREEN2` / `NEW_GAME` / `CONTINUE_GAME` / `INTRO`.
+- **Where:** `titleMenuKeyEdge()` / `isTitleMenuKey()`; main-menu `VALIDATE` in `drawMenu()`.
+- **What happens:** Arrows still move the highlight. Enter does not start New Game, Continue, or Intro.
+- **Cause:** NT-01 keeps a key only when its `getKey()` byte is on a short list, and it reports the first newly down byte. M5Cardputer 1.1.1 maps physical Enter to matrix `(13, 2)` and `KEY_ENTER` (`0x28`, decimal 40). That byte is on the list, and `(13, 2)` is inside the 4×14 check, so a bare "not 13 or 40" mismatch with that library is not the whole miss. Up is `(11, 2)` (`';'`, 59) and is scanned before Enter. A same-frame ghost on that key (or any earlier menu key) becomes the only edge; Enter is then stored as already down, so the press never reaches `case 13` / `case 40`. A `getKey()` of 0 or ASCII LF (10) is dropped even when `keysState().enter` is set. Held arrow bytes are 59/46 or 181/182, so they still edge.
+- **Fix:** Remember edges by matrix position. A new confirm wins over a new arrow in the same frame. The Enter cell and `keysState().enter` count as confirm even when `getKey()` is not 13 or 40. The main menu also accepts LF (10).

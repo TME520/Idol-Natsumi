@@ -8327,12 +8327,19 @@ void drawToast() {
   }
 }
 
+// 10 is ASCII LF (Enter on some Cardputer maps). 13 is CR.
+// 40 is M5Cardputer KEY_ENTER (0x28), the byte getKey() returns for the
+// physical Enter key in library 1.1.1.
+bool isTitleMenuConfirm(uint8_t key) {
+  return key == 10 || key == 13 || key == 40;
+}
+
 bool isTitleMenuKey(uint8_t key) {
+  if (isTitleMenuConfirm(key)) return true;
   switch (key) {
     case '0': case '1': case '2':
     case 181: case 'w': case 'W': case 59:
     case 182: case 's': case 'S': case 46:
-    case 13: case 40:
       return true;
     default:
       return false;
@@ -8349,42 +8356,73 @@ uint8_t cardputerKeyAt(int x, int y) {
   return M5Cardputer.Keyboard.getKey(pos);
 }
 
-// NT-01: newly pressed title-menu key, or 0. Looks at every key in the list,
-// not keyList()[0]. isChange() is still called so the count edge is consumed
-// and does not leak into the next screen.
+// NT-02: physical Enter on Cardputer and Cardputer-Adv (after the library
+// remap) is column 13, row 2. getKey() there is KEY_ENTER (40) in M5Cardputer
+// 1.1.1. NT-01 remembered edges by that byte and returned the first new
+// allow-listed byte only, so a same-frame ghost earlier in the list (often
+// ';' / up, two columns to the left) was the edge and Enter was stored as
+// already down. A byte outside 13/40, or 0 from cardputerKeyAt, was dropped
+// even when keysState().enter was set.
+// Edges are per matrix position. A new confirm wins over a new arrow in the
+// same frame. The Enter cell and keysState().enter count even if getKey()
+// is not 13 or 40.
 uint8_t titleMenuKeyEdge() {
-  static uint8_t previous[8];
+  struct Held {
+    int x;
+    int y;
+    uint8_t key;
+  };
+  static Held previous[8];
   static uint8_t previousCount = 0;
-  uint8_t current[8];
+  static bool previousEnter = false;
+  Held current[8];
   uint8_t currentCount = 0;
+  bool enterCell = false;
 
   M5Cardputer.Keyboard.isChange();
   const auto& keys = M5Cardputer.Keyboard.keyList();
   for (size_t i = 0; i < keys.size() && currentCount < 8; i++) {
-    uint8_t key = cardputerKeyAt(keys[i].x, keys[i].y);
+    const int x = keys[i].x;
+    const int y = keys[i].y;
+    uint8_t key = cardputerKeyAt(x, y);
+    if (x == 13 && y == 2) {
+      enterCell = true;
+      if (!isTitleMenuConfirm(key)) key = 40;
+    }
     if (!isTitleMenuKey(key)) continue;
     bool seen = false;
     for (uint8_t j = 0; j < currentCount; j++) {
-      if (current[j] == key) {
+      if (current[j].x == x && current[j].y == y) {
         seen = true;
         break;
       }
     }
-    if (!seen) current[currentCount++] = key;
+    if (seen) continue;
+    current[currentCount].x = x;
+    current[currentCount].y = y;
+    current[currentCount].key = key;
+    currentCount++;
   }
 
+  const bool enterDown = M5Cardputer.Keyboard.keysState().enter || enterCell;
   uint8_t edge = 0;
-  for (uint8_t i = 0; i < currentCount && edge == 0; i++) {
+  uint8_t confirm = 0;
+  for (uint8_t i = 0; i < currentCount; i++) {
     bool wasDown = false;
     for (uint8_t j = 0; j < previousCount; j++) {
-      if (previous[j] == current[i]) {
+      if (previous[j].x == current[i].x && previous[j].y == current[i].y) {
         wasDown = true;
         break;
       }
     }
-    if (!wasDown) edge = current[i];
+    if (wasDown) continue;
+    if (edge == 0) edge = current[i].key;
+    if (isTitleMenuConfirm(current[i].key)) confirm = current[i].key;
   }
+  if (confirm != 0) edge = confirm;
+  if (!previousEnter && enterDown && !isTitleMenuConfirm(edge)) edge = 40;
 
+  previousEnter = enterDown;
   previousCount = currentCount;
   for (uint8_t i = 0; i < currentCount; i++) previous[i] = current[i];
   return edge;
@@ -9187,8 +9225,8 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           selection = (selection + 1) % mainMenuItemCount;
           l4NeedsRedraw = true;
           break;
-        case 13: case 40:
-          // VALIDATE
+        case 10: case 13: case 40:
+          // VALIDATE (LF, CR, KEY_ENTER)
           if (selection == 0) {
             menuOpened = false;
             changeState(0, NEW_GAME, 0);
@@ -9200,6 +9238,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             changeState(4, INTRO, 0);
             return;
           }
+          break;
       }
     } else if (menuType == "garden") {
       // Serial.println(">> drawMenu - garden menuType");
