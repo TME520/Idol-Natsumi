@@ -889,6 +889,9 @@ int lastOnsenSpiritDisplayed = -1;
 unsigned long lastUpdate = 0;
 const int FRAME_DELAY = 50;
 uint32_t inputFrame = 0;  // Counts frames that sampled the keyboard
+// Set in loop() from idleKeyWentDown(). Result dialogs read this so a press
+// is an edge in key position, not a change in how many keys are held.
+bool keyWentDownThisFrame = false;
 unsigned long lastKeyTime = 0;
 const unsigned long keyCooldown = 200;  // milliseconds between accepted presses
 
@@ -1831,8 +1834,12 @@ bool preloadImage(const char* path, ImageBuffer &imgBuf) {
 }
 
 bool loadImageFile(const char* path, ImageBuffer &imgBuf) {
-  constexpr int MAX_RETRIES = 30;
-  constexpr unsigned long RETRY_DELAY_MS = 8000;
+  // A short read used to wait 8s, up to 30 times. That froze a result dialog
+  // on the key that left it: the card had been idle, the first read failed,
+  // and the dialog sat there until a later try worked. A few short tries
+  // are enough for a cold card. A missing file returns just below.
+  constexpr int MAX_RETRIES = 4;
+  constexpr unsigned long RETRY_DELAY_MS = 50;
 
   // Extract filename from the full path.
   const char* filename = strrchr(path, '/');
@@ -3758,6 +3765,11 @@ void setup() {
   randomSeed(esp_random());
   delay(1000);
   Serial.begin(115200);
+  // USB CDC blocks in write() once the TX buffer is full and the host is not
+  // reading (Cardputer plugged into a computer). Result dialogs used to print
+  // every frame, so after a short sit each frame waited out that timeout
+  // before it looked at the keyboard. Drop logs instead of stalling the loop.
+  Serial.setTxTimeoutMs(0);
   delay(1000);
   Serial.println("");
   Serial.println("*** BEGIN ***");
@@ -3820,6 +3832,17 @@ bool idleKeyWentDown() {
   return wentDown;
 }
 
+// Outcome / debrief / "press any key" dialogs. isChange() is only a change in
+// the count of held keys, and the first read consumes it. A ghost already in
+// the list, or a press that starts and ends during an SD save, never reached
+// the dialog. idleKeyWentDown() already recorded a new in-range position this
+// frame (including a rescan after that save). Consume isChange() so the
+// generic overlay cannot take the same press and send Natsumi home.
+bool resultDialogKey() {
+  M5Cardputer.Keyboard.isChange();
+  return keyWentDownThisFrame;
+}
+
 void loop() {
   // NT-01: TITLE_SCREEN2 does no work once the menu is drawn, so calling
   // M5Cardputer.update() on every spin scanned the key matrix (or pulled one
@@ -3835,10 +3858,20 @@ void loop() {
   inputFrame++;
   M5Cardputer.update();
   // A new press restarts the idle countdown. A key that is still down does not.
-  if (idleKeyWentDown()) {
+  keyWentDownThisFrame = idleKeyWentDown();
+  if (keyWentDownThisFrame) {
     counterToScreensaver = 0;
   }
-  updateFiveSecondPulse();
+  // The pulse may write the save or touch the card. That blocks. Sample again
+  // so a key held through it is visible this frame. Not a tight scan: only
+  // after that SD work, so this does not bring back the NT-01 ghost.
+  if (updateFiveSecondPulse()) {
+    M5Cardputer.update();
+    if (idleKeyWentDown()) {
+      keyWentDownThisFrame = true;
+      counterToScreensaver = 0;
+    }
+  }
   printBatteryLevel();
 /*
   Serial.println("l0NeedsRedraw: " + String(l0NeedsRedraw) + " - l1NeedsRedraw: " + String(l1NeedsRedraw) + " - l2NeedsRedraw: " + String(l2NeedsRedraw) + " - l3NeedsRedraw: " + String(l3NeedsRedraw));
@@ -4098,6 +4131,44 @@ void resetGameState() {
 void rememberFoodDeliveryKeys();
 bool foodDeliveryKeyEdge();
 
+// Screens where Natsumi waits on a result until a key. She can sit here for a
+// long time. The autosave and a live stat redraw must not run under that key.
+bool outcomeDialogWaiting() {
+  switch (currentState) {
+    case ACTION_OUTCOME:
+    case TRAIN_STATUS:
+    case TRAIN_SING3:
+    case TRAIN_DANCE3:
+    case TRAIN_SWIM3:
+    case TRAIN_GYM3:
+    case TRAIN_RUN3:
+    case FLOWERS_MARKET7:
+    case COMP_LOCAL6:
+    case COMP_DEPT6:
+    case COMP_REG6:
+    case COMP_NAT6:
+    case FOOD_REST:
+    case FOOD_REST5:
+    case CHALLENGE_DONE2:
+    case CHALLENGE_DONE3:
+    case HEALTH_ONSEN:
+    case HEALTH_DOCTOR:
+    case HEALTH_DOCTOR6:
+    case HEALTH_TEMPLE:
+    case HEALTH_TEMPLE6:
+    case FOOD_CONBINI3:
+    case MATSURI_SAVORY3:
+    case MATSURI_SAVORY4:
+    case MATSURI_SUGARY2:
+    case MATSURI_SUGARY3:
+    case MATSURI_GARAPON:
+    case MATSURI_GARAPON2:
+      return true;
+    default:
+      return false;
+  }
+}
+
 void changeState(int baseLayer, GameState targetState, int delay) {
   // Manage state transitions
   Serial.println("> Entering changeState() with baseLayer set to " + String(baseLayer) + " and targetState set to " + String(gameStateToString(targetState)) + " with delay set to " + String(delay));
@@ -4111,6 +4182,13 @@ void changeState(int baseLayer, GameState targetState, int delay) {
     return;
   }
   if (changeStateCounter >= (unsigned long)delay) {
+    // Paint before prepareTravel / preloadImages. Those hit the SD card, and
+    // after a long sit that read is the slow part. The result card stays on
+    // screen until the first pixel of this transition, so change the prompt
+    // first. The player sees the key land, then the ride or the next picture.
+    if (currentState != targetState && outcomeDialogWaiting()) {
+      drawHelper("Continuing...");
+    }
     Serial.println("Proceed with transition");
     Serial.println("> currentState = " + String(gameStateToString(currentState)));
     Serial.println("> targetState = " + String(gameStateToString(targetState)));
@@ -4826,40 +4904,50 @@ void updateAging() {
   }
 }
 
+// One pass for every interval that elapsed, including a long sit. This does
+// not save or reload images per step. A result dialog also skips the overlay
+// redraw: that card shows the reward, and repainting it armed another save.
+void decayStat(int &value, unsigned long &lastUpdate, unsigned long interval, unsigned long now) {
+  if (interval == 0) return;
+  unsigned long elapsed = now - lastUpdate;
+  if (elapsed < interval) return;
+  unsigned long steps = elapsed / interval;
+  if (steps > (unsigned long)value) {
+    value = 0;
+  } else {
+    value -= (int)steps;
+  }
+  lastUpdate = now;
+  saveRequired = true;
+  if (!outcomeDialogWaiting()) {
+    l5NeedsRedraw = true;
+  }
+}
+
 void updateStats() {
   // Serial.println("> Entering updateStats()");
   if (!gameStarted) return;
   unsigned long currentMillis = millis();
   int previousEnergy = natsumi.energy;
 
-  // Hunger
-  if (currentMillis - natsumi.lastHungerUpdate >= hungerInterval) {
-    if (natsumi.hunger > 0) natsumi.hunger--;
-    natsumi.lastHungerUpdate = currentMillis;
+  int hungerBefore = natsumi.hunger;
+  decayStat(natsumi.hunger, natsumi.lastHungerUpdate, hungerInterval, currentMillis);
+  if (natsumi.hunger != hungerBefore) {
     Serial.print("Hunger decreased: ");
     Serial.println(natsumi.hunger);
-    saveRequired = true;
-    l5NeedsRedraw=true;
   }
 
-  // Hygiene
-  if (currentMillis - natsumi.lastHygieneUpdate >= hygieneInterval) {
-    if (natsumi.hygiene > 0) natsumi.hygiene--;
-    natsumi.lastHygieneUpdate = currentMillis;
+  int hygieneBefore = natsumi.hygiene;
+  decayStat(natsumi.hygiene, natsumi.lastHygieneUpdate, hygieneInterval, currentMillis);
+  if (natsumi.hygiene != hygieneBefore) {
     Serial.print("Hygiene decreased: ");
     Serial.println(natsumi.hygiene);
-    saveRequired = true;
-    l5NeedsRedraw=true;
   }
 
-  // Energy
-  if (currentMillis - natsumi.lastEnergyUpdate >= energyInterval) {
-    if (natsumi.energy > 0) natsumi.energy--;
-    natsumi.lastEnergyUpdate = currentMillis;
+  decayStat(natsumi.energy, natsumi.lastEnergyUpdate, energyInterval, currentMillis);
+  if (natsumi.energy != previousEnergy) {
     Serial.print("Energy decreased: ");
     Serial.println(natsumi.energy);
-    saveRequired = true;
-    l5NeedsRedraw=true;
   }
 }
 
@@ -4969,7 +5057,8 @@ void saveScreenshotToSd() {
   Serial.println(">> saveScreenshotToSd: Saved " + screenshotPath);
 }
 
-void updateFiveSecondPulse() {
+bool updateFiveSecondPulse() {
+  bool touchedSd = false;
   unsigned long now = millis();
   if (now - lastFiveSecondTick >= fiveSecondInterval) {
     lastFiveSecondTick = now;
@@ -5085,18 +5174,29 @@ void updateFiveSecondPulse() {
       case IDLE_STATS:
         break;
     }
-    if (saveRequired && gameStarted) {
+    // A result dialog can sit for a long time. Writing the save here blocked
+    // the loop before the dialog saw the key, with the same picture up, so
+    // the press looked lost until the write returned. If a key is already
+    // down, leave the save armed and let this frame dismiss. Otherwise save,
+    // then keep touching the card so the dismiss preload is not a cold start.
+    if (saveRequired && gameStarted && !(outcomeDialogWaiting() && keyWentDownThisFrame)) {
       saveGameToSd();
       saveRequired = false;
+      touchedSd = true;
+    } else if (outcomeDialogWaiting() && gameStarted && !keyWentDownThisFrame) {
+      SD.exists(saveGamePath);
+      touchedSd = true;
     }
     if (isNatsumiHappy) {
       isNatsumiHappy = false;
       l5NeedsRedraw = true;
       changeState(0, currentState, 0);
+      touchedSd = true;
     }
   } else {
     fiveSecondPulse = false;
   }
+  return touchedSd;
 }
 
 void manageCard() {
@@ -11720,38 +11820,29 @@ void matsuriSale() {
 
 void gotoRestaurant() {
   // Eat at the restaurant
-  Serial.println("> Entering gotoRestaurant()");
-  uint8_t key = 0;
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-    auto keyList = M5Cardputer.Keyboard.keyList();
-    if (keyList.size() > 0) {
-      key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      switch (currentState) {
-        case FOOD_REST:
-          changeState(0, FOOD_REST2, 0);
-          break;
-        case FOOD_REST5:
-          // changeState(0, FOOD_REST6, 0);
-          changeState(0, ACTION_OUTCOME, 0);
-          break;
-      }
-    }
+  if (!resultDialogKey()) return;
+  switch (currentState) {
+    case FOOD_REST:
+      changeState(0, FOOD_REST2, 0);
+      break;
+    case FOOD_REST5:
+      // changeState(0, FOOD_REST6, 0);
+      changeState(0, ACTION_OUTCOME, 0);
+      break;
   }
   return;
 }
 
 void actionOutcome() {
   // Determine if player is entitled to Matsuri tickets
-  Serial.println("> Entering actionOutcome()");
   // NF-01: the delivery dialog and these two outcome steps are one chain
   // (ORDER8 → outcome → ORDER9 → outcome → home). The outcome steps used to
   // require isChange(), which stays false when a ghost keeps the count steady.
   bool pressed = false;
   if (previousState == FOOD_ORDER8 || previousState == FOOD_ORDER9) {
     pressed = foodDeliveryKeyEdge();
-  } else if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-    auto keyList = M5Cardputer.Keyboard.keyList();
-    pressed = keyList.size() > 0;
+  } else {
+    pressed = resultDialogKey();
   }
   if (pressed) {
     Serial.println(">> actionOutcome() - key pressed");
@@ -11899,7 +11990,7 @@ void manageTrainingStatus() {
   }
 
   uint8_t key = 0;
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+  if (resultDialogKey()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
@@ -11920,9 +12011,8 @@ void manageTrainingStatus() {
 }
 
 void matsuriDialogs() {
-  Serial.println("> Entering matsuriDialogs()");
   uint8_t key = 0;
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+  if (resultDialogKey()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
@@ -12055,7 +12145,7 @@ void manageFriendsVisits() {
 void doctor() {
   // Serial.println("> Entering doctor()");
   uint8_t key = 0;
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+  if (resultDialogKey()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
@@ -12076,7 +12166,7 @@ void doctor() {
 void priest() {
   // Serial.println("> Entering priest()");
   uint8_t key = 0;
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+  if (resultDialogKey()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
@@ -12097,7 +12187,7 @@ void priest() {
 void cashier() {
   // Serial.println("> Entering cashier()");
   uint8_t key = 0;
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+  if (resultDialogKey()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
@@ -12506,7 +12596,6 @@ void foodDelivery() {
 }
 
 void miniGameDebrief() {
-  Serial.println("> Entering miniGameDebrief()");
   // Energy update (once per debrief screen)
   if (!debriefEnergyApplied) {
     if (natsumi.energy > 0) {
@@ -12515,7 +12604,7 @@ void miniGameDebrief() {
     debriefEnergyApplied = true;
   }
   uint8_t key = 0;
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+  if (resultDialogKey()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
@@ -12665,7 +12754,7 @@ void gotoConbimart() {
 void manageOnsen() {
   // Serial.println("> Entering manageOnsen()");
   uint8_t key = 0;
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+  if (resultDialogKey()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
@@ -13826,9 +13915,8 @@ void manageChallenges() {
 }
 
 void challengeDone() {
-  Serial.println("> Entering challengeDone()");
   uint8_t key = 0;
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
+  if (resultDialogKey()) {
     auto keyList = M5Cardputer.Keyboard.keyList();
     if (keyList.size() > 0) {
       Serial.println(">> challengeDone() - key pressed");
