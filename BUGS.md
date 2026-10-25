@@ -315,7 +315,7 @@ Two engine facts drive several of the bugs below:
 Separate series from NB-* / NC-* / ND-*. Do not renumber those.
 
 ### NT-01: Title menu keyboard dies after a long idle on TITLE_SCREEN2
-- **Status:** Fixed (natsubot-NT-01).
+- **Status:** Fixed (e430095).
 - **Where:** `loop()` frame gate; `drawMenu()` when `menuType == "main"`.
 - **What happens:** After the title menu is drawn, that screen does no further work, but `loop()` still called `M5Cardputer.update()` on every spin between 50 ms frames. That scans the key matrix (or one TCA8418 event) as fast as the CPU runs. A ghost key sticks in `keyList()[0]`. `Keyboard.isChange()` is only true when the count of held keys changes, and the first read consumes it, so Up/Down/Enter/0/1/2 never reach the menu.
 - **Fix:** Sample the keyboard once per frame and yield while waiting. The title menu edges real menu keys anywhere in the list, and still consumes `isChange()` so the edge does not leak into the next screen.
