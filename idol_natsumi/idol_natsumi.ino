@@ -6044,12 +6044,20 @@ void drawMiniGameCountdown() {
 }
 
 void manageMiniGameCountdown() {
+  // NFLOW-01: ROOM leaves the menu enabled. drawMenu() runs after the overlay
+  // and would treat a countdown key as a menu command once the overlay stops
+  // reading it. ESC is handled below and returns to latestMenu.
+  menuOpened = false;
+  menuEnabled = false;
   if (escapePressed()) {
     // ESC: abort, no reward, no debrief
     resetMiniGameCountdown();
     changeState(0, latestMenu, 0);
     return;
   }
+  // Any other edge stays latched until something reads it. Eat it so the
+  // frame the countdown ends cannot still send Natsumi home.
+  M5Cardputer.Keyboard.isChange();
   if (!miniGameCountdownActive) {
     miniGameCountdownActive = true;
     miniGameCountdownStart = millis();
@@ -7621,6 +7629,10 @@ void drawLibraryProgressBar() {
 
 void manageLibrary() {
   overlayActive = true;
+  // NFLOW-01: same as the countdown. ESC below returns to the training menu;
+  // any other key must not fall through to drawMenu().
+  menuOpened = false;
+  menuEnabled = false;
 
   if (!libraryInitialized) {
     libraryInitialized = true;
@@ -7638,6 +7650,8 @@ void manageLibrary() {
     changeState(0, latestMenu, 0);
     return;
   }
+  // See manageMiniGameCountdown(): drop every non-ESC edge.
+  M5Cardputer.Keyboard.isChange();
 
   unsigned long now = millis();
   unsigned long elapsed = now - libraryStartTime;
@@ -8225,6 +8239,9 @@ void sleep() {
 
 void meditate() {
   unsigned long now = millis();
+  // NFLOW-01: meditation has no keys. Drop the edge so the overlay cannot
+  // send Natsumi home, and a key held here does not skip the outcome screen.
+  M5Cardputer.Keyboard.isChange();
 
   if (meditationActive) {
     l5NeedsRedraw = true;
@@ -10018,8 +10035,19 @@ void drawOverlay() {
   // drawOverlay() before foodDelivery() exists. FOOD_ORDER8/9 set
   // overlayActive. Reading isChange() here either sends the player home or
   // swallows the only edge the dialog was going to use.
+  // NFLOW-01: the 3-2-1 countdown, library, and meditation keep overlayActive.
+  // Countdown and library only take ESC (back to the training or competition
+  // menu). Meditation takes no key. Reading isChange() here sends them HOME.
+  const bool activityOwnsOverlay =
+      currentState == TRAIN_DANCE || currentState == TRAIN_SING ||
+      currentState == TRAIN_SWIM || currentState == TRAIN_GYM ||
+      currentState == TRAIN_RUN || currentState == TRAIN_LIBRARY ||
+      currentState == COMP_LOCAL4 || currentState == COMP_DEPT4 ||
+      currentState == COMP_REG4 || currentState == COMP_NAT4 ||
+      currentState == REST_MEDITATE;
   if (currentState != FOOD_ORDER7 && currentState != FOOD_ORDER8 && currentState != FOOD_ORDER9 &&
-      overlayActive && overlayEnabled && currentState != FOOD_COOK) {
+      overlayActive && overlayEnabled && currentState != FOOD_COOK &&
+      !activityOwnsOverlay) {
     // Serial.println(">> drawOverlay: l5NeedsRedraw is TRUE");
     uint8_t key = 0;
     if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
