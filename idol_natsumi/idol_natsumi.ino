@@ -222,6 +222,15 @@ GameState originLocation = HOME_LOOP;
 GameState targetLocation = HOME_LOOP;
 GameState latestMenu = FOOD_MENU;
 GameState challengesReturnState = HOME_LOOP;  // Where ESC goes from the Challenges screen
+// VERSION_SCREEN is not an activity entry: nothing has been completed yet.
+GameState lastCompletedEntryState = VERSION_SCREEN;
+// Lesson that just reached TRAIN_STATUS (TRAIN_SING, not TRAIN_SING3).
+GameState trainingLeaveEntry = VERSION_SCREEN;
+// Set by a menu launch of lastCompletedEntryState. prepareTravel skips one front.
+bool skipNextBusinessFront = false;
+// Success detoured through a challenge banner or a ticket card. The leave
+// runs when that detour returns to a menu or home, not before it.
+bool deferPostActivityLeave = false;
 bool continueStateLoaded = false;
 
 // === Screen configs definitions ===
@@ -4073,6 +4082,10 @@ void resetGameState() {
   // Menus and cursors (the title menu cursor is kept)
   latestMenu = FOOD_MENU;
   challengesReturnState = HOME_LOOP;
+  lastCompletedEntryState = VERSION_SCREEN;
+  trainingLeaveEntry = VERSION_SCREEN;
+  skipNextBusinessFront = false;
+  deferPostActivityLeave = false;
   homeMenuSelection = 0;
   foodMenuSelection = 0;
   trainingMenuSelection = 0;
@@ -5302,8 +5315,12 @@ void manageDialog() {
       introduction();
       break;
     case MATSURI_TICKETS2:
-      // changeState(0, HOME_LOOP, microWait);
-      changeState(0, latestMenu, microWait);
+      if (deferPostActivityLeave) {
+        postActivityLeave(lastCompletedEntryState, microWait);
+      } else {
+        // changeState(0, HOME_LOOP, microWait);
+        changeState(0, latestMenu, microWait);
+      }
       break;
     case MATSURI_SAVORY3: case MATSURI_SAVORY4:
     case MATSURI_SUGARY2: case MATSURI_SUGARY3:
@@ -5429,7 +5446,12 @@ void manageIdle() {
       break;
     case FOOD_CONBINI:
       characterEnabled = false;
-      changeState(0, FOOD_CONBINI2, microWait);
+      if (skipNextBusinessFront) {
+        skipNextBusinessFront = false;
+        changeState(0, FOOD_CONBINI2, 0);
+      } else {
+        changeState(0, FOOD_CONBINI2, microWait);
+      }
       break;
     case FOOD_ORDER:
       changeState(0, FOOD_ORDER2, microWait);
@@ -5542,7 +5564,12 @@ void manageIdle() {
       // NFLOW-05: the front is a timed lead-in. It has no keys. A press
       // used to hit the overlay and send Natsumi HOME before the welcome.
       M5Cardputer.Keyboard.isChange();
-      changeState(0, NEKO_CAFE2, microWait);
+      if (skipNextBusinessFront) {
+        skipNextBusinessFront = false;
+        changeState(0, NEKO_CAFE2, 0);
+      } else {
+        changeState(0, NEKO_CAFE2, microWait);
+      }
       break;
     case NEKO_CAFE11:
       nekoCafeDrink();
@@ -8594,6 +8621,80 @@ uint8_t gameplayMenuKeyEdge() {
   return edge;
 }
 
+GameState trainingEntryFromDebrief(GameState debrief) {
+  switch (debrief) {
+    case TRAIN_SING3:  return TRAIN_SING;
+    case TRAIN_DANCE3: return TRAIN_DANCE;
+    case TRAIN_SWIM3:  return TRAIN_SWIM;
+    case TRAIN_GYM3:   return TRAIN_GYM;
+    case TRAIN_RUN3:   return TRAIN_RUN;
+    default:           return VERSION_SCREEN;
+  }
+}
+
+// Tired or hungry: home hub. Otherwise the menu that opened the activity.
+// The ride still happens only when that destination's tile differs
+// (prepareTravel). Never call this from PAY_SCREEN or a cancel.
+// Two overloads, no default argument: the sketch prototype generator
+// rejects a default on a generated declaration.
+void postActivityLeave(GameState entryState, int delay) {
+  lastCompletedEntryState = entryState;
+  GameState dest;
+  if (delay > 0 && changeStateCounter > 0) {
+    dest = pendingState;
+  } else if (natsumi.energy < 1 || natsumi.hunger < 1) {
+    dest = HOME_LOOP;
+  } else {
+    dest = latestMenu;
+  }
+  const GameState before = currentState;
+  changeState(0, dest, delay);
+  if (currentState != before) {
+    deferPostActivityLeave = false;
+  }
+}
+
+void postActivityLeave(GameState entryState) {
+  postActivityLeave(entryState, 0);
+}
+
+void armPostActivityLeave(GameState entryState) {
+  lastCompletedEntryState = entryState;
+  deferPostActivityLeave = true;
+}
+
+// Same routing as postActivityLeave, after the challenge banner when one is due.
+void finishActivity(GameState entryState) {
+  if (announceChallengeCompletion) {
+    armPostActivityLeave(entryState);
+    changeState(0, CHALLENGE_DONE, 0);
+    return;
+  }
+  postActivityLeave(entryState);
+}
+
+// Menu launch of an activity entry. A redo of the entry just finished skips
+// the business-front flash. Conbimart and Neko Cafe have no extra flash:
+// same tile opens the shop or the welcome; another tile still rides, and
+// the timed front consumes skipNextBusinessFront.
+void launchActivity(GameState entryState) {
+  if (entryState == lastCompletedEntryState) {
+    if (entryState == FOOD_CONBINI && currentTile == "OUTSKIRTS") {
+      changeState(0, FOOD_CONBINI2, 0);
+      return;
+    }
+    if (entryState == NEKO_CAFE && currentTile == "CITY") {
+      changeState(0, NEKO_CAFE2, 0);
+      return;
+    }
+    skipNextBusinessFront = true;
+  }
+  changeState(0, entryState, 0);
+  if (currentState != entryState) {
+    skipNextBusinessFront = false;
+  }
+}
+
 void drawMenu(String menuType, const char* items[], int itemCount, int &selection) {
   // Draw menus on the screen (layer 4)
   // Serial.println("> Entering drawMenu() L4 with menuEnabled set to " + String(menuEnabled));
@@ -8810,14 +8911,14 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         case 48:
           // 0: FRIDGE
           menuOpened = false;
-          changeState(0, FOOD_COOK, 0);
+          launchActivity(FOOD_COOK);
           break;
         case 49:
           // 1: RESTAURANT
           menuOpened = false;
           if (!waitingForFoodDelivery) {
             if (natsumi.age > 14) {
-              changeState(0, FOOD_REST, 0);
+              launchActivity(FOOD_REST);
             } else {
               changeState(0, HOME_LOOP, 0);
               showToast("Too young to go there");
@@ -8844,7 +8945,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // 3: CONBINI
           if (!waitingForFoodDelivery) {
             menuOpened = false;
-            changeState(0, FOOD_CONBINI, 0);
+            launchActivity(FOOD_CONBINI);
           } else {
             showToast("Wait for food delivery");
           }
@@ -8853,7 +8954,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // 4: CAFE
           if (!waitingForFoodDelivery) {
             menuOpened = false;
-            changeState(0, NEKO_CAFE, 0);
+            launchActivity(NEKO_CAFE);
           } else {
             showToast("Wait for food delivery");
           }
@@ -8903,11 +9004,11 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // NC-02: close the menu before changeState, same as the 0 key.
           menuOpened = false;
           if (selection == 0) {
-            changeState(0, FOOD_COOK, 0);
+            launchActivity(FOOD_COOK);
           } else if (selection == 1) {
             if (!waitingForFoodDelivery) {
               if (natsumi.age > 14) {
-                changeState(0, FOOD_REST, 0);
+                launchActivity(FOOD_REST);
               } else {
                 changeState(0, HOME_LOOP, 0);
                 showToast("Too young to go there");
@@ -8928,13 +9029,13 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
             }
           } else if (selection == 3) {
             if (!waitingForFoodDelivery) {
-              changeState(0, FOOD_CONBINI, 0);
+              launchActivity(FOOD_CONBINI);
             } else {
               showToast("Wait for food delivery");
             }
           } else if (selection == 4) {
             if (!waitingForFoodDelivery) {
-              changeState(0, NEKO_CAFE, 0);
+              launchActivity(NEKO_CAFE);
             } else {
               showToast("Wait for food delivery");
             }
@@ -8946,37 +9047,37 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         case 48:
           // 0: SING
           menuOpened = false;
-          changeState(0, TRAIN_SING, 0);
+          launchActivity(TRAIN_SING);
           break;
         case 49:
           // 1: DANCE
           menuOpened = false;
-          changeState(0, TRAIN_DANCE, 0);
+          launchActivity(TRAIN_DANCE);
           break;
         case 50:
           // 2: SWIM
           menuOpened = false;
-          changeState(0, TRAIN_SWIM, 0);
+          launchActivity(TRAIN_SWIM);
           break;
         case 51:
           // 3: GYM
           menuOpened = false;
-          changeState(0, TRAIN_GYM, 0);
+          launchActivity(TRAIN_GYM);
           break;
         case 52:
           // 4: RUN
           menuOpened = false;
-          changeState(0, TRAIN_RUN, 0);
+          launchActivity(TRAIN_RUN);
           break;
         case 53:
           // 5: LIBRARY
           menuOpened = false;
-          changeState(0, TRAIN_LIBRARY, 0);
+          launchActivity(TRAIN_LIBRARY);
           break;
         case 54:
           // 6: MARKET
           menuOpened = false;
-          changeState(0, FLOWERS_MARKET, 0);
+          launchActivity(FLOWERS_MARKET);
           break;
         case 57:
           // 9: DEBUG
@@ -9021,19 +9122,19 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         case 13: case 40:
           // VALIDATE
           if (selection == 0) {
-            changeState(0, TRAIN_SING, 0);
+            launchActivity(TRAIN_SING);
           } else if (selection == 1) {
-            changeState(0, TRAIN_DANCE, 0);
+            launchActivity(TRAIN_DANCE);
           } else if (selection == 2) {
-            changeState(0, TRAIN_SWIM, 0);
+            launchActivity(TRAIN_SWIM);
           } else if (selection == 3) {
-            changeState(0, TRAIN_GYM, 0);
+            launchActivity(TRAIN_GYM);
           } else if (selection == 4) {
-            changeState(0, TRAIN_RUN, 0);
+            launchActivity(TRAIN_RUN);
           } else if (selection == 5) {
-            changeState(0, TRAIN_LIBRARY, 0);
+            launchActivity(TRAIN_LIBRARY);
           } else if (selection == 6) {
-            changeState(0, FLOWERS_MARKET, 0);
+            launchActivity(FLOWERS_MARKET);
           }
           menuOpened = false;
           break;
@@ -9220,7 +9321,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         case 48:
           // 0: WASH
           menuOpened = false;
-          changeState(0, HEALTH_WASH, 0);
+          launchActivity(HEALTH_WASH);
           break;
         case 49:
           // 1: DOCTOR
@@ -9235,7 +9336,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         case 51:
           // 3: ONSEN
           menuOpened = false;
-          changeState(0, HEALTH_ONSEN, 0);
+          launchActivity(HEALTH_ONSEN);
           break;
         case 57:
           // 9: DEBUG
@@ -9280,13 +9381,13 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         case 13: case 40:
           // VALIDATE
           if (selection == 0) {
-            changeState(0, HEALTH_WASH, 0);
+            launchActivity(HEALTH_WASH);
           } else if (selection == 1) {
             changeState(0, HEALTH_DOCTOR, 0);
           } else if (selection == 2) {
             changeState(0, HEALTH_TEMPLE, 0);
           } else if (selection == 3) {
-            changeState(0, HEALTH_ONSEN, 0);
+            launchActivity(HEALTH_ONSEN);
           }
           menuOpened = false;
           break;
@@ -9492,7 +9593,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
           // 0: MATSURI
           // Serial.println(">>> drawMenu - 0: MATSURI");
           menuOpened = false;
-          changeState(0, MATSURI_TITLE, 0);
+          launchActivity(MATSURI_TITLE);
           break;
         case 49:
           // 1: JOBS
@@ -9560,7 +9661,7 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
         case 13: case 40:
           // VALIDATE
           if (selection == 0) {
-            changeState(0, MATSURI_TITLE, 0);
+            launchActivity(MATSURI_TITLE);
           } else if (selection == 1) {
             showToast("Jobs: coming soon!");
             changeState(0, HOME_LOOP, 0);
@@ -11757,29 +11858,22 @@ void actionOutcome() {
     Serial.println(">> actionOutcome() - key pressed");
     switch(previousState) {
         case TRAIN_SING3: case TRAIN_DANCE3:
-          changeState(0, TRAIN_STATUS, 0);
-          break;
         case TRAIN_SWIM3: case TRAIN_GYM3: case TRAIN_RUN3:
+          trainingLeaveEntry = trainingEntryFromDebrief(previousState);
           changeState(0, TRAIN_STATUS, 0);
           break;
         case TRAIN_LIBRARY:
           if (addOneMatsuriTicket) {
             addOneMatsuriTicket = false;
+            armPostActivityLeave(TRAIN_LIBRARY);
             changeState(0, MATSURI_TICKETS, 0);
           } else {
-            if (announceChallengeCompletion) {
-              changeState(0, CHALLENGE_DONE, 0);
-            } else {
-              // changeState(0, HOME_LOOP, 0);
-              changeState(0, latestMenu, 0);
-            }
+            finishActivity(TRAIN_LIBRARY);
           }
           break;
         case MATSURI_SAVORY5: case MATSURI_SUGARY4:
-          changeState(0, MATSURI_MENU, 0);
-          break;
         case MATSURI_GARAPON4:
-          changeState(0, MATSURI_MENU, 0);
+          postActivityLeave(MATSURI_TITLE);
           break;
         case DOOR_KNOCK7:
           changeState(0, DOOR_KNOCK8, 0);
@@ -11788,8 +11882,20 @@ void actionOutcome() {
           changeState(0, FOOD_REST6, 0);
           break;
         case FOOD_REST8:
-          // changeState(0, HOME_LOOP, 0);
-          changeState(0, latestMenu, 0);
+          // Meal is done: pay and the eating cards are already finished.
+          postActivityLeave(FOOD_REST);
+          break;
+        case FOOD_COOK2:
+          finishActivity(FOOD_COOK);
+          break;
+        case HEALTH_WASH5:
+          finishActivity(HEALTH_WASH);
+          break;
+        case FLOWERS_MARKET7:
+          finishActivity(FLOWERS_MARKET);
+          break;
+        case HEALTH_ONSEN:
+          finishActivity(HEALTH_ONSEN);
           break;
         case FOOD_ORDER8:
           changeState(0, FOOD_ORDER9, 0);
@@ -11905,14 +12011,10 @@ void manageTrainingStatus() {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       if (addOneMatsuriTicket) {
         addOneMatsuriTicket = false;
+        armPostActivityLeave(trainingLeaveEntry);
         changeState(0, MATSURI_TICKETS, 0);
       } else {
-        if (announceChallengeCompletion) {
-          changeState(0, CHALLENGE_DONE, 0);
-        } else {
-          // changeState(0, HOME_LOOP, 0);
-          changeState(0, latestMenu, 0);
-        }
+        finishActivity(trainingLeaveEntry);
       }
       return;
     }
@@ -12103,8 +12205,8 @@ void cashier() {
       key = M5Cardputer.Keyboard.getKey(keyList[0]);
       overlayActive = false;
       notifyVisitedPlace(PLACE_CONBIMART);
-      // changeState(0, HOME_LOOP, 0);
-      changeState(0, latestMenu, 0);
+      // Cashier dialog is after PAY_SCREEN3 returned here. Not a pay beat.
+      postActivityLeave(FOOD_CONBINI);
     }
   }
   return;
@@ -12213,6 +12315,8 @@ void nekoCafeActivity() {
     if (nekoCafeDrinkTicks >= (selectedSize == 0 ? 30 : 90)) {
       nekoCafeDrinkTicks = 0;
       overlayActive = false;
+      // Seat finished. The welcome loop stays; a later Cafe launch skips the front.
+      lastCompletedEntryState = NEKO_CAFE;
       changeState(0, NEKO_CAFE2, 0);
       return;
     }
@@ -13840,9 +13944,14 @@ void challengeDone() {
           changeState(0, CHALLENGE_DONE3, 0);
           break;
         case CHALLENGE_DONE3:
-          // changeState(0, ACTION_OUTCOME, 0);
-          // changeState(0, HOME_LOOP, 0);
-          changeState(0, latestMenu, 0);
+          // Banner is over. Route only when a finished activity armed the leave.
+          if (deferPostActivityLeave) {
+            postActivityLeave(lastCompletedEntryState);
+          } else {
+            // changeState(0, ACTION_OUTCOME, 0);
+            // changeState(0, HOME_LOOP, 0);
+            changeState(0, latestMenu, 0);
+          }
           break;
         default:
           // changeState(0, HOME_LOOP, 0);
@@ -13978,12 +14087,20 @@ void prepareTravel() {
   // Business entry states flash even on a same-tile hop. A cross-tile ride
   // still flashes the destination front, including home. Conbimart and Neko
   // Cafe are the exception: their scene image is already the front.
+  // skipNextBusinessFront skips that flash once (a redo of the activity just
+  // finished). The ride above is unchanged. Conbimart and Neko keep the flag
+  // for their timed front; any other transition that has no flash clears it.
+  const bool timedFrontEntry =
+      currentState == FOOD_CONBINI || currentState == NEKO_CAFE;
   const bool showFront =
-      currentState != FOOD_CONBINI &&
-      currentState != NEKO_CAFE &&
+      !timedFrontEntry &&
       (showsBusinessFrontOnArrival(currentState) || triggerTravel);
-  if (showFront) {
+  if (skipNextBusinessFront && showFront) {
+    skipNextBusinessFront = false;
+  } else if (showFront) {
     displayBusinessFront();
+  } else if (skipNextBusinessFront && !timedFrontEntry) {
+    skipNextBusinessFront = false;
   }
   return;
 }
