@@ -7404,7 +7404,7 @@ void drawBathStaticLayout() {
 
   // M5Cardputer.Display.fillRect(0, 125, 240, 10, BLACK);
   // drawText("Press ENTER at right temperature", 120, 131, true, WHITE, 1);
-  drawHelper("Press ENTER at right temperature");
+  drawHelper("ENTER: stop   ESC: leave");
 
   M5Cardputer.Display.drawRect(thermometerX, thermometerY, thermometerWidth, thermometerHeight, frameColor);
   M5Cardputer.Display.fillRect(innerX, thermometerY + thermometerInnerPadding, innerWidth, thermometerHeight - thermometerInnerPadding * 2, fillColor);
@@ -7470,6 +7470,13 @@ void startBathGame() {
 
 void manageBathGame() {
   if (!bathGameRunning && bathOutcomeTime == 0) {
+    // NFLOW-09: ESC leaves before the slider starts, same as the other
+    // timed activities. A key held from the health menu is not ESC.
+    if (escapePressed()) {
+      resetBathGame();
+      changeState(0, latestMenu, 0);
+      return;
+    }
     startBathGame();
     return;
   }
@@ -7495,6 +7502,15 @@ void manageBathGame() {
       bathOutcomeCode = 0;
       finalizeBathOutcome("perfect!");
     }
+    return;
+  }
+
+  // NFLOW-09: ESC aborts with no reward, back to the health menu, same as
+  // the library and the training timers. The timeout above still scores
+  // the shower when the 8 seconds run out.
+  if (escapePressed()) {
+    resetBathGame();
+    changeState(0, latestMenu, 0);
     return;
   }
 
