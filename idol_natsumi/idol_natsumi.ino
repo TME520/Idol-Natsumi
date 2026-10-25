@@ -13577,11 +13577,17 @@ void challengeDone() {
 }
 
 void prepareTravel() {
-  // Determines: originTile, targetTile, originLocation and targetLocation
+  // NC-03: ride, and the 1 Energy cost of coming home, only when the
+  // destination tile differs from currentTile. Same tile: no bike, no Energy.
+  // Restaurant = CITY, Conbimart = OUTSKIRTS, kitchen = HOME.
+  // Food activities return to FOOD_MENU (the kitchen). That state has to take
+  // the HOME tile; otherwise currentTile stays CITY or OUTSKIRTS and opening
+  // Cook — also HOME — plays the ride home and spends 1 Energy.
   bool triggerTravel = false;
   unloadAllImages();
   switch (currentState) {
     case HOME_LOOP:
+    case FOOD_MENU:
     case FOOD_COOK: case FOOD_ORDER: case HEALTH_WASH:
     case REST_MEDITATE: case REST_SLEEP: case GARDEN_LOOP:
       targetTile = "HOME";
@@ -13595,7 +13601,7 @@ void prepareTravel() {
         triggerTravel = true;
       }
       break;
-    case FOOD_REST: case FOOD_CONBINI: case NEKO_CAFE:
+    case FOOD_REST: case NEKO_CAFE:
     case TRAIN_SING: case TRAIN_SWIM: case TRAIN_LIBRARY:
     case FLOWERS_MARKET: case HEALTH_DOCTOR: case COMP_LOCAL:
       targetTile = "CITY";
@@ -13605,6 +13611,7 @@ void prepareTravel() {
         triggerTravel = true;
       }
       break;
+    case FOOD_CONBINI:
     case TRAIN_DANCE: case TRAIN_GYM: case MATSURI_TITLE:
       targetTile = "OUTSKIRTS";
       if (currentTile != targetTile) {
@@ -13716,6 +13723,7 @@ void displayBusinessFront() {
   unloadAllImages();
   switch (currentState) {
     case HOME_LOOP:
+    case FOOD_MENU:  // NC-03: kitchen, same HOME tile as Cook
     case FOOD_COOK:
     case FOOD_ORDER:
     case HEALTH_WASH:
