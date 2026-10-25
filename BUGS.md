@@ -3,6 +3,7 @@
 - Repo: TME520/Idol-Natsumi, branch `natsubot/update-19-2` (based on `update-19-2`)
 - File reviewed: `idol_natsumi/idol_natsumi.ino` (13,176 lines), checked against `README.md`. `lab/` ignored.
 - Line numbers refer to the file as reviewed at commit `f3f124f` and may drift as fixes land.
+- Player-facing flow review (stuck screens, travel, overlays, keys): [FLOW.md](FLOW.md). Codes `NFLOW-xx`. Do not renumber `NB-*` / `NT-*` / `NF-*` / `NC-*`.
 
 ## Bug index
 
