@@ -4909,6 +4909,14 @@ void updateAging() {
 // redraw: that card shows the reward, and repainting it armed another save.
 void decayStat(int &value, unsigned long &lastUpdate, unsigned long interval, unsigned long now) {
   if (interval == 0) return;
+  // resetGameState() and a loaded CONTINUE_GAME leave the stamp at 0. That is
+  // not an update time: millis() since boot includes the title screen. Start
+  // the clock now so that gap is not gameplay time. A primed stamp still
+  // catches up every interval of a long sit.
+  if (lastUpdate == 0) {
+    lastUpdate = now;
+    return;
+  }
   unsigned long elapsed = now - lastUpdate;
   if (elapsed < interval) return;
   unsigned long steps = elapsed / interval;
