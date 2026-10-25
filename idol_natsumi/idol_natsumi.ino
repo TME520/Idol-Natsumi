@@ -13169,6 +13169,12 @@ void managePFCGame() {
               pfcCurrentStage += 1;
               l5NeedsRedraw = true;
               break;
+            case 96:
+              // NFLOW-07: the RPS screens already quit home on ESC. These
+              // "press Enter" prompts consumed the key and then ignored it,
+              // so ESC did nothing. Leave the same way.
+              changeState(0, HOME_LOOP, 0);
+              return;
           }
           switch(pfcCurrentStage) {
             case 0:
