@@ -9456,15 +9456,6 @@ bool canMakeRecipeFromFridge(const CookRecipe &recipe) {
   return true;
 }
 
-bool hasCookableRecipe() {
-  for (uint8_t i = 0; i < cookRecipeCount; i++) {
-    if (canMakeRecipeFromFridge(cookRecipes[i])) {
-      return true;
-    }
-  }
-  return false;
-}
-
 bool isCookableRecipeIngredient(FoodId id) {
   for (uint8_t i = 0; i < cookRecipeCount; i++) {
     if (!canMakeRecipeFromFridge(cookRecipes[i])) {
@@ -9497,6 +9488,23 @@ bool recipeContainsCurrentSelection(const CookRecipe &recipe) {
   return true;
 }
 
+// Shared gate for cooking selection. `extra` is usable only when some recipe
+// already contains the current selection, still has room for `extra`, and is
+// fully in stock. A lone Broccoli meal must not qualify Broccoli once Carrot
+// is chosen, and Meat Veggie Plate must not qualify it when Meat is missing.
+bool selectionExtendsToStockedRecipe(const CookRecipe &recipe, FoodId extra) {
+  if (isRecipeItemSelected(extra) || !recipeContainsIngredient(recipe, extra)) {
+    return false;
+  }
+  if (recipe.ingredientCount <= recipeSelectionCount) {
+    return false;
+  }
+  if (!recipeContainsCurrentSelection(recipe)) {
+    return false;
+  }
+  return canMakeRecipeFromFridge(recipe);
+}
+
 bool isPotentialRecipeIngredient(FoodId id) {
   if (isRecipeItemSelected(id)) {
     return false;
@@ -9507,16 +9515,30 @@ bool isPotentialRecipeIngredient(FoodId id) {
     return false;
   }
 
-  if (!hasCookableRecipe()) {
-    return true;
+  for (uint8_t i = 0; i < cookRecipeCount; i++) {
+    if (selectionExtendsToStockedRecipe(cookRecipes[i], id)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// NC-11: the pink mark means "adding this finishes a recipe SPACE can cook".
+// A longer plate that still needs Meat must not light Broccoli after Carrot,
+// and neither Meat nor Broccoli lights until the other is already selected.
+// ENTER still uses isPotentialRecipeIngredient(), so the middle ingredient of
+// a fully stocked 3- or 4-item plate can be added before it is the last one.
+bool isCompletionRecipeIngredient(FoodId id) {
+  if (!isPotentialRecipeIngredient(id)) {
+    return false;
   }
 
   for (uint8_t i = 0; i < cookRecipeCount; i++) {
     const CookRecipe &recipe = cookRecipes[i];
-    if (!canMakeRecipeFromFridge(recipe) || recipe.ingredientCount <= recipeSelectionCount) {
+    if (recipe.ingredientCount != recipeSelectionCount + 1) {
       continue;
     }
-    if (recipeContainsCurrentSelection(recipe) && recipeContainsIngredient(recipe, id)) {
+    if (selectionExtendsToStockedRecipe(recipe, id)) {
       return true;
     }
   }
@@ -9733,7 +9755,7 @@ void drawFoodGrid(const std::vector<FoodDisplayItem> &items, int selectedIndex) 
     int cellY = panelY + headerHeight + padding + row * (cellH + padding);
     bool selected = (static_cast<int>(i) == selectedIndex);
     bool ingredientSelected = isRecipeItemSelected(items[i].id);
-    bool combineCandidate = isPotentialRecipeIngredient(items[i].id);
+    bool combineCandidate = isCompletionRecipeIngredient(items[i].id);
     uint16_t fill = selected ? highlightColor : cellColor;
     uint16_t border = ingredientSelected ? YELLOW : (combineCandidate ? recipeColor : accentColor);
 
