@@ -4062,6 +4062,13 @@ void changeState(int baseLayer, GameState targetState, int delay) {
     Serial.println("> currentState = " + String(gameStateToString(currentState)));
     Serial.println("> targetState = " + String(gameStateToString(targetState)));
     changeStateCounter = 0;
+    // NFLOW-06: this transition and the next screen's key reader run in the
+    // same pass. A mash latched on the last frame of pay, the cooked-food
+    // photo, or a visitor lead-in became "any key → home" and skipped the
+    // charge or the outcome. Drop the edge. The next press is a new one.
+    if (currentState != targetState) {
+      M5Cardputer.Keyboard.isChange();
+    }
     previousState = currentState;
     currentState = targetState;
     debriefEnergyApplied = false;
@@ -5727,8 +5734,25 @@ void displayVersionScreen() {
 void managePayment() {
   // Serial.println("> Entering managePayment()");
   // Apply the transaction once, as soon as the deduction step is entered.
+  // NFLOW-06: the meal and the groceries used to be granted when the player
+  // confirmed, before this charge. Skipping PAY_SCREEN2 then kept both for free.
   if (currentState == PAY_SCREEN2 && changeStateCounter == 0) {
     natsumi.money -= amountToPay;
+    if (returnTo == FOOD_REST5) {
+      natsumi.hunger = 4;
+      outcomeStatGained = natsumi.grace < 4;  // For the outcome screen (+1 or MAX)
+      if (natsumi.grace < 4) {
+        natsumi.grace += 1;
+      }
+    } else if (returnTo == FOOD_CONBINI3) {
+      for (auto &item : conbimartItems) {
+        if (item.stockPtr != nullptr && item.quantity > 0) {
+          *(item.stockPtr) += item.quantity;
+        }
+      }
+      conbimartItems.clear();
+      conbimartInitialized = false;
+    }
     saveRequired = true;
   }
   return;
@@ -12497,15 +12521,9 @@ void gotoConbimart() {
               break;
             }
             if (natsumi.money >= total) {
-              // natsumi.money -= total;
-              for (auto &item : conbimartItems) {
-                *(item.stockPtr) += item.quantity;
-              }
-              conbimartItems.clear();
-              conbimartInitialized = false;
+              // NFLOW-06: keep the basket until managePayment() takes the money.
               overlayActive = false;
               menuEnabled = true;
-              saveRequired = true;
               amountToPay = total;
               returnTo = FOOD_CONBINI3;
               // changeState(0, FOOD_CONBINI3, 0);
@@ -12585,13 +12603,7 @@ void restaurantFoodSelection() {
             case 13: case 40:
               restaurantSelection = 0;
               if (natsumi.money >= 700) {
-                natsumi.hunger = 4;
-                outcomeStatGained = natsumi.grace < 4;  // For the outcome screen (+1 or MAX)
-                if (natsumi.grace < 4) {
-                  natsumi.grace += 1;
-                }
-                saveRequired = true;
-                // isNatsumiHappy = true;
+                // Hunger and grace land with the charge in managePayment().
                 amountToPay = 700;
                 returnTo = FOOD_REST5;
                 changeState(0, PAY_SCREEN, 0);
@@ -12622,13 +12634,7 @@ void restaurantFoodSelection() {
             case 13: case 40:
               restaurantSelection = 1;
               if (natsumi.money >= 800) {
-                natsumi.hunger = 4;
-                outcomeStatGained = natsumi.grace < 4;  // For the outcome screen (+1 or MAX)
-                if (natsumi.grace < 4) {
-                  natsumi.grace += 1;
-                }
-                saveRequired = true;
-                // isNatsumiHappy = true;
+                // Hunger and grace land with the charge in managePayment().
                 amountToPay = 800;
                 returnTo = FOOD_REST5;
                 changeState(0, PAY_SCREEN, 0);
@@ -12659,13 +12665,7 @@ void restaurantFoodSelection() {
             case 13: case 40:
               restaurantSelection = 2;
               if (natsumi.money >= 900) {
-                natsumi.hunger = 4;
-                outcomeStatGained = natsumi.grace < 4;  // For the outcome screen (+1 or MAX)
-                if (natsumi.grace < 4) {
-                  natsumi.grace += 1;
-                }
-                saveRequired = true;
-                // isNatsumiHappy = true;
+                // Hunger and grace land with the charge in managePayment().
                 amountToPay = 900;
                 returnTo = FOOD_REST5;
                 changeState(0, PAY_SCREEN, 0);
