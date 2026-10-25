@@ -888,6 +888,7 @@ int lastOnsenSpiritDisplayed = -1;
 
 unsigned long lastUpdate = 0;
 const int FRAME_DELAY = 50;
+uint32_t inputFrame = 0;  // Counts frames that sampled the keyboard
 unsigned long lastKeyTime = 0;
 const unsigned long keyCooldown = 200;  // milliseconds between accepted presses
 
@@ -3780,6 +3781,7 @@ void loop() {
     return;
   }
   lastUpdate = millis();
+  inputFrame++;
   M5Cardputer.update();
   // Any key press is activity: restart the screensaver/visitor countdown
   if (M5Cardputer.Keyboard.isPressed()) {
@@ -8476,6 +8478,55 @@ uint8_t titleMenuKeyEdge() {
   return edge;
 }
 
+// NFLOW-08: newly pressed gameplay-menu key, or 0. Same matrix walk as
+// titleMenuKeyEdge: slot 0 can be a ghost or a key still held, so the command
+// is whichever in-range key just went down. isChange() stays the gate so a
+// handler that already consumed this frame (the garden, the conbini) keeps
+// the key. The first sample after a gap only records what is already held.
+uint8_t gameplayMenuKeyEdge() {
+  static uint8_t previous[8];
+  static uint8_t previousCount = 0;
+  static uint32_t lastFrame = 0;
+
+  uint8_t current[8];
+  uint8_t currentCount = 0;
+  bool changed = M5Cardputer.Keyboard.isChange();
+  const auto& keys = M5Cardputer.Keyboard.keyList();
+  for (size_t i = 0; i < keys.size() && currentCount < 8; i++) {
+    uint8_t key = cardputerKeyAt(keys[i].x, keys[i].y);
+    if (key == 0) continue;
+    bool seen = false;
+    for (uint8_t j = 0; j < currentCount; j++) {
+      if (current[j] == key) {
+        seen = true;
+        break;
+      }
+    }
+    if (!seen) current[currentCount++] = key;
+  }
+
+  bool adjacent = (inputFrame == lastFrame + 1);
+  lastFrame = inputFrame;
+
+  uint8_t edge = 0;
+  if (adjacent && changed && M5Cardputer.Keyboard.isPressed()) {
+    for (uint8_t i = 0; i < currentCount && edge == 0; i++) {
+      bool wasDown = false;
+      for (uint8_t j = 0; j < previousCount; j++) {
+        if (previous[j] == current[i]) {
+          wasDown = true;
+          break;
+        }
+      }
+      if (!wasDown) edge = current[i];
+    }
+  }
+
+  previousCount = currentCount;
+  for (uint8_t i = 0; i < currentCount; i++) previous[i] = current[i];
+  return edge;
+}
+
 void drawMenu(String menuType, const char* items[], int itemCount, int &selection) {
   // Draw menus on the screen (layer 4)
   // Serial.println("> Entering drawMenu() L4 with menuEnabled set to " + String(menuEnabled));
@@ -8485,12 +8536,9 @@ void drawMenu(String menuType, const char* items[], int itemCount, int &selectio
     bool natsumiTired = false;
     if (menuType == "main") {
       key = titleMenuKeyEdge();
-    } else if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-      auto keyList = M5Cardputer.Keyboard.keyList();
-      if (keyList.size() > 0) {
-        key = M5Cardputer.Keyboard.getKey(keyList[0]);
-      }
-      if (natsumi.energy < 1) {
+    } else {
+      key = gameplayMenuKeyEdge();
+      if (key != 0 && natsumi.energy < 1) {
         natsumiTired = true;
       }
       // Serial.println(">> drawMenu() - KEY: " + String(key));
@@ -11379,14 +11427,11 @@ void cookFood() {
       prepareFoodGrid();
     }
 
-    uint8_t key = 0;
+    uint8_t key = gameplayMenuKeyEdge();
     bool selectionChanged = false;
     int previousPage = foodSelectionIndex / 8;
 
-    if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-      auto keyList = M5Cardputer.Keyboard.keyList();
-      if (keyList.size() > 0) {
-        key = M5Cardputer.Keyboard.getKey(keyList[0]);
+    if (key != 0) {
         // Serial.println(">> [KEY] = " + String(key));
         int currentCol = foodSelectionIndex % 4;
         int currentRow = foodSelectionIndex / 4;
@@ -11456,7 +11501,6 @@ void cookFood() {
             return;
             break;
         }
-      }
     }
 
     if (selectionChanged) {
